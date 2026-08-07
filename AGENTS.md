@@ -107,7 +107,8 @@ After the human approves work, help update:
 - Adding Moon/Mars systems before Earth Starbase feels good.
 - Creating new source files or splitting the single-file game without approval.
 - Pushing or opening PRs without human request.
-- Overwriting history in `IMPLEMENTATION_LOG.md`.
+- Multiple log sections for the same `VERSION` in `IMPLEMENTATION_LOG.md`.
+- Rewriting past versions’ log sections (except typos).
 
 ---
 
