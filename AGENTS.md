@@ -84,7 +84,7 @@ Out-of-scope ideas → offer to append to `FUTURE_FEATURES.md`. Keep the current
 After the human approves work, help update:
 - `VERSION` + README live-release line (when applicable)
 - `FUTURE_FEATURES.md` (remove shipped items; append new open ideas)
-- `IMPLEMENTATION_LOG.md` (new dated section at the bottom — **append only**)
+- `IMPLEMENTATION_LOG.md` (**one section per `VERSION`** — see Log Files Philosophy)
 - `README.md` when understanding of the project changes
 - `archive/MANIFEST.md` when archiving
 
@@ -92,7 +92,7 @@ After the human approves work, help update:
 
 | File | Role | Edit rule |
 |------|------|-----------|
-| **`IMPLEMENTATION_LOG.md`** | History of what shipped / process changes | **Append only.** Never delete past sections. |
+| **`IMPLEMENTATION_LOG.md`** | History of what shipped | **One section per `VERSION` label.** While that version is open, **update that section** (do not add another header for the same version). When a **new** version ships, **append one new section**. Do not rewrite older versions’ sections except for factual typos. |
 | **`FUTURE_FEATURES.md`** | **Active backlog** only | **Remove** items when shipped or dismissed. **Append** new open ideas. |
 
 ## Session & Process Discipline
