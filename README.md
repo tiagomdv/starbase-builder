@@ -49,7 +49,9 @@ Ship history: `IMPLEMENTATION_LOG.md`.
 
 ## Philosophy
 
-- **Start super simple, accumulate.** First playable version uses flat colored shapes. Rendering, animations, and fidelity improve in focused passes.
+- **Simple, quick, realistic, fun.** The finished game should be something you can play through and *enjoy the industrial process* — not an endless 4X.
+- **Showcase industry dynamics.** Factory, bay, pad, propellant, rollout, static fire, failure, refurb — the loop should feel like the real pipeline, simplified but honest.
+- **Start super simple, accumulate.** Flat shapes first; fidelity and systems deepen in focused passes without abandoning compactness.
 - **One focused goal per session / PR.**
 - **Human = Project Manager + final ship decision.**
 - **Observability and clarity** matter more than premature beauty.

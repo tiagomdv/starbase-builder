@@ -286,4 +286,4 @@ This should be treated as a deliberate mid-to-late Phase 0 or Phase 1 capability
 
 ## Project goal (one line)
 
-Build a multi-scale space industry game that starts as pure Starbase base-building satisfaction and grows into a living system of interdependent sites from Earth to Mars — starting simple and accumulating depth, fidelity, and ambition over time.
+Build a **simple, quick, realistic, fun** multi-scale space-industry game: enjoy Starbase’s processes and dynamics first, then grow into interdependent sites (Earth → Moon → Mars) without losing compactness — accumulate depth and fidelity, not grind.
