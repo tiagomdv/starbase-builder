@@ -13,6 +13,7 @@ When something **ships** or is **dismissed**, document it in `IMPLEMENTATION_LOG
 
 ## Guiding principles (locked)
 
+- **Product vision:** Simple, **quick-to-finish**, **realistic and fun** — showcase and let the player **enjoy industry processes and dynamics** (factory → bay → pad → fire/refurb → cadence). Not a sprawling grind-sim.
 - Start **super simple** and accumulate. First playable uses flat / simple 2.5D shapes.
 - Rendering fidelity, animations, and visual quality improve in focused passes over time.
 - Sites **accumulate**. Starbase on Earth stays critical forever.

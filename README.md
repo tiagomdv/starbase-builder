@@ -2,13 +2,15 @@
 
 A **multi-site base-building and operations game** that starts at SpaceX’s Starbase and grows outward — from the muddy Texas coast to orbit, the Moon, and eventually Mars.
 
-**North star:** Watch a real industrial spaceport grow under your hands, launch rockets with increasing cadence, and unlock new layers of existence (orbit, Moon base, Mars base) that all depend on the strength of what you built on Earth.
+**Product vision (locked):** Build a **simple, quick-to-finish** game that stays **realistic and fun** — so players can **enjoy the ride** of this industry’s **processes and dynamics** (factory → hangar → pad → fire/refurb → cadence), not a sprawling grind-sim. Depth comes from honest mechanics and visual cues, not content volume.
+
+**North star (arc):** Watch a real industrial spaceport grow under your hands, raise flight cadence, and unlock layers (orbit → Moon → Mars) that still depend on Earth Starbase — while each phase remains **compact and finishable**.
 
 **Right now:** Phase 0 · Foundations — **`0.1.0-foundation`** playable. Factory builds rockets · Mega Bay houses fleet & refurbs · Pad static-fires (can fail). Steel & propellant from environment.
 
 This project is also a deliberate learning vehicle for:
 - Structured AI-collaboration workflows (same lab discipline as `trait-evolution-sim` and `personal-expense-app`)
-- Incremental development of a complex simulation
+- Incremental development of a focused simulation
 - Using Grok Imagine later as a real asset-generation pipeline inside the project
 
 ---

@@ -66,7 +66,10 @@ Out-of-scope ideas → offer to append to `FUTURE_FEATURES.md`. Keep the current
 
 ## Project Focus
 
-**Thematic arc:** Foundations → Flight → Scale → Power → Cis-lunar → Mars
+**Product vision (locked):** A **simple, quick-to-finish** game that is **realistic and fun** — players enjoy the **processes and dynamics** of the space industry (build → house/stage → pad ops → fire/fail/refurb → cadence). Not a sprawling empire sim; depth from honest mechanics and visual cues.
+
+**Thematic arc:** Foundations → Flight → Scale → Power → Cis-lunar → Mars  
+(Each phase stays compact; the arc expands *where* you operate, not into endless grind.)
 
 | Phase | Name | Focus |
 |-------|------|-------|

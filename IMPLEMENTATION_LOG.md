@@ -24,7 +24,8 @@ History of what **shipped**, keyed by **version**.
 **Version:** `0.1.0-foundation` · first playable
 
 ### Product
-- Compact, finishable game; realism of mechanics / processes / visual cues over sprawl.
+- **Vision (locked in README / AGENTS / FUTURE_FEATURES):** simple, **quick-to-finish**, **realistic and fun** — showcase and enjoy this industry’s **processes and dynamics**, not a sprawling empire sim.
+- Compact, finishable loop; realism of mechanics / processes / visual cues over content volume.
 - **Visual Upgrade Rule:** upgrades change silhouette/footprint/secondary geometry (Pad L1→L2 trench + OLM).
 - Design: `design-docs/0.1.0-foundation-design.html` (HTML only for design-docs).
 - Design docs rule locked in `AGENTS.md`.
