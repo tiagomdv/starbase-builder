@@ -27,8 +27,8 @@ Do not over-engineer early visuals.
   - `VERSION` — one-line live release label
   - `README.md`, `AGENTS.md`, `FUTURE_FEATURES.md`, `IMPLEMENTATION_LOG.md`
   - `archive/` + `archive/MANIFEST.md` — frozen snapshots (never edit archive contents in place)
-  - `design-docs/` — design artifacts (markdown or HTML)
-  - `index.html` — **not yet present**; add only when foundation implementation starts
+  - `design-docs/` — design artifacts (**always `.html`**, never `.md`)
+  - `index.html` — live game (single-file)
 - Keep any future real financial or personal data out of the repo.
 
 ## Versioning Ritual
@@ -50,12 +50,15 @@ Do not over-engineer early visuals.
 
 ### Design Artifact Nomenclature
 
-Design documents in `design-docs/`:
-- `<version>-<codename>-design.md` (or `.html`)
-- Implementation guides: `<version>-<codename>-implementation-guide.md` (or `.html`)
+Design documents in `design-docs/` are **HTML only** (browser-readable, same spirit as the game):
+- `<version>-<codename>-design.html`
+- Implementation guides: `<version>-<codename>-implementation-guide.html`
 
-Examples already explored:
-- `0.0.1-layout-style-design.html` (and later iterations)
+**Do not create `.md` design docs.** Project process docs (`README.md`, `AGENTS.md`, `FUTURE_FEATURES.md`, `IMPLEMENTATION_LOG.md`) stay markdown.
+
+Examples:
+- `0.0.1-layout-aoe-3d.html`
+- `0.1.0-foundation-design.html`
 
 ## Capturing Deferred Ideas
 

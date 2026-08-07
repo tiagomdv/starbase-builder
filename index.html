@@ -1,0 +1,1597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Starbase Builder — 0.1.0-foundation</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --bg: #1c2118; --panel: #2a2218; --border: #5a4830;
+      --text: #e8d9b0; --muted: #a89878; --accent: #d4a84b;
+      --good: #8fbc6a; --bad: #d07060;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; overflow: hidden; }
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+      background: var(--bg); color: var(--text);
+    }
+    .resource-bar {
+      background: linear-gradient(180deg, #3a2e1c 0%, #2a2216 100%);
+      border-bottom: 3px solid #5c4a32;
+    }
+    .ui-panel { background: var(--panel); border: 2px solid var(--border); }
+    .ui-btn {
+      background: #3a2e20; border: 1px solid #6a5638; color: #e8d9b0;
+      transition: background 0.12s, border-color 0.12s, opacity 0.12s;
+    }
+    .ui-btn:hover:not(:disabled) { background: #4a3c28; border-color: #8a7048; }
+    .ui-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .ui-btn.active {
+      background: #4a3c28; border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(212, 168, 75, 0.35);
+    }
+    .ui-btn.good { background: #1a2e14; border-color: #3d6e34; color: var(--good); }
+    .ui-btn.danger { background: #2a1414; border-color: #8a4040; color: #e8a0a0; }
+    #map-wrap { position: relative; min-width: 0; min-height: 0; background: #2d4a28; }
+    #map { display: block; width: 100%; height: 100%; cursor: grab; touch-action: none; }
+    #map.placing { cursor: crosshair; }
+    #map.panning { cursor: grabbing; }
+    #log { font-family: ui-monospace, Menlo, monospace; font-size: 11px; line-height: 1.35; }
+    #log .good { color: var(--good); }
+    #log .warn { color: var(--accent); }
+    #log .bad { color: var(--bad); }
+    #log .info { color: var(--muted); }
+    .swatch {
+      width: 0.85rem; height: 0.85rem; border-radius: 2px;
+      border: 1px solid rgba(0,0,0,0.35); display: inline-block;
+    }
+    .obj-done { color: var(--good); text-decoration: line-through; opacity: 0.85; }
+    .fleet-row {
+      border: 1px solid #5a4830; border-radius: 6px; padding: 0.4rem 0.45rem;
+      margin-bottom: 0.35rem; cursor: pointer; background: #221c14;
+    }
+    .fleet-row:hover { border-color: #8a7048; }
+    .fleet-row.sel { border-color: var(--accent); background: #2e2618; }
+    .fleet-row .meta { color: var(--muted); font-size: 10px; }
+    .bar-track {
+      height: 6px; background: #1a1510; border-radius: 3px; overflow: hidden; margin-top: 4px;
+    }
+    .bar-track > i { display: block; height: 100%; background: linear-gradient(90deg, #6a8a40, #a8c86a); }
+    .bar-track.bad > i { background: linear-gradient(90deg, #8a4040, #d07060); }
+    #event-stage {
+      position: fixed; inset: 0; z-index: 80; display: none; flex-direction: column;
+      background: rgba(8, 10, 12, 0.9); backdrop-filter: blur(4px);
+    }
+    #event-stage.open { display: flex; }
+    #event-stage .event-head {
+      flex-shrink: 0; display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;
+      padding: 0.65rem 1rem; border-bottom: 1px solid var(--border);
+      background: rgba(42, 34, 24, 0.95);
+    }
+    #event-stage .event-head h2 {
+      margin: 0; font-size: 0.95rem; letter-spacing: 0.08em;
+      text-transform: uppercase; color: #f5edd8;
+    }
+    #event-stage .event-phase {
+      font-family: ui-monospace, Menlo, monospace; font-size: 0.8rem; color: var(--accent);
+    }
+    #event-stage .event-phase.fail { color: var(--bad); }
+    #event-stage .event-body {
+      flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 0.5rem;
+    }
+    #event-canvas {
+      width: min(920px, 96vw); height: min(520px, 70vh); max-width: 100%;
+      border: 1px solid var(--border); border-radius: 8px; background: #0a0e14;
+      box-shadow: 0 12px 48px rgba(0,0,0,0.55);
+    }
+    #event-stage .event-foot {
+      flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; gap: 0.75rem;
+      padding: 0.55rem 1rem 0.75rem; border-top: 1px solid var(--border);
+      background: rgba(42, 34, 24, 0.95); font-size: 0.78rem; color: var(--muted);
+    }
+  </style>
+</head>
+<body class="flex flex-col h-full">
+
+  <header class="resource-bar px-3 py-2 flex items-center gap-4 text-sm shrink-0 flex-wrap z-20">
+    <div class="font-bold tracking-wide text-amber-200 text-base">STARBASE</div>
+    <div class="h-5 w-px bg-amber-900/50"></div>
+    <div class="flex items-center gap-4 text-amber-100/90 flex-wrap">
+      <span class="flex items-center gap-1.5" title="Materials from environment / inbound supply">
+        <span class="swatch bg-stone-400"></span>Steel <b id="res-steel" class="text-amber-50 tabular-nums">200</b>
+      </span>
+      <span class="flex items-center gap-1.5" title="Site propellant from environment (no tank farm in foundation)">
+        <span class="swatch bg-cyan-600"></span>Propellant <b id="res-prop" class="text-amber-50 tabular-nums">40</b>
+      </span>
+      <span class="flex items-center gap-1.5">
+        <span class="swatch bg-sky-400"></span>Fleet <b id="res-fleet" class="text-amber-50 tabular-nums">0</b>
+      </span>
+    </div>
+    <div class="ml-auto flex items-center gap-2 text-amber-200/60 text-xs">
+      <span id="day-label">Day 1</span>
+      <button type="button" class="ui-btn rounded px-2 py-0.5 text-xs" id="btn-mute" title="Toggle sound">🔊</button>
+      <span id="ver-label" class="opacity-70">0.1.0-foundation</span>
+    </div>
+  </header>
+
+  <div class="flex flex-1 min-h-0">
+    <aside class="w-44 ui-panel flex flex-col shrink-0 border-y-0 border-l-0">
+      <div class="p-2.5 border-b border-amber-900/40">
+        <div class="text-[10px] uppercase tracking-wider text-amber-600 mb-2">Build site</div>
+        <div class="grid grid-cols-1 gap-1.5" id="build-palette"></div>
+      </div>
+      <div class="p-2.5 text-[11px] text-amber-200/55 leading-snug flex-1">
+        <div class="text-amber-600 uppercase tracking-wider text-[10px] mb-1">Foundation loop</div>
+        <b>Factory</b> builds rockets · <b>Mega Bay</b> houses &amp; refurbs fleet · <b>Pad</b> static-fires.
+        Steel &amp; propellant come from the <b>environment</b> (no tank farm).
+      </div>
+    </aside>
+
+    <div id="map-wrap" class="flex-1"><canvas id="map"></canvas></div>
+
+    <aside class="w-64 ui-panel flex flex-col shrink-0 border-y-0 border-r-0 min-h-0">
+      <div class="p-2.5 border-b border-amber-900/40 flex-1 overflow-y-auto min-h-0">
+        <div class="text-[10px] uppercase tracking-wider text-amber-600 mb-1">Inspector</div>
+        <div id="inspector" class="text-xs text-amber-100/85 space-y-2"></div>
+      </div>
+      <div class="p-2.5 border-b border-amber-900/40 max-h-40 overflow-y-auto">
+        <div class="text-[10px] uppercase tracking-wider text-amber-600 mb-1.5">Fleet</div>
+        <div id="fleet-list" class="text-[11px]"></div>
+      </div>
+      <div class="p-2.5 border-b border-amber-900/40">
+        <div class="text-[10px] uppercase tracking-wider text-amber-600 mb-1.5">Goals</div>
+        <ul id="objectives" class="text-[11px] space-y-1 text-amber-100/80"></ul>
+      </div>
+      <div class="p-2 text-[10px] text-amber-200/40">Drag · zoom · Esc · 🔊</div>
+    </aside>
+  </div>
+
+  <footer class="ui-panel border-x-0 border-b-0 shrink-0">
+    <div id="log" class="px-3 py-1.5 h-14 overflow-y-auto"></div>
+  </footer>
+
+  <div id="event-stage" aria-hidden="true">
+    <div class="event-head">
+      <h2 id="event-title">Ops</h2>
+      <span class="event-phase" id="event-phase">—</span>
+      <div class="ml-auto">
+        <button type="button" class="ui-btn rounded px-3 py-1 text-xs" id="event-skip">Skip</button>
+      </div>
+    </div>
+    <div class="event-body"><canvas id="event-canvas" width="900" height="500"></canvas></div>
+    <div class="event-foot">
+      <span id="event-caption">Static fire · success is not guaranteed</span>
+      <span>Failure → anomaly animation · return to bay for refurb / scrap</span>
+    </div>
+  </div>
+
+  <script>
+(() => {
+  "use strict";
+
+  const VERSION = "0.1.0-foundation";
+  const CELL = 32, MAP_W = 40, MAP_H = 30, MS_PER_DAY = 4000;
+  const ZOOM_MIN = 0.6, ZOOM_MAX = 1.8;
+
+  const TUNING = {
+    START_STEEL: 200,
+    START_PROP: 40,
+    /** Environment: materials + propellant without tank farm */
+    ENV_STEEL_PER_DAY: 6,
+    ENV_PROP_PER_DAY: 8,
+    PROP_CAP: 120,
+    PAD_L2_COST: 40,
+    SF_L2_SUCCESS_BONUS: 0.08,
+    BAY_CAPACITY: 4,
+    ROLLOUT_PX_PER_SEC: 52,
+    ROLLOUT_MIN_SEC: 2.0,
+    ROLLOUT_MAX_SEC: 14,
+    RETURN_PX_PER_SEC: 56,
+  };
+
+  /**
+   * SpaceX-ish roadmap. Static fire can fail (RUD / engine anomaly).
+   * Post-fire vehicles need hangar/bay inspection & refurb — not left “hot” on the pad.
+   */
+  const ROCKET_DEFS = {
+    falcon1: {
+      id: "falcon1",
+      name: "Falcon 1",
+      short: "F1",
+      era: "2006–2009",
+      steelCost: 28,
+      buildDays: 3,
+      sfProp: 8,
+      engines: 1,
+      sfStyle: "merlin_single",
+      mapScale: 0.82,
+      color: "#c8d0d8",
+      /** Base P(success) on a green pad with fresh vehicle */
+      sfSuccess: 0.72,
+      refurbDaysOk: 2,
+      refurbDaysFail: 4,
+      scrapOnFailChance: 0.35,
+      blurb: "First Falcon. Single-engine static fire; early reliability.",
+      sfPhases: { approach: 1.0, chill: 1.0, ignition: 0.85, burn: 1.9, shutdown: 0.75, debrief: 1.0 },
+      unlocked: true,
+    },
+    falcon9: {
+      id: "falcon9",
+      name: "Falcon 9",
+      short: "F9",
+      era: "2010+",
+      steelCost: 52,
+      buildDays: 5,
+      sfProp: 16,
+      engines: 9,
+      sfStyle: "merlin_nine",
+      mapScale: 1.12,
+      color: "#e8eef4",
+      sfSuccess: 0.82,
+      refurbDaysOk: 2,
+      refurbDaysFail: 5,
+      scrapOnFailChance: 0.22,
+      blurb: "Nine-engine first stage. Heavier fire, higher base reliability.",
+      sfPhases: { approach: 1.15, chill: 1.4, ignition: 1.2, burn: 3.2, shutdown: 1.0, debrief: 1.2 },
+      unlocked: true,
+    },
+    falcon_heavy: { id: "falcon_heavy", name: "Falcon Heavy", short: "FH", unlocked: false, blurb: "Later." },
+    starship: { id: "starship", name: "Starship", short: "SS", unlocked: false, blurb: "Later." },
+  };
+
+  const BUILDING_DEFS = {
+    starfactory: {
+      id: "starfactory",
+      name: "Starfactory",
+      short: "Factory",
+      cost: 40,
+      footprint: { w: 4, h: 3 },
+      maxCount: 1,
+      zoneHint: "production",
+      blurb: "Manufactures flight vehicles from steel. Not a steel mill. Holds one vehicle until staged to the bay.",
+    },
+    mega_bay: {
+      id: "mega_bay",
+      name: "Mega Bay",
+      short: "Bay",
+      cost: 50,
+      footprint: { w: 5, h: 3 },
+      maxCount: 1,
+      zoneHint: "production",
+      blurb: "High bay / hangar: house the fleet, stage for pad, and perform post-fire refurb. Real ops keep articles indoors between pad tests.",
+    },
+    pad_orbital: {
+      id: "pad_orbital",
+      name: "Orbital Pad",
+      short: "Pad",
+      cost: 40,
+      footprint: { w: 3, h: 4 },
+      maxCount: 1,
+      zoneHint: "launch",
+      maxLevel: 2,
+      upgradeVisual: { 2: "Widen flame trench & raise OLM" },
+      blurb: "OLM + trench for static fire only. After a fire, vehicle returns to the bay for inspection / refurb.",
+    },
+  };
+
+  const BUILD_ORDER = ["starfactory", "mega_bay", "pad_orbital"];
+
+  // ── Audio (compact) ──
+  const SFX = { ctx: null, master: null, muted: false, lastUi: 0, engine: null };
+  function audioInit() {
+    if (SFX.ctx) { if (SFX.ctx.state === "suspended") SFX.ctx.resume(); return; }
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    SFX.ctx = new AC();
+    SFX.master = SFX.ctx.createGain();
+    SFX.master.gain.value = SFX.muted ? 0 : 0.32;
+    SFX.master.connect(SFX.ctx.destination);
+  }
+  function setMuted(m) {
+    SFX.muted = m;
+    if (SFX.master) SFX.master.gain.value = m ? 0 : 0.32;
+    const btn = document.getElementById("btn-mute");
+    if (btn) btn.textContent = m ? "🔇" : "🔊";
+    try { localStorage.setItem("starbase-mute", m ? "1" : "0"); } catch (_) {}
+  }
+  function tone(freq, dur, type = "sine", vol = 0.12, when = 0, slideTo = null) {
+    if (!SFX.ctx || SFX.muted) return;
+    const t0 = SFX.ctx.currentTime + when;
+    const o = SFX.ctx.createOscillator(), g = SFX.ctx.createGain();
+    o.type = type; o.frequency.setValueAtTime(freq, t0);
+    if (slideTo != null) o.frequency.exponentialRampToValueAtTime(Math.max(20, slideTo), t0 + dur);
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(vol, t0 + 0.015);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    o.connect(g); g.connect(SFX.master); o.start(t0); o.stop(t0 + dur + 0.02);
+  }
+  function noiseBurst(dur, vol = 0.1, when = 0, filterFreq = 800, type = "bandpass") {
+    if (!SFX.ctx || SFX.muted) return;
+    const t0 = SFX.ctx.currentTime + when;
+    const len = Math.max(1, Math.floor(SFX.ctx.sampleRate * dur));
+    const buf = SFX.ctx.createBuffer(1, len, SFX.ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
+    const src = SFX.ctx.createBufferSource(); src.buffer = buf;
+    const filter = SFX.ctx.createBiquadFilter();
+    filter.type = type; filter.frequency.value = filterFreq;
+    const g = SFX.ctx.createGain();
+    g.gain.setValueAtTime(vol, t0);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    src.connect(filter); filter.connect(g); g.connect(SFX.master);
+    src.start(t0); src.stop(t0 + dur + 0.02);
+  }
+  function sfxUi() {
+    if (!SFX.ctx || SFX.muted) return;
+    if (performance.now() - SFX.lastUi < 45) return;
+    SFX.lastUi = performance.now();
+    tone(520, 0.04, "square", 0.03);
+  }
+  function sfxBuild() { audioInit(); tone(180, 0.1, "sawtooth", 0.05); noiseBurst(0.08, 0.04, 0.04, 400, "lowpass"); }
+  function sfxReady() { audioInit(); tone(523, 0.08, "sine", 0.05); tone(659, 0.1, "sine", 0.05, 0.07); }
+  function sfxRoll() { audioInit(); noiseBurst(0.3, 0.05, 0, 200, "lowpass"); }
+  function sfxUp() { audioInit(); tone(330, 0.07, "sine", 0.05); tone(440, 0.1, "sine", 0.05, 0.06); }
+  function sfxOk() { audioInit(); tone(523, 0.1, "sine", 0.05); tone(784, 0.16, "sine", 0.06, 0.12); }
+  function sfxFail() { audioInit(); noiseBurst(0.55, 0.2, 0, 300, "lowpass"); tone(90, 0.4, "sawtooth", 0.08, 0, 40); tone(60, 0.5, "square", 0.05, 0.1, 30); }
+  function sfxErr() { audioInit(); tone(150, 0.12, "sawtooth", 0.05); }
+  function sfxSF(style) {
+    audioInit();
+    const h = style === "merlin_nine";
+    noiseBurst(h ? 0.5 : 0.3, h ? 0.15 : 0.1, 0, 160, "lowpass");
+    tone(h ? 48 : 70, h ? 0.8 : 0.5, "sawtooth", h ? 0.07 : 0.05, 0, 32);
+  }
+  function sfxIgn(style) {
+    audioInit();
+    const h = style === "merlin_nine";
+    noiseBurst(h ? 0.65 : 0.35, h ? 0.17 : 0.1, 0, 140, "lowpass");
+  }
+  function startRumble(style) {
+    stopRumble();
+    if (!SFX.ctx || SFX.muted) return;
+    audioInit();
+    const h = style === "merlin_nine";
+    const len = SFX.ctx.sampleRate * 2;
+    const buf = SFX.ctx.createBuffer(1, len, SFX.ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+    const src = SFX.ctx.createBufferSource(); src.buffer = buf; src.loop = true;
+    const f = SFX.ctx.createBiquadFilter(); f.type = "lowpass"; f.frequency.value = h ? 170 : 260;
+    const g = SFX.ctx.createGain(); g.gain.value = 0.0001;
+    g.gain.exponentialRampToValueAtTime(h ? 0.1 : 0.06, SFX.ctx.currentTime + 0.35);
+    src.connect(f); f.connect(g); g.connect(SFX.master); src.start();
+    SFX.engine = { src, g };
+  }
+  function stopRumble() {
+    if (!SFX.engine || !SFX.ctx) return;
+    try {
+      const t = SFX.ctx.currentTime;
+      SFX.engine.g.gain.cancelScheduledValues(t);
+      SFX.engine.g.gain.setValueAtTime(Math.max(SFX.engine.g.gain.value, 0.0001), t);
+      SFX.engine.g.gain.exponentialRampToValueAtTime(0.0001, t + 0.3);
+      const e = SFX.engine; SFX.engine = null;
+      setTimeout(() => { try { e.src.stop(); } catch (_) {} }, 350);
+    } catch (_) { SFX.engine = null; }
+  }
+
+  // ── State ──
+  // vehicle: { id, name, rocketId, buildingId|null, status, condition, refurbLeft, wx, wy, baySlot }
+  // status: at_factory | in_bay | rolling | on_pad | refurb | destroyed
+  const G = {
+    day: 1, dayAcc: 0,
+    steel: TUNING.START_STEEL,
+    prop: TUNING.START_PROP,
+    buildings: [],
+    fleet: [],
+    factoryJob: null,
+    rollout: null, // { vehicleId, pts, segLens, totalLen, t, duration, destKind: 'pad'|'bay', destId }
+    event: null,
+    nextId: 1,
+    selectedId: null,
+    selectedVehicleId: null,
+    placeType: null,
+    cam: { x: 80, y: 40, zoom: 1 },
+    drag: null,
+    flameUntil: 0,
+    log: [],
+    objectives: {
+      place_all: false,
+      build_rocket: false,
+      multi_bay: false,
+      static_fire: false,
+      refurb: false,
+      pad_l2: false,
+    },
+  };
+
+  const canvas = document.getElementById("map");
+  const ctx = canvas.getContext("2d");
+  const el = {
+    steel: document.getElementById("res-steel"),
+    prop: document.getElementById("res-prop"),
+    fleet: document.getElementById("res-fleet"),
+    day: document.getElementById("day-label"),
+    log: document.getElementById("log"),
+    inspector: document.getElementById("inspector"),
+    objectives: document.getElementById("objectives"),
+    palette: document.getElementById("build-palette"),
+    fleetList: document.getElementById("fleet-list"),
+  };
+
+  function log(msg, kind = "info") {
+    G.log.unshift({ msg, kind });
+    if (G.log.length > 45) G.log.pop();
+    el.log.innerHTML = G.log.slice(0, 12).map((e) => `<div class="${e.kind}">${esc(e.msg)}</div>`).join("");
+  }
+  function esc(s) {
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+  function defOf(t) { return BUILDING_DEFS[t]; }
+  function rocketOf(id) { return ROCKET_DEFS[id] || ROCKET_DEFS.falcon1; }
+  function buildingById(id) { return G.buildings.find((b) => b.id === id) || null; }
+  function buildingOfType(t) { return G.buildings.find((b) => b.type === t) || null; }
+  function countType(t) { return G.buildings.filter((b) => b.type === t).length; }
+  function vehicleById(id) { return G.fleet.find((v) => v.id === id) || null; }
+  function selectedVehicle() { return vehicleById(G.selectedVehicleId); }
+  function liveFleet() { return G.fleet.filter((v) => v.status !== "destroyed"); }
+  function vehiclesAt(buildingId) { return liveFleet().filter((v) => v.buildingId === buildingId); }
+  function bayCount() {
+    const bay = buildingOfType("mega_bay");
+    return bay ? vehiclesAt(bay.id).length : 0;
+  }
+  function factoryHold() {
+    const f = buildingOfType("starfactory");
+    return f ? vehiclesAt(f.id)[0] || null : null;
+  }
+  function padHold() {
+    const p = buildingOfType("pad_orbital");
+    return p ? vehiclesAt(p.id)[0] || null : null;
+  }
+  function cellZone(gx, gy) {
+    if (gx >= 28 && gy >= 20) return "water";
+    if (gy < 12) return "production";
+    if (gy < 16) return "corridor";
+    if (gx < 22) return "launch";
+    return "propellant";
+  }
+  function isWater(gx, gy) { return gx >= 28 && gy >= 20; }
+  function buildingAnchor(b, slot = 0) {
+    const d = defOf(b.type);
+    const baseX = (b.gx + d.footprint.w / 2) * CELL;
+    const baseY = (b.gy + d.footprint.h * 0.42) * CELL;
+    if (b.type === "mega_bay") {
+      const spread = 22;
+      const n = TUNING.BAY_CAPACITY;
+      const i = slot % n;
+      return { x: baseX + (i - (n - 1) / 2) * spread, y: baseY };
+    }
+    return { x: baseX, y: baseY };
+  }
+
+  function canPlace(type, gx, gy) {
+    const def = defOf(type);
+    if (!def) return { ok: false, why: "Unknown" };
+    if (countType(type) >= def.maxCount) return { ok: false, why: `Only one ${def.name}` };
+    const { w, h } = def.footprint;
+    if (gx < 0 || gy < 0 || gx + w > MAP_W || gy + h > MAP_H) return { ok: false, why: "Off map" };
+    for (let y = gy; y < gy + h; y++)
+      for (let x = gx; x < gx + w; x++)
+        if (isWater(x, y)) return { ok: false, why: "Water" };
+    for (const b of G.buildings) {
+      const d = defOf(b.type);
+      if (b.gx < gx + w && b.gx + d.footprint.w > gx && b.gy < gy + h && b.gy + d.footprint.h > gy)
+        return { ok: false, why: "Overlap" };
+    }
+    if (G.steel < def.cost) return { ok: false, why: `Need ${def.cost} steel` };
+    return { ok: true };
+  }
+
+  function placeBuilding(type, gx, gy) {
+    audioInit();
+    const check = canPlace(type, gx, gy);
+    if (!check.ok) { sfxErr(); log(check.why, "bad"); return; }
+    const def = defOf(type);
+    G.steel -= def.cost;
+    G.buildings.push({ id: G.nextId++, type, gx, gy, level: 1 });
+    G.selectedId = G.buildings[G.buildings.length - 1].id;
+    G.placeType = null;
+    canvas.classList.remove("placing");
+    sfxBuild();
+    log(`Built ${def.name} (−${def.cost} steel)`, "good");
+    updateObjectives();
+    renderChrome();
+  }
+
+  function dayTick() {
+    G.day++;
+    G.steel += TUNING.ENV_STEEL_PER_DAY;
+    G.prop = Math.min(TUNING.PROP_CAP, G.prop + TUNING.ENV_PROP_PER_DAY);
+
+    if (G.factoryJob) {
+      G.factoryJob.daysLeft--;
+      if (G.factoryJob.daysLeft <= 0) finishFactoryJob();
+      else log(`Factory: ${rocketOf(G.factoryJob.rocketId).name} — ${G.factoryJob.daysLeft}d left`, "info");
+    }
+
+    for (const v of liveFleet()) {
+      if (v.status === "refurb" && v.refurbLeft > 0) {
+        v.refurbLeft--;
+        if (v.refurbLeft <= 0) {
+          v.status = "in_bay";
+          v.condition = Math.min(100, v.condition + 25);
+          sfxReady();
+          log(`${v.name} refurb complete in Mega Bay — ready`, "good");
+          G.objectives.refurb = true;
+        }
+      }
+    }
+    renderChrome();
+  }
+
+  function finishFactoryJob() {
+    const job = G.factoryJob;
+    const factory = buildingOfType("starfactory");
+    G.factoryJob = null;
+    if (!job || !factory) return;
+    if (factoryHold()) {
+      log("Factory hold full — job lost (should not happen)", "bad");
+      return;
+    }
+    const r = rocketOf(job.rocketId);
+    const n = liveFleet().filter((v) => v.rocketId === r.id).length + 1;
+    const a = buildingAnchor(factory);
+    const v = {
+      id: G.nextId++,
+      name: `${r.short}-${n}`,
+      rocketId: r.id,
+      buildingId: factory.id,
+      status: "at_factory",
+      condition: 100,
+      refurbLeft: 0,
+      baySlot: 0,
+      wx: a.x, wy: a.y,
+    };
+    G.fleet.push(v);
+    G.selectedVehicleId = v.id;
+    sfxReady();
+    log(`${v.name} complete at Starfactory — stage into Mega Bay`, "good");
+    G.objectives.build_rocket = true;
+    updateObjectives();
+    renderChrome();
+  }
+
+  function startBuildRocket(rocketId) {
+    audioInit();
+    const r = rocketOf(rocketId);
+    if (!r.unlocked) { sfxErr(); log("Not on roadmap yet", "warn"); return; }
+    const factory = buildingById(G.selectedId);
+    if (!factory || factory.type !== "starfactory") { log("Select Starfactory", "warn"); return; }
+    if (G.factoryJob) { sfxErr(); log("Factory already building", "warn"); return; }
+    if (factoryHold()) { sfxErr(); log("Move finished vehicle to Mega Bay first (factory hold is 1)", "warn"); return; }
+    if (G.event || G.rollout) { log("Ops busy", "warn"); return; }
+    if (G.steel < r.steelCost) { sfxErr(); log(`Need ${r.steelCost} steel`, "bad"); return; }
+    G.steel -= r.steelCost;
+    G.factoryJob = { rocketId: r.id, daysLeft: r.buildDays, totalDays: r.buildDays };
+    sfxBuild();
+    log(`Factory: ${r.name} started (−${r.steelCost} steel · ${r.buildDays} days)`, "good");
+    renderChrome();
+  }
+
+  function stageToBay(vehicleId) {
+    audioInit();
+    const bay = buildingOfType("mega_bay");
+    if (!bay) { sfxErr(); log("Need Mega Bay", "bad"); return; }
+    const v = vehicleById(vehicleId || G.selectedVehicleId);
+    if (!v || v.status !== "at_factory") { sfxErr(); log("Select a finished vehicle at the factory", "warn"); return; }
+    if (bayCount() >= TUNING.BAY_CAPACITY) {
+      sfxErr();
+      log(`Mega Bay full (${TUNING.BAY_CAPACITY} articles). Real hangars are capacity-limited.`, "bad");
+      return;
+    }
+    if (G.event || G.rollout) { log("Ops busy", "warn"); return; }
+    // assign bay slot
+    const used = new Set(vehiclesAt(bay.id).map((x) => x.baySlot));
+    let slot = 0;
+    while (used.has(slot) && slot < TUNING.BAY_CAPACITY) slot++;
+    v.buildingId = bay.id;
+    v.status = "in_bay";
+    v.baySlot = slot;
+    const a = buildingAnchor(bay, slot);
+    v.wx = a.x; v.wy = a.y;
+    G.selectedVehicleId = v.id;
+    sfxBuild();
+    log(`${v.name} staged in Mega Bay (slot ${slot + 1}/${TUNING.BAY_CAPACITY})`, "good");
+    if (bayCount() >= 2) G.objectives.multi_bay = true;
+    updateObjectives();
+    renderChrome();
+  }
+
+  function pathMetrics(pts) {
+    const segLens = [];
+    let total = 0;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const len = Math.hypot(pts[i + 1].x - pts[i].x, pts[i + 1].y - pts[i].y);
+      segLens.push(len); total += len;
+    }
+    return { segLens, totalLen: Math.max(total, 1) };
+  }
+  function pointAlong(pts, segLens, totalLen, u) {
+    let dist = clamp(u, 0, 1) * totalLen;
+    for (let i = 0; i < segLens.length; i++) {
+      if (dist <= segLens[i] || i === segLens.length - 1) {
+        const t = segLens[i] < 1e-6 ? 1 : dist / segLens[i];
+        return {
+          x: pts[i].x + (pts[i + 1].x - pts[i].x) * t,
+          y: pts[i].y + (pts[i + 1].y - pts[i].y) * t,
+        };
+      }
+      dist -= segLens[i];
+    }
+    return pts[pts.length - 1];
+  }
+  function roadPath(from, to) {
+    const roadY = 14 * CELL;
+    const pts = [{ x: from.x, y: from.y }];
+    if (Math.abs(from.y - roadY) > 8) pts.push({ x: from.x, y: roadY });
+    if (Math.abs(from.x - to.x) > 8) pts.push({ x: to.x, y: roadY });
+    pts.push({ x: to.x, y: to.y });
+    const clean = [pts[0]];
+    for (let i = 1; i < pts.length; i++) {
+      const p = pts[i], q = clean[clean.length - 1];
+      if (Math.hypot(p.x - q.x, p.y - q.y) > 1) clean.push(p);
+    }
+    return clean;
+  }
+
+  function startRoll(vehicleId, destKind) {
+    audioInit();
+    const v = vehicleById(vehicleId || G.selectedVehicleId);
+    if (!v) { sfxErr(); log("Select a vehicle", "warn"); return; }
+    if (G.rollout || G.event) { log("Transport busy", "warn"); return; }
+    const pad = buildingOfType("pad_orbital");
+    const bay = buildingOfType("mega_bay");
+    if (!pad || !bay) { sfxErr(); log("Need bay and pad", "bad"); return; }
+
+    let fromB, toB, destStatus, speed;
+    if (destKind === "pad") {
+      if (v.status !== "in_bay") { sfxErr(); log("Only bay-ready vehicles roll to pad", "warn"); return; }
+      if (padHold()) { sfxErr(); log("Pad occupied — one stack on OLM", "warn"); return; }
+      fromB = bay; toB = pad; destStatus = "on_pad"; speed = TUNING.ROLLOUT_PX_PER_SEC;
+    } else if (destKind === "bay") {
+      if (v.status !== "on_pad" && v.status !== "needs_return") {
+        sfxErr(); log("Return to bay from pad after fire", "warn"); return;
+      }
+      if (bayCount() >= TUNING.BAY_CAPACITY && v.buildingId !== bay.id) {
+        sfxErr(); log("Bay full — cannot return yet", "bad"); return;
+      }
+      fromB = pad; toB = bay; destStatus = "refurb"; speed = TUNING.RETURN_PX_PER_SEC;
+    } else return;
+
+    const fromA = v.buildingId === fromB.id
+      ? { x: v.wx, y: v.wy }
+      : buildingAnchor(fromB, v.baySlot || 0);
+    let slot = v.baySlot || 0;
+    if (destKind === "bay") {
+      const used = new Set(vehiclesAt(bay.id).filter((x) => x.id !== v.id).map((x) => x.baySlot));
+      slot = 0;
+      while (used.has(slot) && slot < TUNING.BAY_CAPACITY) slot++;
+      v.baySlot = slot;
+    }
+    const toA = buildingAnchor(toB, destKind === "bay" ? slot : 0);
+    const pts = roadPath(fromA, toA);
+    const { segLens, totalLen } = pathMetrics(pts);
+    let duration = totalLen / speed;
+    duration = clamp(duration, TUNING.ROLLOUT_MIN_SEC, TUNING.ROLLOUT_MAX_SEC);
+
+    v.buildingId = null;
+    v.status = "rolling";
+    v.wx = pts[0].x; v.wy = pts[0].y;
+    G.rollout = {
+      vehicleId: v.id, pts, segLens, totalLen, t: 0, duration,
+      destKind, destId: toB.id, destStatus, baySlot: slot,
+    };
+    sfxRoll();
+    log(
+      `${v.name} ${destKind === "pad" ? "rollout to pad" : "return to bay"} · ${duration.toFixed(1)}s`,
+      "info"
+    );
+    renderChrome();
+  }
+
+  function updateRollout(dt) {
+    if (!G.rollout) return;
+    const r = G.rollout;
+    const v = vehicleById(r.vehicleId);
+    if (!v) { G.rollout = null; return; }
+    r.t += dt;
+    const u = clamp(r.t / r.duration, 0, 1);
+    const p = pointAlong(r.pts, r.segLens, r.totalLen, u);
+    v.wx = p.x; v.wy = p.y;
+    if (u >= 1) {
+      v.buildingId = r.destId;
+      v.status = r.destStatus;
+      v.baySlot = r.baySlot || 0;
+      const b = buildingById(r.destId);
+      const a = buildingAnchor(b, v.baySlot);
+      v.wx = a.x; v.wy = a.y;
+      if (r.destStatus === "refurb") {
+        // refurb days already set at end of SF
+        if (v.refurbLeft <= 0) {
+          v.status = "in_bay";
+        }
+        log(`${v.name} in Mega Bay for post-fire refurb (${v.refurbLeft}d)`, "warn");
+      } else {
+        log(`${v.name} on pad — static fire when ready`, "good");
+      }
+      G.rollout = null;
+      sfxReady();
+      updateObjectives();
+      renderChrome();
+    }
+  }
+
+  function sfSuccessChance(v, pad) {
+    const r = rocketOf(v.rocketId);
+    let p = r.sfSuccess;
+    p *= 0.55 + 0.45 * (v.condition / 100);
+    if (pad.level >= 2) p += TUNING.SF_L2_SUCCESS_BONUS;
+    return clamp(p, 0.08, 0.96);
+  }
+
+  function staticFire() {
+    audioInit();
+    const pad = buildingOfType("pad_orbital");
+    if (!pad) { sfxErr(); log("Need pad", "bad"); return; }
+    const v = padHold();
+    if (!v || v.status !== "on_pad") { sfxErr(); log("Need a vehicle on the pad", "bad"); return; }
+    if (G.event || G.rollout) { log("Busy", "warn"); return; }
+    const r = rocketOf(v.rocketId);
+    const mult = pad.level >= 2 ? 0.9 : 1;
+    const need = Math.ceil(r.sfProp * mult);
+    if (G.prop < need) { sfxErr(); log(`Need ${need} propellant (environment stock)`, "bad"); return; }
+    G.prop -= need;
+    const chance = sfSuccessChance(v, pad);
+    const success = Math.random() < chance;
+    log(
+      `STATIC FIRE · ${v.name} · P(success) ${(chance * 100).toFixed(0)}% · −${need} prop`,
+      "info"
+    );
+    startEventSF(v, pad, r, need, success, chance);
+    renderChrome();
+  }
+
+  // ── Close-up event ──
+  const eventStage = document.getElementById("event-stage");
+  const eventCanvas = document.getElementById("event-canvas");
+  const ectx = eventCanvas.getContext("2d");
+  const elEvent = {
+    title: document.getElementById("event-title"),
+    phase: document.getElementById("event-phase"),
+    caption: document.getElementById("event-caption"),
+    skip: document.getElementById("event-skip"),
+  };
+
+  function startEventSF(v, pad, r, spent, success, chance) {
+    const ph = r.sfPhases;
+    const phases = success
+      ? [
+          { id: "approach", label: "Camera · approach", dur: ph.approach },
+          { id: "chill", label: "Engine chill", dur: ph.chill },
+          { id: "ignition", label: r.engines === 9 ? "9-engine ignition" : "Ignition", dur: ph.ignition },
+          { id: "burn", label: "Full burn", dur: ph.burn },
+          { id: "shutdown", label: "Shutdown", dur: ph.shutdown },
+          { id: "debrief", label: "Stable · hold-downs OK", dur: ph.debrief },
+        ]
+      : [
+          { id: "approach", label: "Camera · approach", dur: ph.approach * 0.9 },
+          { id: "chill", label: "Engine chill", dur: ph.chill * 0.85 },
+          { id: "ignition", label: "Ignition", dur: ph.ignition },
+          { id: "anomaly", label: "ANOMALY · RUD / engine fail", dur: 1.6 },
+          { id: "fail", label: "Range safe · vehicle compromised", dur: 1.4 },
+        ];
+    G.event = {
+      kind: "static_fire",
+      vehicleId: v.id,
+      rocketId: r.id,
+      sfStyle: r.sfStyle,
+      padLevel: pad.level,
+      success,
+      chance,
+      spent,
+      t: 0, phaseIdx: 0, phaseT: 0,
+      phases,
+      done: false,
+      particles: [],
+      _ign: false, _rumble: false, _failSfx: false,
+    };
+    G.flameUntil = performance.now() + (success ? 1000 : 1600);
+    sfxSF(r.sfStyle);
+    elEvent.phase.classList.remove("fail");
+    openEvent(
+      `Static fire · ${v.name}`,
+      phases[0].label,
+      `${r.name} · P(ok) ${(chance * 100).toFixed(0)}% · prop from environment`
+    );
+  }
+
+  function openEvent(title, phase, cap) {
+    elEvent.title.textContent = title;
+    elEvent.phase.textContent = phase;
+    elEvent.caption.textContent = cap;
+    eventStage.classList.add("open");
+    eventStage.setAttribute("aria-hidden", "false");
+    resizeEventCanvas();
+  }
+  function closeEvent() {
+    eventStage.classList.remove("open");
+    eventStage.setAttribute("aria-hidden", "true");
+    stopRumble();
+  }
+
+  function applySfOutcome() {
+    const ev = G.event;
+    if (!ev) return;
+    const v = vehicleById(ev.vehicleId);
+    const r = rocketOf(ev.rocketId);
+    if (!v) return;
+    G.objectives.static_fire = true; // attempted fire (success or fail)
+    if (ev.success) {
+      v.condition = Math.max(15, v.condition - 18 - Math.floor(Math.random() * 10));
+      v.refurbLeft = r.refurbDaysOk;
+      v.status = "needs_return";
+      sfxOk();
+      log(`${v.name} SF OK — return to Mega Bay for inspection/refurb (${r.refurbDaysOk}d)`, "good");
+      log("Realistic: pad is not a hangar. Refurb happens in the bay.", "info");
+    } else {
+      // failure: scrap or heavy refurb
+      if (Math.random() < r.scrapOnFailChance) {
+        v.status = "destroyed";
+        v.buildingId = null;
+        v.condition = 0;
+        sfxFail();
+        log(`${v.name} lost in static-fire anomaly (RUD) — scrap`, "bad");
+      } else {
+        v.condition = Math.max(5, v.condition - 45);
+        v.refurbLeft = r.refurbDaysFail;
+        v.status = "needs_return";
+        sfxFail();
+        log(`${v.name} SF failed — heavy damage · return to bay for ${r.refurbDaysFail}d refurb`, "bad");
+      }
+    }
+  }
+
+  function finishEvent() {
+    if (!G.event) return;
+    applySfOutcome();
+    G.event = null;
+    closeEvent();
+    updateObjectives();
+    renderChrome();
+  }
+
+  function skipEvent() {
+    if (!G.event) { closeEvent(); return; }
+    stopRumble();
+    G.event.done = true;
+    finishEvent();
+  }
+  elEvent.skip.addEventListener("click", skipEvent);
+
+  function resizeEventCanvas() {
+    const d = Math.min(window.devicePixelRatio || 1, 2);
+    const rect = eventCanvas.getBoundingClientRect();
+    const w = Math.max(320, Math.floor(rect.width));
+    const h = Math.max(200, Math.floor(rect.height));
+    eventCanvas.width = w * d; eventCanvas.height = h * d;
+    ectx.setTransform(d, 0, 0, d, 0, 0);
+    G._ew = w; G._eh = h;
+  }
+
+  function updateEvent(dt) {
+    const ev = G.event;
+    if (!ev) return;
+    ev.t += dt; ev.phaseT += dt;
+    const phase = ev.phases[ev.phaseIdx];
+    const pid = phase ? phase.id : "debrief";
+
+    if ((pid === "ignition" || pid === "burn") && !ev._ign) {
+      ev._ign = true; sfxIgn(ev.sfStyle);
+    }
+    if ((pid === "ignition" || pid === "burn") && !ev._rumble) {
+      ev._rumble = true; startRumble(ev.sfStyle);
+    }
+    if ((pid === "anomaly" || pid === "fail" || pid === "shutdown" || pid === "debrief") && ev._rumble) {
+      stopRumble(); ev._rumble = false;
+    }
+    if ((pid === "anomaly" || pid === "fail") && !ev._failSfx) {
+      ev._failSfx = true; sfxFail();
+      elEvent.phase.classList.add("fail");
+    }
+
+    if (!ev.done && phase && ev.phaseT >= phase.dur) {
+      ev.phaseT = 0;
+      ev.phaseIdx++;
+      if (ev.phaseIdx >= ev.phases.length) {
+        ev.done = true;
+        ev.phaseIdx = ev.phases.length - 1;
+        elEvent.phase.textContent = ev.phases[ev.phaseIdx].label;
+        const snap = ev;
+        setTimeout(() => { if (G.event === snap) finishEvent(); }, 450);
+      } else {
+        elEvent.phase.textContent = ev.phases[ev.phaseIdx].label;
+        if (ev.phases[ev.phaseIdx].id === "anomaly" || ev.phases[ev.phaseIdx].id === "fail")
+          elEvent.phase.classList.add("fail");
+      }
+    }
+
+    const rate = pid === "anomaly" ? 14 : (ev.sfStyle === "merlin_nine" ? 5 : 2);
+    if (pid === "ignition" || pid === "burn" || pid === "anomaly") {
+      for (let i = 0; i < rate; i++) {
+        ev.particles.push({
+          x: (Math.random() - 0.5) * (pid === "anomaly" ? 90 : 50),
+          y: pid === "anomaly" ? -20 - Math.random() * 40 : 0,
+          vx: (Math.random() - 0.5) * (pid === "anomaly" ? 120 : 40),
+          vy: pid === "anomaly" ? -40 - Math.random() * 80 : 50 + Math.random() * 80,
+          life: 0.25 + Math.random() * 0.5,
+          r: 3 + Math.random() * 8,
+          hot: Math.random() > 0.3,
+        });
+      }
+    }
+    for (const p of ev.particles) {
+      p.life -= dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += (pid === "anomaly" ? 20 : 50) * dt;
+    }
+    ev.particles = ev.particles.filter((p) => p.life > 0);
+    drawEvent();
+  }
+
+  function drawEvent() {
+    const ev = G.event;
+    if (!ev) return;
+    const W = G._ew || 900, H = G._eh || 500;
+    const r = rocketOf(ev.rocketId);
+    ectx.clearRect(0, 0, W, H);
+    const g = ectx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, "#152030"); g.addColorStop(0.55, "#2a3848"); g.addColorStop(1, "#3a4840");
+    ectx.fillStyle = g; ectx.fillRect(0, 0, W, H);
+
+    const cx = W * 0.5, groundY = H * 0.78;
+    const phase = ev.phases[ev.phaseIdx];
+    const pid = phase ? phase.id : "debrief";
+    const zoom = pid === "approach" ? 0.85 + 0.15 * clamp(ev.phaseT / 1, 0, 1) : 1;
+
+    ectx.fillStyle = "#4a453c"; ectx.fillRect(0, groundY, W, H - groundY);
+    const trenchW = (ev.padLevel >= 2 ? 150 : 95) * zoom;
+    ectx.fillStyle = "#1a1a20";
+    ectx.fillRect(cx - trenchW / 2, groundY + 6, trenchW, 28 * zoom);
+    const olmH = (ev.padLevel >= 2 ? 70 : 48) * zoom;
+    ectx.fillStyle = "#9aa0a8";
+    ectx.fillRect(cx - 18 * zoom, groundY - olmH, 36 * zoom, olmH);
+
+    const base = groundY - olmH;
+    const broken = pid === "anomaly" || pid === "fail" || (!ev.success && ev.done);
+    drawCloseupRocket(ectx, cx, base, zoom, r, pid, broken, ev);
+
+    if (pid === "chill" || pid === "ignition" || pid === "burn" || pid === "shutdown") {
+      drawPlume(ectx, cx, base + 4, zoom, r, pid, ev, 1);
+    }
+    if (pid === "anomaly") {
+      drawPlume(ectx, cx, base + 4, zoom, r, pid, ev, 1.4);
+      // fireball
+      ectx.fillStyle = "rgba(255,120,40,0.55)";
+      ectx.beginPath();
+      ectx.arc(cx + Math.sin(ev.t * 20) * 8, base - 40, 50 + Math.sin(ev.t * 15) * 10, 0, Math.PI * 2);
+      ectx.fill();
+      ectx.fillStyle = "rgba(255,200,80,0.4)";
+      ectx.beginPath();
+      ectx.arc(cx, base - 55, 28, 0, Math.PI * 2);
+      ectx.fill();
+    }
+
+    for (const p of ev.particles) {
+      ectx.globalAlpha = clamp(p.life * 2, 0, 1);
+      ectx.fillStyle = p.hot ? "#ff9a3a" : "#ffcc66";
+      ectx.beginPath();
+      ectx.arc(cx + p.x, base + 10 + p.y, p.r, 0, Math.PI * 2);
+      ectx.fill();
+      ectx.globalAlpha = 1;
+    }
+
+    ectx.fillStyle = "rgba(0,0,0,0.5)";
+    ectx.fillRect(12, 12, 260, 58);
+    ectx.fillStyle = "#e8d9b0";
+    ectx.font = "600 13px system-ui";
+    ectx.fillText(rocketOf(ev.rocketId).name.toUpperCase(), 22, 32);
+    ectx.font = "11px ui-monospace, monospace";
+    ectx.fillStyle = ev.success || pid === "approach" || pid === "chill" ? "#d4a84b" : "#e08070";
+    ectx.fillText(`P(ok) ${(ev.chance * 100).toFixed(0)}% · ${pid.toUpperCase()}`, 22, 50);
+
+    ectx.fillStyle = "rgba(0,0,0,0.5)";
+    ectx.fillRect(W - 160, 12, 148, 40);
+    ectx.fillStyle = "#8fbc6a";
+    ectx.font = "11px ui-monospace, monospace";
+    ectx.fillText(`PROP −${ev.spent}`, W - 148, 36);
+
+    if (pid === "debrief" && ev.success) {
+      ectx.fillStyle = "rgba(20,40,24,0.8)";
+      ectx.fillRect(W / 2 - 120, 22, 240, 36);
+      ectx.fillStyle = "#8fbc6a"; ectx.font = "600 14px system-ui"; ectx.textAlign = "center";
+      ectx.fillText("ENGINES STABLE", W / 2, 46); ectx.textAlign = "left";
+    }
+    if (pid === "fail" || (broken && pid === "anomaly" && ev.phaseT > 0.8)) {
+      ectx.fillStyle = "rgba(50,16,16,0.85)";
+      ectx.fillRect(W / 2 - 130, 22, 260, 36);
+      ectx.fillStyle = "#e07070"; ectx.font = "600 14px system-ui"; ectx.textAlign = "center";
+      ectx.fillText("STATIC FIRE FAILURE", W / 2, 46); ectx.textAlign = "left";
+    }
+  }
+
+  function drawCloseupRocket(c, cx, baseY, zoom, r, pid, broken, ev) {
+    const nine = r.sfStyle === "merlin_nine";
+    const scale = (nine ? 1.18 : 0.95) * zoom;
+    const bw = (nine ? 32 : 22) * scale;
+    const bh = (nine ? 120 : 85) * scale;
+    const shipH = (nine ? 95 : 68) * scale;
+    const tilt = broken ? Math.sin(ev.t * 8) * 0.15 + 0.2 : 0;
+    c.save();
+    c.translate(cx, baseY);
+    c.rotate(tilt);
+    c.translate(-cx, -baseY);
+    const x = cx - bw / 2;
+    const yBoost = baseY - bh;
+    const yShip = yBoost - shipH;
+    if (broken && pid === "fail") {
+      // debris-ish short stack
+      c.fillStyle = "#666";
+      c.fillRect(x + 4, yBoost + bh * 0.4, bw - 8, bh * 0.35);
+    } else {
+      c.fillStyle = r.color;
+      c.fillRect(x + 3, yShip, bw - 6, shipH);
+      c.beginPath();
+      c.moveTo(cx, yShip - 20 * scale);
+      c.lineTo(x + 3, yShip); c.lineTo(x + bw - 3, yShip); c.closePath();
+      c.fill();
+      c.fillStyle = nine ? "#e4eaf0" : "#c5ccd4";
+      c.fillRect(x, yBoost, bw, bh);
+      c.fillStyle = "#3a4048";
+      if (nine) {
+        for (let row = 0; row < 3; row++)
+          for (let col = 0; col < 3; col++) {
+            c.beginPath();
+            c.arc(cx + (col - 1) * 11 * scale, baseY - 2, 4 * scale, 0, Math.PI * 2);
+            c.fill();
+          }
+      } else {
+        c.beginPath(); c.arc(cx, baseY - 2, 6 * scale, 0, Math.PI * 2); c.fill();
+      }
+    }
+    c.restore();
+  }
+
+  function drawPlume(c, cx, baseY, zoom, r, pid, ev, mult) {
+    const nine = r.sfStyle === "merlin_nine";
+    const intensity = pid === "chill" ? 0.2 : pid === "ignition" ? 0.7 : pid === "shutdown" ? 0.3 : 1;
+    const n = Math.floor((nine ? 14 : 7) * intensity * mult) + 2;
+    for (let i = 0; i < n; i++) {
+      const ox = Math.sin(ev.t * 11 + i) * (nine ? 26 : 12) * zoom * intensity;
+      const h = (18 + (i % 5) * 10) * zoom * intensity * mult;
+      const grad = c.createLinearGradient(cx, baseY, cx, baseY + h + 40);
+      grad.addColorStop(0, `rgba(255,220,120,${0.9 * intensity})`);
+      grad.addColorStop(0.4, `rgba(255,100,30,${0.75 * intensity})`);
+      grad.addColorStop(1, "rgba(40,40,40,0)");
+      c.fillStyle = grad;
+      c.beginPath();
+      c.moveTo(cx + ox - 7 * zoom, baseY);
+      c.lineTo(cx + ox, baseY + h + 20);
+      c.lineTo(cx + ox + 7 * zoom, baseY);
+      c.fill();
+    }
+  }
+
+  function upgradePad() {
+    audioInit();
+    const pad = buildingById(G.selectedId);
+    if (!pad || pad.type !== "pad_orbital") return;
+    if (pad.level >= 2) { log("Pad already L2", "info"); return; }
+    if (G.steel < TUNING.PAD_L2_COST) { sfxErr(); log(`Need ${TUNING.PAD_L2_COST} steel`, "bad"); return; }
+    G.steel -= TUNING.PAD_L2_COST;
+    pad.level = 2;
+    sfxUp();
+    log("Pad L2 — wider trench, taller OLM, +SF reliability", "good");
+    updateObjectives();
+    renderChrome();
+  }
+
+  function updateObjectives() {
+    G.objectives.place_all = BUILD_ORDER.every((t) => countType(t) >= 1);
+    if (liveFleet().length) G.objectives.build_rocket = true;
+    if (bayCount() >= 2) G.objectives.multi_bay = true;
+    const pad = buildingOfType("pad_orbital");
+    G.objectives.pad_l2 = !!(pad && pad.level >= 2);
+    renderObjectives();
+  }
+
+  // ── Chrome ──
+  function renderResources() {
+    el.steel.textContent = Math.floor(G.steel);
+    el.prop.textContent = Math.floor(G.prop);
+    el.fleet.textContent = liveFleet().length;
+    el.day.textContent = "Day " + G.day;
+  }
+
+  function renderPalette() {
+    el.palette.innerHTML = BUILD_ORDER.map((type) => {
+      const d = defOf(type);
+      const maxed = countType(type) >= d.maxCount;
+      const active = G.placeType === type;
+      return `<button type="button" class="ui-btn rounded p-2 text-left text-[11px] w-full ${active ? "active" : ""}" data-build="${type}" ${maxed ? "disabled" : ""}>
+        <div class="font-semibold text-amber-100">${esc(d.short)}</div>
+        <div class="text-amber-200/50">${d.cost} steel</div>
+      </button>`;
+    }).join("");
+    el.palette.querySelectorAll("[data-build]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        audioInit(); sfxUi();
+        const type = btn.getAttribute("data-build");
+        G.placeType = G.placeType === type ? null : type;
+        canvas.classList.toggle("placing", !!G.placeType);
+        if (G.placeType) log(`Placing ${defOf(type).name}`, "info");
+        renderPalette(); renderInspector();
+      });
+    });
+  }
+
+  function renderFleetList() {
+    const list = liveFleet();
+    if (!list.length) {
+      el.fleetList.innerHTML = `<p class="text-amber-200/45">No vehicles yet. Build at Starfactory.</p>`;
+      return;
+    }
+    el.fleetList.innerHTML = list.map((v) => {
+      const r = rocketOf(v.rocketId);
+      const sel = v.id === G.selectedVehicleId ? "sel" : "";
+      let loc = v.status;
+      if (v.status === "in_bay") loc = `bay slot ${(v.baySlot || 0) + 1}`;
+      if (v.status === "at_factory") loc = "factory hold";
+      if (v.status === "on_pad" || v.status === "needs_return") loc = "pad";
+      if (v.status === "refurb") loc = `bay refurb ${v.refurbLeft}d`;
+      if (v.status === "rolling") loc = "on road";
+      return `<div class="fleet-row ${sel}" data-vid="${v.id}">
+        <div class="font-semibold text-amber-100">${esc(v.name)} <span class="text-amber-200/50">${esc(r.short)}</span></div>
+        <div class="meta">${esc(loc)} · cond ${Math.round(v.condition)}%</div>
+      </div>`;
+    }).join("");
+    el.fleetList.querySelectorAll("[data-vid]").forEach((row) => {
+      row.addEventListener("click", () => {
+        sfxUi();
+        G.selectedVehicleId = +row.getAttribute("data-vid");
+        const v = selectedVehicle();
+        if (v && v.buildingId) G.selectedId = v.buildingId;
+        renderChrome();
+      });
+    });
+  }
+
+  function renderInspector() {
+    const box = el.inspector;
+    if (G.placeType) {
+      const d = defOf(G.placeType);
+      box.innerHTML = `<div class="text-amber-200 font-semibold">Placing: ${esc(d.name)}</div>
+        <p class="text-amber-200/60">${esc(d.blurb)}</p>
+        <button type="button" class="ui-btn rounded px-2 py-1 text-[11px]" id="btn-x">Cancel</button>`;
+      box.querySelector("#btn-x").onclick = () => {
+        G.placeType = null; canvas.classList.remove("placing"); renderPalette(); renderInspector();
+      };
+      return;
+    }
+
+    const b = buildingById(G.selectedId);
+    if (!b) {
+      box.innerHTML = `<p class="text-amber-200/55">Select Factory, Mega Bay, or Pad.</p>
+        <p class="text-amber-200/40 mt-2"><b>Foundation:</b> environment → steel &amp; propellant. Factory builds. Bay houses (up to ${TUNING.BAY_CAPACITY}) &amp; refurbs. Pad static-fires with failure risk.</p>`;
+      return;
+    }
+    const d = defOf(b.type);
+    let html = `<div class="text-amber-100 font-semibold">${esc(d.name)} <span class="text-amber-200/50">L${b.level}</span></div>
+      <p class="text-amber-200/55">${esc(d.blurb)}</p>`;
+
+    if (b.type === "starfactory") {
+      html += `<p class="text-amber-200/45 mt-1">Hold: 1 finished vehicle max until staged to bay.</p>`;
+      if (G.factoryJob) {
+        const r = rocketOf(G.factoryJob.rocketId);
+        const pct = 1 - G.factoryJob.daysLeft / G.factoryJob.totalDays;
+        html += `<p class="mt-2">Building <b>${esc(r.name)}</b> · ${G.factoryJob.daysLeft}d</p>
+          <div class="bar-track"><i style="width:${Math.round(pct * 100)}%"></i></div>`;
+      } else {
+        for (const id of ["falcon1", "falcon9"]) {
+          const r = rocketOf(id);
+          const busy = !!(G.factoryJob || factoryHold() || G.event || G.rollout);
+          html += `<button type="button" class="ui-btn good rounded px-2 py-1.5 text-[11px] w-full mt-1 text-left" data-rocket="${id}" ${busy || G.steel < r.steelCost ? "disabled" : ""}>
+            <div class="font-semibold">Build ${esc(r.name)} · ${r.steelCost} steel</div>
+            <div class="text-amber-200/50">${r.buildDays}d · SF prop ${r.sfProp} · P(ok) ~${Math.round(r.sfSuccess * 100)}%</div>
+          </button>`;
+        }
+        html += `<p class="text-amber-200/40 mt-2 text-[10px]">Roadmap later: Falcon Heavy · Starship</p>`;
+      }
+      const hold = factoryHold();
+      if (hold) {
+        html += `<p class="mt-2 text-amber-100">● ${esc(hold.name)} ready</p>
+          <button type="button" class="ui-btn good rounded px-2 py-1.5 text-[11px] w-full mt-1" id="btn-stage">Stage to Mega Bay</button>`;
+      }
+    }
+
+    if (b.type === "mega_bay") {
+      const n = bayCount();
+      html += `<p class="text-amber-200/70 mt-1">Housed: <b>${n}/${TUNING.BAY_CAPACITY}</b> articles (hangar capacity)</p>
+        <p class="text-amber-200/45">Vehicles park in bay slots (visual). Post-fire refurb happens here — not on the pad.</p>`;
+      const here = vehiclesAt(b.id);
+      if (here.length) {
+        html += `<div class="mt-2 space-y-1">`;
+        for (const v of here) {
+          const r = rocketOf(v.rocketId);
+          html += `<div class="text-amber-100/90">· ${esc(v.name)} (${esc(r.short)}) · ${v.status}${v.status === "refurb" ? ` ${v.refurbLeft}d` : ""} · ${Math.round(v.condition)}%</div>`;
+        }
+        html += `</div>`;
+      }
+      const v = selectedVehicle();
+      if (v && v.status === "in_bay") {
+        html += `<button type="button" class="ui-btn good rounded px-2 py-1.5 text-[11px] w-full mt-2" id="btn-topad">Roll ${esc(v.name)} to pad</button>`;
+      } else {
+        html += `<p class="text-amber-200/40 mt-2">Select a ready vehicle in Fleet (in bay) to roll out.</p>`;
+      }
+    }
+
+    if (b.type === "pad_orbital") {
+      const on = padHold();
+      const chance = on && on.status === "on_pad" ? sfSuccessChance(on, b) : null;
+      if (on) {
+        const r = rocketOf(on.rocketId);
+        html += `<p class="mt-2 text-amber-100">● ${esc(on.name)} on pad · cond ${Math.round(on.condition)}%</p>`;
+        if (on.status === "on_pad") {
+          html += `<p class="text-amber-200/60">P(SF success) <b>${(chance * 100).toFixed(0)}%</b> (class × condition × pad)</p>
+            <button type="button" class="ui-btn good rounded px-2 py-1.5 text-[11px] w-full mt-1" id="btn-sf">Static fire · ${r.sfProp} prop</button>`;
+        }
+        if (on.status === "needs_return") {
+          html += `<button type="button" class="ui-btn danger rounded px-2 py-1.5 text-[11px] w-full mt-1" id="btn-return">Return to Mega Bay (refurb)</button>
+            <p class="text-amber-200/45 mt-1">Pad is not a hangar. Move indoors for inspection.</p>`;
+        }
+      } else {
+        html += `<p class="text-amber-200/50 mt-2">Pad empty. Roll a bay-ready vehicle here.</p>`;
+      }
+      if (b.level < 2) {
+        html += `<button type="button" class="ui-btn rounded px-2 py-1.5 text-[11px] w-full mt-2" id="btn-up">Upgrade L2 — trench/OLM (+reliability) · ${TUNING.PAD_L2_COST} steel</button>`;
+      } else {
+        html += `<p class="text-amber-200/45 mt-2">Pad L2: wider trench, taller OLM, better SF odds</p>`;
+      }
+      if (G.rollout) {
+        html += `<p class="text-amber-200/55 mt-1">Transport ETA ${(G.rollout.duration - G.rollout.t).toFixed(1)}s</p>`;
+      }
+    }
+
+    box.innerHTML = html;
+    box.querySelectorAll("[data-rocket]").forEach((btn) => {
+      btn.onclick = () => startBuildRocket(btn.getAttribute("data-rocket"));
+    });
+    const st = box.querySelector("#btn-stage");
+    if (st) st.onclick = () => stageToBay(factoryHold() && factoryHold().id);
+    const tp = box.querySelector("#btn-topad");
+    if (tp) tp.onclick = () => startRoll(G.selectedVehicleId, "pad");
+    const sf = box.querySelector("#btn-sf");
+    if (sf) sf.onclick = staticFire;
+    const ret = box.querySelector("#btn-return");
+    if (ret) ret.onclick = () => startRoll(padHold() && padHold().id, "bay");
+    const up = box.querySelector("#btn-up");
+    if (up) up.onclick = upgradePad;
+  }
+
+  function renderObjectives() {
+    const items = [
+      ["place_all", "Place Factory, Mega Bay, Pad"],
+      ["build_rocket", "Build a rocket at the factory"],
+      ["multi_bay", "House 2+ vehicles in the bay"],
+      ["static_fire", "Complete a static fire (success or fail)"],
+      ["refurb", "Finish a bay refurb after fire"],
+      ["pad_l2", "Upgrade pad (visual + reliability)"],
+    ];
+    el.objectives.innerHTML = items.map(([k, label]) => {
+      const done = G.objectives[k];
+      return `<li class="${done ? "obj-done" : ""}">${done ? "✓" : "○"} ${esc(label)}</li>`;
+    }).join("");
+  }
+
+  function renderChrome() {
+    renderResources();
+    renderPalette();
+    renderFleetList();
+    renderInspector();
+    updateObjectives();
+  }
+
+  // ── Map ──
+  let W = 0, H = 0, dpr = 1;
+  function resize() {
+    const wrap = document.getElementById("map-wrap");
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = wrap.clientWidth; H = wrap.clientHeight;
+    canvas.width = Math.max(1, W * dpr); canvas.height = Math.max(1, H * dpr);
+    canvas.style.width = W + "px"; canvas.style.height = H + "px";
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  function screenToWorld(sx, sy) {
+    return { x: sx / G.cam.zoom + G.cam.x, y: sy / G.cam.zoom + G.cam.y };
+  }
+
+  function draw() {
+    if (!W) return;
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = "#3d6e34"; ctx.fillRect(0, 0, W, H);
+    ctx.save();
+    ctx.scale(G.cam.zoom, G.cam.zoom);
+    ctx.translate(-G.cam.x, -G.cam.y);
+
+    ctx.fillStyle = "#4f8a42";
+    ctx.fillRect(0, 0, MAP_W * CELL, MAP_H * CELL);
+    ctx.fillStyle = "rgba(140,115,85,0.7)";
+    ctx.beginPath(); ctx.ellipse(8 * CELL, 6 * CELL, 5 * CELL, 2.5 * CELL, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#9b8468";
+    ctx.fillRect(0, 12 * CELL, MAP_W * CELL, 4 * CELL);
+    ctx.fillStyle = "rgba(56,140,200,0.35)";
+    ctx.fillRect(28 * CELL, 20 * CELL, 12 * CELL, 10 * CELL);
+    ctx.fillStyle = "rgba(80,120,60,0.08)";
+    ctx.fillRect(0, 0, MAP_W * CELL, 12 * CELL);
+    ctx.fillStyle = "rgba(180,100,40,0.07)";
+    ctx.fillRect(0, 16 * CELL, 22 * CELL, 12 * CELL);
+
+    if (G.placeType && G._hover) {
+      const def = defOf(G.placeType);
+      const ok = canPlace(G.placeType, G._hover.gx, G._hover.gy).ok;
+      drawBldg(G._hover.gx, G._hover.gy, def, 1, ok ? "ok" : "bad", false);
+    }
+
+    for (const b of G.buildings) {
+      drawBldg(b.gx, b.gy, defOf(b.type), b.level, b.id === G.selectedId ? "sel" : "n", true);
+      if (b.type === "pad_orbital" && performance.now() < G.flameUntil) drawFlame(b);
+    }
+
+    // vehicles
+    for (const v of liveFleet()) {
+      if (v.status === "rolling" && G.rollout && G.rollout.vehicleId === v.id) {
+        ctx.strokeStyle = "rgba(232,200,100,0.4)";
+        ctx.lineWidth = 2; ctx.setLineDash([6, 6]);
+        ctx.beginPath();
+        G.rollout.pts.forEach((p, i) => (i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)));
+        ctx.stroke(); ctx.setLineDash([]);
+        drawVeh(v.wx, v.wy, v, true);
+      } else if (v.buildingId) {
+        drawVeh(v.wx, v.wy, v, false);
+      }
+    }
+
+    ctx.restore();
+
+    if (G.factoryJob) {
+      ctx.fillStyle = "rgba(0,0,0,0.5)"; ctx.fillRect(10, 10, 280, 26);
+      ctx.fillStyle = "#8fbc6a"; ctx.font = "12px system-ui";
+      ctx.fillText(`Factory: ${rocketOf(G.factoryJob.rocketId).name} · ${G.factoryJob.daysLeft}d`, 18, 27);
+    } else if (G.rollout) {
+      const v = vehicleById(G.rollout.vehicleId);
+      ctx.fillStyle = "rgba(0,0,0,0.5)"; ctx.fillRect(10, 10, 300, 26);
+      ctx.fillStyle = "#e8c56a"; ctx.font = "12px system-ui";
+      ctx.fillText(`${v ? v.name : "?"} · ${(G.rollout.duration - G.rollout.t).toFixed(1)}s`, 18, 27);
+    }
+  }
+
+  function drawBldg(gx, gy, def, level, mode, label) {
+    const x = gx * CELL, y = gy * CELL;
+    const w = def.footprint.w * CELL, h = def.footprint.h * CELL;
+    const depth = 10 + (level > 1 ? 4 : 0);
+    let top = "#a09078", front = "#7a6a55";
+    if (def.id === "pad_orbital") { top = "#8a8a90"; front = "#6a6a72"; }
+    if (mode === "ok") { top = "rgba(140,180,100,0.45)"; front = "rgba(100,140,70,0.45)"; }
+    if (mode === "bad") { top = "rgba(180,80,70,0.45)"; front = "rgba(140,50,45,0.45)"; }
+    ctx.fillStyle = top; ctx.fillRect(x, y, w, h - depth);
+    ctx.fillStyle = front; ctx.fillRect(x, y + h - depth, w, depth);
+    if (def.id === "pad_orbital") {
+      const tw = level >= 2 ? w * 0.72 : w * 0.42;
+      const th = level >= 2 ? 14 : 10;
+      ctx.fillStyle = "#2a2a30";
+      ctx.fillRect(x + (w - tw) / 2, y + h - depth - th - 4, tw, th);
+      const oh = level >= 2 ? 22 : 14;
+      ctx.fillStyle = "#c0c0c8";
+      ctx.fillRect(x + w / 2 - 7, y + h - depth - th - 4 - oh, 14, oh);
+    } else if (def.id === "mega_bay") {
+      // multi-bay doors for housing visual
+      ctx.fillStyle = "#3a3028";
+      for (let i = 0; i < 3; i++) {
+        ctx.fillRect(x + 12 + i * (w / 3.2), y + h - depth - 30, w / 4.5, 28);
+      }
+      // capacity pips
+      const n = bayCount();
+      for (let i = 0; i < TUNING.BAY_CAPACITY; i++) {
+        ctx.fillStyle = i < n ? "#8fbc6a" : "#3a3028";
+        ctx.fillRect(x + 8 + i * 14, y + 8, 10, 6);
+      }
+    } else if (def.id === "starfactory") {
+      ctx.fillStyle = "#4a6a8a";
+      ctx.fillRect(x + w * 0.28, y + h - depth - 22, w * 0.44, 18);
+      if (G.factoryJob) {
+        ctx.fillStyle = "#d4a84b";
+        ctx.fillRect(x + 8, y + 8, w - 16, 5);
+      }
+    }
+    if (mode === "sel") {
+      ctx.strokeStyle = "#d4a84b"; ctx.lineWidth = 2;
+      ctx.strokeRect(x + 1, y + 1, w - 2, h - 2);
+    }
+    if (label && mode !== "ok" && mode !== "bad") {
+      let tag = def.short + (level > 1 ? " L" + level : "");
+      if (def.id === "mega_bay") tag += ` ${bayCount()}/${TUNING.BAY_CAPACITY}`;
+      ctx.font = "bold 11px system-ui";
+      const tw = ctx.measureText(tag).width;
+      ctx.fillStyle = "rgba(255,248,220,0.92)";
+      ctx.strokeStyle = "#8a7848";
+      ctx.fillRect(x + 4, y - 16, tw + 8, 14);
+      ctx.strokeRect(x + 4, y - 16, tw + 8, 14);
+      ctx.fillStyle = "#1f1a12";
+      ctx.fillText(tag, x + 8, y - 5);
+    }
+  }
+
+  function drawVeh(x, y, v, rolling) {
+    const r = rocketOf(v.rocketId);
+    const s = r.mapScale || 1;
+    const sel = v.id === G.selectedVehicleId;
+    if (rolling) {
+      ctx.fillStyle = "#3a342c";
+      ctx.fillRect(x - 14 * s, y + 6, 28 * s, 10);
+    }
+    if (v.status === "refurb") {
+      ctx.strokeStyle = "#d4a84b";
+      ctx.strokeRect(x - 10 * s, y - 36 * s, 20 * s, 42 * s);
+    }
+    const h = 32 * s, w = (r.engines === 9 ? 11 : 8) * s;
+    ctx.fillStyle = r.color;
+    ctx.fillRect(x - w / 2, y - h, w, h);
+    ctx.fillStyle = rolling ? "#f5c542" : "#ff8a3d";
+    ctx.fillRect(x - 2, y + 2, 4, 3);
+    if (sel) {
+      ctx.strokeStyle = "#d4a84b"; ctx.lineWidth = 1.5;
+      ctx.strokeRect(x - w / 2 - 2, y - h - 2, w + 4, h + 10);
+    }
+    ctx.font = "bold 9px system-ui";
+    ctx.fillStyle = "rgba(255,248,220,0.92)";
+    ctx.fillText(v.name, x - 12, y - h - 4);
+  }
+
+  function drawFlame(b) {
+    const def = defOf(b.type);
+    const x = b.gx * CELL + def.footprint.w * CELL * 0.5;
+    const baseY = b.gy * CELL + def.footprint.h * CELL - 12;
+    const t = performance.now() / 40;
+    for (let i = 0; i < 8; i++) {
+      const ox = Math.sin(t + i) * 7;
+      const h = 12 + (i % 3) * 6;
+      ctx.fillStyle = i % 2 ? "rgba(255,140,40,0.85)" : "rgba(255,200,60,0.75)";
+      ctx.beginPath();
+      ctx.moveTo(x + ox - 4, baseY);
+      ctx.lineTo(x + ox, baseY - h);
+      ctx.lineTo(x + ox + 4, baseY);
+      ctx.fill();
+    }
+  }
+
+  // ── Input ──
+  function canvasPos(ev) {
+    const r = canvas.getBoundingClientRect();
+    return { x: ev.clientX - r.left, y: ev.clientY - r.top };
+  }
+  function hitBldg(wx, wy) {
+    for (let i = G.buildings.length - 1; i >= 0; i--) {
+      const b = G.buildings[i], d = defOf(b.type);
+      const x0 = b.gx * CELL, y0 = b.gy * CELL;
+      if (wx >= x0 && wx < x0 + d.footprint.w * CELL && wy >= y0 && wy < y0 + d.footprint.h * CELL) return b;
+    }
+    return null;
+  }
+  function hitVeh(wx, wy) {
+    for (let i = liveFleet().length - 1; i >= 0; i--) {
+      const v = liveFleet()[i];
+      if (Math.hypot(wx - v.wx, wy - v.wy) < 18) return v;
+    }
+    return null;
+  }
+
+  canvas.addEventListener("pointerdown", (ev) => {
+    audioInit();
+    canvas.setPointerCapture(ev.pointerId);
+    const p = canvasPos(ev);
+    const w = screenToWorld(p.x, p.y);
+    if (G.placeType) {
+      placeBuilding(G.placeType, Math.floor(w.x / CELL), Math.floor(w.y / CELL));
+      return;
+    }
+    const hv = hitVeh(w.x, w.y);
+    if (hv) {
+      sfxUi();
+      G.selectedVehicleId = hv.id;
+      if (hv.buildingId) G.selectedId = hv.buildingId;
+      renderChrome();
+      return;
+    }
+    const hb = hitBldg(w.x, w.y);
+    if (hb) {
+      sfxUi();
+      G.selectedId = hb.id;
+      renderChrome();
+      return;
+    }
+    G.selectedId = null;
+    renderInspector();
+    G.drag = { sx: p.x, sy: p.y, cx: G.cam.x, cy: G.cam.y };
+    canvas.classList.add("panning");
+  });
+  canvas.addEventListener("pointermove", (ev) => {
+    const p = canvasPos(ev);
+    const w = screenToWorld(p.x, p.y);
+    if (G.placeType) G._hover = { gx: Math.floor(w.x / CELL), gy: Math.floor(w.y / CELL) };
+    if (G.drag) {
+      G.cam.x = G.drag.cx - (p.x - G.drag.sx) / G.cam.zoom;
+      G.cam.y = G.drag.cy - (p.y - G.drag.sy) / G.cam.zoom;
+    }
+  });
+  canvas.addEventListener("pointerup", () => { G.drag = null; canvas.classList.remove("panning"); });
+  canvas.addEventListener("pointercancel", () => { G.drag = null; canvas.classList.remove("panning"); });
+  canvas.addEventListener("wheel", (ev) => {
+    ev.preventDefault();
+    const p = canvasPos(ev);
+    const before = screenToWorld(p.x, p.y);
+    G.cam.zoom = clamp(G.cam.zoom * (ev.deltaY > 0 ? 0.92 : 1.08), ZOOM_MIN, ZOOM_MAX);
+    const after = screenToWorld(p.x, p.y);
+    G.cam.x += before.x - after.x;
+    G.cam.y += before.y - after.y;
+  }, { passive: false });
+
+  window.addEventListener("keydown", (ev) => {
+    if (ev.key === "Escape") {
+      if (G.event) { skipEvent(); return; }
+      G.placeType = null; canvas.classList.remove("placing");
+      renderPalette(); renderInspector();
+    }
+  });
+  document.getElementById("btn-mute").addEventListener("click", () => {
+    audioInit(); setMuted(!SFX.muted);
+  });
+
+  let last = performance.now(), inspAcc = 0;
+  function frame(now) {
+    const dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    if (!G.event) {
+      G.dayAcc += dt * 1000;
+      while (G.dayAcc >= MS_PER_DAY) { G.dayAcc -= MS_PER_DAY; dayTick(); }
+      updateRollout(dt);
+      if (G.rollout || G.factoryJob) {
+        inspAcc += dt;
+        if (inspAcc > 0.3) { inspAcc = 0; renderInspector(); renderResources(); renderFleetList(); }
+      }
+    } else updateEvent(dt);
+    draw();
+    requestAnimationFrame(frame);
+  }
+
+  window.addEventListener("resize", () => { resize(); if (G.event) resizeEventCanvas(); });
+  try { if (localStorage.getItem("starbase-mute") === "1") setMuted(true); } catch (_) {}
+  document.getElementById("ver-label").textContent = VERSION;
+  resize();
+  G.cam.x = (MAP_W * CELL) / 2 - W / 2;
+  G.cam.y = (MAP_H * CELL) / 2 - H / 2;
+  renderChrome();
+  log("Foundation: Factory · Mega Bay · Pad. Resources from environment.", "info");
+  log("Bay houses multiple vehicles & refurbs after static fire. SF can fail.", "info");
+  requestAnimationFrame(frame);
+})();
+  </script>
+</body>
+</html>
