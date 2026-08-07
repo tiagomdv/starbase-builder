@@ -27,8 +27,8 @@ Do not over-engineer early visuals.
   - `VERSION` — one-line live release label
   - `README.md`, `AGENTS.md`, `FUTURE_FEATURES.md`, `IMPLEMENTATION_LOG.md`
   - `archive/` + `archive/MANIFEST.md` — frozen snapshots (never edit archive contents in place)
-  - `design-docs/` — design artifacts (markdown or HTML)
-  - `index.html` — **not yet present**; add only when foundation implementation starts
+  - `design-docs/` — design artifacts (**always `.html`**, never `.md`)
+  - `index.html` — live game (single-file)
 - Keep any future real financial or personal data out of the repo.
 
 ## Versioning Ritual
@@ -50,12 +50,15 @@ Do not over-engineer early visuals.
 
 ### Design Artifact Nomenclature
 
-Design documents in `design-docs/`:
-- `<version>-<codename>-design.md` (or `.html`)
-- Implementation guides: `<version>-<codename>-implementation-guide.md` (or `.html`)
+Design documents in `design-docs/` are **HTML only** (browser-readable, same spirit as the game):
+- `<version>-<codename>-design.html`
+- Implementation guides: `<version>-<codename>-implementation-guide.html`
 
-Examples already explored:
-- `0.0.1-layout-style-design.html` (and later iterations)
+**Do not create `.md` design docs.** Project process docs (`README.md`, `AGENTS.md`, `FUTURE_FEATURES.md`, `IMPLEMENTATION_LOG.md`) stay markdown.
+
+Examples:
+- `0.0.1-layout-aoe-3d.html`
+- `0.1.0-foundation-design.html`
 
 ## Capturing Deferred Ideas
 
@@ -63,7 +66,10 @@ Out-of-scope ideas → offer to append to `FUTURE_FEATURES.md`. Keep the current
 
 ## Project Focus
 
-**Thematic arc:** Foundations → Flight → Scale → Power → Cis-lunar → Mars
+**Product vision (locked):** A **simple, quick-to-finish** game that is **realistic and fun** — players enjoy the **processes and dynamics** of the space industry (build → house/stage → pad ops → fire/fail/refurb → cadence). Not a sprawling empire sim; depth from honest mechanics and visual cues.
+
+**Thematic arc:** Foundations → Flight → Scale → Power → Cis-lunar → Mars  
+(Each phase stays compact; the arc expands *where* you operate, not into endless grind.)
 
 | Phase | Name | Focus |
 |-------|------|-------|
@@ -81,7 +87,7 @@ Out-of-scope ideas → offer to append to `FUTURE_FEATURES.md`. Keep the current
 After the human approves work, help update:
 - `VERSION` + README live-release line (when applicable)
 - `FUTURE_FEATURES.md` (remove shipped items; append new open ideas)
-- `IMPLEMENTATION_LOG.md` (new dated section at the bottom — **append only**)
+- `IMPLEMENTATION_LOG.md` (**one section per `VERSION`** — see Log Files Philosophy)
 - `README.md` when understanding of the project changes
 - `archive/MANIFEST.md` when archiving
 
@@ -89,7 +95,7 @@ After the human approves work, help update:
 
 | File | Role | Edit rule |
 |------|------|-----------|
-| **`IMPLEMENTATION_LOG.md`** | History of what shipped / process changes | **Append only.** Never delete past sections. |
+| **`IMPLEMENTATION_LOG.md`** | History of what shipped | **One section per `VERSION` label.** While that version is open, **update that section** (do not add another header for the same version). When a **new** version ships, **append one new section**. Do not rewrite older versions’ sections except for factual typos. |
 | **`FUTURE_FEATURES.md`** | **Active backlog** only | **Remove** items when shipped or dismissed. **Append** new open ideas. |
 
 ## Session & Process Discipline
@@ -104,7 +110,8 @@ After the human approves work, help update:
 - Adding Moon/Mars systems before Earth Starbase feels good.
 - Creating new source files or splitting the single-file game without approval.
 - Pushing or opening PRs without human request.
-- Overwriting history in `IMPLEMENTATION_LOG.md`.
+- Multiple log sections for the same `VERSION` in `IMPLEMENTATION_LOG.md`.
+- Rewriting past versions’ log sections (except typos).
 
 ---
 

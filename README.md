@@ -2,13 +2,15 @@
 
 A **multi-site base-building and operations game** that starts at SpaceX’s Starbase and grows outward — from the muddy Texas coast to orbit, the Moon, and eventually Mars.
 
-**North star:** Watch a real industrial spaceport grow under your hands, launch rockets with increasing cadence, and unlock new layers of existence (orbit, Moon base, Mars base) that all depend on the strength of what you built on Earth.
+**Product vision (locked):** Build a **simple, quick-to-finish** game that stays **realistic and fun** — so players can **enjoy the ride** of this industry’s **processes and dynamics** (factory → hangar → pad → fire/refurb → cadence), not a sprawling grind-sim. Depth comes from honest mechanics and visual cues, not content volume.
 
-**Right now:** Phase 0 · Foundations — **docs only**. No game code yet. Visual direction locked (earthy AoE-style + simple 2.5D). First code milestone will be extremely simple placeholders.
+**North star (arc):** Watch a real industrial spaceport grow under your hands, raise flight cadence, and unlock layers (orbit → Moon → Mars) that still depend on Earth Starbase — while each phase remains **compact and finishable**.
+
+**Right now:** Phase 0 · Foundations — **`0.1.0-foundation`** playable. Factory builds rockets · Mega Bay houses fleet & refurbs · Pad static-fires (can fail). Steel & propellant from environment.
 
 This project is also a deliberate learning vehicle for:
 - Structured AI-collaboration workflows (same lab discipline as `trait-evolution-sim` and `personal-expense-app`)
-- Incremental development of a complex simulation
+- Incremental development of a focused simulation
 - Using Grok Imagine later as a real asset-generation pipeline inside the project
 
 ---
@@ -35,7 +37,7 @@ Ship history: `IMPLEMENTATION_LOG.md`.
 
 **`VERSION` file** is the single source of truth.
 
-> **Live release:** `0.0.1-bootstrap` · Phase 0 · Foundations · **docs only**
+> **Live release:** `0.1.0-foundation` · Phase 0 · Foundations
 
 **Visual direction (locked for now):**
 - Earthy, classic RTS feel (green grass, dirt, warm stone colors)
@@ -47,7 +49,9 @@ Ship history: `IMPLEMENTATION_LOG.md`.
 
 ## Philosophy
 
-- **Start super simple, accumulate.** First playable version uses flat colored shapes. Rendering, animations, and fidelity improve in focused passes.
+- **Simple, quick, realistic, fun.** The finished game should be something you can play through and *enjoy the industrial process* — not an endless 4X.
+- **Showcase industry dynamics.** Factory, bay, pad, propellant, rollout, static fire, failure, refurb — the loop should feel like the real pipeline, simplified but honest.
+- **Start super simple, accumulate.** Flat shapes first; fidelity and systems deepen in focused passes without abandoning compactness.
 - **One focused goal per session / PR.**
 - **Human = Project Manager + final ship decision.**
 - **Observability and clarity** matter more than premature beauty.
@@ -81,7 +85,7 @@ starbase-builder/
 └── design-docs/
 ```
 
-`index.html` will appear with the first foundation milestone.
+Open `index.html` in a browser (no build step).
 
 ---
 
@@ -101,10 +105,10 @@ See `AGENTS.md` for full rules.
 
 ## Immediate next steps
 
-1. Review & accept this bootstrap vision
-2. Create the GitHub repository
-3. First code milestone: `0.1.0-foundation`  
-   Green grass terrain + pan/zoom + place a few extremely simple building types (Pad, Mega Bay, Tank Farm, Starfactory)
+1. ~~Review & accept this bootstrap vision~~ · ~~GitHub repo~~ · **local clone:** `~/starbase-builder` → `origin` = `tiagomdv/starbase-builder`
+2. Optional: play the local prototype `~/starship-dev` for feel; open ideas harvested into `FUTURE_FEATURES.md` (do not merge that file into this repo as code)
+3. **Design ready:** `design-docs/0.1.0-foundation-design.html` (map-first site, Visual Upgrade Rule, light sim + static fire). Design docs are always `.html`.  
+4. First code milestone: `0.1.0-foundation` — implement PR plan in that design (shell → map → place → resources → stack → pad L2 visual → static fire → polish)
 
 ---
 

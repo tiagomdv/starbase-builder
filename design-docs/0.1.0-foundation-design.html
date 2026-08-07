@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>0.1.0-foundation · design — starbase-builder</title>
+  <style>
+    :root {
+      --bg: #1c2118;
+      --panel: #2a2218;
+      --panel2: #221c14;
+      --border: #5a4830;
+      --text: #e8d9b0;
+      --muted: #a89878;
+      --accent: #d4a84b;
+      --good: #8fbc6a;
+      --link: #e8c56a;
+      --code: #c4e08a;
+      --warn: #e0a050;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: var(--bg); color: var(--text);
+      font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+      line-height: 1.55;
+    }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 1.5rem 1.25rem 4rem; }
+    .doc-hero {
+      background: linear-gradient(180deg, #2a2218 0%, #1c2118 100%);
+      border: 1px solid var(--border); border-radius: 0.85rem;
+      padding: 1.15rem 1.25rem 1.25rem; margin-bottom: 1.25rem;
+    }
+    .doc-hero h1 {
+      font-size: 1.55rem; font-weight: 650; color: #f5edd8;
+      margin: 0.35rem 0 0.4rem; letter-spacing: -0.02em;
+    }
+    .doc-hero .lede { margin: 0; font-size: 0.9rem; color: var(--muted); max-width: 56rem; }
+    .meta-row { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 0.15rem; }
+    .tag {
+      display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 999px;
+      background: #3a2e20; color: #e8c56a; border: 1px solid #6a5638;
+    }
+    .tag.good { background: #1a2e14; color: #bbf7d0; border-color: #3d6e34; }
+    .tag.muted { background: #1e1a14; color: var(--muted); border-color: #4a3c28; }
+    .doc-grid { display: grid; grid-template-columns: 210px minmax(0, 1fr); gap: 1.25rem; align-items: start; }
+    @media (max-width: 860px) {
+      .doc-grid { grid-template-columns: 1fr; }
+      .toc { position: static !important; }
+    }
+    .toc {
+      position: sticky; top: 0.75rem; background: var(--panel);
+      border: 1px solid var(--border); border-radius: 0.65rem; padding: 0.75rem 0.85rem;
+      max-height: calc(100vh - 1.5rem); overflow-y: auto;
+    }
+    .toc .section-label {
+      font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--muted); font-weight: 600; margin-bottom: 0.5rem;
+    }
+    .toc ol { margin: 0; padding-left: 1.1rem; font-size: 0.78rem; }
+    .toc li { margin: 0.22rem 0; }
+    .toc li.sub { list-style: disc; margin-left: 0.5rem; opacity: 0.9; }
+    .toc a { color: var(--link); text-decoration: none; }
+    .toc a:hover { text-decoration: underline; }
+    .main { min-width: 0; }
+    h2 {
+      font-size: 1.12rem; font-weight: 650; color: #f5edd8; margin: 1.6rem 0 0.65rem;
+      padding-bottom: 0.35rem; border-bottom: 1px solid var(--border);
+      scroll-margin-top: 0.75rem;
+    }
+    h3 { font-size: 0.95rem; font-weight: 600; color: var(--accent); margin: 1.1rem 0 0.4rem; scroll-margin-top: 0.75rem; }
+    h4 { font-size: 0.88rem; font-weight: 600; color: #d4c4a0; margin: 0.9rem 0 0.35rem; }
+    h1 { display: none; } /* hero has title */
+    p, li { font-size: 0.9rem; }
+    p { margin: 0.45rem 0 0.7rem; }
+    ul, ol { margin: 0.35rem 0 0.75rem; padding-left: 1.35rem; }
+    li { margin: 0.25rem 0; }
+    hr { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
+    blockquote {
+      margin: 0.6rem 0; padding: 0.55rem 0.85rem; border-left: 3px solid var(--accent);
+      background: var(--panel2); color: var(--muted); border-radius: 0 0.4rem 0.4rem 0;
+    }
+    blockquote p { margin: 0; }
+    table.doc { width: 100%; border-collapse: collapse; font-size: 0.84rem; margin: 0.45rem 0 0.9rem; }
+    table.doc th, table.doc td {
+      border: 1px solid var(--border); padding: 0.45rem 0.55rem; text-align: left; vertical-align: top;
+    }
+    table.doc th {
+      background: var(--panel2); color: var(--muted); font-size: 10px;
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    table.doc td { background: rgba(42,34,24,0.45); }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--code); font-size: 0.86em; }
+    pre {
+      background: #14110c; border: 1px solid var(--border); border-radius: 0.5rem;
+      padding: 0.75rem 0.9rem; overflow-x: auto; font-size: 0.8rem; line-height: 1.45;
+    }
+    pre code { color: #d8d0b8; }
+    pre.mermaid { color: #c4b896; white-space: pre-wrap; }
+    strong { color: #f5edd8; }
+    a { color: var(--link); }
+    .footer-note { color: var(--muted); font-size: 0.82rem; margin-top: 2rem; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="doc-hero">
+      <div class="meta-row">
+        <span class="tag good">Approved · rev 4 product guide</span>
+        <span class="tag">0.1.0-foundation</span>
+        <span class="tag muted">Phase 0 · Foundations</span>
+        <span class="tag muted">2026-08-07 · rev 4</span>
+      </div>
+      <h1>Design Document: 0.1.0-foundation</h1>
+      <p class="lede">
+        Compact, finishable industrial game. Super-realistic <em>mechanics, processes, and visual cues</em>
+        of the space industry — not a endless 4X. Start with resource-making components, a basic launch loop,
+        then climb the reality ladder as Starbase deepens.
+      </p>
+    </header>
+    <div class="doc-grid">
+      <nav class="toc" aria-label="Contents">
+        <div class="section-label">Contents</div>
+        <ol>
+<li><a href="#overview">Overview</a></li>
+        <li><a href="#product-guide-locked">Product guide (locked)</a></li>
+<li class="sub"><a href="#scope-vs-future-features-authoritative-cut">Scope vs FUTURE_FEATURES (authoritative cut)</a></li>
+<li><a href="#background-motivation">Background &amp; Motivation</a></li>
+<li class="sub"><a href="#why-this-game-exists">Why this game exists</a></li>
+<li class="sub"><a href="#why-foundations-starts-tiny">Why Foundations starts tiny</a></li>
+<li class="sub"><a href="#constraints-locked">Constraints (locked)</a></li>
+<li class="sub"><a href="#layout-spirit">Layout spirit</a></li>
+<li><a href="#goals-non-goals">Goals &amp; Non-Goals</a></li>
+<li class="sub"><a href="#goals-0-1-0">Goals (0.1.0)</a></li>
+<li class="sub"><a href="#non-goals-0-1-0">Non-Goals (0.1.0)</a></li>
+<li><a href="#larger-foundations-vision-what-0-1-0-starts">Larger Foundations Vision (what 0.1.0 starts)</a></li>
+<li><a href="#proposed-design">Proposed Design</a></li>
+<li class="sub"><a href="#a-north-star-domain-model-realistic-starbase">A. North-star domain model (realistic Starbase)</a></li>
+<li class="sub"><a href="#b-visual-upgrade-rule-locked-principle">B. Visual Upgrade Rule (locked principle)</a></li>
+<li class="sub"><a href="#c-how-to-start-simple-fidelity-ladder-for-0-1-0">C. How to start simple — fidelity ladder for 0.1.0</a></li>
+<li class="sub"><a href="#d-coupling-diagram">D. Coupling diagram</a></li>
+<li class="sub"><a href="#e-data-model-sketch">E. Data model sketch</a></li>
+<li class="sub"><a href="#f-out-of-scope-for-0-1-0">F. Out of scope for 0.1.0</a></li>
+<li class="sub"><a href="#g-security-privacy">G. Security &amp; Privacy</a></li>
+<li class="sub"><a href="#h-observability">H. Observability</a></li>
+<li class="sub"><a href="#i-rollout-plan">I. Rollout Plan</a></li>
+<li><a href="#api-interface-changes">API / Interface Changes</a></li>
+<li><a href="#data-model-changes">Data Model Changes</a></li>
+<li><a href="#alternatives-considered">Alternatives Considered</a></li>
+<li class="sub"><a href="#1-dashboard-first-port-of-starship-dev">1. Dashboard-first port of starship-dev</a></li>
+<li class="sub"><a href="#2-full-iso-many-buildings-day-one">2. Full iso + many buildings day one</a></li>
+<li class="sub"><a href="#3-split-light-sim-into-0-1-1-coupling">3. Split light sim into 0.1.1-coupling</a></li>
+<li class="sub"><a href="#4-credits-first-economy">4. Credits-first economy</a></li>
+<li class="sub"><a href="#5-pure-place-only-0-1-0-no-sf-no-drips">5. Pure place-only 0.1.0 (no SF, no drips)</a></li>
+<li><a href="#open-questions-non-blocking-preferences">Open Questions (non-blocking preferences)</a></li>
+<li><a href="#references">References</a></li>
+<li><a href="#key-decisions">Key Decisions</a></li>
+<li><a href="#pr-plan">PR Plan</a></li>
+        </ol>
+      </nav>
+      <main class="main">
+<h1 id="design-document-0-1-0-foundation">Design Document: 0.1.0-foundation</h1>
+<table class="doc">
+<thead><tr><th>Field</th><th>Value</th></tr></thead>
+<tbody>
+<tr><td><strong>Project</strong></td><td>starbase-builder</td></tr>
+<tr><td><strong>Milestone</strong></td><td><code>0.1.0-foundation</code></td></tr>
+<tr><td><strong>Phase</strong></td><td>0 · Foundations (starts the larger Foundations vision)</td></tr>
+<tr><td><strong>Status</strong></td><td>Approved for implementation (rev 4)</td></tr>
+<tr><td><strong>Date</strong></td><td>2026-08-07</td></tr>
+<tr><td><strong>Audience</strong></td><td>Senior engineer + PM (human ships; AI implements)</td></tr>
+<tr><td><strong>Predecessor</strong></td><td><code>0.0.1-bootstrap</code> (docs only)</td></tr>
+<tr><td><strong>Related</strong></td><td><code>design-docs/0.0.1-layout-aoe-3d.html</code>, <code>FUTURE_FEATURES.md</code> harvest from starship-dev</td></tr>
+</tbody></table>
+<hr />
+<h2 id="overview">Overview</h2>
+<p><code>0.1.0-foundation</code> is the <strong>first playable code milestone</strong> of starbase-builder: a single-file, map-first base builder set at Earth Starbase. The player places a tiny industrial site on green grass, watches resources and simple production tick, moves one stack placeholder between bay and pad, and runs a crude <strong>static fire</strong> that couples propellant, pad, and a short visual effect.</p>
+<p>This milestone is deliberately small in systems, but <strong>architecturally honest</strong> about the long-term Starbase model: realistic component catalog, process chains, and a locked <strong>Visual Upgrade Rule</strong> so every future improvement has a physical silhouette change on the map—not invisible stat bumps.</p>
+<p><strong>Product distinction vs starship-dev:</strong> starship-dev is a dark, dashboard-first flight/ops slice. Starbase-builder is an <strong>earthy AoE-style living industrial site</strong> where pad, tank farm, bay, factory, power, and (later) roads/vehicles/workforce work together. Flight is the pulse; the base is the body.</p>
+<h3 id="scope-vs-future-features-authoritative-cut">Scope vs FUTURE_FEATURES (authoritative cut)</h3>
+<p>The Phase 0 table in <code>FUTURE_FEATURES.md</code> currently describes <code>0.1.0-foundation</code> as:</p>
+<blockquote><p>Green grass terrain + pan/zoom + place extremely simple buildings … <strong>No real simulation yet.</strong></p></blockquote>
+<p><strong>This design document supersedes that row for planning and implementation.</strong> Milestone <code>0.1.0-foundation</code> <strong>includes light simulation</strong>: day tick, production drips, one stack logistics pulse, pad L1→L2 visual upgrade, and <strong>static fire as a must-have closed-loop proof</strong>. That intentionally pulls forward items the harvest table labeled “soon after foundation,” because a place-only map fails the product pillars (systems working together; visual upgrades that matter).</p>
+<table class="doc">
+<thead><tr><th>After ship</th><th>Action</th></tr></thead>
+<tbody>
+<tr><td>On merge of completed <code>0.1.0-foundation</code></td><td>Rewrite the <code>0.1.0-foundation</code> row in <code>FUTURE_FEATURES.md</code> to match shipped behavior, then <strong>remove</strong> it from active backlog into <code>IMPLEMENTATION_LOG.md</code> per AGENTS.</td></tr>
+<tr><td>Harvest absorption order</td><td>Treat “resource triad; pad stack” as absorbed into 0.1.0; leave hop/orbit/debrief as post-0.1.0.</td></tr>
+</tbody></table>
+<p><strong>Chosen cut (KD-16):</strong> expand 0.1.0 to light coupling — do <strong>not</strong> split into <code>0.1.1-coupling</code> for the first playable. PR1–PR3 remain map/place-first; PR4–PR7 are still part of the same milestone label.</p>
+<hr />
+
+<h2 id="product-guide-locked">Product guide (locked — rev 4)</h2>
+<p><strong>North star of the project (not just 0.1.0):</strong> build a <strong>simple, quick-to-finish game</strong> even in its finished state. The joy is the ride — watching a real industrial spaceport’s components, processes, and visual cues click together. Depth comes from <strong>realism of mechanics</strong>, not from endless systems or grind.</p>
+<ul>
+<li><strong>Compact complete game</strong> — a full playthrough should feel complete in a short session once content is finished. No sprawling empire sim.</li>
+<li><strong>Super realistic processes</strong> — pad, propellant, bay, factory, stack, static fire, hop, orbit, recover… modeled the way the industry actually works, even when simplified numbers.</li>
+<li><strong>Visual cues that tell the truth</strong> — every upgrade changes the object on the map in a physically sensible way (Visual Upgrade Rule).</li>
+<li><strong>Reality ladder</strong> — content order follows how reality works: resources &amp; infrastructure first → stack &amp; load → static fire / hop → harder flight → recovery → cadence → outer sites later. Improve Starbase mechanics over time by going <em>down</em> that ladder (deeper fidelity), not sideways into unrelated minigames.</li>
+</ul>
+<blockquote><p><strong>Play order for 0.1.0 (first playable):</strong> (1) Place components that <strong>generate / hold resources</strong> → (2) form a basic ecosystem so resources grow → (3) put a stack on a pad and get a <strong>basic launch-adjacent event</strong> (static fire in 0.1.0; hop next) → (4) spend surplus to improve pad / site slightly with visible change. Full Starbase depth comes later along the same ladder.</p></blockquote>
+<table class="doc">
+<thead><tr><th>Layer</th><th>What the player feels</th><th>0.1.0</th><th>Later (still compact game)</th></tr></thead>
+<tbody>
+<tr><td>Components present</td><td>Factory, tanks, bay, pad on the map</td><td>Live</td><td>More buildings, roads, tower</td></tr>
+<tr><td>Resource ecosystem</td><td>Steel / CH₄ / LOX tick because buildings exist</td><td>Live drips</td><td>ASU, power coupling, workforce lite</td></tr>
+<tr><td>Stack logistics</td><td>Hardware moves bay → pad</td><td>One stack pulse</td><td>Multi-stack, refurb</td></tr>
+<tr><td>Launch-adjacent</td><td>Engines fire / hop</td><td>Static fire must-have</td><td>Hop → orbit → recover</td></tr>
+<tr><td>Slight rocket/site improve</td><td>Spend resources → map looks better + odds edge</td><td>Pad L1→L2 + SF cheaper</td><td>Caps, vehicle variants, trench, tower</td></tr>
+</tbody>
+</table>
+<p class="muted">Rev 4 does not throw away TUNING/PR plan; it <strong>re-emphasizes</strong> start order and the compact-game goal. Implementation of <code>index.html</code> first draft should make resource generation and the closed loop obvious before any extra chrome.</p>
+
+<h2 id="background-motivation">Background &amp; Motivation</h2>
+<h3 id="why-this-game-exists">Why this game exists</h3>
+<ul>
+<li>Watch a <strong>real industrial spaceport</strong> grow under the player’s hands.</li>
+<li>Launch and recover with increasing cadence, then unlock orbit → Moon → Mars <strong>without</strong> making Earth Starbase obsolete.</li>
+<li>Sites <strong>accumulate</strong>; outer bases depend on Earth production and reliability.</li>
+</ul>
+<h3 id="why-foundations-starts-tiny">Why Foundations starts tiny</h3>
+<p>The project philosophy is <strong>start super simple, accumulate</strong>. Complex rendering, contracts, finance rounds, full phase odds, and multi-site logistics are proven or sketched (starship-dev harvest + thematic arc) but must not block a green-map dopamine loop:</p>
+<ol>
+<li>Place buildings that look like a base.</li>
+<li>See resources move because buildings exist.</li>
+<li>See one physical upgrade change the map.</li>
+<li>Fire engines once so systems feel coupled (<strong>static fire in 0.1.0</strong>).</li>
+</ol>
+<h3 id="constraints-locked">Constraints (locked)</h3>
+<table class="doc">
+<thead><tr><th>Constraint</th><th>Detail</th></tr></thead>
+<tbody>
+<tr><td>Delivery</td><td>Single-file <code>index.html</code> as long as practical</td></tr>
+<tr><td>CSS</td><td>Tailwind CDN; earthy warm stone / grass palette (not dark range chrome)</td></tr>
+<tr><td>Render</td><td>HTML Canvas for map/buildings/vehicles/effects</td></tr>
+<tr><td>Frameworks</td><td>None; no build step</td></tr>
+<tr><td>Process</td><td>One feature per PR/session; human tests &amp; ships</td></tr>
+<tr><td>Scope phase</td><td>Phase 0 = Earth Starbase only</td></tr>
+<tr><td>Reference</td><td><code>~/starship-dev/index.html</code> is <strong>outside</strong> this repo; harvest mechanisms only</td></tr>
+<tr><td>Third-party scripts (0.1.0)</td><td><strong>Only</strong> Tailwind CDN — no analytics, no other CDNs</td></tr>
+</tbody></table>
+<h3 id="layout-spirit">Layout spirit</h3>
+<p><code>0.0.1-layout-aoe-3d.html</code> defines the target chrome:</p>
+<ul>
+<li>Top <strong>resource bar</strong> (Steel, Methane, LOX, Power, Day)</li>
+<li>Left <strong>build palette</strong></li>
+<li>Center <strong>map</strong> (primary focus)</li>
+<li>Right <strong>inspector</strong> (selected building / actions)</li>
+<li>Earthy UI panels; simplified geography: production inland, highway belt, launch + tanks toward water</li>
+</ul>
+<p>Implementation for 0.1.0 uses <strong>canvas for the map</strong> and DOM/Tailwind for chrome. Design adds a <strong>bottom event log</strong> (not in the mock) for observability.</p>
+<h4 id="color-ui-tokens-pr1-exit-criteria">Color / UI tokens (PR1 exit criteria)</h4>
+<table class="doc">
+<thead><tr><th>Token</th><th>Hex / value</th><th>Use</th></tr></thead>
+<tbody>
+<tr><td><code>bg-page</code></td><td><code>#1c2118</code></td><td>Page behind chrome</td></tr>
+<tr><td><code>grass</code></td><td><code>#4f8a42</code> base; tints <code>#5c9a4e</code>, <code>#457a3a</code>, <code>#3d6e34</code></td><td>Map fill / variation</td></tr>
+<tr><td><code>dirt</code></td><td><code>#8c7355</code></td><td>Dirt patches</td></tr>
+<tr><td><code>dirt-road</code></td><td><code>#9b8468</code></td><td>Optional road strip</td></tr>
+<tr><td><code>panel</code></td><td><code>#2a2218</code></td><td>Left/right UI panels</td></tr>
+<tr><td><code>panel-border</code></td><td><code>#5a4830</code></td><td>Panel borders</td></tr>
+<tr><td><code>resource-bar</code></td><td><code>#3a2e1c</code> → <code>#2a2216</code> gradient</td><td>Top bar</td></tr>
+<tr><td><code>amber-text</code></td><td>Tailwind <code>amber-100</code> / <code>amber-200</code></td><td>Primary UI text</td></tr>
+<tr><td><code>amber-muted</code></td><td><code>amber-200/55</code>–<code>/70</code></td><td>Secondary labels</td></tr>
+<tr><td><code>btn</code></td><td><code>#3a2e20</code> / border <code>#6a5638</code></td><td>Build / action buttons</td></tr>
+<tr><td><code>stone-bldg</code></td><td><code>#a09078</code> top, <code>#7a6a55</code> front, <code>#5e5242</code> side</td><td>2.5D building faces</td></tr>
+<tr><td><code>water</code></td><td><code>sky-600</code> ~25% alpha</td><td>SE water wedge</td></tr>
+<tr><td><code>label-bg</code></td><td><code>rgba(255,248,220,0.92)</code></td><td>Map name tags</td></tr>
+</tbody></table>
+<p><strong>Mock parity notes:</strong> Mock has Cadence, multi-bay art, highway label, richer CSS depth — 0.1.0 <strong>omits</strong> Cadence and multi-instance showcase art. Mock uses “Methane”; UI <strong>display label = “Methane”</strong>, resource key = <code>ch4</code> (see §E).</p>
+<hr />
+<h2 id="goals-non-goals">Goals &amp; Non-Goals</h2>
+<h3 id="goals-0-1-0">Goals (0.1.0)</h3>
+<ol>
+<li>Ship a <strong>runnable</strong> <code>index.html</code> playable in a browser without build tools.</li>
+<li>Render an <strong>earthy grass + dirt</strong> map with pan and light zoom.</li>
+<li>Support <strong>≤4 placeable types</strong>: Orbital Pad (OLM stub), Mega Bay, Tank Farm, Starfactory.</li>
+<li>Implement <strong>resources</strong>: Steel, Methane (<code>ch4</code>), LOX, Power (display), Day tick.</li>
+<li><strong>Place</strong> buildings on valid terrain; spend Steel; show selection + inspector.</li>
+<li><strong>Passive production</strong> (Starfactory steel drip; Tank Farm propellant fill) so the site feels alive.</li>
+<li><strong>One stack placeholder</strong> with bay → pad logistics (authoritative vehicle location model).</li>
+<li>Prove the <strong>Visual Upgrade Rule</strong> with <strong>Pad L1 → L2</strong> (wider trench / taller OLM).</li>
+<li><strong>Static fire (must-have):</strong> spend propellant, short crude flame on pad, event log — closed-loop proof of Pad ↔ Tank Farm ↔ Stack.</li>
+<li>Document north-star domain model so later milestones extend data, not rewrite fiction.</li>
+<li>Soft objective checklist / empty-state hints so first session has a goal after placement (PR8).</li>
+</ol>
+<h3 id="non-goals-0-1-0">Non-Goals (0.1.0)</h3>
+<ul>
+<li>Moon / Mars / multi-site</li>
+<li>Full mission ladder, phase odds, contracts, debrief modals</li>
+<li>Finance rounds, credits economy</li>
+<li>Chopsticks catch, hop trajectory, orbital flight sim</li>
+<li>Workforce, housing, city, land purchase</li>
+<li>Grok Imagine assets, audio suite, day/night lighting</li>
+<li>Dark starship-dev HUD</li>
+<li>Multiplayer, accounts, server</li>
+<li>Splitting into modules / build pipeline</li>
+<li>Perfect isometric math or 3D engines</li>
+<li>Power throttling production (Power is display-only)</li>
+<li>Zone-based steel discounts or hard zone blocking (except water)</li>
+<li>Save/load (deferred; no localStorage required)</li>
+<li>WDR UI (process ID reserved only)</li>
+</ul>
+<hr />
+<h2 id="larger-foundations-vision-what-0-1-0-starts">Larger Foundations Vision (what 0.1.0 starts)</h2>
+<p>Phase 0 · Foundations grows Starbase from “four boxes on grass” to a <strong>coherent industrial loop</strong>:</p>
+<table class="doc">
+<thead><tr><th>Wave</th><th>Intent</th><th>Examples</th></tr></thead>
+<tbody>
+<tr><td><strong>0.1 foundation</strong></td><td>Map + place + light sim + SF coupling</td><td>This doc</td></tr>
+<tr><td><strong>Early Phase 0</strong></td><td>Stack lifecycle depth, hop animation</td><td>Trajectory stub; multi-stack seeds</td></tr>
+<tr><td><strong>Mid Phase 0</strong></td><td>Mission ladder hop→orbit; caps lite; debrief lite</td><td>FAIL_GUIDE-style upgrade advice</td></tr>
+<tr><td><strong>Late Phase 0</strong></td><td>Pad B, tower/chopsticks visual, multi-pad cadence</td><td>Catch as recovery <em>mode</em></td></tr>
+<tr><td><strong>Ongoing</strong></td><td>Visual fidelity passes, roads, GSE, construction states</td><td>Never block gameplay on beauty</td></tr>
+</tbody></table>
+<p><strong>North-star loop (long-term):</strong>   Produce steel &amp; vehicles → integrate in bay → load propellant from farm → static fire / WDR → hop / orbital attempt → recover/refurb → reinvest upgrades that <strong>change the map</strong>.</p>
+<hr />
+<h2 id="proposed-design">Proposed Design</h2>
+<h3 id="a-north-star-domain-model-realistic-starbase">A. North-star domain model (realistic Starbase)</h3>
+<p>Even where inactive in 0.1.0, the <strong>canonical catalog</strong> below is the shared fiction. IDs stay stable across milestones.</p>
+<h4 id="a-1-geographic-layout-zones">A.1 Geographic layout zones</h4>
+<p>Approximate Starbase industrial geography (teachable, not survey-accurate):</p>
+<pre class="lang-text"><code>        N (inland / production)
+  ┌─────────────────────────────────────┐
+  │  PRODUCTION                         │
+  │  Starfactory · Ring yard · Raptor   │
+  │  Mega Bay / Gigabay · High Bay      │
+  │────────── HIGHWAY 4 corridor ───────│
+  │  GSE corridor / roads / parking     │
+  │  LAUNCH COMPLEX          TANK FARM  │
+  │  Pad(s) · Tower · OLM    CH₄/LOX    │
+  │  Flame trench · Deluge   ASU later  │
+  │                         ~~~ water ~~│
+  └─────────────────────────────────────┘
+        S (Gulf / coastal edge)</code></pre>
+<table class="doc">
+<thead><tr><th>Zone ID</th><th>Role</th><th>0.1.0 behavior</th></tr></thead>
+<tbody>
+<tr><td><code>zone.production</code></td><td>Manufacturing, bays</td><td>Soft tint only; <code>zoneHint</code> match preferred</td></tr>
+<tr><td><code>zone.corridor</code></td><td>Roads, GSE</td><td>Soft tint; optional dirt-road draw</td></tr>
+<tr><td><code>zone.launch</code></td><td>Pads, tower, trench</td><td>Soft tint</td></tr>
+<tr><td><code>zone.propellant</code></td><td>Tank farm</td><td>Soft tint</td></tr>
+<tr><td><code>zone.water</code></td><td>Coastal edge</td><td><strong>Hard invalid</strong> — no build</td></tr>
+</tbody></table>
+<p><strong>Zone enforcement (locked):</strong></p>
+<ul>
+<li><strong>Hard invalid only:</strong> water, building overlap (AABB), off-map (outside <code>0..MAP_W-1</code>, <code>0..MAP_H-1</code> grid).</li>
+<li><strong>Soft zones never block placement</strong> in 0.1.0.</li>
+<li>On place with <code>def.zoneHint</code> ≠ cell zone: optional log <code>warn</code> — e.g. “Unusual location for Orbital Pad (launch zone preferred).”</li>
+<li><strong>No steel discount / premium</strong> by zone until a later milestone.</li>
+<li>Zone map = <strong>four axis-aligned rects in grid cells</strong> + water rule (see § World geometry).</li>
+</ul>
+<h4 id="a-2-canonical-component-catalog">A.2 Canonical component catalog</h4>
+<p><strong>Buildings &amp; pad systems:</strong></p>
+<table class="doc">
+<thead><tr><th>ID</th><th>Name</th><th>Realism note</th><th>Physical upgrade ladder (summary)</th></tr></thead>
+<tbody>
+<tr><td><code>pad_orbital</code></td><td>Orbital Launch Mount / Pad</td><td>OLM, hold-downs, QD</td><td>Trench width → deluge → taller OLM → plume capacity</td></tr>
+<tr><td><code>tower_mz</code></td><td>Mechazilla tower</td><td>Chopsticks</td><td>Stub → full tower → arms → catch-ready</td></tr>
+<tr><td><code>flame_trench</code></td><td>Flame trench</td><td>Exhaust path</td><td>May merge into pad levels early</td></tr>
+<tr><td><code>deluge</code></td><td>Water deluge</td><td>Sound/thermal</td><td>None → header → spray rings</td></tr>
+<tr><td><code>gse</code></td><td>Ground support</td><td>QD, power</td><td>Small shed → larger block</td></tr>
+<tr><td><code>tank_farm</code></td><td>Propellant farm</td><td>CH₄ + LOX storage</td><td>2 tanks → cluster → sphere + pumps</td></tr>
+<tr><td><code>asu</code></td><td>ASU / LOX production</td><td>Air separation</td><td>Offline until mid Phase 0+</td></tr>
+<tr><td><code>mega_bay</code></td><td>Mega Bay</td><td>Stack / integrate</td><td>Small bay → tall doors → dual cell</td></tr>
+<tr><td><code>gigabay</code></td><td>Gigabay</td><td>High-volume integrate</td><td>Scaffold → clad hall</td></tr>
+<tr><td><code>high_bay</code></td><td>High Bay</td><td>Alternate integrate</td><td>Optional later</td></tr>
+<tr><td><code>starfactory</code></td><td>Starfactory</td><td>Production</td><td>Low hall → long roof → vents</td></tr>
+<tr><td><code>raptor_shop</code></td><td>Raptor production</td><td>Engines</td><td>Future</td></tr>
+<tr><td><code>tile_plant</code></td><td>Heatshield tiles</td><td>TPS</td><td>Future</td></tr>
+<tr><td><code>avionics_lab</code></td><td>Avionics / GNC</td><td>Flight software</td><td>Future</td></tr>
+<tr><td><code>ring_yard</code></td><td>Ring sections yard</td><td>Outdoor staging</td><td>Future</td></tr>
+<tr><td><code>power_node</code></td><td>Substation</td><td>Power capacity</td><td>Future; 0.1.0 Power is display-only</td></tr>
+<tr><td><code>road</code></td><td>Dirt/paved road</td><td>Logistics</td><td>Future</td></tr>
+<tr><td><code>housing</code></td><td>Workforce housing</td><td>Phase 2</td><td>Out of Phase 0</td></tr>
+</tbody></table>
+<p><strong>Vehicles (north star vs 0.1.0):</strong></p>
+<table class="doc">
+<thead><tr><th>Concept</th><th>North-star lifecycle</th><th>0.1.0 live</th></tr></thead>
+<tbody>
+<tr><td><code>booster</code> / <code>ship</code> separate</td><td><code>building → ready → stacked → flight → refurb</code></td><td><strong>Not separate entities</strong></td></tr>
+<tr><td><code>stack</code> placeholder</td><td>Composite at a location</td><td><strong>One</strong> <code>Vehicle</code> with <code>kind: &#x27;stack&#x27;</code>, status **<code>ready</code> only**</td></tr>
+</tbody></table>
+<p>Reserved future statuses (<code>building</code>, <code>flight</code>, <code>refurb</code>, <code>stacked</code> as distinct from location) are <strong>not live</strong>. Do not implement partial lifecycle enums that invite dual meaning with location.</p>
+<h4 id="a-3-process-chains">A.3 Process chains</h4>
+<pre class="mermaid">flowchart LR
+  subgraph produce [Produce]
+    SF[Starfactory] --&gt; Steel
+    SF --&gt; Rings
+    RS[Raptor Shop] --&gt; Engines
+  end
+  subgraph integrate [Integrate]
+    MB[Mega Bay / Gigabay] --&gt; Stack
+  end
+  subgraph load [Load]
+    TF[Tank Farm] --&gt; CH4
+    TF --&gt; LOX
+    Stack --&gt; Pad
+    CH4 --&gt; Pad
+    LOX --&gt; Pad
+  end
+  subgraph campaign [Campaign ladder]
+    WDR[WDR] --&gt; SFIR[Static Fire]
+    SFIR --&gt; HOP[Hop / suborbital]
+    HOP --&gt; ORB[Orbital attempt]
+    ORB --&gt; REC[Recover / Catch / RTLS]
+    REC --&gt; REF[Refurb]
+    REF --&gt; Stack
+  end
+  Pad --&gt; WDR</pre>
+<table class="doc">
+<thead><tr><th>Process</th><th>Needs</th><th>Outcome fantasy</th><th>0.1.0</th></tr></thead>
+<tbody>
+<tr><td>Manufacture</td><td>Starfactory, steel</td><td>Hardware / rings exist</td><td>Steel drip only — <strong>not</strong> vehicle manufacture</td></tr>
+<tr><td>Integrate / stack</td><td>Mega Bay slot</td><td>Stack ready</td><td><strong>Integration placeholder</strong> spawn (see C.3)</td></tr>
+<tr><td>Prop load</td><td>Tank farm</td><td>CH₄/LOX available</td><td>Fill toward capacity</td></tr>
+<tr><td>WDR</td><td>Pad + prop</td><td>Wet dress</td><td>ID reserved; <strong>no UI</strong></td></tr>
+<tr><td>Static fire</td><td>Pad + stack + prop</td><td>Engine light</td><td><strong>Live must-have</strong></td></tr>
+<tr><td>Hop / orbital / recover / refurb</td><td>Flight systems</td><td>Campaign ladder</td><td>Not live</td></tr>
+</tbody></table>
+<p><strong>Fiction honesty for 0.1.0:</strong> Stack spawn is labeled in UI as <strong>“Prototype stack (integration placeholder)”</strong> — not full Starfactory manufacture. Soft coupling: <strong>Build stack</strong> requires at least one Starfactory on the map (any level); if missing, button disabled + log <em>“Need a Starfactory before integrating a prototype stack.”</em> Steel cost still applies (stack is not free steel-wise forever — see tuning). This couples factory → bay without implementing ring production.</p>
+<h4 id="a-4-resource-flows">A.4 Resource flows</h4>
+<table class="doc">
+<thead><tr><th>Resource</th><th>Key</th><th>UI label</th><th>Produced by</th><th>Consumed by</th><th>0.1.0</th></tr></thead>
+<tbody>
+<tr><td>Steel</td><td><code>steel</code></td><td>Steel</td><td>Starfactory</td><td>Build, upgrades, stack spawn</td><td>Live</td></tr>
+<tr><td>CH₄</td><td><code>ch4</code></td><td><strong>Methane</strong></td><td>Tank farm fill</td><td>Static fire</td><td>Live</td></tr>
+<tr><td>LOX</td><td><code>lox</code></td><td>LOX</td><td>Tank farm fill</td><td>Static fire</td><td>Live</td></tr>
+<tr><td>Power</td><td><code>power</code></td><td>Power</td><td>Implicit (no building)</td><td><strong>None</strong> — display only</td><td>Live display, no throttle</td></tr>
+<tr><td>Day</td><td><code>day</code></td><td>Day</td><td>Clock</td><td>Drives production tick</td><td>Live</td></tr>
+<tr><td>Credits</td><td><code>credits</code></td><td>—</td><td>—</td><td>—</td><td>Absent</td></tr>
+<tr><td>Workforce</td><td><code>workforce</code></td><td>—</td><td>—</td><td>—</td><td>Absent</td></tr>
+</tbody></table>
+<h4 id="a-5-flight-campaign-ladder-ids-reserved">A.5 Flight campaign ladder (IDs reserved)</h4>
+<ol>
+<li><code>proc.static_fire</code> — <strong>live stub process</strong> in 0.1.0 (not a full mission system)</li>
+<li><code>proc.wdr</code> — reserved, no UI</li>
+<li><code>proc.hop</code></li>
+<li><code>proc.hop_recover</code></li>
+<li><code>proc.orbital</code></li>
+<li><code>proc.orbital_recover</code></li>
+<li><code>proc.heavy_payload</code></li>
+<li><code>proc.deep_space_pathfinder</code></li>
+</ol>
+<p>Gates (future): <code>needOrbit</code>, <code>needRecover</code>, <code>payloadReq</code>, ship class, pad/tower level.</p>
+<hr />
+<h3 id="b-visual-upgrade-rule-locked-principle">B. Visual Upgrade Rule (locked principle)</h3>
+<p><strong>Rule — Visual Upgrade Rule (VUR):</strong></p>
+<blockquote><p>Every level of every placeable <strong>must</strong> change at least one of: <strong>silhouette</strong>, <strong>footprint</strong>, or <strong>clear secondary geometry</strong> readable at default zoom.<br />Upgrade UI copy <strong>leads with the physical change</strong>, then may list mechanical effects.<br />Pure “+12% reliability” with identical sprites is <strong>forbidden</strong>.</p></blockquote>
+<p><strong>Acceptance for Pad L1 vs L2:</strong> human screenshots side-by-side in PR6 (or notes in PR description); difference must be obvious without reading numbers (wider trench + taller OLM).</p>
+<p><strong>Inspector pattern:</strong></p>
+<pre class="lang-text"><code>Next upgrade — Pad L2: “Widen flame trench &amp; raise OLM”
+• Visual: trench wider; OLM block taller
+• Effect: static fire costs 10% less propellant
+Cost: 40 Steel</code></pre>
+<h4 id="starter-visual-ladder-tables">Starter visual ladder tables</h4>
+<p>**Pad (<code>pad_orbital</code>)**</p>
+<table class="doc">
+<thead><tr><th>Level</th><th>Silhouette / footprint</th><th>Secondary geometry</th><th>Mechanical (0.1.0 live notes)</th></tr></thead>
+<tbody>
+<tr><td>L1</td><td>Small pad disk; short OLM</td><td>Narrow trench</td><td>Hold 1 stack; SF allowed</td></tr>
+<tr><td>L2</td><td>Larger pad disk; taller OLM</td><td>Wider trench; deluge header stub</td><td><code>sfPropMult: 0.9</code> on SF spend</td></tr>
+<tr><td>L3</td><td>Extended apron</td><td>Deluge towers L/R; QD stub</td><td>Deferred draw; defs stubbed in data</td></tr>
+<tr><td>L4</td><td>Deeper / dual-trench look</td><td>Tower attach point</td><td>Deferred</td></tr>
+</tbody></table>
+<p><strong>0.1.0:</strong> L1 + L2 <strong>draw paths implemented</strong>. L3–L4 keys present in <code>BUILDING_DEFS</code> as stubs (not selectable).</p>
+<p><strong>Tank Farm / Mega Bay / Starfactory:</strong> L2+ ladders documented for fiction; <strong>no Upgrade control shown</strong> until L2 visual+cost defs are implemented in a later PR. Do <strong>not</strong> grey disabled Upgrade buttons that promise VUR without data.</p>
+<table class="doc">
+<thead><tr><th>Building</th><th>L1 visual (0.1.0)</th><th>L2+</th></tr></thead>
+<tbody>
+<tr><td>Tank Farm</td><td>1 LOX + 1 CH₄ cylinder</td><td>Doc only; hide Upgrade</td></tr>
+<tr><td>Mega Bay</td><td>Short hall, one door</td><td>Doc only; hide Upgrade</td></tr>
+<tr><td>Starfactory</td><td>Long low shed</td><td>Doc only; hide Upgrade</td></tr>
+</tbody></table>
+<p><strong>Tank Farm L2–L4 (doc):</strong> more cylinders → sphere/pump house → dense farm.   <strong>Mega Bay L2–L4 (doc):</strong> taller roof → dual cell → clad mega look.   <strong>Starfactory L2–L4 (doc):</strong> longer roof/vents → chimneys → multi-bay silhouette.</p>
+<hr />
+<h3 id="c-how-to-start-simple-fidelity-ladder-for-0-1-0">C. How to start simple — fidelity ladder for 0.1.0</h3>
+<h4 id="c-1-visual-fidelity">C.1 Visual fidelity</h4>
+<table class="doc">
+<thead><tr><th>Element</th><th>Spec</th></tr></thead>
+<tbody>
+<tr><td>Projection</td><td><strong>Top-down 2.5D height faces</strong> (axis-aligned footprint + darker front height face). <strong>Not</strong> true isometric. True iso = future fidelity pass.</td></tr>
+<tr><td>Terrain</td><td>Grass fill + 2–4 dirt ellipses; optional corridor dirt-road; SE water invalid</td></tr>
+<tr><td>Camera</td><td>World grid → pixel via <code>CELL</code>; pan drag empty map; zoom clamp <strong>0.6–1.8</strong>; no rotate</td></tr>
+<tr><td>Placeables</td><td>4 types; L1 meshes; Pad L2 draw after upgrade</td></tr>
+<tr><td>Vehicle</td><td>Vertical capsule/rect drawn at host building anchor</td></tr>
+<tr><td>Effects</td><td>Static fire: 0.5s orange flame rects/triangles under OLM</td></tr>
+<tr><td>Labels</td><td>Name tags on selected building (optional: all buildings)</td></tr>
+<tr><td>UI chrome</td><td>DOM + Tailwind; tokens above</td></tr>
+</tbody></table>
+<h4 id="c-2-layout-fidelity">C.2 Layout fidelity</h4>
+<pre class="lang-text"><code>┌──────────────────────────────────────────────────────────┐
+│ TOP: STARBASE │ Steel │ Methane │ LOX │ Power │ Day │ ver │
+├────────┬───────────────────────────────────────┬─────────┤
+│ LEFT   │           CENTER CANVAS MAP           │ RIGHT   │
+│ Build  │     grass / dirt / buildings          │ Inspector│
+│ 4 btns │     pan/zoom                          │ + actions│
+├────────┴───────────────────────────────────────┴─────────┤
+│ BOTTOM: event log / status strip + optional objective    │
+└──────────────────────────────────────────────────────────┘</code></pre>
+<h4 id="c-3-world-geometry-grid-hit-testing-locked">C.3 World geometry, grid, hit-testing (locked)</h4>
+<table class="doc">
+<thead><tr><th>Constant</th><th>Value</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td><code>CELL</code></td><td><strong>32</strong> px per grid cell at zoom 1</td><td></td></tr>
+<tr><td><code>MAP_W</code></td><td><strong>40</strong> cells</td><td>World width</td></tr>
+<tr><td><code>MAP_H</code></td><td><strong>30</strong> cells</td><td>World height</td></tr>
+<tr><td>World px size</td><td>1280 × 960</td><td><code>MAP_W*CELL</code> × <code>MAP_H*CELL</code></td></tr>
+<tr><td>Origin</td><td>Grid <code>(0,0)</code> = <strong>northwest</strong> corner of map</td><td>+x east, +y south</td></tr>
+<tr><td>Building position</td><td>Store **<code>gx</code>, <code>gy</code><strong> (integer grid of footprint </strong>top-left** cell)</td><td>Not free px</td></tr>
+<tr><td>Placement</td><td><strong>Snap to grid</strong></td><td>Footprint must fit entirely on map</td></tr>
+<tr><td>Footprint</td><td>From <code>BUILDING_DEFS[type].footprint</code> <code>{w,h}</code> in cells</td><td></td></tr>
+<tr><td>AABB world</td><td><code>x = gx*CELL .. (gx+w)*CELL</code>, <code>y = gy*CELL .. (gy+h)*CELL</code></td><td></td></tr>
+<tr><td>Hit-test select</td><td><strong>Footprint AABB only</strong> in world space after screen→world unproject</td><td>Height face is cosmetic; not part of hit box</td></tr>
+<tr><td>Water invalid</td><td>Cells where <code>gx &gt;= 28 &amp;&amp; gy &gt;= 20</code> <strong>or</strong> point-in-polygon of optional refined wedge</td><td>Simple half-plane rect OK for 0.1.0</td></tr>
+<tr><td>Zone rects (grid cells, inclusive ranges)</td><td>See below</td><td>Tints at ~8–12% overlay</td></tr>
+</tbody></table>
+<p><strong>Default zone rectangles (grid cells):</strong></p>
+<table class="doc">
+<thead><tr><th>Zone</th><th><code>gx0..gx1</code>, <code>gy0..gy1</code> (inclusive-ish: x in [gx0,gx1), y in [gy0,gy1))</th></tr></thead>
+<tbody>
+<tr><td>production</td><td>x <code>[0,40)</code>, y <code>[0,12)</code></td></tr>
+<tr><td>corridor</td><td>x <code>[0,40)</code>, y <code>[12,16)</code></td></tr>
+<tr><td>launch</td><td>x <code>[0,22)</code>, y <code>[16,28)</code></td></tr>
+<tr><td>propellant</td><td>x <code>[22,40)</code>, y <code>[16,28)</code></td></tr>
+<tr><td>water</td><td>x <code>[28,40)</code>, y <code>[20,30)</code> <strong>overrides</strong> other zones for validity</td></tr>
+</tbody></table>
+<p>Cell zone lookup: if water rule → water; else first matching rect in order production → corridor → launch → propellant → default production.</p>
+<p><strong>Camera:</strong></p>
+<pre class="lang-text"><code>// camera { x, y, zoom } is the pan+zoom state (world px of view origin + zoom)
+screenX = (worldX - camera.x) * camera.zoom
+screenY = (worldY - camera.y) * camera.zoom
+// drag empty map: adjust camera.x/y; wheel: zoom toward cursor (adjust x/y so point under cursor stays fixed)</code></pre>
+<h4 id="c-4-tuning-constants-implementable">C.4 Tuning constants (implementable)</h4>
+<table class="doc">
+<thead><tr><th>ID</th><th>Value</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td><code>START_STEEL</code></td><td><strong>220</strong></td><td>Initial steel — see economy invariant below</td></tr>
+<tr><td><code>START_CH4</code></td><td><strong>20</strong></td><td>Initial methane</td></tr>
+<tr><td><code>START_LOX</code></td><td><strong>20</strong></td><td>Initial LOX</td></tr>
+<tr><td><code>START_POWER</code></td><td><strong>100</strong></td><td>Display %; <strong>fixed</strong> at 100% in 0.1.0 — <strong>no gameplay effect</strong>, no cosmetic drift</td></tr>
+<tr><td><code>START_DAY</code></td><td><strong>1</strong></td><td></td></tr>
+<tr><td><code>MS_PER_DAY</code></td><td><strong>4000</strong></td><td>4 real seconds = 1 game day</td></tr>
+<tr><td><code>STEEL_PER_DAY_L1</code></td><td><strong>8</strong></td><td>Per Starfactory L1</td></tr>
+<tr><td><code>CH4_FILL_PER_DAY_L1</code></td><td><strong>12</strong></td><td>Per Tank Farm L1, until cap</td></tr>
+<tr><td><code>LOX_FILL_PER_DAY_L1</code></td><td><strong>12</strong></td><td>Per Tank Farm L1, until cap</td></tr>
+<tr><td><code>CH4_CAP_L1</code></td><td><strong>100</strong></td><td>Per farm; <strong>site cap = sum of all farms’ caps</strong></td></tr>
+<tr><td><code>LOX_CAP_L1</code></td><td><strong>100</strong></td><td>Same</td></tr>
+<tr><td><code>COST_STARFACTORY</code></td><td><strong>40</strong></td><td>Steel</td></tr>
+<tr><td><code>COST_MEGA_BAY</code></td><td><strong>35</strong></td><td>Steel</td></tr>
+<tr><td><code>COST_TANK_FARM</code></td><td><strong>30</strong></td><td>Steel</td></tr>
+<tr><td><code>COST_PAD</code></td><td><strong>50</strong></td><td>Steel</td></tr>
+<tr><td><code>COST_PAD_L2</code></td><td><strong>40</strong></td><td>Steel upgrade</td></tr>
+<tr><td><code>COST_STACK</code></td><td><strong>15</strong></td><td>Steel to spawn prototype stack at bay</td></tr>
+<tr><td><code>SF_CH4_NEED</code></td><td><strong>10</strong></td><td>Minimum to press Static Fire</td></tr>
+<tr><td><code>SF_LOX_NEED</code></td><td><strong>10</strong></td><td>Minimum to press Static Fire</td></tr>
+<tr><td><code>SF_CH4_SPEND</code></td><td><strong>10</strong></td><td>Base spend (before mult)</td></tr>
+<tr><td><code>SF_LOX_SPEND</code></td><td><strong>10</strong></td><td>Base spend (before mult)</td></tr>
+<tr><td><code>SF_PROP_MULT_L2</code></td><td><strong>0.9</strong></td><td>Pad L2: spend = ceil(base * mult) → <strong>9/9</strong></td></tr>
+<tr><td><code>SF_FX_MS</code></td><td><strong>500</strong></td><td>Flame duration</td></tr>
+<tr><td><code>MAX_STACKS</code></td><td><strong>1</strong></td><td>Only one vehicle in 0.1.0</td></tr>
+<tr><td><code>MAX_COUNT_PER_TYPE</code></td><td><strong>1</strong></td><td>At most one building of each placeable type</td></tr>
+<tr><td><code>LOG_RING</code></td><td><strong>50</strong></td><td>Max log lines kept</td></tr>
+</tbody></table>
+<h4 id="economy-invariant-no-softlock-locked">Economy invariant (no softlock) — locked</h4>
+<p><strong>Invariant:</strong> With default TUNING and <code>MAX_COUNT_PER_TYPE = 1</code>, the player can place <strong>all four</strong> building types, pay <strong>one stack</strong>, and pay <strong>Pad L2</strong> from the starting steel pool <strong>without waiting for production</strong>, in <strong>any placement order</strong>.</p>
+<table class="doc">
+<thead><tr><th>Spend path</th><th>Steel</th></tr></thead>
+<tbody>
+<tr><td>Starfactory + Mega Bay + Tank Farm + Pad</td><td>40+35+30+50 = <strong>155</strong></td></tr>
+<tr><td>+ Prototype stack</td><td>+15 = <strong>170</strong></td></tr>
+<tr><td>+ Pad L1→L2</td><td>+40 = <strong>210</strong></td></tr>
+<tr><td><code>START_STEEL</code></td><td><strong>220</strong></td></tr>
+<tr><td>Remainder after full critical path</td><td><strong>10</strong></td></tr>
+</tbody></table>
+<p>There is <strong>no demolish/refund</strong> in 0.1.0; softlock is prevented by starting steel + one-of-each cap, not by refunds.</p>
+<p><strong>Factory drip</strong> remains useful for a second pad upgrade era later and for mis-spends that do not exist under maxCount=1; it is not required to complete C.7 criteria 2–6.</p>
+<h4 id="intended-first-session-build-order-tutorial-path">Intended first-session build order (tutorial path)</h4>
+<p>Suggested order (also fine if player deviates — any order of the four placeables works):</p>
+<ol>
+<li><strong>Starfactory</strong> (40) — steel production online early (habit for later milestones).  </li>
+<li><strong>Tank Farm</strong> (30) — Methane/LOX begin filling.  </li>
+<li><strong>Mega Bay</strong> (35) — integration slot ready.  </li>
+<li><strong>Orbital Pad</strong> (50) — launch complex ready.  </li>
+<li>Select Mega Bay → <strong>Build stack</strong> (15).  </li>
+<li>Select Pad → <strong>Send to pad</strong> (0 steel).  </li>
+<li>Select Pad → <strong>Upgrade</strong> to L2 (40) — VUR proof.  </li>
+<li><strong>Static Fire</strong> when Methane/LOX ≥ 10 (tanks fill in ~1 game day from 20 start).  </li>
+</ol>
+<p>Palette may still list Pad first (mock order); UI should not force order. Optional PR8 hint: “Tip: build Starfactory early so steel keeps flowing.”</p>
+<p><strong>Static fire formula:</strong></p>
+<pre class="lang-text"><code>need: stack on selected pad AND ch4 &gt;= SF_CH4_NEED AND lox &gt;= SF_LOX_NEED AND !fxActive
+mult = pad.level &gt;= 2 ? SF_PROP_MULT_L2 : 1.0
+spendCh4 = ceil(SF_CH4_SPEND * mult)
+spendLox = ceil(SF_LOX_SPEND * mult)
+// always &quot;success&quot; in 0.1.0 — no RUD RNG</code></pre>
+<p><strong>Power (locked):</strong> Display-only bar at 100%. Do <strong>not</strong> implement −1%/day or production throttle. UI may show “Power 100% (grid stable)” so the slot exists for later <code>power_node</code>.</p>
+<p><strong>Capacity stacking:</strong></p>
+<pre class="lang-javascript"><code>function sumCap(state, kind /* &#x27;ch4&#x27;|&#x27;lox&#x27; */) {
+  let cap = 0;
+  for (const b of state.site.buildings) {
+    if (b.type !== &#x27;tank_farm&#x27;) continue;
+    const eff = BUILDING_DEFS.tank_farm.levels[b.level].effects;
+    cap += kind === &#x27;ch4&#x27; ? eff.ch4Cap : eff.loxCap;
+  }
+  return cap;
+}</code></pre>
+<p>Fill each day: for each tank farm, add fill rates, then clamp site totals to <code>sumCap</code>.</p>
+<h4 id="c-5-mechanics-live-vs-stubbed">C.5 Mechanics — live vs stubbed</h4>
+<p><strong>Live</strong></p>
+<table class="doc">
+<thead><tr><th>System</th><th>Behavior</th></tr></thead>
+<tbody>
+<tr><td>Day tick</td><td>Accumulate real time; every <code>MS_PER_DAY</code> ms → <code>onGameDay</code></td></tr>
+<tr><td>Place building</td><td>Build mode → click valid cell → pay steel → spawn at <code>gx,gy</code></td></tr>
+<tr><td>Max per type</td><td>**<code>maxCount: 1</code>** for each of the four types — <code>tryPlace</code> rejects if count ≥ 1; palette button disabled + log <em>“Already built”</em></td></tr>
+<tr><td>Collision</td><td>Footprint AABB on grid; no overlap; not water; on-map</td></tr>
+<tr><td>Starfactory</td><td>+<code>steelPerDay</code> per day</td></tr>
+<tr><td>Tank farm</td><td>CH₄/LOX fill toward <code>sumCap</code></td></tr>
+<tr><td>Power</td><td>Display <strong>fixed</strong> 100% only</td></tr>
+<tr><td>Mega Bay</td><td>1 slot; <strong>Build stack</strong> only when <strong>selected</strong> building is that <code>mega_bay</code>, it is empty, Starfactory exists on map, no site stack yet, steel ≥ 15</td></tr>
+<tr><td>Pad</td><td>0/1 stack via vehicle.buildingId</td></tr>
+<tr><td>Send to pad</td><td>Instant teleport: <strong>selected</strong> building must be empty <code>pad_orbital</code>; stack must be at a bay; <code>assignStack(stack, selectedPad)</code></td></tr>
+<tr><td>Selection</td><td>Click footprint; Esc / right-click cancels build mode</td></tr>
+<tr><td>Pad upgrade L1→L2</td><td><strong>Selected</strong> pad L1; pay 40 steel; level=2; redraw</td></tr>
+<tr><td>Static fire</td><td><strong>Selected</strong> pad with stack; formula above; flame FX; log good</td></tr>
+</tbody></table>
+<p><strong>Stubbed</strong></p>
+<table class="doc">
+<thead><tr><th>System</th><th>Form</th></tr></thead>
+<tbody>
+<tr><td>Credits, contracts, odds, debrief</td><td>Absent</td></tr>
+<tr><td>WDR, hop, orbit, catch</td><td>Absent</td></tr>
+<tr><td>Tower placeable</td><td>Absent</td></tr>
+<tr><td>Vehicle design / multi-stack</td><td>Absent</td></tr>
+<tr><td>Timed construction</td><td>Instant place</td></tr>
+<tr><td>Save/load</td><td>Absent</td></tr>
+<tr><td>Audio</td><td>None</td></tr>
+<tr><td>Path movement</td><td>No <code>in_transit</code></td></tr>
+<tr><td>Zone cost bias</td><td>None</td></tr>
+<tr><td>Non-pad upgrades</td><td>Controls <strong>hidden</strong></td></tr>
+</tbody></table>
+<h4 id="c-6-stack-location-single-source-of-truth-locked">C.6 Stack location — single source of truth (locked)</h4>
+<p><strong>Invariant:</strong></p>
+<ol>
+<li>**<code>vehicle.buildingId</code> is authoritative** for where the stack is.</li>
+<li><code>building.stackId</code> is a <strong>denormalized cache</strong> updated <strong>only</strong> inside <code>assignStack(vehicleId, buildingId)</code> / <code>clearStack(buildingId)</code>.</li>
+<li>On load or debug assert: every <code>building.stackId</code> matches the vehicle that points at it; at most one vehicle; <code>MAX_STACKS === 1</code>.</li>
+<li>**No <code>locationKind</code> / <code>in_transit</code> in 0.1.0.** Derive UI location for display:</li>
+</ol>
+<ul>
+<li>if host.type === <code>mega_bay</code> → “At Mega Bay”</li>
+<li>if host.type === <code>pad_orbital</code> → “On pad”</li>
+</ul>
+<ol>
+<li>Vehicle <code>status</code> is always <code>&#x27;ready&#x27;</code> in 0.1.0.</li>
+</ol>
+<pre class="lang-javascript"><code>function assignStack(state, vehicleId, buildingId) {
+  const v = getVehicle(state, vehicleId);
+  if (v.buildingId) {
+    const prev = getBuilding(state, v.buildingId);
+    if (prev) prev.stackId = null;
+  }
+  const b = getBuilding(state, buildingId);
+  // if b.stackId set and !== vehicleId → reject
+  v.buildingId = buildingId;
+  b.stackId = vehicleId;
+}</code></pre>
+<h4 id="c-7-playtest-success-criteria-human-lt-3-minutes">C.7 Playtest success criteria (human, &amp;lt;3 minutes)</h4>
+<p>All of the following are <strong>required</strong> to accept <code>0.1.0-foundation</code>:</p>
+<ol>
+<li>See green map, token-correct chrome, resource bar with live Steel/Methane/LOX/Power/Day.</li>
+<li>Place all four building types in any order (steel decreases; <code>START_STEEL=220</code> prevents softlock; max one of each).</li>
+<li>Watch Steel rise (factory) and Methane/LOX fill (tanks).</li>
+<li>With Starfactory present, build prototype stack at bay (15 steel); send to pad; see capsule move.</li>
+<li>Upgrade pad L1→L2; <strong>screenshot-obvious</strong> wider trench + taller OLM.</li>
+<li><strong>Static fire:</strong> spend propellant, see flame ~0.5s, log success; L2 spends 9/9 if upgraded.</li>
+<li>Objective checklist completable (PR8 polish).</li>
+</ol>
+<hr />
+<h3 id="d-coupling-diagram">D. Coupling diagram</h3>
+<h4 id="d-1-live-coupling-in-0-1-0">D.1 Live coupling in 0.1.0</h4>
+<pre class="mermaid">flowchart TB
+  subgraph UI
+    Palette[Build palette]
+    Insp[Inspector]
+    Log[Event log]
+  end
+
+  subgraph Map
+    SF[Starfactory L1]
+    MB[Mega Bay L1]
+    TF[Tank Farm L1]
+    PD[Pad L1/L2]
+    ST[Stack placeholder]
+  end
+
+  subgraph Res[Resources]
+    Steel
+    CH4[Methane ch4]
+    LOX
+    Power[Power display]
+    Day
+  end
+
+  Palette --&gt;|spend Steel| SF
+  Palette --&gt;|spend Steel| MB
+  Palette --&gt;|spend Steel| TF
+  Palette --&gt;|spend Steel| PD
+
+  SF --&gt;|steelPerDay| Steel
+  SF -.-&gt;|enables Build stack| MB
+  TF --&gt;|fillPerDay| CH4
+  TF --&gt;|fillPerDay| LOX
+  Day --&gt;|tick| SF
+  Day --&gt;|tick| TF
+
+  Steel --&gt;|COST_STACK| ST
+  MB --&gt;|assignStack| ST
+  ST --&gt;|Send to pad| PD
+
+  CH4 --&gt;|SF spend| PD
+  LOX --&gt;|SF spend| PD
+  PD --&gt;|flame VFX + log| Log
+  Steel --&gt;|COST_PAD_L2| PD
+
+  Insp --&gt; PD
+  Insp --&gt; MB
+  Insp --&gt; TF
+  Insp --&gt; SF
+  Power -.-&gt;|no effect| Map</pre>
+<h4 id="d-2-expansion-coupling-post-0-1-0">D.2 Expansion coupling (post-0.1.0)</h4>
+<pre class="mermaid">flowchart LR
+  SF[Starfactory] --&gt; MB[Mega Bay]
+  RS[Raptor Shop] --&gt; MB
+  MB --&gt; PD[Pad + Tower]
+  TF[Tank Farm] --&gt; PD
+  ASU[ASU] --&gt; TF
+  PD --&gt; SFIR[Static Fire / WDR]
+  SFIR --&gt; HOP[Hop]
+  HOP --&gt; ORB[Orbit]
+  ORB --&gt; REC[Catch/RTLS]
+  REC --&gt; MB
+  PD --&gt; DEB[Debrief]
+  DEB --&gt; SF</pre>
+<hr />
+<h3 id="e-data-model-sketch">E. Data model sketch</h3>
+<p>Vanilla JS in <code>index.html</code>. Serializable later for saves.</p>
+<pre class="lang-javascript"><code>// ===== Constants =====
+const CELL = 32;
+const MAP_W = 40;
+const MAP_H = 30;
+const MS_PER_DAY = 4000;
+const VERSION = &#x27;0.1.0-foundation&#x27;;
+
+const TUNING = {
+  START_STEEL: 220, START_CH4: 20, START_LOX: 20, START_POWER: 100, START_DAY: 1,
+  COST_STARFACTORY: 40, COST_MEGA_BAY: 35, COST_TANK_FARM: 30, COST_PAD: 50,
+  COST_PAD_L2: 40, COST_STACK: 15,
+  SF_CH4_NEED: 10, SF_LOX_NEED: 10, SF_CH4_SPEND: 10, SF_LOX_SPEND: 10,
+  SF_PROP_MULT_L2: 0.9, SF_FX_MS: 500, MAX_STACKS: 1, MAX_COUNT_PER_TYPE: 1, LOG_RING: 50,
+};
+
+/** Resource keys vs UI labels */
+const RESOURCE_LABELS = { steel: &#x27;Steel&#x27;, ch4: &#x27;Methane&#x27;, lox: &#x27;LOX&#x27;, power: &#x27;Power&#x27;, day: &#x27;Day&#x27; };
+
+/**
+ * Upgrade costs live ONLY on levels[n] for n &gt;= 2 as costSteel.
+ * There is no separate UpgradeDef registry in 0.1.0.
+ */
+const BUILDING_DEFS = {
+  pad_orbital: {
+    id: &#x27;pad_orbital&#x27;,
+    name: &#x27;Orbital Pad&#x27;,
+    maxLevel: 4,
+    footprint: { w: 3, h: 3 },
+    baseCostSteel: 50,
+    maxCount: 1,
+    zoneHint: &#x27;launch&#x27;,
+    levels: {
+      1: {
+        label: &#x27;OLM stub&#x27;,
+        visual: { padR: 28, olmH: 14, trenchW: 10, trenchH: 4, deluge: false },
+        effects: { canStaticFire: true, stackSlots: 1, sfPropMult: 1.0 },
+      },
+      2: {
+        label: &#x27;Wide trench&#x27;,
+        costSteel: 40,
+        blurb: &#x27;Widen flame trench and raise OLM&#x27;,
+        visual: { padR: 34, olmH: 22, trenchW: 18, trenchH: 5, deluge: true },
+        effects: { canStaticFire: true, stackSlots: 1, sfPropMult: 0.9 },
+      },
+      // Forward-stable stubs (not selectable until implemented)
+      3: {
+        label: &#x27;Deluge towers&#x27;,
+        costSteel: 60,
+        blurb: &#x27;Add deluge towers and QD stub&#x27;,
+        visual: { padR: 36, olmH: 24, trenchW: 20, trenchH: 6, deluge: true, towers: true },
+        effects: { canStaticFire: true, stackSlots: 1, sfPropMult: 0.85 },
+        stub: true,
+      },
+      4: {
+        label: &#x27;Orbital cadence pad&#x27;,
+        costSteel: 80,
+        blurb: &#x27;Deeper trench; tower attach point&#x27;,
+        visual: { padR: 40, olmH: 26, trenchW: 22, trenchH: 7, deluge: true, towers: true, towerMount: true },
+        effects: { canStaticFire: true, stackSlots: 1, sfPropMult: 0.8 },
+        stub: true,
+      },
+    },
+  },
+  mega_bay: {
+    id: &#x27;mega_bay&#x27;,
+    name: &#x27;Mega Bay&#x27;,
+    maxLevel: 4,
+    footprint: { w: 3, h: 3 },
+    baseCostSteel: 35,
+    maxCount: 1,
+    zoneHint: &#x27;production&#x27;,
+    levels: {
+      1: {
+        visual: { bodyW: 48, bodyH: 36, doorW: 16 },
+        effects: { stackSlots: 1 },
+      },
+    },
+  },
+  tank_farm: {
+    id: &#x27;tank_farm&#x27;,
+    name: &#x27;Tank Farm&#x27;,
+    maxLevel: 4,
+    footprint: { w: 3, h: 2 },
+    baseCostSteel: 30,
+    maxCount: 1,
+    zoneHint: &#x27;propellant&#x27;,
+    levels: {
+      1: {
+        visual: { tanks: [{ kind: &#x27;lox&#x27;, h: 28 }, { kind: &#x27;ch4&#x27;, h: 22 }] },
+        effects: { ch4Cap: 100, loxCap: 100, ch4FillPerDay: 12, loxFillPerDay: 12 },
+      },
+    },
+  },
+  starfactory: {
+    id: &#x27;starfactory&#x27;,
+    name: &#x27;Starfactory&#x27;,
+    maxLevel: 4,
+    footprint: { w: 4, h: 2 },
+    baseCostSteel: 40,
+    maxCount: 1,
+    zoneHint: &#x27;production&#x27;,
+    levels: {
+      1: {
+        visual: { bodyW: 64, bodyH: 22 },
+        effects: { steelPerDay: 8 },
+      },
+    },
+  },
+};
+
+/**
+ * @typedef {Object} Resources
+ * @property {number} steel
+ * @property {number} ch4
+ * @property {number} lox
+ * @property {number} power  // display 0–100; no gameplay effect in 0.1.0
+ * @property {number} day
+ */
+
+/**
+ * @typedef {Object} Building
+ * @property {string} id
+ * @property {&#x27;pad_orbital&#x27;|&#x27;mega_bay&#x27;|&#x27;tank_farm&#x27;|&#x27;starfactory&#x27;} type
+ * @property {number} level
+ * @property {number} gx   // grid x (top-left)
+ * @property {number} gy   // grid y
+ * @property {string|null} stackId  // denormalized; vehicle.buildingId is authoritative
+ * @property {&#x27;idle&#x27;|&#x27;firing&#x27;} status
+ */
+
+/**
+ * @typedef {Object} Vehicle
+ * @property {string} id
+ * @property {&#x27;stack&#x27;} kind
+ * @property {&#x27;ready&#x27;} status     // only live status in 0.1.0
+ * @property {string|null} buildingId  // AUTHORITATIVE location
+ * @property {string} name        // e.g. &quot;Prototype Stack-1&quot;
+ */
+
+/**
+ * @typedef {Object} Site
+ * @property {string} id   // &#x27;starbase_earth&#x27;
+ * @property {string} name
+ * @property {Building[]} buildings
+ * @property {Vehicle[]} vehicles
+ * @property {Resources} resources
+ * @property {{ x: number, y: number }[]} [waterPolygon]  // optional refined water; else rect rule
+ */
+
+/**
+ * @typedef {Object} GameState
+ * @property {string} version
+ * @property {Site} site
+ * @property {string|null} buildMode   // BuildingTypeId or null
+ * @property {string|null} selectedBuildingId
+ * @property {{ t: number, level: &#x27;info&#x27;|&#x27;good&#x27;|&#x27;warn&#x27;|&#x27;bad&#x27;, msg: string }[]} log
+ * @property {{ x: number, y: number, zoom: number }} camera  // world px + zoom
+ * @property {number} dayAccumMs       // ms toward next game day
+ * @property {number} msPerDay         // = MS_PER_DAY
+ * @property {{ kind: &#x27;static_fire&#x27;, buildingId: string, t0: number, dur: number }|null} fx
+ * @property {{ placePad: boolean, placeBay: boolean, placeTanks: boolean, placeFactory: boolean, stackOnPad: boolean, upgradedPad: boolean, staticFire: boolean }} objectives
+ */</code></pre>
+<p><strong>Tick:</strong></p>
+<pre class="lang-javascript"><code>function onGameDay(state) {
+  const r = state.site.resources;
+  for (const b of state.site.buildings) {
+    const eff = BUILDING_DEFS[b.type].levels[b.level]?.effects;
+    if (!eff) continue;
+    if (b.type === &#x27;starfactory&#x27;) r.steel += eff.steelPerDay;
+    if (b.type === &#x27;tank_farm&#x27;) {
+      r.ch4 += eff.ch4FillPerDay;
+      r.lox += eff.loxFillPerDay;
+    }
+  }
+  r.ch4 = Math.min(sumCap(state, &#x27;ch4&#x27;), r.ch4);
+  r.lox = Math.min(sumCap(state, &#x27;lox&#x27;), r.lox);
+  r.day += 1;
+}</code></pre>
+<p><strong>Draw:</strong> sort buildings by <code>gy</code> then <code>gx</code>; draw footprint top + height face from <code>levels[level].visual</code>. Stack drawn at host building center top.</p>
+<h4 id="e-1-single-file-structure-implementer-note">E.1 Single-file structure (implementer note)</h4>
+<p>Suggested section order inside <code>index.html</code>:</p>
+<ol>
+<li><code>&lt;head&gt;</code> Tailwind CDN + minimal CSS (tokens, canvas fill)</li>
+<li>HTML chrome (top / left / canvas host / right / bottom log)</li>
+<li><code>&lt;script&gt;</code>: <code>// --- constants &amp; TUNING ---</code></li>
+<li><code>// --- BUILDING_DEFS ---</code></li>
+<li><code>// --- state ---</code></li>
+<li><code>// --- pure helpers</code> (grid, sumCap, zoneAt, canPlace, countType, assignStack)</li>
+<li><code>// --- simulation</code> (onGameDay, tryStaticFire, tryUpgrade)</li>
+<li><code>// --- render</code> (drawMap, drawBuilding, drawFx) via <strong>rAF</strong></li>
+<li><code>// --- input</code> (pointer, wheel, buttons)</li>
+<li><code>// --- boot</code> init state + listeners</li>
+</ol>
+<p><strong>Loop:</strong> one <code>requestAnimationFrame</code> for draw + input coalescing; day clock uses <code>performance.now()</code> delta into <code>dayAccumMs</code> (not one setInterval that desyncs when tab is backgrounded — still OK to use rAF-only accumulation).</p>
+<p><strong>FPS budget:</strong> target 60; 0.1.0 content is trivial (&amp;lt;50 draw calls). No particle pool required.</p>
+<p><strong>Offline:</strong> Tailwind CDN <strong>required</strong> for 0.1.0 chrome styling; offline without CDN yields unstyled DOM but canvas map can still run if JS loads. Document in README when shipping. No SRI pin required for prototype CDN script (known tradeoff).</p>
+<p><strong>Growth:</strong> keep file under ~1.5–2k lines before requesting split approval; use section banners.</p>
+<hr />
+<h3 id="f-out-of-scope-for-0-1-0">F. Out of scope for 0.1.0</h3>
+<ul>
+<li>Moon / Mars, orbit view, multi-site  </li>
+<li>City, workforce, housing, land purchase  </li>
+<li>Contracts, credits, milestone finance  </li>
+<li>Phase odds, debrief modal, FAIL_GUIDE  </li>
+<li>Hop / orbital trajectory, stage sep, reentry  </li>
+<li>Catch / chopsticks gameplay  </li>
+<li>Audio, Grok Imagine, external assets  </li>
+<li>Dark dashboard chrome  </li>
+<li>Gigabay, ASU, Raptor shop, tile plant placeables  </li>
+<li>Multiple stacks; <strong>second pad/bay/farm/factory</strong> (maxCount 1 each in 0.1.0)  </li>
+<li>Save slots  </li>
+<li>Mobile-first polish  </li>
+<li>True isometric projection  </li>
+</ul>
+<hr />
+<h3 id="g-security-privacy">G. Security &amp; Privacy</h3>
+<table class="doc">
+<thead><tr><th>Topic</th><th>Approach</th></tr></thead>
+<tbody>
+<tr><td>Data</td><td>No personal/financial user data; game state only</td></tr>
+<tr><td>Network</td><td><strong>Only third-party script: Tailwind CDN</strong> — no analytics</td></tr>
+<tr><td>Storage</td><td>No localStorage in 0.1.0</td></tr>
+<tr><td>XSS</td><td>Log and labels via <code>textContent</code> / canvas fillText only</td></tr>
+<tr><td>SRI</td><td>Not required for Tailwind CDN prototype; revisit if offline-first or lockfile era</td></tr>
+</tbody></table>
+<hr />
+<h3 id="h-observability">H. Observability</h3>
+<table class="doc">
+<thead><tr><th>Signal</th><th>Implementation</th></tr></thead>
+<tbody>
+<tr><td>Event log</td><td>Bottom strip + ring buffer <code>LOG_RING</code></td></tr>
+<tr><td>Levels</td><td>info / good / warn / bad</td></tr>
+<tr><td>Debug</td><td><code>?debug=1</code> → footprints, zone tints full, grid, FPS</td></tr>
+<tr><td>Version</td><td>Top bar shows <code>0.1.0-foundation</code> (or wip label per KD-17)</td></tr>
+<tr><td>SF prechecks</td><td>Log why blocked (no stack, low Methane/LOX)</td></tr>
+</tbody></table>
+<hr />
+<h3 id="i-rollout-plan">I. Rollout Plan</h3>
+<ol>
+<li>Design acceptance (this rev).  </li>
+<li>Implement ordered PRs below.  </li>
+<li>Human browser test vs §C.7.  </li>
+<li>Docs: <code>VERSION</code>, README, <code>IMPLEMENTATION_LOG</code>, <strong>rewrite/remove FUTURE_FEATURES 0.1.0 row</strong>.  </li>
+<li>Archive ritual when subsequent milestones edit <code>index.html</code>.</li>
+</ol>
+<p><strong>Risks &amp; mitigations</strong></p>
+<table class="doc">
+<thead><tr><th>Risk</th><th>Mitigation</th></tr></thead>
+<tbody>
+<tr><td>Scope creep to flight sim</td><td>SF only; no trajectory</td></tr>
+<tr><td>Canvas + DOM fights</td><td>Flex layout; canvas <code>flex-1</code></td></tr>
+<tr><td>Upgrade invisible</td><td>PR6 screenshots mandatory</td></tr>
+<tr><td>Economy dry</td><td>Aggressive steel drip; SF cheap</td></tr>
+<tr><td>Zone overbuild</td><td>Soft tint + warn log only</td></tr>
+<tr><td>Instant place-then-idle</td><td>PR8 objective checklist</td></tr>
+<tr><td>VERSION lag vs playable file</td><td>KD-17 intermediate versioning</td></tr>
+<tr><td>PR3 before resources tick</td><td>PR3 introduces steel pool + costs; day drip in PR4</td></tr>
+</tbody></table>
+<hr />
+<h2 id="api-interface-changes">API / Interface Changes</h2>
+<p>No network API.</p>
+<table class="doc">
+<thead><tr><th>Control</th><th>Action</th></tr></thead>
+<tbody>
+<tr><td>Build button</td><td><code>buildMode = type</code></td></tr>
+<tr><td>Esc / right-click</td><td><code>buildMode = null</code></td></tr>
+<tr><td>Map click build mode</td><td><code>tryPlace</code></td></tr>
+<tr><td>Map click select</td><td>select by footprint AABB</td></tr>
+<tr><td>Drag empty map</td><td>pan</td></tr>
+<tr><td>Wheel</td><td>zoom</td></tr>
+<tr><td>Upgrade (pad only if L1 and L2 not stub)</td><td>tryUpgrade</td></tr>
+<tr><td>Build stack</td><td><code>tryBuildStack</code>: selected must be empty <code>mega_bay</code>; factory on map; steel ≥ 15; <code>MAX_STACKS</code> not reached</td></tr>
+<tr><td>Send to pad</td><td><code>trySendToPad</code>: selected must be empty <code>pad_orbital</code>; exactly one stack exists at a bay</td></tr>
+<tr><td>Static fire</td><td><code>tryStaticFire</code>: selected pad holds the stack</td></tr>
+</tbody></table>
+<hr />
+<h2 id="data-model-changes">Data Model Changes</h2>
+<p>Greenfield. <code>state.version</code> reserved for future migrations.</p>
+<hr />
+<h2 id="alternatives-considered">Alternatives Considered</h2>
+<h3 id="1-dashboard-first-port-of-starship-dev">1. Dashboard-first port of starship-dev</h3>
+<p><strong>Reject:</strong> Violates map-first identity and VUR.</p>
+<h3 id="2-full-iso-many-buildings-day-one">2. Full iso + many buildings day one</h3>
+<p><strong>Reject:</strong> Violates start-simple.</p>
+<h3 id="3-split-light-sim-into-0-1-1-coupling">3. Split light sim into <code>0.1.1-coupling</code></h3>
+<p><strong>Reject for first playable:</strong> Would ship a place-only build that fails “systems working together.” Documented as superseded FUTURE_FEATURES wording instead (KD-16).</p>
+<h3 id="4-credits-first-economy">4. Credits-first economy</h3>
+<p><strong>Defer</strong> until contracts/finance harvest.</p>
+<h3 id="5-pure-place-only-0-1-0-no-sf-no-drips">5. Pure place-only 0.1.0 (no SF, no drips)</h3>
+<p><strong>Reject</strong> as the labeled milestone success bar; PR1–PR3 alone are intermediate merges, not the accepted milestone.</p>
+<hr />
+<h2 id="open-questions-non-blocking-preferences">Open Questions (non-blocking preferences)</h2>
+<p>Coding defaults are <strong>locked in Key Decisions</strong>. Remaining items are PM taste only — implementers proceed with KDs if unanswered:</p>
+<ol>
+<li>Prefer highway label text drawn on corridor? (default: yes, small “HWY 4” canvas text)</li>
+<li>Show name tags on all buildings vs selected only? (default: selected + build-mode ghost)</li>
+<li>Flame VFX style: simple rects vs 5–8 particles? (default: 6 rising rects)</li>
+<li>Intermediate VERSION string spelling: <code>0.1.0-wip</code> vs keep <code>0.0.1-bootstrap</code> until PR8? → <strong>see KD-17</strong> (default wip on first index.html ship)</li>
+</ol>
+<p>No open question blocks PR1–PR3.</p>
+<hr />
+<h2 id="references">References</h2>
+<ul>
+<li><code>/home/tiagomdv0/starbase-builder/README.md</code></li>
+<li><code>/home/tiagomdv0/starbase-builder/AGENTS.md</code></li>
+<li><code>/home/tiagomdv0/starbase-builder/FUTURE_FEATURES.md</code> — <strong>0.1.0 row superseded by this doc until ship cleanup</strong></li>
+<li><code>/home/tiagomdv0/starbase-builder/IMPLEMENTATION_LOG.md</code></li>
+<li><code>/home/tiagomdv0/starbase-builder/design-docs/0.0.1-layout-aoe-3d.html</code></li>
+<li>Local reference: <code>/home/tiagomdv0/starship-dev/index.html</code></li>
+</ul>
+<hr />
+<h2 id="key-decisions">Key Decisions</h2>
+<table class="doc">
+<thead><tr><th>ID</th><th>Decision</th><th>Rationale</th></tr></thead>
+<tbody>
+<tr><td>KD-1</td><td><strong>Map-first, earthy AoE 2.5D</strong> — not starship-dev dark dashboard</td><td>Product identity</td></tr>
+<tr><td>KD-2</td><td><strong>Visual Upgrade Rule</strong> mandatory for all levels forever</td><td>Human vision</td></tr>
+<tr><td>KD-3</td><td><strong>Four placeables only</strong> in 0.1.0</td><td>Learnable roster</td></tr>
+<tr><td>KD-4</td><td>**Single-file <code>index.html</code> + Tailwind CDN + canvas**</td><td>AGENTS</td></tr>
+<tr><td>KD-5</td><td><strong>North-star catalog now; most systems inactive</strong></td><td>Avoid rewrite</td></tr>
+<tr><td>KD-6</td><td>**Resources: Steel, Methane (<code>ch4</code>), LOX, Power display, Day** — no credits</td><td>Industrial coupling</td></tr>
+<tr><td>KD-7</td><td><strong>Production = passive drips</strong> from buildings</td><td>Harvest adapted</td></tr>
+<tr><td>KD-8</td><td><strong>One stack; instant bay→pad via assignStack</strong></td><td>No pathfinding</td></tr>
+<tr><td>KD-9</td><td><strong>Pad L1→L2 is the VUR proof</strong></td><td>One full upgrade path</td></tr>
+<tr><td>KD-10</td><td><strong>Static fire is MUST-HAVE for 0.1.0 acceptance</strong></td><td>Closed-loop Pad↔Prop↔Stack; success criterion 6 required</td></tr>
+<tr><td>KD-11</td><td><strong>Soft zones: tint + optional warn only; never block</strong> (water hard-blocks)</td><td>Avoid zone bureaucracy</td></tr>
+<tr><td>KD-12</td><td><strong>Processes not only missions</strong> for campaign ladder</td><td>Industrial realism</td></tr>
+<tr><td>KD-13</td><td><strong>One feature per PR</strong></td><td>AGENTS</td></tr>
+<tr><td>KD-14</td><td><strong>Harvest mechanisms, redesign presentation</strong></td><td>No chrome copy</td></tr>
+<tr><td>KD-15</td><td><strong>Earth Starbase only</strong></td><td>Sites accumulate later</td></tr>
+<tr><td>KD-16</td><td><strong>This doc supersedes FUTURE_FEATURES “no simulation” row</strong> for 0.1.0; light sim in-scope; update FUTURE_FEATURES on ship</td><td>Scope honesty</td></tr>
+<tr><td>KD-17</td><td><strong>VERSION:</strong> on first merge that adds <code>index.html</code>, set <code>VERSION</code> to <code>0.1.0-wip</code> (or keep bootstrap until PR8 if PM prefers — **default: <code>0.1.0-wip</code>**). Final <code>0.1.0-foundation</code> on PR8 docs ritual</td><td>Avoid live-release lie</td></tr>
+<tr><td>KD-18</td><td><strong>Projection: top-down 2.5D height faces</strong> — not true iso</td><td>Speed + clarity</td></tr>
+<tr><td>KD-19</td><td>**32px grid snap; store <code>gx,gy</code>; map 40×30 cells**</td><td>Engineer-ready</td></tr>
+<tr><td>KD-20</td><td><strong>MS_PER_DAY = 4000</strong></td><td>~4s/day</td></tr>
+<tr><td>KD-21</td><td><strong>Stack costs 15 Steel; requires Starfactory present; UI: integration placeholder</strong></td><td>Soft manufacture coupling</td></tr>
+<tr><td>KD-22</td><td><strong>Power is display-only</strong> (100%); no throttle</td><td>Avoid fake systems</td></tr>
+<tr><td>KD-23</td><td><strong>No save/load in 0.1.0</strong></td><td>Scope cut</td></tr>
+<tr><td>KD-24</td><td><strong>vehicle.buildingId authoritative; building.stackId denormalized</strong></td><td>Single source of truth</td></tr>
+<tr><td>KD-25</td><td><strong>SF spends 10/10 base; L2 mult 0.9 → 9/9; always success</strong></td><td>Concrete numbers</td></tr>
+<tr><td>KD-26</td><td><strong>Hit-test = footprint AABB only</strong></td><td>Simple input</td></tr>
+<tr><td>KD-27</td><td><strong>Non-pad Upgrade controls hidden</strong> until L2 defs ship</td><td>No false VUR UI</td></tr>
+<tr><td>KD-28</td><td><strong>PR3 introduces starting steel pool</strong> even before day tick</td><td>Place costs work</td></tr>
+<tr><td>KD-29</td><td><strong>Only Tailwind CDN as third-party script</strong></td><td>Supply chain minimal</td></tr>
+<tr><td>KD-30</td><td>**UI label Methane for <code>ch4</code>**</td><td>Match layout mock</td></tr>
+<tr><td>KD-31</td><td>**<code>START_STEEL = 220</code>**; economy invariant: all four + stack + Pad L2 ≤ 210 from start, any order</td><td>Prevent softlock without demolish</td></tr>
+<tr><td>KD-32</td><td>**<code>maxCount: 1</code> per building type** in 0.1.0</td><td>Tiny site; unambiguous Send/Build targets</td></tr>
+<tr><td>KD-33</td><td><strong>Build stack / Send to pad / SF / Upgrade act on selected building</strong> with explicit type checks</td><td>No ambiguous multi-target logistics</td></tr>
+</tbody></table>
+<hr />
+<h2 id="pr-plan">PR Plan</h2>
+<p>Ordered slices. Human tests each. Final label <code>0.1.0-foundation</code> at PR8.</p>
+<table class="doc">
+<thead><tr><th>PR</th><th>Codename</th><th>Scope</th><th>Exit criteria</th></tr></thead>
+<tbody>
+<tr><td><strong>PR1</strong></td><td><code>blank-map-shell</code></td><td><code>index.html</code>; chrome; tokens; empty canvas grass; version <code>0.1.0-wip</code></td><td>Browser layout matches spirit; tokens applied</td></tr>
+<tr><td><strong>PR2</strong></td><td><code>camera-terrain</code></td><td>Grid 40×30; pan/zoom; dirt; water rect; zone tints optional</td><td>Pan/zoom; water; debug grid</td></tr>
+<tr><td><strong>PR3</strong></td><td><code>place-buildings</code></td><td>4 types; <strong>maxCount 1</strong>; grid snap; AABB; <strong>steel pool START_STEEL=220 + costs</strong>; L1 draw; select; Esc cancel build</td><td>Place all four any order; second of type blocked</td></tr>
+<tr><td><strong>PR4</strong></td><td><code>resources-tick</code></td><td>Day accum; factory steel; tank fill + sumCap; live Methane/LOX labels; log</td><td>Numbers move</td></tr>
+<tr><td><strong>PR5</strong></td><td><code>stack-logistics</code></td><td>assignStack SSoT; Build stack on <strong>selected</strong> bay (15 steel + factory gate); Send to pad on <strong>selected</strong> pad; draw capsule</td><td>Stack bay→pad; wrong selection logs why</td></tr>
+<tr><td><strong>PR6</strong></td><td><code>pad-upgrade-vur</code></td><td>L1→L2; distinct geometry; physical blurb; <strong>screenshot L1 vs L2</strong></td><td>Obvious visual delta</td></tr>
+<tr><td><strong>PR7</strong></td><td><code>static-fire</code></td><td>Must-have SF; 10/10 spend; L2 9/9; flame 500ms; precheck logs</td><td>Closed loop works</td></tr>
+<tr><td><strong>PR8</strong></td><td><code>0.1.0-polish-docs</code></td><td>Objective checklist; tuning; VERSION <code>0.1.0-foundation</code>; README; IMPLEMENTATION_LOG; <strong>FUTURE_FEATURES row fix</strong></td><td>Milestone complete</td></tr>
+</tbody></table>
+<p><strong>Dependency:</strong> PR1 → … → PR8 sequential.</p>
+<p><strong>PR notes:</strong></p>
+<ul>
+<li>Do <strong>not</strong> merge PR6+PR7 by default (AGENTS one-feature); PM may bundle only if explicitly requested.</li>
+<li>Fallback: if PM emergency-cuts SF, re-open KD-10 — <strong>not</strong> the default; criterion 6 remains required under this design.</li>
+<li>PR3 chicken-egg: steel starts at <strong>220</strong> without needing PR4 drip (economy invariant).</li>
+</ul>
+<p><strong>Post-0.1.0:</strong> hop animation, second pad, tower visual, debrief lite, vehicle caps lite, save slots, non-pad L2 upgrades.</p>
+<hr />
+<p><em>End of design document — Status: Approved for implementation (rev 4) — 2026-08-07</em></p>
+        <p class="footer-note">Design documents in this project are always <code>.html</code> (never <code>.md</code>). Project: starbase-builder.</p>
+      </main>
+    </div>
+  </div>
+</body>
+</html>
