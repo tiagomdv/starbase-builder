@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Starbase Builder — AoE 2.5D Layout</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background: #1c2118;
+      font-family: system-ui, -apple-system, sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* ===== Terrain ===== */
+    .terrain {
+      background-color: #4f8a42;
+      background-image:
+        radial-gradient(ellipse 80% 60% at 25% 35%, #5c9a4e 0%, transparent 50%),
+        radial-gradient(ellipse 70% 50% at 75% 65%, #457a3a 0%, transparent 45%),
+        radial-gradient(ellipse 50% 40% at 50% 80%, #3d6e34 0%, transparent 40%);
+    }
+
+    .dirt {
+      background: #8c7355;
+      border-radius: 45% 55% 50% 45%;
+      box-shadow: inset 0 0 12px rgba(0,0,0,0.12);
+    }
+    .dirt-road {
+      background: #9b8468;
+      box-shadow: inset 0 1px 4px rgba(0,0,0,0.18);
+    }
+
+    /* ===== 2.5D / Isometric helpers ===== */
+    .iso {
+      /* simple isometric-ish transform for some elements */
+      transform-style: preserve-3d;
+    }
+
+    /* Building base styles with visible depth */
+    .bldg-3d {
+      position: relative;
+      transform-style: preserve-3d;
+    }
+
+    /* Top face */
+    .face-top {
+      position: absolute;
+      background: #a09078;
+      border: 1px solid rgba(0,0,0,0.25);
+    }
+    /* Front face */
+    .face-front {
+      position: absolute;
+      background: #7a6a55;
+      border: 1px solid rgba(0,0,0,0.3);
+      box-shadow: inset 0 2px 4px rgba(255,255,255,0.08);
+    }
+    /* Side face */
+    .face-side {
+      position: absolute;
+      background: #5e5242;
+      border: 1px solid rgba(0,0,0,0.35);
+    }
+
+    .label {
+      font-size: 10px;
+      font-weight: 700;
+      color: #1f1a12;
+      background: rgba(255, 248, 220, 0.92);
+      border: 1px solid #8a7848;
+      padding: 2px 6px;
+      border-radius: 3px;
+      white-space: nowrap;
+      box-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+      z-index: 20;
+    }
+
+    .ui-panel {
+      background: #2a2218;
+      border: 2px solid #5a4830;
+    }
+    .ui-btn {
+      background: #3a2e20;
+      border: 1px solid #6a5638;
+      color: #e8d9b0;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .ui-btn:hover {
+      background: #4a3c28;
+      border-color: #8a7048;
+    }
+    .resource-bar {
+      background: linear-gradient(180deg, #3a2e1c 0%, #2a2216 100%);
+      border-bottom: 3px solid #5c4a32;
+    }
+
+    /* Tank cylinder approximation */
+    .tank-3d {
+      border-radius: 4px;
+      box-shadow:
+        inset -3px 0 6px rgba(0,0,0,0.25),
+        inset 3px 0 4px rgba(255,255,255,0.1),
+        2px 3px 0 rgba(0,0,0,0.2);
+    }
+  </style>
+</head>
+<body class="text-amber-100 min-h-screen">
+
+  <!-- Top bar -->
+  <div class="resource-bar px-4 py-2.5 flex items-center gap-6 text-sm sticky top-0 z-50">
+    <div class="font-bold tracking-wide text-amber-200 text-base">STARBASE</div>
+    <div class="h-5 w-px bg-amber-900/50"></div>
+    <div class="flex items-center gap-5 text-amber-100/90">
+      <span class="flex items-center gap-1.5">
+        <span class="w-3.5 h-3.5 rounded-sm bg-stone-400 border border-stone-600"></span>
+        Steel <b class="text-amber-50">12,400</b>
+      </span>
+      <span class="flex items-center gap-1.5">
+        <span class="w-3.5 h-3.5 rounded-sm bg-cyan-600 border border-cyan-800"></span>
+        Methane <b class="text-amber-50">840</b>
+      </span>
+      <span class="flex items-center gap-1.5">
+        <span class="w-3.5 h-3.5 rounded-sm bg-sky-500 border border-sky-700"></span>
+        LOX <b class="text-amber-50">1,120</b>
+      </span>
+      <span class="flex items-center gap-1.5">
+        <span class="w-3.5 h-3.5 rounded-sm bg-yellow-500 border border-yellow-700"></span>
+        Power <b class="text-amber-50">62%</b>
+      </span>
+    </div>
+    <div class="ml-auto flex items-center gap-4 text-amber-200/60 text-xs">
+      <span>Day 47</span>
+      <span>Cadence 0.4 / week</span>
+    </div>
+  </div>
+
+  <div class="flex" style="height: calc(100vh - 52px);">
+
+    <!-- Left build menu -->
+    <aside class="w-48 ui-panel flex flex-col shrink-0">
+      <div class="p-3 border-b border-amber-900/40">
+        <div class="text-[10px] uppercase tracking-wider text-amber-600 mb-2">Build</div>
+        <div class="grid grid-cols-2 gap-2">
+          <button class="ui-btn rounded p-2 flex flex-col items-center gap-1 text-[10px]">
+            <div class="w-8 h-5 bg-stone-500 border border-stone-700 rounded-sm relative">
+              <div class="absolute -top-1 left-1 right-1 h-1.5 bg-stone-400 border border-stone-600 rounded-t-sm"></div>
+            </div>
+            Pad
+          </button>
+          <button class="ui-btn rounded p-2 flex flex-col items-center gap-1 text-[10px]">
+            <div class="flex gap-0.5 items-end">
+              <div class="w-2 h-5 bg-sky-500 border border-sky-700 rounded-sm"></div>
+              <div class="w-2 h-4 bg-cyan-500 border border-cyan-700 rounded-sm"></div>
+            </div>
+            Tanks
+          </button>
+          <button class="ui-btn rounded p-2 flex flex-col items-center gap-1 text-[10px]">
+            <div class="w-8 h-5 bg-stone-600 border border-stone-800 rounded-sm relative">
+              <div class="absolute -top-1 left-0 right-0 h-1.5 bg-stone-500 border border-stone-700"></div>
+            </div>
+            Mega Bay
+          </button>
+          <button class="ui-btn rounded p-2 flex flex-col items-center gap-1 text-[10px]">
+            <div class="w-8 h-4 bg-stone-500 border border-stone-700 rounded-sm relative">
+              <div class="absolute -top-1 left-0 right-0 h-1 bg-stone-400 border border-stone-600"></div>
+            </div>
+            Starfactory
+          </button>
+          <button class="ui-btn rounded p-2 flex flex-col items-center gap-1 text-[10px]">
+            <div class="w-2.5 h-6 bg-stone-500 border border-stone-700 relative">
+              <div class="absolute top-1.5 -left-2 w-2 h-1 bg-stone-600"></div>
+              <div class="absolute top-1.5 -right-2 w-2 h-1 bg-stone-600"></div>
+            </div>
+            Tower
+          </button>
+          <button class="ui-btn rounded p-2 flex flex-col items-center gap-1 text-[10px]">
+            <div class="w-8 h-5 border-2 border-dashed border-amber-700/70 bg-amber-900/20 rounded-sm"></div>
+            Gigabay
+          </button>
+        </div>
+      </div>
+      <div class="p-3 flex-1 overflow-y-auto text-xs text-amber-200/70 space-y-0.5">
+        <div class="text-amber-600 uppercase tracking-wider text-[10px] mb-1.5">More</div>
+        <div class="px-2 py-1.5 rounded hover:bg-amber-900/25 cursor-pointer">Flame Trench</div>
+        <div class="px-2 py-1.5 rounded hover:bg-amber-900/25 cursor-pointer">Chopsticks</div>
+        <div class="px-2 py-1.5 rounded hover:bg-amber-900/25 cursor-pointer">Deluge</div>
+        <div class="px-2 py-1.5 rounded hover:bg-amber-900/25 cursor-pointer">ASU Plant</div>
+        <div class="px-2 py-1.5 rounded hover:bg-amber-900/25 cursor-pointer">Ring Yard</div>
+        <div class="px-2 py-1.5 rounded hover:bg-amber-900/25 cursor-pointer">Raptor Shop</div>
+      </div>
+    </aside>
+
+    <!-- ===================== MAP ===================== -->
+    <div class="flex-1 relative terrain overflow-hidden">
+
+      <!-- Dirt patches -->
+      <div class="absolute dirt opacity-75" style="width:200px;height:100px;top:6%;left:12%;"></div>
+      <div class="absolute dirt opacity-65" style="width:160px;height:80px;top:52%;left:50%;"></div>
+      <div class="absolute dirt opacity-55" style="width:110px;height:70px;top:22%;left:62%;"></div>
+
+      <!-- Highway -->
+      <div class="absolute left-0 right-0 top-[45%] h-10 dirt-road z-10 flex items-center justify-center border-y-2 border-stone-700/30">
+        <div class="absolute inset-x-0 top-1/2 h-px bg-yellow-700/35"></div>
+        <span class="text-[10px] tracking-[0.25em] text-stone-800 font-bold bg-amber-100/80 px-2.5 py-0.5 rounded shadow-sm">HIGHWAY 4</span>
+      </div>
+
+      <!-- Access roads -->
+      <div class="absolute dirt-road opacity-85" style="width:14px;height:130px;top:14%;left:27%;"></div>
+      <div class="absolute dirt-road opacity-80" style="width:14px;height:100px;top:54%;left:31%;"></div>
+      <div class="absolute dirt-road opacity-75" style="width:90px;height:12px;top:61%;left:34%;"></div>
+
+      <!-- ========== PRODUCTION ========== -->
+
+      <!-- Starfactory (long low building with 2.5D) -->
+      <div class="absolute" style="left:16%; top:5%; width:260px; height:60px;">
+        <!-- side face -->
+        <div class="absolute left-0 top-3 w-3 h-10 bg-stone-600 border border-stone-700" style="transform: skewY(-25deg); transform-origin: top left;"></div>
+        <!-- front face -->
+        <div class="absolute left-2 top-3 right-0 h-10 bg-stone-500 border border-stone-700 shadow-md"></div>
+        <!-- roof / top -->
+        <div class="absolute left-2 top-0 right-0 h-4 bg-stone-400 border border-stone-600" style="transform: skewX(-15deg); transform-origin: bottom left;"></div>
+        <!-- door -->
+        <div class="absolute right-4 top-5 w-10 h-7 bg-stone-700 border border-stone-800"></div>
+        <div class="absolute left-3 bottom-0 label">Starfactory</div>
+      </div>
+
+      <!-- Mega Bay 1 -->
+      <div class="absolute" style="left:12%; top:16%; width:120px; height:95px;">
+        <!-- side -->
+        <div class="absolute left-0 top-4 w-4 h-16 bg-stone-700 border border-stone-800" style="transform: skewY(-20deg);"></div>
+        <!-- front -->
+        <div class="absolute left-3 top-4 right-0 h-16 bg-stone-600 border-2 border-stone-800 shadow-lg"></div>
+        <!-- roof -->
+        <div class="absolute left-3 top-0 right-0 h-5 bg-stone-500 border border-stone-700"></div>
+        <!-- big door -->
+        <div class="absolute left-1/2 -translate-x-1/2 top-8 w-14 h-11 bg-stone-800 border-2 border-stone-900"></div>
+        <!-- vehicle inside (simple cylinder) -->
+        <div class="absolute left-1/2 -translate-x-1/2 top-10 w-3.5 h-8 bg-slate-300 border border-slate-500 rounded-sm shadow-sm"></div>
+        <div class="absolute left-2 bottom-0 label">Mega Bay 1</div>
+      </div>
+
+      <!-- Mega Bay 2 -->
+      <div class="absolute" style="left:calc(12% + 135px); top:16%; width:120px; height:95px;">
+        <div class="absolute left-0 top-4 w-4 h-16 bg-stone-700 border border-stone-800" style="transform: skewY(-20deg);"></div>
+        <div class="absolute left-3 top-4 right-0 h-16 bg-stone-600 border-2 border-stone-800 shadow-lg"></div>
+        <div class="absolute left-3 top-0 right-0 h-5 bg-stone-500 border border-stone-700"></div>
+        <div class="absolute left-1/2 -translate-x-1/2 top-8 w-14 h-11 bg-stone-800 border-2 border-stone-900"></div>
+        <div class="absolute left-1/2 -translate-x-1/2 top-11 w-3 h-7 bg-slate-300 border border-slate-500 rounded-sm"></div>
+        <div class="absolute left-2 bottom-0 label">Mega Bay 2</div>
+      </div>
+
+      <!-- Gigabay under construction (steel frame with depth) -->
+      <div class="absolute" style="left:calc(12% + 275px); top:15%; width:150px; height:100px;">
+        <!-- foundation -->
+        <div class="absolute left-0 right-0 bottom-0 h-4 bg-stone-600 border border-stone-700"></div>
+        <!-- back columns -->
+        <div class="absolute left-3 top-2 bottom-4 w-1.5 bg-amber-800/90"></div>
+        <div class="absolute left-[28%] top-2 bottom-4 w-1.5 bg-amber-800/90"></div>
+        <div class="absolute left-[52%] top-2 bottom-4 w-1.5 bg-amber-800/90"></div>
+        <div class="absolute left-[75%] top-2 bottom-4 w-1.5 bg-amber-800/90"></div>
+        <div class="absolute right-3 top-2 bottom-4 w-1.5 bg-amber-800/90"></div>
+        <!-- front columns (slightly offset for depth) -->
+        <div class="absolute left-6 top-6 bottom-4 w-1.5 bg-amber-700/80"></div>
+        <div class="absolute left-[32%] top-6 bottom-4 w-1.5 bg-amber-700/80"></div>
+        <div class="absolute left-[56%] top-6 bottom-4 w-1.5 bg-amber-700/80"></div>
+        <div class="absolute left-[78%] top-6 bottom-4 w-1.5 bg-amber-700/80"></div>
+        <!-- horizontal beams -->
+        <div class="absolute left-3 right-3 top-4 h-1 bg-amber-800/70"></div>
+        <div class="absolute left-3 right-3 top-[38%] h-1 bg-amber-800/70"></div>
+        <div class="absolute left-6 right-5 top-8 h-1 bg-amber-700/50"></div>
+        <div class="absolute left-2 bottom-5 label">Gigabay</div>
+      </div>
+
+      <!-- Ring yard -->
+      <div class="absolute border-2 border-dashed border-stone-600/60 bg-stone-700/15" style="left:58%; top:6%; width:85px; height:38px;">
+        <div class="absolute left-1 bottom-1 label">Ring Yard</div>
+      </div>
+
+      <!-- ========== LAUNCH SITE ========== -->
+
+      <!-- Pad 2 with 2.5D tower -->
+      <div class="absolute" style="left:20%; bottom:10%; width:120px; height:130px;">
+        <!-- pad base (slightly elevated look) -->
+        <div class="absolute left-0 right-0 bottom-0 w-full h-24 rounded-full bg-stone-400 border-2 border-stone-600 shadow-md"></div>
+        <div class="absolute left-2 right-2 bottom-1 h-20 rounded-full bg-stone-300/80 border border-stone-500"></div>
+
+        <!-- flame trench -->
+        <div class="absolute left-1/2 -translate-x-1/2 bottom-3 w-16 h-3 bg-stone-700 border border-stone-800"></div>
+
+        <!-- OLM base -->
+        <div class="absolute left-1/2 -translate-x-1/2 bottom-10 w-11 h-8 bg-stone-500 border-2 border-stone-700 shadow"></div>
+        <div class="absolute left-1/2 -translate-x-1/2 bottom-[68px] w-12 h-2 bg-stone-400 border border-stone-600"></div>
+
+        <!-- Tower (stacked segments for height) -->
+        <div class="absolute left-1/2 -translate-x-1/2 bottom-[72px] w-5">
+          <!-- mast -->
+          <div class="w-full h-20 bg-stone-500 border border-stone-700 relative shadow-md">
+            <div class="absolute inset-x-0 top-[25%] h-px bg-stone-400/60"></div>
+            <div class="absolute inset-x-0 top-[50%] h-px bg-stone-400/60"></div>
+            <div class="absolute inset-x-0 top-[75%] h-px bg-stone-400/60"></div>
+          </div>
+          <!-- chopsticks -->
+          <div class="absolute top-3 -left-6 w-6 h-1.5 bg-stone-600 border border-stone-700 shadow-sm"></div>
+          <div class="absolute top-3 -right-6 w-6 h-1.5 bg-stone-600 border border-stone-700 shadow-sm"></div>
+          <!-- small QD -->
+          <div class="absolute top-10 -left-4 w-4 h-1 bg-stone-600 border border-stone-700"></div>
+        </div>
+
+        <!-- stacked vehicle (booster + ship look) -->
+        <div class="absolute left-1/2 -translate-x-1/2 bottom-[78px] w-3.5 h-14 bg-slate-200 border border-slate-400 rounded-sm shadow" style="background: linear-gradient(90deg, #c0c8d0, #e8eef4, #c0c8d0);"></div>
+
+        <div class="absolute left-1/2 -translate-x-1/2 -bottom-1 label" style="background:#d4edda; border-color:#5a9a5a;">Pad 2 · Ready</div>
+      </div>
+
+      <!-- Pad 1 retrofit -->
+      <div class="absolute opacity-80" style="left:48%; bottom:14%; width:90px; height:90px;">
+        <div class="absolute inset-0 rounded-full bg-stone-500/70 border-2 border-dashed border-stone-600"></div>
+        <div class="absolute left-1/2 -translate-x-1/2 top-[42%] w-8 h-6 bg-stone-600/50 border border-stone-700"></div>
+        <div class="absolute left-1/2 -translate-x-1/2 -bottom-1 label">Pad 1 · Retrofit</div>
+      </div>
+
+      <!-- Tank Farm with 3D-ish cylinders -->
+      <div class="absolute" style="right:8%; bottom:8%; width:145px; height:100px;">
+        <div class="absolute inset-0 border-2 border-stone-600/40 bg-stone-700/10 rounded"></div>
+
+        <!-- LOX tanks (taller) -->
+        <div class="absolute left-3 top-2 w-5 h-14 tank-3d bg-sky-500 border border-sky-700"></div>
+        <div class="absolute left-10 top-2 w-5 h-14 tank-3d bg-sky-500 border border-sky-700"></div>
+        <div class="absolute left-[68px] top-2 w-5 h-14 tank-3d bg-sky-500 border border-sky-700"></div>
+
+        <!-- Methane -->
+        <div class="absolute left-3 top-[58px] w-5 h-10 tank-3d bg-cyan-500 border border-cyan-700"></div>
+        <div class="absolute left-10 top-[58px] w-5 h-10 tank-3d bg-cyan-500 border border-cyan-700"></div>
+
+        <!-- smaller -->
+        <div class="absolute left-[68px] top-[62px] w-4 h-8 tank-3d bg-stone-400 border border-stone-600"></div>
+        <div class="absolute left-[88px] top-[62px] w-4 h-8 tank-3d bg-stone-400 border border-stone-600"></div>
+
+        <div class="absolute left-2 bottom-1 label">Tank Farm</div>
+      </div>
+
+      <!-- GSE -->
+      <div class="absolute" style="left:8%; bottom:6%; width:55px; height:36px;">
+        <div class="absolute left-0 top-2 w-2 h-7 bg-stone-600 border border-stone-700" style="transform: skewY(-15deg);"></div>
+        <div class="absolute left-1.5 top-2 right-0 h-7 bg-stone-500 border border-stone-700"></div>
+        <div class="absolute left-1.5 top-0 right-0 h-2.5 bg-stone-400 border border-stone-600"></div>
+        <div class="absolute left-1 bottom-0 label">GSE</div>
+      </div>
+
+      <!-- water hint -->
+      <div class="absolute bottom-0 right-0 w-40 h-20 bg-sky-600/25 rounded-tl-[80px]"></div>
+    </div>
+
+    <!-- Right panel -->
+    <aside class="w-56 ui-panel flex flex-col shrink-0">
+      <div class="p-3 border-b border-amber-900/40">
+        <div class="text-[10px] uppercase tracking-wider text-amber-600 mb-1">Selected</div>
+        <div class="font-semibold text-amber-100">Pad 2</div>
+        <div class="text-xs text-amber-200/55 mt-0.5">Flight ready · Chopsticks online</div>
+      </div>
+      <div class="p-3 border-b border-amber-900/40 space-y-1.5">
+        <div class="text-[10px] uppercase tracking-wider text-amber-600 mb-1">Actions</div>
+        <button class="ui-btn w-full text-left text-xs px-2.5 py-2 rounded">Stack Vehicle</button>
+        <button class="ui-btn w-full text-left text-xs px-2.5 py-2 rounded">Static Fire</button>
+        <button class="ui-btn w-full text-left text-xs px-2.5 py-2 rounded">Upgrade Deluge</button>
+      </div>
+      <div class="p-3 flex-1">
+        <div class="text-[10px] uppercase tracking-wider text-amber-600 mb-2">Vehicles</div>
+        <div class="space-y-2 text-xs">
+          <div class="p-2.5 rounded bg-stone-900/35 border border-amber-900/35">
+            <div class="font-medium text-amber-100">Booster B20</div>
+            <div class="text-amber-200/50 mt-0.5">33 Raptors · Catch ready</div>
+          </div>
+          <div class="p-2.5 rounded bg-stone-900/35 border border-amber-900/35">
+            <div class="font-medium text-amber-100">Ship S40</div>
+            <div class="text-amber-200/50 mt-0.5">Heat shield 62%</div>
+          </div>
+          <button class="w-full text-left text-xs px-2 py-1.5 rounded border border-dashed border-amber-800/40 text-amber-200/45 hover:border-amber-600">
+            + New variant
+          </button>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <div class="fixed bottom-3 left-1/2 -translate-x-1/2 text-[11px] text-amber-200/35 bg-black/30 px-3 py-1 rounded">
+    AoE direction + 2.5D buildings · Green grass · Earthy colors · CSS depth
+  </div>
+
+</body>
+</html>
