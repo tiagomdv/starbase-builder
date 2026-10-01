@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Program roadmap · design — starbase-builder</title>
+  <style>
+    :root {
+      --bg: #1c2118;
+      --panel: #2a2218;
+      --panel2: #221c14;
+      --border: #5a4830;
+      --text: #e8d9b0;
+      --muted: #a89878;
+      --accent: #d4a84b;
+      --good: #8fbc6a;
+      --link: #e8c56a;
+      --code: #c4e08a;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: var(--bg); color: var(--text);
+      font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+      line-height: 1.55;
+    }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 1.5rem 1.25rem 4rem; }
+    .doc-hero {
+      background: linear-gradient(180deg, #2a2218 0%, #1c2118 100%);
+      border: 1px solid var(--border); border-radius: 0.85rem;
+      padding: 1.15rem 1.25rem 1.25rem; margin-bottom: 1.25rem;
+    }
+    .doc-hero h1 {
+      font-size: 1.55rem; font-weight: 650; color: #f5edd8;
+      margin: 0.35rem 0 0.4rem; letter-spacing: -0.02em;
+    }
+    .doc-hero .lede { margin: 0; font-size: 0.9rem; color: var(--muted); max-width: 56rem; }
+    .meta-row { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 0.15rem; }
+    .tag {
+      display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 999px;
+      background: #3a2e20; color: #e8c56a; border: 1px solid #6a5638;
+    }
+    .tag.good { background: #1a2e14; color: #bbf7d0; border-color: #3d6e34; }
+    .tag.muted { background: #1e1a14; color: var(--muted); border-color: #4a3c28; }
+    .doc-grid { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 1.25rem; align-items: start; }
+    @media (max-width: 860px) {
+      .doc-grid { grid-template-columns: 1fr; }
+      .toc { position: static !important; }
+    }
+    .toc {
+      position: sticky; top: 0.75rem; background: var(--panel);
+      border: 1px solid var(--border); border-radius: 0.65rem; padding: 0.75rem 0.85rem;
+      max-height: calc(100vh - 1.5rem); overflow-y: auto;
+    }
+    .toc .section-label {
+      font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--muted); font-weight: 600; margin-bottom: 0.5rem;
+    }
+    .toc ol { margin: 0; padding-left: 1.1rem; font-size: 0.78rem; }
+    .toc li { margin: 0.22rem 0; }
+    .toc a { color: var(--link); text-decoration: none; }
+    .toc a:hover { text-decoration: underline; }
+    h2 {
+      font-size: 1.12rem; font-weight: 650; color: #f5edd8; margin: 1.6rem 0 0.65rem;
+      padding-bottom: 0.35rem; border-bottom: 1px solid var(--border);
+      scroll-margin-top: 0.75rem;
+    }
+    h3 { font-size: 0.95rem; font-weight: 600; color: var(--accent); margin: 1.1rem 0 0.4rem; scroll-margin-top: 0.75rem; }
+    p, li { font-size: 0.9rem; }
+    p { margin: 0.45rem 0 0.7rem; }
+    ul, ol { margin: 0.35rem 0 0.75rem; padding-left: 1.35rem; }
+    li { margin: 0.25rem 0; }
+    table.doc { width: 100%; border-collapse: collapse; font-size: 0.84rem; margin: 0.45rem 0 0.9rem; }
+    table.doc th, table.doc td {
+      border: 1px solid var(--border); padding: 0.45rem 0.55rem; text-align: left; vertical-align: top;
+    }
+    table.doc th {
+      background: var(--panel2); color: var(--muted); font-size: 10px;
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    table.doc td { background: rgba(42,34,24,0.45); }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--code); font-size: 0.86em; }
+    strong { color: #f5edd8; }
+    a { color: var(--link); }
+    .footer-note { color: var(--muted); font-size: 0.82rem; margin-top: 2rem; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="doc-hero">
+      <div class="meta-row">
+        <span class="tag good">Guidance · not shipped</span>
+        <span class="tag">starbase-builder</span>
+        <span class="tag muted">2D program</span>
+        <span class="tag muted">2026-10-01</span>
+      </div>
+      <h1>Program roadmap</h1>
+      <p class="lede">
+        The full 2D game, written so each era is visible before it is built.
+        Live code stays <code>0.1.0-foundation</code> until a slice ships.
+        Numbers below are the targets to lock in the slice that introduces them.
+        After you play a slice, change the number in this doc, then in the game.
+        Personal project. The 3D seed in Drive stays a later copy of this loop.
+      </p>
+    </header>
+
+    <div class="doc-grid">
+      <nav class="toc">
+        <div class="section-label">On this page</div>
+        <ol>
+          <li><a href="#law">How a result is decided</a></li>
+          <li><a href="#desk">The desk you always have</a></li>
+          <li><a href="#labs">Labs and what they move</a></li>
+          <li><a href="#era1">Era 1 · Parts on the stand</a></li>
+          <li><a href="#era2">Era 2 · Hop and orbit</a></li>
+          <li><a href="#era3">Era 3 · Customers</a></li>
+          <li><a href="#era4">Era 4 · Fly the core again</a></li>
+          <li><a href="#era5">Era 5 · Starlink</a></li>
+          <li><a href="#era6">Era 6 · Starship</a></li>
+          <li><a href="#era7">Era 7 · Company beside the rockets</a></li>
+          <li><a href="#order">Build order</a></li>
+          <li><a href="#now">Already in the game</a></li>
+        </ol>
+      </nav>
+
+      <main>
+        <h2 id="law">How a result is decided</h2>
+        <p>
+          Every part has a spec. Every flight has a requirement. You can read both before you commit the vehicle.
+          The flight does what those numbers say. If the stack clears the bar, it flies. If it misses, the debrief names the short part: engine, structure, propellant, or pad.
+          Wear climbs by a known amount on each firing and falls when the bay finishes a refurb. A tired core is worse by that amount on the next flight.
+        </p>
+        <p>
+          Margin is the gap between what you have and what the mission asks. A large margin is a clean flight. A thin margin still flies and costs more wear. A negative margin fails on the named part. There is no separate luck roll.
+        </p>
+        <table class="doc">
+          <thead><tr><th>You see</th><th>It means</th></tr></thead>
+          <tbody>
+            <tr><td>Thrust, impulse, mass, restarts</td><td>The engine, on the stand and in the burn.</td></tr>
+            <tr><td>Dry mass, strength, max-q</td><td>The structure. Too weak for the trajectory and the stage fails there.</td></tr>
+            <tr><td>Propellant aboard, pad strength, pad days busy</td><td>The site. A strong rocket still waits if the pad or the tanks are short.</td></tr>
+            <tr><td>Payload the stack can lift</td><td>Sum of the parts, shown before you accept a contract.</td></tr>
+            <tr><td>Margin and the limiter</td><td>The line after every fire. Tells you the next lab purchase.</td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="desk">The desk you always have</h2>
+        <p>
+          Rockets are individual articles. Each one is in the bay, on the road, on a pad, or on an orbit card, with its own condition and its own parts.
+          Pads are a queue: one vehicle on the mount, a recovery counted in days after the fire, propellant drawn from the tank.
+          The factory holds one finished article until the bay takes it, so a full bay stops the line.
+          Steel and propellant are the two stocks. Labs spend steel and days to move one spec. Contracts spend a vehicle, a pad slot, and propellant, and pay steel when the delivered orbit matches what was sold.
+        </p>
+        <p>
+          The map stays the Texas dirt you already play until a later era adds another shore. New capability arrives as a lab, a tier on a building you already placed, or a card for something already in the air. A second pad is the same pad object on a second footprint.
+        </p>
+
+        <h2 id="labs">Labs and what they move</h2>
+        <p>A lab is a bench inside a building you already have, or one new building when the bench no longer fits. Each purchase moves one number and changes the silhouette of that building by a small, visible amount.</p>
+        <table class="doc">
+          <thead><tr><th>Lab</th><th>Lives in</th><th>Numbers it owns</th></tr></thead>
+          <tbody>
+            <tr><td>Engines</td><td>Starfactory</td><td>Thrust, specific impulse, engine mass, restart count, flights before a rebuild.</td></tr>
+            <tr><td>Structures</td><td>Starfactory</td><td>Stage dry mass, tank strength, fairing or ship structure, max dynamic pressure.</td></tr>
+            <tr><td>Avionics</td><td>Mega Bay</td><td>Guidance error, restart reliability of the upper stage, how tightly an orbit is delivered.</td></tr>
+            <tr><td>Recovery</td><td>Mega Bay</td><td>Legs or catch gear mass, leftover propellant required, refurb days, condition restored.</td></tr>
+            <tr><td>Satellites</td><td>Its own hall, Era 5</td><td>Bird mass, power, radio, design life. Competes with rockets for steel.</td></tr>
+            <tr><td>Raptor</td><td>Starfactory, Era 6</td><td>A new engine family. Chamber pressure, thrust, mass, rebuild life. Merlin stays in the game.</td></tr>
+            <tr><td>Power and compute</td><td>A data-center site, Era 7</td><td>Megawatts, chips, training runs finished. Competes with pads for attention and steel.</td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="era1">Era 1 · Parts on the stand</h2>
+        <p>
+          First slice. The rockets already in the game grow a readable spec. Falcon 1 is one engine and a short stack. Falcon 9 is nine engines of that same family and a heavier stage. Static fire still happens on the pad you have. The close-up uses the spec: one bell or nine, thrust and impulse printed beside the flame.
+        </p>
+        <p>
+          Starting targets, to lock when this slice is built. They match the live game’s steel, days, and pad gate, and they give the engine a face.
+        </p>
+        <table class="doc">
+          <thead><tr><th></th><th>Falcon 1</th><th>Falcon 9</th></tr></thead>
+          <tbody>
+            <tr><td>Engines on the stand</td><td>1</td><td>9</td></tr>
+            <tr><td>Steel to build</td><td>28</td><td>52</td></tr>
+            <tr><td>Build days</td><td>3</td><td>5</td></tr>
+            <tr><td>Sea-level thrust, first engine tier</td><td>one Merlin-class bell</td><td>nine of the same bell</td></tr>
+            <tr><td>Specific impulse, first tier</td><td>a sea-level figure and a vacuum figure, both visible</td><td>same family, vacuum figure matters once an upper stage exists</td></tr>
+            <tr><td>Engine mass</td><td>shown, and it counts against payload</td><td>nine times that mass</td></tr>
+            <tr><td>Restarts</td><td>1, enough for the static fire</td><td>1 on the first stage at this era</td></tr>
+            <tr><td>Pad</td><td>level 1 may light it</td><td>level 2 required</td></tr>
+            <tr><td>Propellant for a fire</td><td>a small, printed draw</td><td>a larger draw, so two fires empty the cap of 120</td></tr>
+            <tr><td>Wear per fire</td><td>printed</td><td>printed, higher</td></tr>
+            <tr><td>Refurb</td><td>2 days after a clean fire, 4 if the margin was thin</td><td>2 days clean, 5 if thin</td></tr>
+          </tbody>
+        </table>
+        <p>
+          Engine tier 2 spends steel and days and raises thrust and impulse by a small printed percent, and cuts wear one step. Tier 3 raises them again. The panel shows the tier on every vehicle of that family already in the fleet. A fire with a negative margin fails the engine or the structure, whichever number was short, and the bay either scraps the article or starts the long refurb.
+        </p>
+        <p>
+          Done when you can open the factory, read thrust, impulse, mass, and restarts, improve one of them, static-fire a Falcon 9 on a level-2 pad, and read a margin line that matches the arithmetic.
+        </p>
+
+        <h2 id="era2">Era 2 · Hop and orbit</h2>
+        <p>
+          The same vehicle leaves the stand. A hop spends the first-stage burn and stops at altitude and speed computed from thrust, mass, and propellant. An orbit attempt adds the upper stage: vacuum impulse, a restart, and a guidance number from the avionics lab. The orbit card keeps altitude, inclination, payload mass aboard, power, and days of life. Several cards can be open at once. A missed orbit names the short number and removes that card.
+        </p>
+        <p>
+          Payload the stack can lift becomes a real figure here, in kilograms, from public Falcon-class targets written into the slice: a few hundred kilograms for the small rocket, on the order of ten tonnes and later about twenty tonnes for Falcon 9 as the tanks and engines tier up. The exact kilograms are locked in the slice, then adjusted if a sitting feels wrong.
+        </p>
+
+        <h2 id="era3">Era 3 · Customers</h2>
+        <p>
+          A contract appears only after you have already done that class of flight. The card shows orbit, mass, pad days, propellant, and steel paid on delivery. You accept it by assigning one rocket and one pad. Delivery is the orbit card matching the sold orbit and mass.
+        </p>
+        <table class="doc">
+          <thead><tr><th>Customer</th><th>Opens when</th><th>What they buy</th></tr></thead>
+          <tbody>
+            <tr><td>Small commercial</td><td>One orbit with a published payload number</td><td>A few hundred kilograms to low Earth orbit.</td></tr>
+            <tr><td>NASA cargo, station</td><td>A streak of clean orbits and a payload in the cargo-capsule class</td><td>Pressurized cargo. Occupies the pad longer. Pays more steel.</td></tr>
+            <tr><td>Crew</td><td>A longer clean streak and a capsule you have flown</td><td>Station crew. A thin margin is a failed acceptance, not a flown risk you discover later.</td></tr>
+            <tr><td>Other countries</td><td>Same rocket class as the commercial card</td><td>Their own orbit and mass. Same desk, different card.</td></tr>
+            <tr><td>Military and national security</td><td>Several flights in the last month and a printed margin on engine and structure</td><td>A heavier, higher orbit. Refuses a tired core.</td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="era4">Era 4 · Fly the core again</h2>
+        <p>
+          Recovery is a spec. Legs, grid fins, and the propellant you hold back all have mass, and that mass comes out of payload. Expend the stage and the payload figure rises and the bay must build a new core. Land it and the bay spends the printed refurb days, and the next flight starts from the condition you left. The pad, or a drone ship counted as a slow pad at sea, must be free and strong enough for the landing load.
+        </p>
+        <p>
+          Falcon Heavy is three cores you already know how to build, stacked as one article. It needs pad level 3, more steel, more propellant, and a longer pad recovery. Side boosters use the recovery spec. The center core is the one that usually comes home more tired.
+        </p>
+
+        <h2 id="era5">Era 5 · Starlink</h2>
+        <p>
+          When a small satellite can ride a repeatable flight, you may keep the slot. Each bird shows mass, power, radio, and design life. The constellation panel shows planes, healthy birds, and how much of the Earth they cover. Coverage and spare birds are what let you sell service later. Building birds uses steel, so the hall competes with customer rockets for the factory, the pads, and the tanks. That squeeze is the point of the era.
+        </p>
+        <p>
+          A useful first target is a few dozen birds in one shell before the panel claims real coverage. Mass on the order of a few hundred kilograms per bird, life counted in years, power and radio printed. The slice locks the kilograms.
+        </p>
+
+        <h2 id="era6">Era 6 · Starship</h2>
+        <p>
+          Raptor is a second engine family in the same lab: chamber pressure, thrust, mass, flights before a rebuild. The ship and the booster are a structure tier: tank mass, heat-shield health, flap strength, catch load. The Texas pad grows a tower. Catch is the recovery spec for this stack. A tanker is a ship whose payload is propellant delivered to a depot card in orbit. A ship on orbit shows its tanks, shield health, and whether the next reentry is inside the shield number.
+        </p>
+        <p>
+          A Moon landing and a Mars window are contracts that draw from that depot. Until Starship’s own cadence is real, Falcon pads and the Merlin line still pay the steel. Merlin does not leave the game when Raptor arrives.
+        </p>
+
+        <h2 id="era7">Era 7 · Company beside the rockets</h2>
+        <p>
+          Starlink service pays steel and a power budget. When the constellation is up and the launch rhythm holds, you can buy xAI. A data center is a site that wants megawatts, chips, and the same attention as a pad. The panel shows power used and training runs finished, and whether a new cluster delayed a booster. A second shore, Louisiana first, then a Florida pad, is another copy of factory, bay, and pad, fed by transfer days from Texas. The Gulf map opens only after that second site works.
+        </p>
+
+        <h2 id="order">Build order</h2>
+        <p>One slice at a time. Play it. Change this doc if the sitting feels wrong. Then the next row.</p>
+        <table class="doc">
+          <thead><tr><th>Slice</th><th>You can do this when it is done</th></tr></thead>
+          <tbody>
+            <tr><td>1 · Engine lab</td><td>Read thrust, impulse, mass, restarts. Improve one. Static fire follows the numbers.</td></tr>
+            <tr><td>2 · Structure lab</td><td>Read dry mass and strength. Payload on the stand is their sum with the engines.</td></tr>
+            <tr><td>3 · Pad gate and pad busy</td><td>Falcon 9 waits for pad level 2. The pad has recovery days. Bigger fires drink more propellant.</td></tr>
+            <tr><td>4 · Cadence desk</td><td>Fires in the last 30 days, days since the last fire, bay slots still free.</td></tr>
+            <tr><td>5 · Tank farm</td><td>A higher propellant cap and a faster refill, before a second pad can matter.</td></tr>
+            <tr><td>6 · Hop, then orbit</td><td>Altitude and speed, then an orbit card. A miss names the short part.</td></tr>
+            <tr><td>7 · Commercial, then NASA cargo</td><td>Assign a real rocket and a real pad. Steel comes back on delivery.</td></tr>
+            <tr><td>8 · Recovery</td><td>Choose expend or land. Payload and refurb days both change.</td></tr>
+            <tr><td>9 · Second pad, then Heavy</td><td>Two queues. Heavy is three cores and pad level 3.</td></tr>
+            <tr><td>10 · Crew, foreign, military</td><td>Each opens on a streak and a payload class you have already flown.</td></tr>
+            <tr><td>11 · Starlink hall</td><td>Birds with mass, power, radio, life. Coverage competes with customers.</td></tr>
+            <tr><td>12 · Raptor, tower, catch, depot</td><td>Starship flies, catches, and fills an orbit depot. Moon and Mars are contracts on that depot.</td></tr>
+            <tr><td>13 · Louisiana, then xAI</td><td>A second site copies the desk. A data center competes for power and steel.</td></tr>
+          </tbody>
+        </table>
+        <p>
+          Pictures stay small and come after slice 4: browner dirt, a coast that reads, a plume. They do not block a lab. Full 3D stays the other project and inherits these same objects.
+        </p>
+
+        <h2 id="now">Already in the game</h2>
+        <p>
+          <code>index.html</code> at <code>0.1.0-foundation</code> already has the 40 by 30 map, Starfactory, Mega Bay for four vehicles, one pad with a level-2 trench, Falcon 1 and Falcon 9, road time from distance, static fire, scrap or refurb, steel at 6 per day, propellant at 8 per day with a cap of 120. Goals on screen are still “do it once.” This document is the map from that build to the company. The next code slice is row 1 of the build order.
+        </p>
+        <p class="footer-note">
+          Open this file in a browser. Source of truth for behavior, once a slice ships, remains <code>index.html</code>. This page is the guidance until that slice changes it.
+        </p>
+      </main>
+    </div>
+  </div>
+</body>
+</html>
