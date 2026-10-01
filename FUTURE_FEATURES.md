@@ -5,7 +5,7 @@
 When something **ships** or is **dismissed**, document it in `IMPLEMENTATION_LOG.md`, then **remove it from this file**.
 
 **Current phase:** 0 · Foundations  
-**Last shipped:** `0.1.0-foundation` (Factory · Bay multi-house/refurb · Pad SF with failure)  
+**Last shipped:** Falcon 1 only. Merlin card, a fire that follows the numbers, and a sky you can wait out. See `IMPLEMENTATION_LOG.md`.  
 **Thematic arc:** Foundations → Flight → Scale → Power → Cis-lunar → Mars  
 **Prototype reference (local only, not in this repo):** `~/starship-dev/index.html` — playable single-file ops game. Harvest mechanisms; do **not** copy UI layout or dark “range dashboard” look. Starbase-builder stays earthy AoE 2.5D map-first.
 
