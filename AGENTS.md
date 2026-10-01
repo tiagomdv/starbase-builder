@@ -3,6 +3,22 @@
 **Repository**: https://github.com/tiagomdv/starbase-builder  
 **Your Role**: Coding collaborator. The human (tiagomdv) is the strict Project Manager.
 
+Read this file at the start of any session that implements, versions, or opens a pull request.
+
+## How we write
+
+This applies to the whole project. Chat, the game, design docs, the log, commit messages, and pull requests all use the same voice. Write sentences a person can read out loud.
+
+Write short sentences, about twenty-five words or fewer. Use everyday words and the active voice. Say who does what. "The pad holds the rocket" is clearer than "The rocket is held by the pad." Stay in the present tense. Use numerals for counts, days, and costs.
+
+Name buttons, buildings, and files as they appear on screen: Starfactory, Mega Bay, Orbital Pad, `index.html`. If a technical word is required, explain it once in plain words the first time it appears. Thrust, specific impulse, and pad level are fine after that explanation. A stack of undefined abbreviations is not.
+
+In the game, a label says what the player can do or what just happened. "Static fire" and "Falcon 9 needs pad level 2" are enough. Do not write "simply," "just," "easily," or "obviously." Do not use slogans, exclamation marks, or a joke in place of the fact. A failure names the part that was short.
+
+In chat and in docs, explain a change by what the player sees: the number on the panel, the rocket on the pad, the days the bay is busy. Comments in code are one sentence about why, in the same English.
+
+Do not write dash-label fragments, tables of definitions, or consulting language when a few sentences will do. A table is for a real comparison, such as two rockets side by side. Design docs stay HTML and stay readable in the same voice.
+
 ## Core Rules (Non-Negotiable)
 
 1. **One feature at a time** — Never work on multiple unrelated features in the same session unless the human explicitly scopes a small bundle.
@@ -112,6 +128,7 @@ After the human approves work, help update:
 - Pushing or opening PRs without human request.
 - Multiple log sections for the same `VERSION` in `IMPLEMENTATION_LOG.md`.
 - Rewriting past versions’ log sections (except typos).
+- Writing chat, UI, or docs in fragments, jargon stacks, or a voice the human would not read aloud.
 
 ---
 

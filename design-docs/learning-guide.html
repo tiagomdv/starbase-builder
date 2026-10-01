@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Field guide — starbase-builder</title>
+  <style>
+    :root {
+      --bg: #10140f;
+      --ink: #f3f0e6;
+      --muted: #a39b88;
+      --line: #2a3324;
+      --panel: #171d16;
+      --accent: #d6ff4a;
+      --accent-ink: #1a2208;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); }
+    body {
+      font-family: "Segoe UI", system-ui, sans-serif;
+      line-height: 1.55;
+    }
+    .app { display: grid; grid-template-columns: 300px minmax(0, 1fr); min-height: 100%; }
+    @media (max-width: 800px) {
+      .app { grid-template-columns: 1fr; }
+      .rail { position: static !important; height: auto !important; border-right: 0 !important; border-bottom: 1px solid var(--line); }
+    }
+    .rail {
+      position: sticky; top: 0; height: 100vh; overflow: auto;
+      background: var(--panel); border-right: 1px solid var(--line); padding: 1.25rem 1rem 2rem;
+    }
+    .mark { font-size: 0.72rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.35rem; }
+    .rail h1 { font-size: 1.35rem; font-weight: 650; margin: 0 0 0.4rem; letter-spacing: -0.03em; }
+    .rail .note { color: var(--muted); font-size: 0.82rem; margin: 0 0 1rem; }
+    .group { margin: 1rem 0 0.35rem; font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+    button.lesson {
+      display: block; width: 100%; text-align: left; cursor: pointer;
+      background: transparent; color: var(--ink); border: 0; border-radius: 0.55rem;
+      padding: 0.45rem 0.6rem; margin: 0.1rem 0; font: inherit; font-size: 0.88rem;
+    }
+    button.lesson small { display: block; color: var(--muted); font-size: 0.72rem; margin-top: 0.1rem; }
+    button.lesson.on, button.lesson:hover { background: #242c20; }
+    button.lesson.on { box-shadow: inset 2px 0 0 var(--accent); }
+    .stage { padding: 2.2rem 1.5rem 4rem; max-width: 46rem; }
+    .kicker { color: var(--accent); font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; margin: 0; }
+    .stage h2 { font-size: clamp(1.8rem, 4vw, 2.6rem); line-height: 1.05; letter-spacing: -0.03em; margin: 0.35rem 0 0.8rem; font-weight: 640; }
+    .lede { font-size: 1.08rem; color: #ddd6c6; margin: 0 0 1.2rem; }
+    .card {
+      background: #1a2118; border: 1px solid var(--line); border-radius: 0.9rem;
+      padding: 0.9rem 1rem; margin: 0.8rem 0;
+    }
+    .card h3 { margin: 0 0 0.35rem; font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); }
+    .card p { margin: 0.35rem 0; font-size: 0.95rem; }
+    a { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="rail">
+      <p class="mark">Starbase</p>
+      <h1>Field guide</h1>
+      <p class="note">Lessons for the game. Each card has an id. Later the game can open the same card from a button.</p>
+      <div id="index"></div>
+    </aside>
+    <main class="stage" id="stage"></main>
+  </div>
+  <script>
+    const LESSONS = [
+      {
+        id: "how-to-use",
+        group: "Start",
+        title: "How to use this guide",
+        lede: "This page is the lesson bank. The roadmap says when a feature arrives. This page says what the real thing is, and what you will see in the game.",
+        real: [
+          "Read a card when you meet the word. You do not need them in order.",
+          "A card stays short on purpose. If a number changes after you play, we change the card, then the game."
+        ],
+        game: "The same id, title, and paragraphs can open inside the game later. Nothing here is a second copy of the rules hidden in a comment."
+      },
+      {
+        id: "falcon-1",
+        group: "Now",
+        title: "Falcon 1",
+        lede: "Falcon 1 is the small rocket SpaceX flew first. One Merlin sits on the first stage. The job of this chapter is to learn that rocket before any larger one shows up.",
+        real: [
+          "The real Falcon 1 flew from a Pacific atoll, not from Texas. This game keeps you on the Texas dirt so the site can grow later. The rocket is still the small one.",
+          "It was built to put a few hundred kilograms into low Earth orbit. That payload number arrives when the structure lab and the hop exist."
+        ],
+        game: "The factory builds only Falcon 1. Falcon 9, Heavy, and Starship are names you can see and cannot build."
+      },
+      {
+        id: "merlin",
+        group: "Now",
+        title: "Merlin",
+        lede: "Merlin is the engine family on Falcon 1 and, later, Falcon 9. One engine is enough for this chapter. Falcon 9 is nine of the same idea.",
+        real: [
+          "A Merlin burns a fuel and an oxidizer together in a chamber, and the hot gas leaves through a nozzle. That push is thrust.",
+          "The early Merlins burned RP-1 and liquid oxygen. A later engine, Raptor, burns methane and liquid oxygen. That is a different family, and it waits."
+        ],
+        game: "The factory card shows thrust, specific impulse, mass, and restarts. One purchase raises thrust for every Falcon 1 you have."
+      },
+      {
+        id: "thrust",
+        group: "Now",
+        title: "Thrust",
+        lede: "Thrust is the push of the engine, in kilonewtons. A static fire asks whether that push is enough for the hold-down, and whether the pad can take it.",
+        real: [
+          "More thrust lifts a heavier stack, and it also loads the stand. A weak engine fails the test. A stand that is too light for the push fails it too."
+        ],
+        game: "The pad prints thrust today and the bar the fire needs. Wear lowers thrust by a fixed share after each fire. Impulse and mass are on the card and do not decide this test."
+      },
+      {
+        id: "impulse",
+        group: "Now",
+        title: "Specific impulse",
+        lede: "Specific impulse is how much push you get from each kilogram of propellant. A higher number means the same tank takes you further.",
+        real: [
+          "It is written in seconds. Sea-level impulse and vacuum impulse differ, because the nozzle works better once the air is gone.",
+          "Impulse does not tell you if the engine can light on the stand. It tells you about the burn that comes after."
+        ],
+        game: "You can read it now. It starts to change altitude and the orbit when the hop and the orbit slices arrive."
+      },
+      {
+        id: "static-fire",
+        group: "Now",
+        title: "Static fire",
+        lede: "A static fire lights the engine while the rocket is held down. It is a test of the engine, the stand, the tanks, and the weather. It is not a flight.",
+        real: [
+          "Crews do this before they commit a vehicle to flight. A bad day on the stand is cheaper than a bad day in the air, and it still costs the hardware."
+        ],
+        game: "You read the four lines, then you light it or you wait. If the sky or the tanks are short, the range does not open. If the engine is short, the fire happens and the debrief names the engine."
+      },
+      {
+        id: "sky",
+        group: "Now",
+        title: "Wind and storms",
+        lede: "Wind loads the rocket while it is upright. Lightning closes a range. Waiting for a calm day is part of the work.",
+        real: [
+          "Launch commits include a wind limit. A stronger mount can accept a little more wind. It does not make a storm safe."
+        ],
+        game: "The header shows today and the next two days. The sky comes from the day number, so you can learn the pattern. A closed day does not spend propellant."
+      },
+      {
+        id: "pad-and-bay",
+        group: "Now",
+        title: "Pad and bay",
+        lede: "The pad is where the rocket lights. The bay is where it lives and where it is repaired. The pad is not a hangar.",
+        real: [
+          "After a firing, crews roll the vehicle back under a roof. Inspection and part swaps take days. The stand needs its own recovery time too."
+        ],
+        game: "A fire that holds sends the rocket home for a short refurb. A miss costs more condition and more days. A stronger pad accepts more thrust and more wind, and it shortens a clean refurb by one day."
+      },
+      {
+        id: "rp1",
+        group: "Falcon 1",
+        title: "RP-1",
+        lede: "RP-1 is refined kerosene. It is the fuel in a Merlin. It is not methane, and a tank of one cannot stand in for the other.",
+        real: [
+          "Kerosene is dense and stable, which is why early orbital rockets used it. It leaves soot, and the engine is built with that in mind.",
+          "You buy it. The price moves. A flight plan that ignores the price still has to fill the tank."
+        ],
+        game: "Not in the game yet. When it arrives, RP-1 has its own tank, its own price, and its own line on the fire."
+      },
+      {
+        id: "lox",
+        group: "Falcon 1",
+        title: "Liquid oxygen",
+        lede: "Liquid oxygen is the oxidizer. The engine needs it to burn the fuel. It is cold, and it boils away if the tank sits too long.",
+        real: [
+          "Falcon rockets and Starship both use liquid oxygen. The fuel beside it changes. Merlin uses RP-1. Raptor uses methane. The oxygen tanks can stay when the fuel changes."
+        ],
+        game: "Not in the game yet. The first tanks slice adds it next to RP-1. Starship reuses this tank later."
+      },
+      {
+        id: "structure",
+        group: "Falcon 1",
+        title: "Structure and payload",
+        lede: "The stage has a dry mass and a strength. Dry mass is the rocket without propellant. Strength is the load it can take on the way up.",
+        real: [
+          "Payload is what is left after you subtract the rocket, the engines, and the propellant you must carry. A heavier engine buys thrust and spends payload."
+        ],
+        game: "Not in the game yet. The panel will add the Merlin and the stage and show the kilograms this Falcon 1 can lift."
+      },
+      {
+        id: "hop-orbit",
+        group: "Falcon 1",
+        title: "Hop and orbit",
+        lede: "A hop leaves the stand and comes back to altitude and speed. An orbit attempt adds a second burn and tries to stay up.",
+        real: [
+          "Getting off the pad is thrust and mass. Staying in orbit is impulse, a restart, and steering. Those are different failures, and the debrief should say which one you hit."
+        ],
+        game: "Not in the game yet. A success leaves an orbit card with altitude, inclination, and the mass on board."
+      },
+      {
+        id: "reuse",
+        group: "Falcon 1",
+        title: "Land or expend",
+        lede: "You can throw the first stage away and lift more, or you can bring it home and spend days putting it back together.",
+        real: [
+          "Landing fuel is fuel you do not spend on the payload. The bay then inspects the core. A tired core flies again at the condition you left it in."
+        ],
+        game: "Not in the game yet. The choice will change the payload number and the days the bay is busy."
+      },
+      {
+        id: "customers",
+        group: "Later",
+        title: "Customers",
+        lede: "Someone pays when you have already done the flight they want. A contract names an orbit, a mass, and the pad days it will take.",
+        real: [
+          "Cargo to a station, a crew flight, a satellite for another country, and a military payload are different promises. Each one waits until your rocket has flown that class."
+        ],
+        game: "The first contract is one small commercial ride on Falcon 1. NASA, crew, foreign, and military cards are a later patch."
+      },
+      {
+        id: "falcon-9",
+        group: "Later",
+        title: "Falcon 9",
+        lede: "Falcon 9 is nine Merlins on a larger stage. It drinks more RP-1 and more liquid oxygen, and it needs a pad that can hold the push.",
+        real: [
+          "This is the rocket that made regular flights and landing attempts normal. In this game it arrives only after Falcon 1 is a finished chapter."
+        ],
+        game: "Locked. The path stays the one you already know: build, bay, pad, fire, refurb."
+      },
+      {
+        id: "starlink",
+        group: "Later",
+        title: "Starlink",
+        lede: "Starlink is a fleet of small satellites you fly for yourself. Each one has mass, power, a radio, and a design life.",
+        real: [
+          "Coverage comes from many birds in many planes, not from one perfect satellite. Building them uses the same factory, tanks, and pads as a customer launch."
+        ],
+        game: "Not in the game yet. The squeeze is the point. Your own birds compete with paying flights."
+      },
+      {
+        id: "methalox",
+        group: "Later",
+        title: "Methane and Raptor",
+        lede: "Raptor burns methalox. That is liquid methane plus liquid oxygen. It is a new engine, not a louder Merlin.",
+        real: [
+          "Methane burns cleaner than kerosene, and it can be made on Mars from local carbon dioxide and water. That is why Starship uses it. The oxygen is the same fluid you already store."
+        ],
+        game: "Not in the game yet. The patch adds a methane tank and a methane price. The oxygen tank stays."
+      },
+      {
+        id: "starship",
+        group: "Later",
+        title: "Starship",
+        lede: "Starship is a ship and a booster, caught by a tower, and refueled from a depot in orbit. Moon and Mars flights draw from that depot.",
+        real: [
+          "The Texas site in this game becomes that site for real in this chapter. Until the new cadence works, the Falcon pads still earn the steel."
+        ],
+        game: "Not in the game yet. Catch, tower, and depot are one patch. The Moon and Mars are contracts on the depot."
+      },
+      {
+        id: "louisiana",
+        group: "Later",
+        title: "A second Starbase",
+        lede: "Louisiana is another copy of the site, empty at first. Texas can send a rocket there. The trip takes days.",
+        real: [
+          "A second shore does not invent a new rocket. It gives you another pad, another set of tanks, and a transfer you have to schedule."
+        ],
+        game: "Not in the game yet. It is a site upgrade after the Texas chapter is worth repeating."
+      },
+      {
+        id: "compute",
+        group: "Later",
+        title: "Power and compute",
+        lede: "When the constellation is up, a data center can sit beside the pads. It wants power, chips, and the same attention as a launch.",
+        real: [
+          "Training runs finish or they slip. A new cluster can delay a booster if you spend the steel and the power there."
+        ],
+        game: "Not in the game yet. The panel will show power used and whether the cluster delayed a rocket."
+      }
+    ];
+
+    const index = document.getElementById("index");
+    const stage = document.getElementById("stage");
+    let lastGroup = "";
+    for (const lesson of LESSONS) {
+      if (lesson.group !== lastGroup) {
+        const g = document.createElement("div");
+        g.className = "group";
+        g.textContent = lesson.group;
+        index.appendChild(g);
+        lastGroup = lesson.group;
+      }
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "lesson";
+      b.dataset.id = lesson.id;
+      b.textContent = lesson.title;
+      b.addEventListener("click", () => show(lesson.id));
+      index.appendChild(b);
+    }
+
+    function show(id) {
+      const lesson = LESSONS.find((item) => item.id === id) || LESSONS[0];
+      location.hash = lesson.id;
+      document.querySelectorAll("button.lesson").forEach((btn) => {
+        btn.classList.toggle("on", btn.dataset.id === lesson.id);
+      });
+      const real = lesson.real.map((p) => `<p>${p}</p>`).join("");
+      stage.innerHTML = `
+        <p class="kicker">${lesson.group}</p>
+        <h2>${lesson.title}</h2>
+        <p class="lede">${lesson.lede}</p>
+        <div class="card"><h3>The real thing</h3>${real}</div>
+        <div class="card"><h3>In the game</h3><p>${lesson.game}</p></div>
+      `;
+    }
+
+    window.addEventListener("hashchange", () => show(location.hash.slice(1)));
+    show(location.hash.slice(1) || "how-to-use");
+  </script>
+</body>
+</html>

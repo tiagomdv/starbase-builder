@@ -47,3 +47,16 @@ History of what **shipped**, keyed by **version**.
 
 ### Process note
 - Interim WIP labels (`0.1.0-wip`) and multi-entry logs during development were collapsed into this single version section (rule: one log per version).
+
+---
+
+## `0.2.0-merlin` — 2026-10-01
+
+**Version:** `0.2.0-merlin`
+
+- Falcon 1 is the only rocket you can build. Falcon 9 is locked.
+- The factory shows Merlin thrust, specific impulse, mass, and restarts. One upgrade raises fresh thrust from 340 kN to 381 kN.
+- A static fire holds when thrust, the pad, propellant, and the wind all clear. The chance roll is gone.
+- The header shows today’s sky and the next two days. The sky comes from the day number.
+- The README is the SpaceX story guide. The program roadmap records Falcon 1 first, then patches.
+- The previous live file is `archive/index-0.1.0-foundation.html`.
