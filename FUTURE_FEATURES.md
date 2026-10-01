@@ -5,7 +5,7 @@
 When something **ships** or is **dismissed**, document it in `IMPLEMENTATION_LOG.md`, then **remove it from this file**.
 
 **Current phase:** 0 · Foundations  
-**Last shipped:** `0.1.0-foundation` (Factory · Bay multi-house/refurb · Pad SF with failure)  
+**Last shipped:** Falcon 1 only. Merlin card, a fire that follows the numbers, and a sky you can wait out. See `IMPLEMENTATION_LOG.md`.  
 **Thematic arc:** Foundations → Flight → Scale → Power → Cis-lunar → Mars  
 **Prototype reference (local only, not in this repo):** `~/starship-dev/index.html` — playable single-file ops game. Harvest mechanisms; do **not** copy UI layout or dark “range dashboard” look. Starbase-builder stays earthy AoE 2.5D map-first.
 
@@ -20,6 +20,16 @@ When something **ships** or is **dismissed**, document it in `IMPLEMENTATION_LOG
 - Outer bases (Moon, Mars) depend on Earth cadence, reliability, and production.
 - Grok Imagine will later become a real asset-generation pipeline for the project.
 - **Reuse ideas from `starship-dev`, not its product shape.** That file is a vertical slice of flight/ops systems; this game is multi-site base-building first.
+
+---
+
+## Field guide (open)
+
+The lesson bank is `design-docs/learning-guide.html`. Improve it after the current game work, not in the same pass.
+
+- Add images where a picture teaches faster than a paragraph.
+- Organize the cards so a part sits inside the thing it belongs to. Merlin belongs inside Falcon 1. Thrust and specific impulse belong inside Merlin. Do the same for later rockets and their engines, tanks, and sites.
+- Keep each card short enough to open from a button in the game.
 
 ---
 
