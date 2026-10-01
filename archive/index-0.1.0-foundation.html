@@ -111,9 +111,8 @@
     </div>
     <div class="ml-auto flex items-center gap-2 text-amber-200/60 text-xs">
       <span id="day-label">Day 1</span>
-      <span id="sky-label" title="Sky from the day number. Storms close the range.">Clear · 8 kn</span>
       <button type="button" class="ui-btn rounded px-2 py-0.5 text-xs" id="btn-mute" title="Toggle sound">🔊</button>
-      <span id="ver-label" class="opacity-70">0.2.0-merlin</span>
+      <span id="ver-label" class="opacity-70">0.1.0-foundation</span>
     </div>
   </header>
 
@@ -125,7 +124,8 @@
       </div>
       <div class="p-2.5 text-[11px] text-amber-200/55 leading-snug flex-1">
         <div class="text-amber-600 uppercase tracking-wider text-[10px] mb-1">Foundation loop</div>
-        <b>Factory</b> builds a Falcon 1 and can raise Merlin thrust. <b>Mega Bay</b> houses and refurbs. <b>Pad</b> static-fires when the engine, the mount, the tanks, and the sky all clear.
+        <b>Factory</b> builds rockets · <b>Mega Bay</b> houses &amp; refurbs fleet · <b>Pad</b> static-fires.
+        Steel &amp; propellant come from the <b>environment</b> (no tank farm).
       </div>
     </aside>
 
@@ -171,7 +171,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "0.2.0-merlin";
+  const VERSION = "0.1.0-foundation";
   const CELL = 32, MAP_W = 40, MAP_H = 30, MS_PER_DAY = 4000;
   const ZOOM_MIN = 0.6, ZOOM_MAX = 1.8;
 
@@ -183,22 +183,7 @@
     ENV_PROP_PER_DAY: 8,
     PROP_CAP: 120,
     PAD_L2_COST: 40,
-    MERLIN_THRUST_KN: 340,
-    MERLIN_ISP_S: 260,
-    MERLIN_MASS_KG: 630,
-    MERLIN_RESTARTS: 1,
-    MERLIN_UP_COST: 36,
-    MERLIN_UP_DAYS: 2,
-    MERLIN_UP_MULT: 1.12,
-    SF_THRUST_BAR_KN: 300,
-    SF_WEAR_PER_FIRE: 0.08,
-    SF_MISS_CONDITION: 40,
-    SF_OK_CONDITION: 12,
-    SCRAP_FLOOR: 20,
-    WIND_LIMIT_L1: 20,
-    WIND_LIMIT_L2: 28,
-    PAD_THRUST_L1: 400,
-    PAD_THRUST_L2: 900,
+    SF_L2_SUCCESS_BONUS: 0.08,
     BAY_CAPACITY: 4,
     ROLLOUT_PX_PER_SEC: 52,
     ROLLOUT_MIN_SEC: 2.0,
@@ -228,7 +213,7 @@
       refurbDaysOk: 2,
       refurbDaysFail: 4,
       scrapOnFailChance: 0.35,
-      blurb: "One Merlin. The fire follows thrust, the pad, the tanks, and the sky.",
+      blurb: "First Falcon. Single-engine static fire; early reliability.",
       sfPhases: { approach: 1.0, chill: 1.0, ignition: 0.85, burn: 1.9, shutdown: 0.75, debrief: 1.0 },
       unlocked: true,
     },
@@ -250,7 +235,7 @@
       scrapOnFailChance: 0.22,
       blurb: "Nine-engine first stage. Heavier fire, higher base reliability.",
       sfPhases: { approach: 1.15, chill: 1.4, ignition: 1.2, burn: 3.2, shutdown: 1.0, debrief: 1.2 },
-      unlocked: false,
+      unlocked: true,
     },
     falcon_heavy: { id: "falcon_heavy", name: "Falcon Heavy", short: "FH", unlocked: false, blurb: "Later." },
     starship: { id: "starship", name: "Starship", short: "SS", unlocked: false, blurb: "Later." },
@@ -286,8 +271,8 @@
       maxCount: 1,
       zoneHint: "launch",
       maxLevel: 2,
-      upgradeVisual: { 2: "Widen flame trench and raise the mount" },
-      blurb: "Static fire only. Level 2 accepts more thrust, allows more wind, and shortens a clean refurb by one day.",
+      upgradeVisual: { 2: "Widen flame trench & raise OLM" },
+      blurb: "OLM + trench for static fire only. After a fire, vehicle returns to the bay for inspection / refurb.",
     },
   };
 
@@ -395,7 +380,6 @@
   // status: at_factory | in_bay | rolling | on_pad | refurb | destroyed
   const G = {
     day: 1, dayAcc: 0,
-    merlinTier: 1,
     steel: TUNING.START_STEEL,
     prop: TUNING.START_PROP,
     buildings: [],
@@ -528,7 +512,6 @@
     if (G.factoryJob) {
       G.factoryJob.daysLeft--;
       if (G.factoryJob.daysLeft <= 0) finishFactoryJob();
-      else if (G.factoryJob.kind === "merlin") log(`Engine lab: Merlin thrust upgrade — ${G.factoryJob.daysLeft}d left`, "info");
       else log(`Factory: ${rocketOf(G.factoryJob.rocketId).name} — ${G.factoryJob.daysLeft}d left`, "info");
     }
 
@@ -552,13 +535,6 @@
     const factory = buildingOfType("starfactory");
     G.factoryJob = null;
     if (!job || !factory) return;
-    if (job.kind === "merlin") {
-      G.merlinTier = 2;
-      sfxUp();
-      log("Merlin thrust is now 12% higher on every Falcon 1.", "good");
-      renderChrome();
-      return;
-    }
     if (factoryHold()) {
       log("Factory hold full — job lost (should not happen)", "bad");
       return;
@@ -573,7 +549,6 @@
       buildingId: factory.id,
       status: "at_factory",
       condition: 100,
-      fires: 0,
       refurbLeft: 0,
       baySlot: 0,
       wx: a.x, wy: a.y,
@@ -598,7 +573,7 @@
     if (G.event || G.rollout) { log("Ops busy", "warn"); return; }
     if (G.steel < r.steelCost) { sfxErr(); log(`Need ${r.steelCost} steel`, "bad"); return; }
     G.steel -= r.steelCost;
-    G.factoryJob = { kind: "rocket", rocketId: r.id, daysLeft: r.buildDays, totalDays: r.buildDays };
+    G.factoryJob = { rocketId: r.id, daysLeft: r.buildDays, totalDays: r.buildDays };
     sfxBuild();
     log(`Factory: ${r.name} started (−${r.steelCost} steel · ${r.buildDays} days)`, "good");
     renderChrome();
@@ -757,57 +732,12 @@
     }
   }
 
-  function weatherOn(day) {
-    const table = [
-      { sky: "Clear", wind: 8, storm: false },
-      { sky: "Clear", wind: 12, storm: false },
-      { sky: "Wind", wind: 24, storm: false },
-      { sky: "Clear", wind: 10, storm: false },
-      { sky: "Storm", wind: 36, storm: true },
-      { sky: "Wind", wind: 22, storm: false },
-      { sky: "Clear", wind: 6, storm: false },
-      { sky: "Clear", wind: 14, storm: false },
-      { sky: "Wind", wind: 26, storm: false },
-      { sky: "Storm", wind: 32, storm: true },
-    ];
-    return table[((day - 1) % table.length + table.length) % table.length];
-  }
-
-  function merlinFreshKn() {
-    return Math.round(TUNING.MERLIN_THRUST_KN * (G.merlinTier >= 2 ? TUNING.MERLIN_UP_MULT : 1));
-  }
-
-  function merlinNowKn(v) {
-    const fires = v && v.fires ? v.fires : 0;
-    return Math.round(merlinFreshKn() * (1 - TUNING.SF_WEAR_PER_FIRE * fires));
-  }
-
-  function padLimits(pad) {
-    const l2 = pad && pad.level >= 2;
-    return {
-      thrust: l2 ? TUNING.PAD_THRUST_L2 : TUNING.PAD_THRUST_L1,
-      wind: l2 ? TUNING.WIND_LIMIT_L2 : TUNING.WIND_LIMIT_L1,
-    };
-  }
-
-  function fireCheck(v, pad) {
-    const sky = weatherOn(G.day);
-    const limits = padLimits(pad);
-    const thrust = merlinNowKn(v);
+  function sfSuccessChance(v, pad) {
     const r = rocketOf(v.rocketId);
-    const need = r.sfProp;
-    const lines = [
-      `Thrust today ${thrust} kN. The fire needs ${TUNING.SF_THRUST_BAR_KN} kN.`,
-      `Pad accepts ${limits.thrust} kN and wind up to ${limits.wind} knots.`,
-      `Propellant ${G.prop}. This fire draws ${need}.`,
-      `${sky.sky}, ${sky.wind} knots.`,
-    ];
-    let limiter = null;
-    if (sky.storm || sky.wind > limits.wind) limiter = "weather";
-    else if (G.prop < need) limiter = "propellant";
-    else if (thrust > limits.thrust) limiter = "pad";
-    else if (thrust < TUNING.SF_THRUST_BAR_KN) limiter = "engine";
-    return { ok: !limiter, limiter, lines, thrust, need, sky, limits };
+    let p = r.sfSuccess;
+    p *= 0.55 + 0.45 * (v.condition / 100);
+    if (pad.level >= 2) p += TUNING.SF_L2_SUCCESS_BONUS;
+    return clamp(p, 0.08, 0.96);
   }
 
   function staticFire() {
@@ -818,21 +748,17 @@
     if (!v || v.status !== "on_pad") { sfxErr(); log("Need a vehicle on the pad", "bad"); return; }
     if (G.event || G.rollout) { log("Busy", "warn"); return; }
     const r = rocketOf(v.rocketId);
-    const check = fireCheck(v, pad);
-    check.lines.forEach((line) => log(line, "info"));
-    if (!check.ok && (check.limiter === "weather" || check.limiter === "propellant")) {
-      sfxErr();
-      log(check.limiter === "weather"
-        ? "Range is closed. Wait for a calmer day."
-        : `Need ${check.need} propellant.`, "bad");
-      renderChrome();
-      return;
-    }
-    G.prop -= check.need;
-    log(check.ok
-      ? `STATIC FIRE · ${v.name} · thrust holds · −${check.need} prop`
-      : `STATIC FIRE · ${v.name} · ${check.limiter} is short · −${check.need} prop`, check.ok ? "good" : "bad");
-    startEventSF(v, pad, r, check.need, check.ok, check);
+    const mult = pad.level >= 2 ? 0.9 : 1;
+    const need = Math.ceil(r.sfProp * mult);
+    if (G.prop < need) { sfxErr(); log(`Need ${need} propellant (environment stock)`, "bad"); return; }
+    G.prop -= need;
+    const chance = sfSuccessChance(v, pad);
+    const success = Math.random() < chance;
+    log(
+      `STATIC FIRE · ${v.name} · P(success) ${(chance * 100).toFixed(0)}% · −${need} prop`,
+      "info"
+    );
+    startEventSF(v, pad, r, need, success, chance);
     renderChrome();
   }
 
@@ -847,7 +773,7 @@
     skip: document.getElementById("event-skip"),
   };
 
-  function startEventSF(v, pad, r, spent, success, check) {
+  function startEventSF(v, pad, r, spent, success, chance) {
     const ph = r.sfPhases;
     const phases = success
       ? [
@@ -872,7 +798,7 @@
       sfStyle: r.sfStyle,
       padLevel: pad.level,
       success,
-      limiter: success ? null : check.limiter,
+      chance,
       spent,
       t: 0, phaseIdx: 0, phaseT: 0,
       phases,
@@ -886,9 +812,7 @@
     openEvent(
       `Static fire · ${v.name}`,
       phases[0].label,
-      success
-        ? `${r.name} · thrust ${check.thrust} kN holds · ${check.sky.sky}`
-        : `${r.name} · the ${check.limiter} is short`
+      `${r.name} · P(ok) ${(chance * 100).toFixed(0)}% · prop from environment`
     );
   }
 
@@ -912,29 +836,28 @@
     const v = vehicleById(ev.vehicleId);
     const r = rocketOf(ev.rocketId);
     if (!v) return;
-    G.objectives.static_fire = true;
-    v.fires = (v.fires || 0) + 1;
-    const refurbCut = (buildingOfType("pad_orbital") || {}).level >= 2 ? 1 : 0;
+    G.objectives.static_fire = true; // attempted fire (success or fail)
     if (ev.success) {
-      v.condition = Math.max(0, v.condition - TUNING.SF_OK_CONDITION);
-      v.refurbLeft = Math.max(1, r.refurbDaysOk - refurbCut);
+      v.condition = Math.max(15, v.condition - 18 - Math.floor(Math.random() * 10));
+      v.refurbLeft = r.refurbDaysOk;
       v.status = "needs_return";
       sfxOk();
-      log(`${v.name} held. Return it to the Mega Bay for ${v.refurbLeft} days of refurb. Thrust next fire ${merlinNowKn(v)} kN.`, "good");
+      log(`${v.name} SF OK — return to Mega Bay for inspection/refurb (${r.refurbDaysOk}d)`, "good");
+      log("Realistic: pad is not a hangar. Refurb happens in the bay.", "info");
     } else {
-      const next = v.condition - TUNING.SF_MISS_CONDITION;
-      if (next < TUNING.SCRAP_FLOOR) {
+      // failure: scrap or heavy refurb
+      if (Math.random() < r.scrapOnFailChance) {
         v.status = "destroyed";
         v.buildingId = null;
         v.condition = 0;
         sfxFail();
-        log(`${v.name} is below the condition floor of ${TUNING.SCRAP_FLOOR}. The core is scrap. The ${ev.limiter} was short.`, "bad");
+        log(`${v.name} lost in static-fire anomaly (RUD) — scrap`, "bad");
       } else {
-        v.condition = next;
+        v.condition = Math.max(5, v.condition - 45);
         v.refurbLeft = r.refurbDaysFail;
         v.status = "needs_return";
         sfxFail();
-        log(`${v.name} failed because the ${ev.limiter} was short. Condition ${v.condition}. Refurb ${v.refurbLeft} days. Scrap floor is ${TUNING.SCRAP_FLOOR}.`, "bad");
+        log(`${v.name} SF failed — heavy damage · return to bay for ${r.refurbDaysFail}d refurb`, "bad");
       }
     }
   }
@@ -1083,7 +1006,7 @@
     ectx.fillText(rocketOf(ev.rocketId).name.toUpperCase(), 22, 32);
     ectx.font = "11px ui-monospace, monospace";
     ectx.fillStyle = ev.success || pid === "approach" || pid === "chill" ? "#d4a84b" : "#e08070";
-    ectx.fillText(ev.success ? `Thrust holds · ${pid.toUpperCase()}` : `${ev.limiter || "short"} · ${pid.toUpperCase()}`, 22, 50);
+    ectx.fillText(`P(ok) ${(ev.chance * 100).toFixed(0)}% · ${pid.toUpperCase()}`, 22, 50);
 
     ectx.fillStyle = "rgba(0,0,0,0.5)";
     ectx.fillRect(W - 160, 12, 148, 40);
@@ -1266,8 +1189,8 @@
 
     const b = buildingById(G.selectedId);
     if (!b) {
-      box.innerHTML = `<p class="text-amber-200/55">Select the factory, the bay, or the pad.</p>
-        <p class="text-amber-200/40 mt-2">Falcon 1 only. The fire holds when thrust, the pad, propellant, and the sky all clear.</p>`;
+      box.innerHTML = `<p class="text-amber-200/55">Select Factory, Mega Bay, or Pad.</p>
+        <p class="text-amber-200/40 mt-2"><b>Foundation:</b> environment → steel &amp; propellant. Factory builds. Bay houses (up to ${TUNING.BAY_CAPACITY}) &amp; refurbs. Pad static-fires with failure risk.</p>`;
       return;
     }
     const d = defOf(b.type);
@@ -1276,27 +1199,21 @@
 
     if (b.type === "starfactory") {
       html += `<p class="text-amber-200/45 mt-1">Hold: 1 finished vehicle max until staged to bay.</p>`;
-      html += `<p class="text-amber-100/90 mt-1">Merlin tier ${G.merlinTier}. Thrust ${merlinFreshKn()} kN fresh. Impulse ${TUNING.MERLIN_ISP_S} s. Mass ${TUNING.MERLIN_MASS_KG} kg. Restarts ${TUNING.MERLIN_RESTARTS}.</p>
-        <p class="text-amber-200/45">Impulse and mass are on the card. This test uses thrust.</p>`;
       if (G.factoryJob) {
+        const r = rocketOf(G.factoryJob.rocketId);
         const pct = 1 - G.factoryJob.daysLeft / G.factoryJob.totalDays;
-        const label = G.factoryJob.kind === "merlin" ? "Merlin thrust upgrade" : rocketOf(G.factoryJob.rocketId).name;
-        html += `<p class="mt-2">Building <b>${esc(label)}</b> · ${G.factoryJob.daysLeft}d</p>
+        html += `<p class="mt-2">Building <b>${esc(r.name)}</b> · ${G.factoryJob.daysLeft}d</p>
           <div class="bar-track"><i style="width:${Math.round(pct * 100)}%"></i></div>`;
       } else {
-        const r = rocketOf("falcon1");
-        const busy = !!(G.factoryJob || factoryHold() || G.event || G.rollout);
-        html += `<button type="button" class="ui-btn good rounded px-2 py-1.5 text-[11px] w-full mt-1 text-left" data-rocket="falcon1" ${busy || G.steel < r.steelCost ? "disabled" : ""}>
-            <div class="font-semibold">Build Falcon 1 · ${r.steelCost} steel</div>
-            <div class="text-amber-200/50">${r.buildDays} days · fire draws ${r.sfProp} propellant</div>
-          </button>`;
-        if (G.merlinTier < 2) {
-          html += `<button type="button" class="ui-btn rounded px-2 py-1.5 text-[11px] w-full mt-1 text-left" id="btn-merlin" ${busy || G.steel < TUNING.MERLIN_UP_COST ? "disabled" : ""}>
-            <div class="font-semibold">Raise Merlin thrust · ${TUNING.MERLIN_UP_COST} steel</div>
-            <div class="text-amber-200/50">${TUNING.MERLIN_UP_DAYS} days · thrust becomes ${Math.round(TUNING.MERLIN_THRUST_KN * TUNING.MERLIN_UP_MULT)} kN</div>
+        for (const id of ["falcon1", "falcon9"]) {
+          const r = rocketOf(id);
+          const busy = !!(G.factoryJob || factoryHold() || G.event || G.rollout);
+          html += `<button type="button" class="ui-btn good rounded px-2 py-1.5 text-[11px] w-full mt-1 text-left" data-rocket="${id}" ${busy || G.steel < r.steelCost ? "disabled" : ""}>
+            <div class="font-semibold">Build ${esc(r.name)} · ${r.steelCost} steel</div>
+            <div class="text-amber-200/50">${r.buildDays}d · SF prop ${r.sfProp} · P(ok) ~${Math.round(r.sfSuccess * 100)}%</div>
           </button>`;
         }
-        html += `<p class="text-amber-200/40 mt-2 text-[10px]">Later: Falcon 9, Falcon Heavy, Starship.</p>`;
+        html += `<p class="text-amber-200/40 mt-2 text-[10px]">Roadmap later: Falcon Heavy · Starship</p>`;
       }
       const hold = factoryHold();
       if (hold) {
@@ -1328,14 +1245,13 @@
 
     if (b.type === "pad_orbital") {
       const on = padHold();
+      const chance = on && on.status === "on_pad" ? sfSuccessChance(on, b) : null;
       if (on) {
         const r = rocketOf(on.rocketId);
-        html += `<p class="mt-2 text-amber-100">● ${esc(on.name)} on pad · condition ${Math.round(on.condition)} · fires ${on.fires || 0}</p>`;
+        html += `<p class="mt-2 text-amber-100">● ${esc(on.name)} on pad · cond ${Math.round(on.condition)}%</p>`;
         if (on.status === "on_pad") {
-          const check = fireCheck(on, b);
-          html += check.lines.map((line) => `<p class="text-amber-200/70">${esc(line)}</p>`).join("");
-          html += `<p class="text-amber-200/50">Scrap floor ${TUNING.SCRAP_FLOOR}. A miss costs ${TUNING.SF_MISS_CONDITION} condition.</p>
-            <button type="button" class="ui-btn good rounded px-2 py-1.5 text-[11px] w-full mt-1" id="btn-sf">${check.ok ? "Static fire" : "Try static fire"} · ${r.sfProp} propellant</button>`;
+          html += `<p class="text-amber-200/60">P(SF success) <b>${(chance * 100).toFixed(0)}%</b> (class × condition × pad)</p>
+            <button type="button" class="ui-btn good rounded px-2 py-1.5 text-[11px] w-full mt-1" id="btn-sf">Static fire · ${r.sfProp} prop</button>`;
         }
         if (on.status === "needs_return") {
           html += `<button type="button" class="ui-btn danger rounded px-2 py-1.5 text-[11px] w-full mt-1" id="btn-return">Return to Mega Bay (refurb)</button>
@@ -1345,9 +1261,9 @@
         html += `<p class="text-amber-200/50 mt-2">Pad empty. Roll a bay-ready vehicle here.</p>`;
       }
       if (b.level < 2) {
-        html += `<button type="button" class="ui-btn rounded px-2 py-1.5 text-[11px] w-full mt-2" id="btn-up">Upgrade pad level 2 · wider trench · ${TUNING.PAD_L2_COST} steel</button>`;
+        html += `<button type="button" class="ui-btn rounded px-2 py-1.5 text-[11px] w-full mt-2" id="btn-up">Upgrade L2 — trench/OLM (+reliability) · ${TUNING.PAD_L2_COST} steel</button>`;
       } else {
-        html += `<p class="text-amber-200/45 mt-2">Pad level 2 accepts ${TUNING.PAD_THRUST_L2} kN and wind up to ${TUNING.WIND_LIMIT_L2} knots. A clean refurb is one day shorter.</p>`;
+        html += `<p class="text-amber-200/45 mt-2">Pad L2: wider trench, taller OLM, better SF odds</p>`;
       }
       if (G.rollout) {
         html += `<p class="text-amber-200/55 mt-1">Transport ETA ${(G.rollout.duration - G.rollout.t).toFixed(1)}s</p>`;
@@ -1358,8 +1274,6 @@
     box.querySelectorAll("[data-rocket]").forEach((btn) => {
       btn.onclick = () => startBuildRocket(btn.getAttribute("data-rocket"));
     });
-    const mer = box.querySelector("#btn-merlin");
-    if (mer) mer.onclick = startMerlinUpgrade;
     const st = box.querySelector("#btn-stage");
     if (st) st.onclick = () => stageToBay(factoryHold() && factoryHold().id);
     const tp = box.querySelector("#btn-topad");
@@ -1379,7 +1293,7 @@
       ["multi_bay", "House 2+ vehicles in the bay"],
       ["static_fire", "Complete a static fire (success or fail)"],
       ["refurb", "Finish a bay refurb after fire"],
-      ["pad_l2", "Upgrade the pad"],
+      ["pad_l2", "Upgrade pad (visual + reliability)"],
     ];
     el.objectives.innerHTML = items.map(([k, label]) => {
       const done = G.objectives[k];
@@ -1387,29 +1301,7 @@
     }).join("");
   }
 
-  function renderWeather() {
-    const sky = document.getElementById("sky-label");
-    if (!sky) return;
-    const now = weatherOn(G.day);
-    const a = weatherOn(G.day + 1);
-    const b = weatherOn(G.day + 2);
-    sky.textContent = `${now.sky} · ${now.wind} kn · next ${a.sky} ${a.wind}, ${b.sky} ${b.wind}`;
-  }
-
-  function startMerlinUpgrade() {
-    audioInit();
-    if (G.merlinTier >= 2) return;
-    if (G.factoryJob) { sfxErr(); log("The factory is already busy.", "warn"); return; }
-    if (G.steel < TUNING.MERLIN_UP_COST) { sfxErr(); log(`Need ${TUNING.MERLIN_UP_COST} steel.`, "bad"); return; }
-    G.steel -= TUNING.MERLIN_UP_COST;
-    G.factoryJob = { kind: "merlin", daysLeft: TUNING.MERLIN_UP_DAYS, totalDays: TUNING.MERLIN_UP_DAYS };
-    sfxBuild();
-    log(`Engine lab started. Merlin thrust rises in ${TUNING.MERLIN_UP_DAYS} days.`, "good");
-    renderChrome();
-  }
-
   function renderChrome() {
-    renderWeather();
     renderResources();
     renderPalette();
     renderFleetList();
