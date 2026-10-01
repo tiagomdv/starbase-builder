@@ -42,4 +42,4 @@ Each of these is a patch. It is not in the finished Falcon 1 game.
 
 ## Where the rest of the notes live
 
-`VERSION` is the live label. `AGENTS.md` is how we write and how we ship. `FUTURE_FEATURES.md` is open work. `IMPLEMENTATION_LOG.md` is what already shipped. Design notes are HTML files in `design-docs/`.
+`VERSION` is the live label. `AGENTS.md` is how we write and how we ship. `FUTURE_FEATURES.md` is open work. `IMPLEMENTATION_LOG.md` is what already shipped. The version map is `design-docs/program-roadmap-design.html`. The lessons are `design-docs/learning-guide.html`.

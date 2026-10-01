@@ -51,7 +51,7 @@
       </div>
       <h1>Program roadmap</h1>
       <p class="lede">
-        The build map for the 2D game. The story a player reads is <code>README.md</code>.
+        The build map for the 2D game. Lessons live in <a href="learning-guide.html">the field guide</a>. The short story is <code>README.md</code>.
         Live code is <code>0.2.0-merlin</code>.
         The version list below is a draft. We can rename a slice or swap two rows after you play. The names are here so the whole game stays visible.
       </p>
@@ -76,14 +76,10 @@
         <p>The first finished game is one rocket on the Texas site. Falcon 9, a second pad, Heavy, customers beyond one small commercial flight, Starlink, Starship, Louisiana, and xAI are patches. Each patch is one addition to a game you can already finish. The story a player reads is the README. This page is the build map.</p>
 
         <h2 id="shipped">Shipped · 0.2.0-merlin</h2>
-        <p>The live file builds Falcon 1 only. Falcon 9 is locked, with Heavy and Starship. The Starfactory shows one Merlin: 340 kN of thrust, 260 seconds of specific impulse, 630 kg, and 1 restart. For 36 steel and 2 days the fresh thrust becomes 381 kN on every Falcon 1.</p>
-        <p>The pad panel prints the four checks before you light the engine. Thrust today must be at least 300 kN. Each fire cuts thrust by 8 percent. Pad level 1 accepts 400 kN and wind up to 20 knots. Pad level 2 accepts 900 kN and wind up to 28 knots, and a clean refurb is one day shorter. The old “plus 8 percent luck” bonus is gone. Propellant must cover the burn. It is still one stock. The sky must be open.</p>
-        <p>The header shows today and the next two days. The sky comes from the day number, so day 12 is always the same sky. A storm, or wind above the pad’s limit, closes the range and does not spend propellant. If the engine is short, the fire still burns propellant, condition drops by 40, and the debrief names the engine. The core is scrap only if that drop would put condition under 20. A fire that holds drops condition by 12 and sends the rocket to the bay.</p>
-        <p>The ten-day sky, starting on day 1, is clear 8 knots, clear 12, wind 24, clear 10, storm 36, wind 22, clear 6, clear 14, wind 26, storm 32. Then it repeats.</p>
+        <p>You can build Falcon 1 only. The factory shows a Merlin card, and one upgrade raises its thrust. A static fire follows the numbers and the sky. The exact figures live in the game and in the <a href="learning-guide.html#merlin">field guide</a>, not on this map.</p>
 
         <h2 id="fuel">Fuel</h2>
-        <p>Falcon 1’s Merlin burns RP-1 and liquid oxygen. RP-1 is refined kerosene. The two fluids are separate stocks. Each has a price, a tank, and a buy button. The panel shows the price before you pay. A static fire and a flight draw a printed amount of each. If either tank is short, the rocket waits. A larger tank is a building you place. The price can move a little from day to day.</p>
-        <p>Methane arrives with Starship. Raptor burns methalox, which is liquid methane plus liquid oxygen. That patch adds a methane tank and a methane price. It reuses the oxygen tanks from the Falcon 1 site. The Falcon 1 chapter does not load methane.</p>
+        <p>Falcon 1 flies on RP-1 and liquid oxygen. Each gets a tank and a price in <code>0.5.0-tanks</code>. Methane arrives with Starship and reuses the oxygen tanks. What the fluids are is in the field guide.</p>
         <table class="doc">
           <thead><tr><th>Fluid</th><th>Used by</th><th>When it exists</th></tr></thead>
           <tbody>
