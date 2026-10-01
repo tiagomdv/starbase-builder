@@ -23,6 +23,16 @@ When something **ships** or is **dismissed**, document it in `IMPLEMENTATION_LOG
 
 ---
 
+## Field guide (open)
+
+The lesson bank is `design-docs/learning-guide.html`. Improve it after the current game work, not in the same pass.
+
+- Add images where a picture teaches faster than a paragraph.
+- Organize the cards so a part sits inside the thing it belongs to. Merlin belongs inside Falcon 1. Thrust and specific impulse belong inside Merlin. Do the same for later rockets and their engines, tanks, and sites.
+- Keep each card short enough to open from a button in the game.
+
+---
+
 ## Phase 0 · Foundations — next (open)
 
 **Shipped foundation:** `0.1.0-foundation` — see `IMPLEMENTATION_LOG.md`. Design history: `design-docs/0.1.0-foundation-design.html`.
