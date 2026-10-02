@@ -60,3 +60,12 @@ History of what **shipped**, keyed by **version**.
 - The header shows today’s sky and the next two days. The sky comes from the day number.
 - The README is the SpaceX story guide. The program roadmap records Falcon 1 first, then patches.
 - The previous live file is `archive/index-0.1.0-foundation.html`.
+
+## `0.2.1-field` — 2026-10-02
+
+**Version:** `0.2.1-field`
+
+- The map draws the gulf shore in sand, with a scale bar. World and Region show country borders and names.
+- The left column offers the Build site and the Pad site. Inland ground is gone. The plant list is gone.
+- Owned ground is a copper line on the same grid as the buildings, outside each sprite.
+- The previous live file is `archive/index-0.2.0-merlin.html`.

@@ -2,61 +2,40 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Starbase Builder</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="geo-land.js"></script>
-  <script src="design-docs/countries.js"></script>
   <style>
     :root {
-      --bg: #050505; --panel: #0a0a0a; --border: #2a2a2a;
-      --text: #f2f2f2; --muted: #9a9a9a; --accent: #e10600;
-      --good: #3dd68c; --bad: #e10600;
+      --bg: #1c2118; --panel: #2a2218; --border: #5a4830;
+      --text: #e8d9b0; --muted: #a89878; --accent: #d4a84b;
+      --good: #8fbc6a; --bad: #d07060;
     }
     * { box-sizing: border-box; }
-    html, body { height: 100%; margin: 0; overflow: hidden; touch-action: none; }
+    html, body { height: 100%; margin: 0; overflow: hidden; }
     body {
       font-family: system-ui, -apple-system, Segoe UI, sans-serif;
       background: var(--bg); color: var(--text);
     }
     .resource-bar {
-      background: #050505;
-      border-bottom: 1px solid #222;
-      color: #f2f2f2;
+      background: linear-gradient(180deg, #3a2e1c 0%, #2a2216 100%);
+      border-bottom: 3px solid #5c4a32;
     }
-    .range-lamp {
-      width: 10px; height: 10px; border-radius: 50%;
-      background: var(--good); box-shadow: 0 0 8px var(--good); display: inline-block;
-    }
-    .range-lamp.closed { background: var(--bad); box-shadow: 0 0 8px var(--bad); }
-    .ui-panel { background: var(--panel); border: 1px solid var(--border); }
-    .ui-panel.hold { box-shadow: inset 3px 0 0 var(--bad); }
+    .ui-panel { background: var(--panel); border: 2px solid var(--border); }
     .ui-btn {
-      background: #000; border: 1px solid #333; color: #f2f2f2;
+      background: #3a2e20; border: 1px solid #6a5638; color: #e8d9b0;
       transition: background 0.12s, border-color 0.12s, opacity 0.12s;
     }
-    .ui-btn:hover:not(:disabled) { background: #161616; border-color: #666; }
+    .ui-btn:hover:not(:disabled) { background: #4a3c28; border-color: #8a7048; }
     .ui-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-    .ui-btn.active { background: #140404; border-color: var(--accent); }
-    [class*="text-amber"] { color: #f2f2f2 !important; }
+    .ui-btn.active {
+      background: #4a3c28; border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(212, 168, 75, 0.35);
+    }
     .ui-btn.good { background: #1a2e14; border-color: #3d6e34; color: var(--good); }
     .ui-btn.danger { background: #2a1414; border-color: #8a4040; color: #e8a0a0; }
-    #map-wrap { position: relative; min-width: 0; min-height: 0; background: #07141c; }
+    #map-wrap { position: relative; min-width: 0; min-height: 0; background: #2d4a28; }
     #map { display: block; width: 100%; height: 100%; cursor: grab; touch-action: none; }
-    #map-chips, #map-zoom { position: absolute; z-index: 2; display: flex; gap: 6px; }
-    #map-chips { left: 10px; top: 10px; }
-    #map-zoom { right: 10px; top: 10px; }
-    #map-scale {
-      position: absolute; left: 12px; bottom: 72px; z-index: 2; display: none;
-      align-items: flex-end; gap: 8px; pointer-events: none;
-      font: 12px ui-monospace, monospace; color: #f4ead8;
-    }
-    #map-scale .bar {
-      height: 8px;
-      border-left: 2px solid #f4ead8;
-      border-right: 2px solid #f4ead8;
-      border-bottom: 2px solid #f4ead8;
-    }
     #map.placing { cursor: crosshair; }
     #map.panning { cursor: grabbing; }
     #log { font-family: ui-monospace, Menlo, monospace; font-size: 11px; line-height: 1.35; }
@@ -70,11 +49,11 @@
     }
     .obj-done { color: var(--good); text-decoration: line-through; opacity: 0.85; }
     .fleet-row {
-      border: 1px solid #333; border-radius: 2px; padding: 0.4rem 0.45rem;
-      margin-bottom: 0.35rem; cursor: pointer; background: #000;
+      border: 1px solid #5a4830; border-radius: 6px; padding: 0.4rem 0.45rem;
+      margin-bottom: 0.35rem; cursor: pointer; background: #221c14;
     }
-    .fleet-row:hover { border-color: #666; }
-    .fleet-row.sel { border-color: var(--accent); border-left-width: 3px; background: #120404; }
+    .fleet-row:hover { border-color: #8a7048; }
+    .fleet-row.sel { border-color: var(--accent); background: #2e2618; }
     .fleet-row .meta { color: var(--muted); font-size: 10px; }
     .bar-track {
       height: 6px; background: #1a1510; border-radius: 3px; overflow: hidden; margin-top: 4px;
@@ -89,7 +68,7 @@
     #event-stage .event-head {
       flex-shrink: 0; display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;
       padding: 0.65rem 1rem; border-bottom: 1px solid var(--border);
-      background: #050505;
+      background: rgba(42, 34, 24, 0.95);
     }
     #event-stage .event-head h2 {
       margin: 0; font-size: 0.95rem; letter-spacing: 0.08em;
@@ -110,49 +89,49 @@
     #event-stage .event-foot {
       flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; gap: 0.75rem;
       padding: 0.55rem 1rem 0.75rem; border-top: 1px solid var(--border);
-      background: #050505; font-size: 0.78rem; color: var(--muted);
+      background: rgba(42, 34, 24, 0.95); font-size: 0.78rem; color: var(--muted);
     }
   </style>
 </head>
 <body class="flex flex-col h-full">
 
-  <header class="resource-bar px-3 py-2 flex items-center gap-3 text-sm shrink-0 flex-wrap z-20">
-    <span id="range-lamp" class="range-lamp" title="Green when the sky is inside the pad limit."></span>
-    <span id="sky-label">Range open</span>
-    <div class="ml-auto flex items-center gap-3 text-xs">
-      <span>Steel <b id="res-steel" class="tabular-nums">200</b></span>
-      <span>Propellant <b id="res-prop" class="tabular-nums">40</b></span>
-      <span>Fleet <b id="res-fleet" class="tabular-nums">0</b></span>
+  <header class="resource-bar px-3 py-2 flex items-center gap-4 text-sm shrink-0 flex-wrap z-20">
+    <div class="font-bold tracking-wide text-amber-200 text-base">STARBASE</div>
+    <div class="h-5 w-px bg-amber-900/50"></div>
+    <div class="flex items-center gap-4 text-amber-100/90 flex-wrap">
+      <span class="flex items-center gap-1.5" title="Materials from environment / inbound supply">
+        <span class="swatch bg-stone-400"></span>Steel <b id="res-steel" class="text-amber-50 tabular-nums">200</b>
+      </span>
+      <span class="flex items-center gap-1.5" title="Site propellant from environment (no tank farm in foundation)">
+        <span class="swatch bg-cyan-600"></span>Propellant <b id="res-prop" class="text-amber-50 tabular-nums">40</b>
+      </span>
+      <span class="flex items-center gap-1.5">
+        <span class="swatch bg-sky-400"></span>Fleet <b id="res-fleet" class="text-amber-50 tabular-nums">0</b>
+      </span>
+    </div>
+    <div class="ml-auto flex items-center gap-2 text-amber-200/60 text-xs">
       <span id="day-label">Day 1</span>
+      <span id="sky-label" title="Sky from the day number. Storms close the range.">Clear · 8 kn</span>
       <button type="button" class="ui-btn rounded px-2 py-0.5 text-xs" id="btn-mute" title="Toggle sound">🔊</button>
-      <span id="ver-label" class="opacity-70">0.2.1-field</span>
+      <span id="ver-label" class="opacity-70">0.2.0-merlin</span>
     </div>
   </header>
 
   <div class="flex flex-1 min-h-0">
     <aside class="w-44 ui-panel flex flex-col shrink-0 border-y-0 border-l-0">
       <div class="p-2.5 border-b border-amber-900/40">
-        <div class="text-[10px] uppercase tracking-wider text-amber-600 mb-2">Land</div>
+        <div class="text-[10px] uppercase tracking-wider text-amber-600 mb-2">Build site</div>
         <div class="grid grid-cols-1 gap-1.5" id="build-palette"></div>
+      </div>
+      <div class="p-2.5 text-[11px] text-amber-200/55 leading-snug flex-1">
+        <div class="text-amber-600 uppercase tracking-wider text-[10px] mb-1">Foundation loop</div>
+        <b>Factory</b> builds a Falcon 1 and can raise Merlin thrust. <b>Mega Bay</b> houses and refurbs. <b>Pad</b> static-fires when the engine, the mount, the tanks, and the sky all clear.
       </div>
     </aside>
 
-    <div id="map-wrap" class="flex-1">
-      <canvas id="map"></canvas>
-      <div id="map-chips">
-        <button type="button" class="ui-btn rounded px-2 py-1 text-xs" data-band="World" data-mpp="18000">World</button>
-        <button type="button" class="ui-btn rounded px-2 py-1 text-xs" data-band="Region" data-mpp="1600">Region</button>
-        <button type="button" class="ui-btn rounded px-2 py-1 text-xs" data-band="Site" data-mpp="100">Site</button>
-        <button type="button" class="ui-btn rounded px-2 py-1 text-xs" data-band="Work" data-mpp="1.25">Work</button>
-      </div>
-      <div id="map-zoom">
-        <button type="button" class="ui-btn rounded px-2 py-1 text-xs" id="zoom-in">Zoom in</button>
-        <button type="button" class="ui-btn rounded px-2 py-1 text-xs" id="zoom-out">Zoom out</button>
-      </div>
-      <div id="map-scale"><span class="bar" id="map-scale-bar"></span><span id="map-scale-label"></span></div>
-    </div>
+    <div id="map-wrap" class="flex-1"><canvas id="map"></canvas></div>
 
-    <aside id="readout" class="w-64 ui-panel flex flex-col shrink-0 border-y-0 border-r-0 min-h-0">
+    <aside class="w-64 ui-panel flex flex-col shrink-0 border-y-0 border-r-0 min-h-0">
       <div class="p-2.5 border-b border-amber-900/40 flex-1 overflow-y-auto min-h-0">
         <div class="text-[10px] uppercase tracking-wider text-amber-600 mb-1">Inspector</div>
         <div id="inspector" class="text-xs text-amber-100/85 space-y-2"></div>
@@ -165,7 +144,7 @@
         <div class="text-[10px] uppercase tracking-wider text-amber-600 mb-1.5">Goals</div>
         <ul id="objectives" class="text-[11px] space-y-1 text-amber-100/80"></ul>
       </div>
-      <div class="p-2 text-[10px] text-amber-200/40">Drag · scroll · pinch · Esc · 🔊</div>
+      <div class="p-2 text-[10px] text-amber-200/40">Drag · zoom · Esc · 🔊</div>
     </aside>
   </div>
 
@@ -192,10 +171,9 @@
 (() => {
   "use strict";
 
-  const VERSION = "0.2.1-field";
+  const VERSION = "0.2.0-merlin";
   const CELL = 32, MAP_W = 40, MAP_H = 30, MS_PER_DAY = 4000;
-  const ZOOM_MIN = 0.22, ZOOM_MAX = 2.4;
-  const PAD_LAT = 25.997, PAD_LON = -97.157;
+  const ZOOM_MIN = 0.6, ZOOM_MAX = 1.8;
 
   const TUNING = {
     START_STEEL: 200,
@@ -430,8 +408,6 @@
     selectedVehicleId: null,
     placeType: null,
     cam: { x: 80, y: 40, zoom: 1 },
-    lon: PAD_LON, lat: PAD_LAT, span: 0.045,
-    plots: { production: false, launch: false },
     drag: null,
     flameUntil: 0,
     log: [],
@@ -496,7 +472,7 @@
     if (gx < 22) return "launch";
     return "propellant";
   }
-  function isWater() { return false; }
+  function isWater(gx, gy) { return gx >= 28 && gy >= 20; }
   function buildingAnchor(b, slot = 0) {
     const d = defOf(b.type);
     const baseX = (b.gx + d.footprint.w / 2) * CELL;
@@ -526,29 +502,6 @@
     }
     if (G.steel < def.cost) return { ok: false, why: `Need ${def.cost} steel` };
     return { ok: true };
-  }
-
-  function buyPlot(id) {
-    audioInit();
-    const plot = PLOTS[id];
-    if (!plot || G.plots[id]) return;
-    if (G.steel < plot.cost) { sfxErr(); log(`Need ${plot.cost} steel.`, "bad"); return; }
-    for (const b of plot.buildings) {
-      const check = canPlace(b.type, b.gx, b.gy);
-      if (!check.ok && check.why !== `Need ${defOf(b.type).cost} steel`) {
-        sfxErr(); log(check.why, "bad"); return;
-      }
-    }
-    G.steel -= plot.cost;
-    G.plots[id] = true;
-    for (const b of plot.buildings) {
-      G.buildings.push({ id: G.nextId++, type: b.type, gx: b.gx, gy: b.gy, level: 1 });
-      G.selectedId = G.buildings[G.buildings.length - 1].id;
-    }
-    sfxBuild();
-    log(`${plot.name} bought. The buildings sit on the real Starbase layout.`, "good");
-    updateObjectives();
-    renderChrome();
   }
 
   function placeBuilding(type, gx, gy) {
@@ -1150,25 +1103,6 @@
       ectx.fillStyle = "#e07070"; ectx.font = "600 14px system-ui"; ectx.textAlign = "center";
       ectx.fillText("STATIC FIRE FAILURE", W / 2, 46); ectx.textAlign = "left";
     }
-    drawEventRange(W, H);
-  }
-
-  function drawEventRange(W, H) {
-    const x = 16, y = H - 78, w = 220, h = 62;
-    ectx.fillStyle = "rgba(0,0,0,0.72)";
-    ectx.fillRect(x, y, w, h);
-    ectx.strokeStyle = "#e10600";
-    ectx.strokeRect(x, y, w, h);
-    ectx.beginPath();
-    ectx.moveTo(x + 18, y + 48);
-    ectx.quadraticCurveTo(x + 90, y + 36, x + 190, y + 14);
-    ectx.stroke();
-    const pitch = G.event ? Math.max(26, 90 - G.event.t * 14) : 90;
-    const endLon = PAD_LON + 50 / (111.32 * Math.cos(PAD_LAT * Math.PI / 180));
-    ectx.fillStyle = "#f2f2f2";
-    ectx.font = "11px ui-monospace, monospace";
-    ectx.fillText(`${PAD_LAT.toFixed(3)}° N  heading 90°  pitch ${pitch.toFixed(0)}°`, x + 8, y + 14);
-    ectx.fillText(`Gulf track to ${Math.abs(endLon).toFixed(2)}° W`, x + 8, y + 28);
   }
 
   function drawCloseupRocket(c, cx, baseY, zoom, r, pid, broken, ev) {
@@ -1264,30 +1198,25 @@
     el.day.textContent = "Day " + G.day;
   }
 
-  function plotSqft(plot) {
-    const mid = (plot.north + plot.south) / 2 * Math.PI / 180;
-    const metersH = (plot.north - plot.south) * 110540;
-    const metersW = (plot.east - plot.west) * 111320 * Math.cos(mid);
-    return metersH * metersW * 10.76391041671;
-  }
-  function fmtSqft(n) {
-    const acres = n / 43560;
-    const acresLabel = acres >= 100 ? Math.round(acres).toLocaleString("en-US") : acres.toFixed(1);
-    return acresLabel + " acres · " + Math.round(n).toLocaleString("en-US") + " sq ft";
-  }
   function renderPalette() {
-    const ownedSq = Object.keys(PLOTS).reduce((sum, id) => sum + (G.plots[id] ? plotSqft(PLOTS[id]) : 0), 0);
-    const offers = Object.keys(PLOTS).filter((id) => !G.plots[id]).map((id) => {
-      const plot = PLOTS[id];
-      return `<button type="button" class="ui-btn rounded p-2 text-left text-[11px] w-full" data-plot="${id}">
-        <div class="font-semibold">${esc(plot.name)}</div>
-        <div>${fmtSqft(plotSqft(plot))}</div>
-        <div>${plot.cost} steel</div>
+    el.palette.innerHTML = BUILD_ORDER.map((type) => {
+      const d = defOf(type);
+      const maxed = countType(type) >= d.maxCount;
+      const active = G.placeType === type;
+      return `<button type="button" class="ui-btn rounded p-2 text-left text-[11px] w-full ${active ? "active" : ""}" data-build="${type}" ${maxed ? "disabled" : ""}>
+        <div class="font-semibold text-amber-100">${esc(d.short)}</div>
+        <div class="text-amber-200/50">${d.cost} steel</div>
       </button>`;
     }).join("");
-    el.palette.innerHTML = `<div class="px-1 pb-2 text-[11px]">Owned<br><b>${fmtSqft(ownedSq)}</b></div>` + offers;
-    el.palette.querySelectorAll("[data-plot]").forEach((btn) => {
-      btn.addEventListener("click", () => buyPlot(btn.getAttribute("data-plot")));
+    el.palette.querySelectorAll("[data-build]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        audioInit(); sfxUi();
+        const type = btn.getAttribute("data-build");
+        G.placeType = G.placeType === type ? null : type;
+        canvas.classList.toggle("placing", !!G.placeType);
+        if (G.placeType) log(`Placing ${defOf(type).name}`, "info");
+        renderPalette(); renderInspector();
+      });
     });
   }
 
@@ -1458,30 +1387,13 @@
     }).join("");
   }
 
-  function rangeClosed() {
-    const sky = weatherOn(G.day);
-    const pad = buildingOfType("pad_orbital");
-    const lim = padLimits(pad);
-    return sky.storm || sky.wind > lim.wind;
-  }
-
   function renderWeather() {
     const sky = document.getElementById("sky-label");
-    const lamp = document.getElementById("range-lamp");
     if (!sky) return;
     const now = weatherOn(G.day);
-    const closed = rangeClosed();
-    if (lamp) lamp.classList.toggle("closed", closed);
-    sky.textContent = closed
-      ? `Range closed · ${now.sky} ${now.wind} kn`
-      : `Range open · ${now.sky} ${now.wind} kn`;
-    const readout = document.getElementById("readout");
-    if (readout) {
-      const pad = buildingOfType("pad_orbital");
-      const v = pad && padHold();
-      const hold = !!(v && v.status === "on_pad" && !fireCheck(v, pad).ok);
-      readout.classList.toggle("hold", closed || hold);
-    }
+    const a = weatherOn(G.day + 1);
+    const b = weatherOn(G.day + 2);
+    sky.textContent = `${now.sky} · ${now.wind} kn · next ${a.sky} ${a.wind}, ${b.sky} ${b.wind}`;
   }
 
   function startMerlinUpgrade() {
@@ -1519,51 +1431,26 @@
     return { x: sx / G.cam.zoom + G.cam.x, y: sy / G.cam.zoom + G.cam.y };
   }
 
-  const GEO_W = -97.215, GEO_E = -97.140, GEO_N = 26.015, GEO_S = 25.975;
-  const PLOTS = {
-    production: { name: "Build site", cost: 90, west: -97.199, east: -97.173, south: 25.9952, north: 26.0016,
-      buildings: [{ type: "starfactory", gx: 10, gy: 11 }, { type: "mega_bay", gx: 16, gy: 11 }] },
-    launch: { name: "Pad site", cost: 50, west: -97.163, east: -97.152, south: 25.9938, north: 26.0018,
-      buildings: [{ type: "pad_orbital", gx: 29, gy: 11 }] },
-  };
-
-  function syncCamFromGeo() {
-    if (!W) return;
-    const MW = MAP_W * CELL, MH = MAP_H * CELL;
-    const cx = (G.lon - GEO_W) / (GEO_E - GEO_W) * MW;
-    const cy = (GEO_N - G.lat) / (GEO_N - GEO_S) * MH;
-    const worldW = G.span / (GEO_E - GEO_W) * MW;
-    G.cam.zoom = W / worldW;
-    G.cam.x = cx - (W * 0.5) / G.cam.zoom;
-    G.cam.y = cy - (H * 0.5) / G.cam.zoom;
-  }
-
   function draw() {
     if (!W) return;
-    syncCamFromGeo();
     ctx.clearRect(0, 0, W, H);
-    const band = viewBand();
-    if (band === "World") {
-      drawGlobe();
-      drawCountryBorders("globe");
-      drawCountryNames("globe");
-      drawSiteDots("globe");
-      drawGeoReadout();
-      updateFieldChrome(band);
-      return;
-    }
-    drawFlatLand();
-    if (band === "Region") {
-      drawCountryBorders("flat");
-      drawCountryNames("flat");
-      drawSiteDots("flat");
-    }
+    ctx.fillStyle = "#3d6e34"; ctx.fillRect(0, 0, W, H);
     ctx.save();
     ctx.scale(G.cam.zoom, G.cam.zoom);
     ctx.translate(-G.cam.x, -G.cam.y);
 
-    if (band !== "Region") drawSiteRoad();
-    drawCoast();
+    ctx.fillStyle = "#4f8a42";
+    ctx.fillRect(0, 0, MAP_W * CELL, MAP_H * CELL);
+    ctx.fillStyle = "rgba(140,115,85,0.7)";
+    ctx.beginPath(); ctx.ellipse(8 * CELL, 6 * CELL, 5 * CELL, 2.5 * CELL, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#9b8468";
+    ctx.fillRect(0, 12 * CELL, MAP_W * CELL, 4 * CELL);
+    ctx.fillStyle = "rgba(56,140,200,0.35)";
+    ctx.fillRect(28 * CELL, 20 * CELL, 12 * CELL, 10 * CELL);
+    ctx.fillStyle = "rgba(80,120,60,0.08)";
+    ctx.fillRect(0, 0, MAP_W * CELL, 12 * CELL);
+    ctx.fillStyle = "rgba(180,100,40,0.07)";
+    ctx.fillRect(0, 16 * CELL, 22 * CELL, 12 * CELL);
 
     if (G.placeType && G._hover) {
       const def = defOf(G.placeType);
@@ -1590,10 +1477,7 @@
       }
     }
 
-    drawSurvey();
     ctx.restore();
-    drawGeoReadout();
-    updateFieldChrome(band);
 
     if (G.factoryJob) {
       ctx.fillStyle = "rgba(0,0,0,0.5)"; ctx.fillRect(10, 10, 280, 26);
@@ -1607,501 +1491,17 @@
     }
   }
 
-  function lonToX(lon) {
-    return (lon - GEO_W) / (GEO_E - GEO_W) * MAP_W * CELL;
-  }
-  function latToY(lat) {
-    return (GEO_N - lat) / (GEO_N - GEO_S) * MAP_H * CELL;
-  }
-  function traceRing(ring, move) {
-    let started = false;
-    for (const p of ring) {
-      const x = lonToX(p[0]), y = latToY(p[1]);
-      if (!started) { move(true, x, y); started = true; }
-      else move(false, x, y);
-    }
-  }
-  function fillRings(rings, color) {
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    for (const ring of rings) traceRing(ring, (start, x, y) => start ? ctx.moveTo(x, y) : ctx.lineTo(x, y));
-    ctx.fill();
-  }
-  function strokeRings(rings, color, width) {
-    ctx.strokeStyle = color;
-    ctx.lineWidth = width;
-    ctx.beginPath();
-    for (const ring of rings) traceRing(ring, (start, x, y) => start ? ctx.moveTo(x, y) : ctx.lineTo(x, y));
-    ctx.stroke();
-  }
-
-  function strokeScreen(rings) {
-    ctx.beginPath();
-    const limit = Math.min(W, H) * 0.35;
-    for (const ring of rings) {
-      let prev = null;
-      for (const p of ring) {
-        const q = projectFlat(p[0], p[1]);
-        if (prev && Math.hypot(q[0] - prev[0], q[1] - prev[1]) > limit) {
-          prev = null;
-          continue;
-        }
-        if (!prev) ctx.moveTo(q[0], q[1]);
-        else ctx.lineTo(q[0], q[1]);
-        prev = q;
-      }
-    }
-    ctx.stroke();
-  }
-
-  function fillProjected(rings) {
-    ctx.fillStyle = "#2f6a3c";
-    ctx.beginPath();
-    for (const ring of rings) {
-      ring.forEach((p, i) => {
-        const q = projectFlat(p[0], p[1]);
-        if (i) ctx.lineTo(q[0], q[1]);
-        else ctx.moveTo(q[0], q[1]);
-      });
-      ctx.closePath();
-    }
-    ctx.fill();
-  }
-
-  function metersPerPx() {
-    return G.span * 111320 * Math.cos(PAD_LAT * Math.PI / 180) / Math.max(1, W);
-  }
-  function viewBand() {
-    const m = metersPerPx();
-    if (m >= 8000) return "World";
-    if (m >= 600) return "Region";
-    if (m >= 24) return "Site";
-    return "Work";
-  }
-  function spanForMpp(mpp) {
-    return mpp * Math.max(1, W) / (111320 * Math.cos(PAD_LAT * Math.PI / 180));
-  }
-  function hash(n) {
-    const x = Math.sin(n * 127.1) * 43758.5453;
-    return x - Math.floor(x);
-  }
-  function meterScreen(mx, my) {
-    const lon = PAD_LON + mx / (111320 * Math.cos(PAD_LAT * Math.PI / 180));
-    const lat = PAD_LAT + my / 110540;
-    return projectFlat(lon, lat);
-  }
-  function landRings() {
-    if (metersPerPx() >= 600 && GEO_RINGS.americas) return GEO_RINGS.americas;
-    if (GEO_RINGS.gulfLand) return [GEO_RINGS.gulfLand];
-    if (GEO_RINGS.boca) return [GEO_RINGS.boca];
-    return [];
-  }
-  function traceLandPath() {
-    ctx.beginPath();
-    for (const ring of landRings()) {
-      ring.forEach((p, i) => {
-        const q = projectFlat(p[0], p[1]);
-        if (i) ctx.lineTo(q[0], q[1]);
-        else ctx.moveTo(q[0], q[1]);
-      });
-      ctx.closePath();
-    }
-  }
-  function drawFlatLand() {
-    const mpp = metersPerPx();
-    ctx.fillStyle = "#0e4e5c";
-    ctx.fillRect(0, 0, W, H);
-    for (let i = 0; i < 18; i++) {
-      const mx = (hash(i + 3) - 0.4) * 1800000;
-      const my = (hash(i + 19) - 0.5) * 1400000;
-      const rx = 80000 + hash(i + 40) * 260000;
-      const ry = 60000 + hash(i + 60) * 180000;
-      const p = meterScreen(mx, my);
-      ctx.fillStyle = i % 2 ? "rgba(8, 60, 74, 0.45)" : "rgba(40, 130, 140, 0.18)";
-      ctx.beginPath();
-      ctx.ellipse(p[0], p[1], rx / mpp, ry / mpp, 0, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    traceLandPath();
-    ctx.fillStyle = "#e0c99a";
-    ctx.fill();
-    ctx.save();
-    traceLandPath();
-    ctx.clip();
-    const patches = [["#c9a56a", 0.35], ["#edd7a8", 0.4], ["#b98a55", 0.22], ["#8ea36a", 0.16]];
-    for (let i = 0; i < 70; i++) {
-      const mx = (hash(i + 2) - 0.72) * 900000;
-      const my = (hash(i + 80) - 0.45) * 700000;
-      const rx = 6000 + hash(i + 11) * 42000;
-      const ry = 2000 + hash(i + 21) * 9000;
-      const p = meterScreen(mx, my);
-      ctx.fillStyle = patches[i % patches.length][0];
-      ctx.globalAlpha = patches[i % patches.length][1];
-      ctx.beginPath();
-      ctx.ellipse(p[0], p[1], Math.max(8, rx / mpp), Math.max(3, ry / mpp), hash(i) * 2.2, 0, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    if (mpp < 400) {
-      ctx.globalAlpha = 0.55;
-      ctx.strokeStyle = "#6d5a38";
-      ctx.lineWidth = 1;
-      for (let i = 0; i < 80; i++) {
-        const mx = (hash(i + 200) - 0.7) * 40000;
-        const my = (hash(i + 260) - 0.4) * 30000;
-        const len = 12 + hash(i + 9) * 28;
-        const a = meterScreen(mx, my);
-        const bpt = meterScreen(mx + len, my + len * 0.3);
-        ctx.beginPath();
-        ctx.moveTo(a[0], a[1]);
-        ctx.lineTo(bpt[0], bpt[1]);
-        ctx.stroke();
-      }
-    }
-    ctx.restore();
-    ctx.globalAlpha = 1;
-    traceLandPath();
-    ctx.strokeStyle = "#f4e7c8";
-    ctx.lineWidth = Math.max(1.5, Math.min(10, 80 / mpp));
-    ctx.stroke();
-  }
-  function countryPoint(mode, lon, lat) {
-    if (mode === "globe") return projectGlobe(lon, lat);
-    return projectFlat(lon, lat);
-  }
-  function drawCountryBorders(mode) {
-    if (typeof COUNTRIES === "undefined") return;
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = mode === "globe" ? "rgba(20, 36, 24, 0.55)" : "rgba(90, 62, 36, 0.55)";
-    for (const country of COUNTRIES) {
-      for (const ring of country.r) {
-        ctx.beginPath();
-        let pen = false;
-        for (const pair of ring) {
-          const p = countryPoint(mode, pair[0], pair[1]);
-          if (!p) { pen = false; continue; }
-          if (!pen) { ctx.moveTo(p[0], p[1]); pen = true; }
-          else ctx.lineTo(p[0], p[1]);
-        }
-        ctx.stroke();
-      }
-    }
-  }
-  function drawCountryNames(mode) {
-    if (typeof COUNTRIES === "undefined") return;
-    ctx.fillStyle = "rgba(36, 24, 15, 0.82)";
-    ctx.font = "13px Georgia, serif";
-    ctx.textAlign = "center";
-    for (const country of COUNTRIES) {
-      if (!country.r.some((ring) => ring.length > 18)) continue;
-      const p = countryPoint(mode, country.lon, country.lat);
-      if (!p) continue;
-      if (mode !== "globe" && (p[0] < 24 || p[1] < 24 || p[0] > W - 24 || p[1] > H - 24)) continue;
-      ctx.fillText(country.n, p[0], p[1]);
-    }
-    ctx.textAlign = "left";
-  }
-  const FAR_SITES = [
-    { lon: PAD_LON, lat: PAD_LAT, open: true },
-    { lon: -89.4, lat: 29.2, open: false },
-    { lon: -80.6, lat: 28.6, open: false },
-  ];
-  function drawSiteDots(mode) {
-    for (const s of FAR_SITES) {
-      const p = countryPoint(mode, s.lon, s.lat);
-      if (!p) continue;
-      ctx.beginPath();
-      ctx.arc(p[0], p[1], s.open ? 5 : 3.5, 0, Math.PI * 2);
-      ctx.fillStyle = s.open ? "#c46a3a" : "rgba(196,106,58,0.55)";
-      ctx.fill();
-    }
-  }
-  function smoothRoad(pts) {
-    let cur = pts;
-    for (let pass = 0; pass < 3; pass++) {
-      const next = [cur[0]];
-      for (let i = 0; i < cur.length - 1; i++) {
-        const a = cur[i], b = cur[i + 1];
-        next.push([a[0] * 0.75 + b[0] * 0.25, a[1] * 0.75 + b[1] * 0.25]);
-        next.push([a[0] * 0.25 + b[0] * 0.75, a[1] * 0.25 + b[1] * 0.75]);
-      }
-      next.push(cur[cur.length - 1]);
-      cur = next;
-    }
-    return cur;
-  }
-  function edgePoint(b, edge) {
-    const d = defOf(b.type);
-    const x0 = b.gx * CELL, y0 = b.gy * CELL;
-    const w = d.footprint.w * CELL, h = d.footprint.h * CELL;
-    if (edge === "east") return [x0 + w, y0 + h / 2];
-    return [x0, y0 + h / 2];
-  }
-  function drawSiteRoad() {
-    const placed = ["starfactory", "mega_bay", "pad_orbital"].map((t) => buildingOfType(t)).filter(Boolean);
-    if (placed.length < 2) return;
-    const metersX = 111320 * Math.cos(PAD_LAT * Math.PI / 180) * (GEO_E - GEO_W) / (MAP_W * CELL);
-    const northPx = 80 / (110540 * (GEO_N - GEO_S) / (MAP_H * CELL));
-    const segs = [];
-    for (let i = 0; i < placed.length - 1; i++) {
-      const a = edgePoint(placed[i], "east");
-      const b = edgePoint(placed[i + 1], "west");
-      const mid = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2 - northPx];
-      segs.push(smoothRoad([a, mid, b]));
-    }
-    function stroke(widthM, color) {
-      ctx.strokeStyle = color;
-      ctx.lineWidth = widthM / metersX;
-      ctx.lineCap = "butt";
-      ctx.lineJoin = "round";
-      for (const pts of segs) {
-        ctx.beginPath();
-        pts.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]));
-        ctx.stroke();
-      }
-    }
-    stroke(16, "#c4a06a");
-    stroke(9, "#8d7a62");
-  }
-  function updateFieldChrome(band) {
-    const scale = document.getElementById("map-scale");
-    if (!scale) return;
-    if (band === "World") scale.style.display = "none";
-    else {
-      const steps = [100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000, 500000];
-      const mpp = metersPerPx();
-      const aim = 110 * mpp;
-      let meters = steps[0];
-      for (const step of steps) if (step <= aim) meters = step;
-      scale.style.display = "flex";
-      document.getElementById("map-scale-bar").style.width = (meters / mpp) + "px";
-      document.getElementById("map-scale-label").textContent = meters >= 1000 ? (meters / 1000) + " km" : meters + " m";
-    }
-    document.querySelectorAll("#map-chips button").forEach((b) => {
-      b.classList.toggle("active", b.dataset.band === band);
-    });
-  }
-
-  function drawCoast() {}
-
-  function drawPlots() {
-    if (G.span > 1.2) return;
-    for (const id of Object.keys(PLOTS)) {
-      const plot = PLOTS[id];
-      const owned = G.plots[id];
-      const x0 = lonToX(plot.west), x1 = lonToX(plot.east);
-      const y0 = latToY(plot.north), y1 = latToY(plot.south);
-      ctx.save();
-      ctx.strokeStyle = owned ? "#f4f4f4" : "rgba(244,244,244,0.45)";
-      ctx.fillStyle = owned ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.02)";
-      ctx.lineWidth = (owned ? 2 : 1) / G.cam.zoom;
-      ctx.setLineDash(owned ? [] : [10 / G.cam.zoom, 7 / G.cam.zoom]);
-      ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
-      ctx.strokeRect(x0, y0, x1 - x0, y1 - y0);
-      ctx.setLineDash([]);
-      if (G.span < 0.08) {
-        ctx.fillStyle = "#f4f4f4";
-        ctx.font = `${Math.max(10, 12 / G.cam.zoom)}px ui-monospace, monospace`;
-        ctx.fillText(plot.name, x0 + 6 / G.cam.zoom, y0 + 16 / G.cam.zoom);
-      }
-      ctx.restore();
-    }
-    if (G.plots.production && G.plots.launch) {
-      ctx.strokeStyle = "#8d734c";
-      ctx.lineWidth = 8;
-      ctx.beginPath();
-      ctx.moveTo(lonToX(-97.170), latToY(25.997));
-      ctx.lineTo(lonToX(-97.156), latToY(25.997));
-      ctx.stroke();
-    }
-  }
-
-  function projectFlat(lon, lat) {
-    const x = W * 0.5 + (lon - G.lon) / G.span * W;
-    const y = H * 0.5 - (lat - G.lat) / G.span * W;
-    return [x, y];
-  }
-  function projectGlobe(lon, lat) {
-    const λ = (lon - G.lon) * Math.PI / 180;
-    const φ = lat * Math.PI / 180;
-    const φ0 = G.lat * Math.PI / 180;
-    const cosφ = Math.cos(φ);
-    const x = cosφ * Math.sin(λ);
-    const y = Math.sin(φ) * Math.cos(φ0) - cosφ * Math.sin(φ0) * Math.cos(λ);
-    const z = Math.sin(φ) * Math.sin(φ0) + cosφ * Math.cos(φ0) * Math.cos(λ);
-    if (z < 0) return null;
-    const R = Math.min(W, H) * 0.42;
-    return [W * 0.5 + x * R, H * 0.5 - y * R];
-  }
-  function frontPoint(lon, lat) {
-    const λ = (lon - G.lon) * Math.PI / 180;
-    const φ = lat * Math.PI / 180;
-    const φ0 = G.lat * Math.PI / 180;
-    const cosφ = Math.cos(φ);
-    const z = Math.sin(φ) * Math.sin(φ0) + cosφ * Math.cos(φ0) * Math.cos(λ);
-    const x = cosφ * Math.sin(λ);
-    const y = Math.sin(φ) * Math.cos(φ0) - cosφ * Math.sin(φ0) * Math.cos(λ);
-    const R = Math.min(W, H) * 0.42;
-    return { x: W * 0.5 + x * R, y: H * 0.5 - y * R, z };
-  }
-
-  let landMask = null;
-  function buildLandMask() {
-    const mw = 720, mh = 360;
-    const c = document.createElement("canvas");
-    c.width = mw; c.height = mh;
-    const g = c.getContext("2d");
-    g.beginPath();
-    for (const ring of GEO_RINGS.world) {
-      let prev = null;
-      let open = false;
-      for (const p of ring) {
-        if (prev && Math.abs(p[0] - prev[0]) > 180) open = false;
-        const x = ((p[0] + 180) / 360) * mw;
-        const y = ((90 - p[1]) / 180) * mh;
-        if (!open) { g.moveTo(x, y); open = true; }
-        else g.lineTo(x, y);
-        prev = p;
-      }
-      g.closePath();
-    }
-    g.fillStyle = "#000";
-    g.fill();
-    landMask = { data: g.getImageData(0, 0, mw, mh).data, mw, mh };
-  }
-  function maskLand(lon, lat) {
-    if (!landMask) buildLandMask();
-    let x = Math.floor(((lon + 180) % 360) / 360 * landMask.mw);
-    if (x < 0) x += landMask.mw;
-    const y = Math.floor((90 - lat) / 180 * landMask.mh);
-    if (y < 0 || y >= landMask.mh || x >= landMask.mw) return false;
-    return landMask.data[(y * landMask.mw + x) * 4 + 3] > 10;
-  }
-
-  function drawGlobe() {
-    ctx.fillStyle = "#071018";
-    ctx.fillRect(0, 0, W, H);
-    const R = Math.min(W, H) * 0.42;
-    const S = Math.max(160, Math.floor(R * 2));
-    const c = document.createElement("canvas");
-    c.width = S; c.height = S;
-    const g = c.getContext("2d");
-    const img = g.createImageData(S, S);
-    const d = img.data;
-    const φ0 = G.lat * Math.PI / 180;
-    const λ0 = G.lon * Math.PI / 180;
-    const sinφ = Math.sin(φ0), cosφ = Math.cos(φ0);
-    for (let py = 0; py < S; py++) {
-      for (let px = 0; px < S; px++) {
-        const dx = (px + 0.5) / S * 2 - 1;
-        const dy = 1 - (py + 0.5) / S * 2;
-        const r2 = dx * dx + dy * dy;
-        const i = (py * S + px) * 4;
-        if (r2 > 1) continue;
-        const z = Math.sqrt(1 - r2);
-        const lat = Math.asin(Math.max(-1, Math.min(1, z * sinφ + dy * cosφ))) * 180 / Math.PI;
-        const lon = (λ0 + Math.atan2(dx, z * cosφ - dy * sinφ)) * 180 / Math.PI;
-        const land = maskLand(lon, lat);
-        d[i] = land ? 47 : 11;
-        d[i + 1] = land ? 106 : 58;
-        d[i + 2] = land ? 60 : 74;
-        d[i + 3] = 255;
-      }
-    }
-    g.putImageData(img, 0, 0);
-    ctx.drawImage(c, W * 0.5 - R, H * 0.5 - R, R * 2, R * 2);
-  }
-
-  function toScreen(lon, lat) {
-    if (viewBand() === "World") return projectGlobe(lon, lat);
-    return projectFlat(lon, lat);
-  }
-
-  function drawSurvey() {
-    const z = Math.max(G.cam.zoom, 0.001);
-    const pad = 18;
-    function cellBox(plot, owned) {
-      let x0 = lonToX(plot.west), x1 = lonToX(plot.east);
-      let y0 = latToY(plot.north), y1 = latToY(plot.south);
-      if (!owned) return [x0, y0, x1, y1];
-      for (const b of G.buildings) {
-        const d = defOf(b.type);
-        const bx0 = b.gx * CELL, by0 = b.gy * CELL;
-        const bx1 = bx0 + d.footprint.w * CELL, by1 = by0 + d.footprint.h * CELL;
-        const cx = (bx0 + bx1) / 2, cy = (by0 + by1) / 2;
-        if (cx < x0 - 80 || cx > x1 + 80 || cy < y0 - 80 || cy > y1 + 80) continue;
-        x0 = Math.min(x0, bx0 - pad);
-        x1 = Math.max(x1, bx1 + pad);
-        y0 = Math.min(y0, by0 - pad);
-        y1 = Math.max(y1, by1 + pad);
-      }
-      return [x0, y0, x1, y1];
-    }
-    function strokeBox(box, color, widthPx, dashPx) {
-      const [x0, y0, x1, y1] = box;
-      if ((x1 - x0) * z < 8) return;
-      ctx.beginPath();
-      ctx.rect(x0, y0, x1 - x0, y1 - y0);
-      ctx.setLineDash(dashPx.map((n) => n / z));
-      ctx.strokeStyle = color;
-      ctx.lineWidth = widthPx / z;
-      ctx.stroke();
-      ctx.setLineDash([]);
-    }
-    for (const id of Object.keys(PLOTS)) {
-      if (!G.plots[id]) continue;
-      const box = cellBox(PLOTS[id], true);
-      strokeBox(box, "rgba(244, 234, 216, 0.9)", 5, []);
-      strokeBox(box, "#8a3e24", 1.75, []);
-      if (metersPerPx() < 600 && (box[2] - box[0]) * z >= 8) {
-        const [x0, y0, x1, y1] = box;
-        for (const p of [[x0, y0], [x1, y0], [x1, y1], [x0, y1]]) {
-          ctx.beginPath();
-          ctx.arc(p[0], p[1], 3.5 / z, 0, Math.PI * 2);
-          ctx.fillStyle = "#f4ead8";
-          ctx.fill();
-          ctx.lineWidth = 1.5 / z;
-          ctx.strokeStyle = "#8a3e24";
-          ctx.stroke();
-        }
-      }
-    }
-    const offerId = !G.plots.production ? "production" : !G.plots.launch ? "launch" : null;
-    if (offerId) strokeBox(cellBox(PLOTS[offerId], false), "rgba(138, 62, 36, 0.7)", 1.25, [5, 4]);
-  }
-
-  function drawGeoReadout() {
-    const heading = 90;
-    const pitch = G.event ? Math.max(26, 90 - G.event.t * 14) : 90;
-    const dLon = 50 / (111.32 * Math.cos(PAD_LAT * Math.PI / 180));
-    const endLon = PAD_LON + dLon;
-    ctx.save();
-    const ns = G.lat >= 0 ? "N" : "S";
-    const ew = G.lon >= 0 ? "E" : "W";
-    ctx.fillStyle = "#f2f2f2";
-    ctx.font = "12px ui-monospace, monospace";
-    ctx.fillText(`View ${Math.abs(G.lat).toFixed(3)}° ${ns}  ${Math.abs(G.lon).toFixed(3)}° ${ew}`, 12, H - 52);
-    ctx.fillText(`Pad ${PAD_LAT.toFixed(3)}° N  ${Math.abs(PAD_LON).toFixed(3)}° W`, 12, H - 34);
-    ctx.fillText(`Heading ${heading}°  pitch ${pitch.toFixed(0)}°  50 km to ${Math.abs(endLon).toFixed(2)}° W`, 12, H - 16);
-    ctx.restore();
-  }
-
   function drawBldg(gx, gy, def, level, mode, label) {
     const x = gx * CELL, y = gy * CELL;
     const w = def.footprint.w * CELL, h = def.footprint.h * CELL;
     const depth = 10 + (level > 1 ? 4 : 0);
-    const onScreen = w * G.cam.zoom;
-    ctx.fillStyle = "rgba(90, 70, 48, 0.35)";
-    ctx.beginPath();
-    ctx.ellipse(x + w * 0.5, y + h * 0.62, w * 0.62, h * 0.28, 0, 0, Math.PI * 2);
-    ctx.fill();
-    let top = "#8c4536", front = "#6d382c";
-    if (def.id === "mega_bay") { top = "#3e5560"; front = "#2c3e46"; }
-    if (def.id === "pad_orbital") { top = "#8a8680"; front = "#5c5148"; }
+    let top = "#a09078", front = "#7a6a55";
+    if (def.id === "pad_orbital") { top = "#8a8a90"; front = "#6a6a72"; }
     if (mode === "ok") { top = "rgba(140,180,100,0.45)"; front = "rgba(100,140,70,0.45)"; }
     if (mode === "bad") { top = "rgba(180,80,70,0.45)"; front = "rgba(140,50,45,0.45)"; }
     ctx.fillStyle = top; ctx.fillRect(x, y, w, h - depth);
     ctx.fillStyle = front; ctx.fillRect(x, y + h - depth, w, depth);
-    if (onScreen > 36 && def.id === "pad_orbital") {
+    if (def.id === "pad_orbital") {
       const tw = level >= 2 ? w * 0.72 : w * 0.42;
       const th = level >= 2 ? 14 : 10;
       ctx.fillStyle = "#2a2a30";
@@ -2109,7 +1509,7 @@
       const oh = level >= 2 ? 22 : 14;
       ctx.fillStyle = "#c0c0c8";
       ctx.fillRect(x + w / 2 - 7, y + h - depth - th - 4 - oh, 14, oh);
-    } else if (onScreen > 36 && def.id === "mega_bay") {
+    } else if (def.id === "mega_bay") {
       // multi-bay doors for housing visual
       ctx.fillStyle = "#3a3028";
       for (let i = 0; i < 3; i++) {
@@ -2121,7 +1521,7 @@
         ctx.fillStyle = i < n ? "#8fbc6a" : "#3a3028";
         ctx.fillRect(x + 8 + i * 14, y + 8, 10, 6);
       }
-    } else if (onScreen > 36 && def.id === "starfactory") {
+    } else if (def.id === "starfactory") {
       ctx.fillStyle = "#4a6a8a";
       ctx.fillRect(x + w * 0.28, y + h - depth - 22, w * 0.44, 18);
       if (G.factoryJob) {
@@ -2133,7 +1533,7 @@
       ctx.strokeStyle = "#d4a84b"; ctx.lineWidth = 2;
       ctx.strokeRect(x + 1, y + 1, w - 2, h - 2);
     }
-    if (label && mode !== "ok" && mode !== "bad" && metersPerPx() < 600 && onScreen > 22) {
+    if (label && mode !== "ok" && mode !== "bad") {
       let tag = def.short + (level > 1 ? " L" + level : "");
       if (def.id === "mega_bay") tag += ` ${bayCount()}/${TUNING.BAY_CAPACITY}`;
       ctx.font = "bold 11px system-ui";
@@ -2211,91 +1611,54 @@
     return null;
   }
 
-  const pointers = new Map();
-  let pinch = null;
-  function setSpan(next) {
-    G.span = clamp(next, 0.008, 1200);
-    G.lat = clamp(G.lat, -70, 78);
-    if (G.lon > 180) G.lon -= 360;
-    if (G.lon < -180) G.lon += 360;
-    syncCamFromGeo();
-  }
   canvas.addEventListener("pointerdown", (ev) => {
     audioInit();
     canvas.setPointerCapture(ev.pointerId);
     const p = canvasPos(ev);
-    pointers.set(ev.pointerId, p);
-    if (pointers.size === 2) {
-      const [a, b] = [...pointers.values()];
-      pinch = { dist: Math.max(12, Math.hypot(a.x - b.x, a.y - b.y)), span: G.span };
-      G.drag = null;
-      return;
-    }
-    syncCamFromGeo();
     const w = screenToWorld(p.x, p.y);
-    if (G.span < 1.2 && G.placeType) {
+    if (G.placeType) {
       placeBuilding(G.placeType, Math.floor(w.x / CELL), Math.floor(w.y / CELL));
       return;
     }
-    if (G.span < 1.2) {
-      const hv = hitVeh(w.x, w.y);
-      if (hv) {
-        sfxUi();
-        G.selectedVehicleId = hv.id;
-        if (hv.buildingId) G.selectedId = hv.buildingId;
-        renderChrome();
-        return;
-      }
-      const hb = hitBldg(w.x, w.y);
-      if (hb) {
-        sfxUi();
-        G.selectedId = hb.id;
-        renderChrome();
-        return;
-      }
+    const hv = hitVeh(w.x, w.y);
+    if (hv) {
+      sfxUi();
+      G.selectedVehicleId = hv.id;
+      if (hv.buildingId) G.selectedId = hv.buildingId;
+      renderChrome();
+      return;
+    }
+    const hb = hitBldg(w.x, w.y);
+    if (hb) {
+      sfxUi();
+      G.selectedId = hb.id;
+      renderChrome();
+      return;
     }
     G.selectedId = null;
     renderInspector();
-    G.drag = { sx: p.x, sy: p.y, lon: G.lon, lat: G.lat };
+    G.drag = { sx: p.x, sy: p.y, cx: G.cam.x, cy: G.cam.y };
     canvas.classList.add("panning");
   });
   canvas.addEventListener("pointermove", (ev) => {
     const p = canvasPos(ev);
-    if (pointers.has(ev.pointerId)) pointers.set(ev.pointerId, p);
-    if (pointers.size >= 2 && pinch) {
-      const [a, b] = [...pointers.values()];
-      const dist = Math.max(12, Math.hypot(a.x - b.x, a.y - b.y));
-      setSpan(pinch.span * (pinch.dist / dist));
-      return;
-    }
-    syncCamFromGeo();
     const w = screenToWorld(p.x, p.y);
     if (G.placeType) G._hover = { gx: Math.floor(w.x / CELL), gy: Math.floor(w.y / CELL) };
     if (G.drag) {
-      G.lon = G.drag.lon - (p.x - G.drag.sx) / W * G.span;
-      G.lat = G.drag.lat + (p.y - G.drag.sy) / W * G.span;
-      setSpan(G.span);
+      G.cam.x = G.drag.cx - (p.x - G.drag.sx) / G.cam.zoom;
+      G.cam.y = G.drag.cy - (p.y - G.drag.sy) / G.cam.zoom;
     }
   });
-  function endPointer(ev) {
-    pointers.delete(ev.pointerId);
-    if (pointers.size < 2) pinch = null;
-    if (pointers.size === 0) {
-      G.drag = null;
-      canvas.classList.remove("panning");
-    }
-  }
-  canvas.addEventListener("pointerup", endPointer);
-  canvas.addEventListener("pointercancel", endPointer);
+  canvas.addEventListener("pointerup", () => { G.drag = null; canvas.classList.remove("panning"); });
+  canvas.addEventListener("pointercancel", () => { G.drag = null; canvas.classList.remove("panning"); });
   canvas.addEventListener("wheel", (ev) => {
-    if (ev.ctrlKey) return;
     ev.preventDefault();
-    setSpan(G.span * (ev.deltaY > 0 ? 1.25 : 0.8));
-  }, { passive: false });
-  window.addEventListener("wheel", (ev) => {
-    if (!ev.ctrlKey) return;
-    ev.preventDefault();
-    setSpan(G.span * Math.exp(ev.deltaY * 0.01));
+    const p = canvasPos(ev);
+    const before = screenToWorld(p.x, p.y);
+    G.cam.zoom = clamp(G.cam.zoom * (ev.deltaY > 0 ? 0.92 : 1.08), ZOOM_MIN, ZOOM_MAX);
+    const after = screenToWorld(p.x, p.y);
+    G.cam.x += before.x - after.x;
+    G.cam.y += before.y - after.y;
   }, { passive: false });
 
   window.addEventListener("keydown", (ev) => {
@@ -2308,15 +1671,6 @@
   document.getElementById("btn-mute").addEventListener("click", () => {
     audioInit(); setMuted(!SFX.muted);
   });
-  document.querySelectorAll("#map-chips button").forEach((b) => {
-    b.addEventListener("click", () => {
-      G.lon = PAD_LON;
-      G.lat = PAD_LAT;
-      setSpan(spanForMpp(Number(b.dataset.mpp)));
-    });
-  });
-  document.getElementById("zoom-in").addEventListener("click", () => setSpan(G.span / 1.25));
-  document.getElementById("zoom-out").addEventListener("click", () => setSpan(G.span * 1.25));
 
   let last = performance.now(), inspAcc = 0;
   function frame(now) {
