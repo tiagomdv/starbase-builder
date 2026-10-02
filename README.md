@@ -4,7 +4,7 @@ This game follows the SpaceX story. You learn how the rockets, the tanks, and th
 
 Open `index.html` in a browser. There is no build step.
 
-**Live release:** `0.2.0-merlin`. Falcon 1 is the only rocket you can build. A static fire holds when the Merlin’s thrust, the pad, the propellant, and the day’s wind all clear. The sky repeats from the day number, so you can wait for a calm day. Specific impulse and mass are on the engine card and do not decide this test yet. Propellant is still one stock. The guide below is the rest of the story. The build map is `design-docs/program-roadmap-design.html`.
+**Live release:** `0.2.1-field`. The map is the Texas coast. You buy the Build site and the Pad site. Owned ground is a copper line around those parcels. Falcon 1 is the only rocket you can build. A static fire holds when the Merlin’s thrust, the pad, the propellant, and the day’s wind all clear. The sky repeats from the day number, so you can wait for a calm day. Specific impulse and mass are on the engine card and do not decide this test yet. Propellant is still one stock. The guide below is the rest of the story. The build map is `design-docs/program-roadmap-design.html`.
 
 ## Falcon 1 in Texas
 
