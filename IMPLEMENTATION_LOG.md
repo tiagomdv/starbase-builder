@@ -84,3 +84,6 @@ History of what **shipped**, keyed by **version**.
 - The right column uses the approved sentences for the inspector, the fleet, and the goals. The fire rules are the same.
 - A building card shows the name, one sentence, and one large number. Actions are black cards. A fleet row opens the rocket sheet. Raise Merlin thrust is on that sheet and applies to that rocket. The rocket picture is a simple shape.
 - A Goals word in the left column opens the goals sheet. Under the view buttons, a temporary line shows a factory job or a rollout, and it leaves when that job ends.
+- Fleet is a word at the bottom of the right column and opens the fleet sheet. Mega Bay starts with one slot. Another slot costs 30 steel, up to 4. The pad card is split into Fire, Roll, and Upgrade.
+- A Wiki word at the left of the log opens pages for the three buildings, Falcon 1, and the static fire.
+- Build, Merlin thrust, and refurb each take 1 day. A rollout is still a few seconds.
