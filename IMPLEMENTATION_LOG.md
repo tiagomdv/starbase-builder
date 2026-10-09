@@ -69,3 +69,18 @@ History of what **shipped**, keyed by **version**.
 - The left column offers the Build site and the Pad site. Inland ground is gone. The plant list is gone.
 - Owned ground is a copper line on the same grid as the buildings, outside each sprite.
 - The previous live file is `archive/index-0.2.0-merlin.html`.
+
+---
+
+## `0.3.0-panel` — 2026-10-09
+
+**Version:** `0.3.0-panel`
+
+- The header is the range console. Range open or Range closed is the large line. The sky and the wind sit under it.
+- Steel, propellant, fleet, and day are numerals in the center of the header, at 32px. The version label sits under those four counts. The control hint is gone. The sound button and the Web Audio tones are out. Sound returns at `10.3.0-sound`.
+- The fire rules are unchanged. The previous live file is `archive/index-0.2.1-field.html`.
+- Unsold parcels no longer draw a dashed rectangle on the field. The left column still lists them for sale.
+- A buy card shows the site name, the steel price as the large number, and one sentence. Acres stay on the owned line only. Square feet are off that column.
+- The right column uses the approved sentences for the inspector, the fleet, and the goals. The fire rules are the same.
+- A building card shows the name, one sentence, and one large number. Actions are black cards. A fleet row opens the rocket sheet. Raise Merlin thrust is on that sheet and applies to that rocket. The rocket picture is a simple shape.
+- A Goals word in the left column opens the goals sheet. Under the view buttons, a temporary line shows a factory job or a rollout, and it leaves when that job ends.

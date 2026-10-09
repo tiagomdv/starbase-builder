@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Panel — starbase-builder</title>
+  <style>
+    :root {
+      --bg: #1c2118; --panel: #2a2218; --panel2: #221c14; --border: #5a4830;
+      --text: #e8d9b0; --muted: #a89878; --accent: #d4a84b; --link: #e8c56a; --code: #c4e08a;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; line-height: 1.55; }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 1.5rem 1.25rem 4rem; }
+    .doc-hero { background: linear-gradient(180deg, #2a2218, #1c2118); border: 1px solid var(--border); border-radius: 0.85rem; padding: 1.15rem 1.25rem 1.25rem; margin-bottom: 1.25rem; }
+    .doc-hero h1 { font-size: 1.55rem; font-weight: 650; color: #f5edd8; margin: 0.35rem 0 0.4rem; }
+    .doc-hero .lede { margin: 0; font-size: 0.9rem; color: var(--muted); max-width: 56rem; }
+    .role {
+      margin: 0 0 12px; padding: 12px 14px; background: #24180f; color: #f4ead8;
+      border-left: 6px solid #c45c26; font: 15px/1.4 system-ui, sans-serif;
+    }
+    .role b { display: block; margin-bottom: 4px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #e7c27a; }
+    .meta-row { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+    .tag { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 999px; background: #3a2e20; color: #e8c56a; border: 1px solid #6a5638; }
+    .tag.muted { background: #1e1a14; color: var(--muted); border-color: #4a3c28; }
+    .doc-grid { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 1.25rem; align-items: start; }
+    @media (max-width: 860px) { .doc-grid { grid-template-columns: 1fr; } .toc { position: static !important; } }
+    .toc { position: sticky; top: 0.75rem; background: var(--panel); border: 1px solid var(--border); border-radius: 0.65rem; padding: 0.75rem 0.85rem; max-height: calc(100vh - 1.5rem); overflow-y: auto; }
+    .toc .section-label { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); font-weight: 600; margin-bottom: 0.5rem; }
+    .toc ol { margin: 0; padding-left: 1.1rem; font-size: 0.78rem; }
+    .toc a { color: var(--link); text-decoration: none; }
+    h2 { font-size: 1.12rem; color: #f5edd8; margin: 1.6rem 0 0.65rem; padding-bottom: 0.35rem; border-bottom: 1px solid var(--border); scroll-margin-top: 0.75rem; }
+    h3 { font-size: 0.95rem; color: var(--accent); margin: 1.1rem 0 0.4rem; }
+    p, li { font-size: 0.9rem; }
+    p { margin: 0.45rem 0 0.7rem; }
+    ul { margin: 0.35rem 0 0.75rem; padding-left: 1.35rem; }
+    code { font-family: ui-monospace, Menlo, monospace; color: var(--code); font-size: 0.86em; }
+    strong { color: #f5edd8; }
+    .pair { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-start; margin: 0.6rem 0 1rem; }
+    .col { width: 176px; background: #161616; border: 1px solid #3a3a3a; padding: 10px; }
+    .col .k { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: #9a9a9a; margin-bottom: 8px; }
+    .now-card, .next-card { width: 100%; text-align: left; color: #f2f2f2; margin-bottom: 8px; }
+    .now-card { background: #2a2418; border: 1px solid #6a5638; border-radius: 4px; padding: 8px; font-size: 11px; }
+    .now-card b { display: block; }
+    .now-card span { display: block; color: #c8b898; }
+    .owned { font-size: 11px; color: #c8c8c8; margin-bottom: 8px; }
+    .owned b { display: block; color: #f2f2f2; font-size: 13px; }
+    .next-card { background: #0e0e0e; border: 1px solid #f2f2f2; padding: 10px 10px 12px; }
+    .next-card .name { font-size: 15px; font-weight: 650; }
+    .next-card .price { font-size: 28px; line-height: 1; font-weight: 650; margin-top: 6px; }
+    .next-card .unit { font-size: 11px; color: #9a9a9a; letter-spacing: 0.08em; text-transform: uppercase; }
+    .next-card .line { font-size: 12px; color: #c8c8c8; margin-top: 8px; }
+    .cap { color: var(--muted); font-size: 0.78rem; margin-top: 0.25rem; }
+    .insp { width: 256px; background: #161616; border: 1px solid #3a3a3a; padding: 12px; color: #f2f2f2; }
+    .insp .title { font-size: 16px; font-weight: 650; }
+    .insp .blurb { font-size: 12px; color: #c8c8c8; margin-top: 4px; }
+    .insp .stat { margin-top: 12px; }
+    .insp .stat .k { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #9a9a9a; }
+    .insp .stat .n { font-size: 32px; line-height: 0.95; font-weight: 650; }
+    .insp .stat .s { font-size: 12px; color: #c8c8c8; margin-top: 4px; }
+    .act { display: block; width: 100%; text-align: left; margin-top: 10px; background: #0e0e0e; border: 1px solid #f2f2f2; color: #f2f2f2; padding: 10px; }
+    .act.quiet { border-color: #444; }
+    .act.stop { border-color: #444; border-left: 3px solid #e10600; }
+    .modal { margin-top: 12px; background: #0a0a0a; border: 1px solid #333; color: #f2f2f2; padding: 16px; max-width: 640px; }
+    .modal .top { display: flex; justify-content: space-between; align-items: baseline; }
+    .modal .top b { font-size: 18px; }
+    .modal .top span { font-size: 12px; color: #9a9a9a; }
+    .sheet { display: grid; grid-template-columns: 1fr 120px 1fr; gap: 12px; align-items: center; margin-top: 14px; }
+    .sheet .side { font-size: 12px; color: #c8c8c8; }
+    .sheet .side b { display: block; color: #f2f2f2; font-size: 20px; line-height: 1; font-weight: 650; }
+    .rocket { height: 220px; width: 36px; margin: 0 auto; background: linear-gradient(#f2f2f2, #c8c8c8 70%, #8a3e24); clip-path: polygon(50% 0, 100% 18%, 100% 100%, 0 100%, 0 18%); }
+    .act .name { font-size: 14px; font-weight: 650; }
+    .act .price { font-size: 26px; line-height: 1; font-weight: 650; margin-top: 6px; }
+    .act .unit { font-size: 11px; color: #9a9a9a; letter-spacing: 0.08em; text-transform: uppercase; }
+    .act .line { font-size: 12px; color: #c8c8c8; margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="doc-hero">
+      <div class="meta-row"><span class="tag">Ideas for this version</span><span class="tag muted">Not the live game</span></div>
+      <aside class="role">
+        <b>What this page is</b>
+        This is the notebook for <code>0.3.0-panel</code>. Every layout idea and every iteration for this version goes here. The game you play is <code>index.html</code>. This page does not change the game until you say to build it.
+        The older screen pass lives in the section below. There is no second file.
+      </aside>
+      <h1>Panel</h1>
+      <p class="lede">The header is already in the game. The left column is the open idea. Later passes on the right column, the buildings, and the land line get a section on this same page.</p>
+    </header>
+    <div class="doc-grid">
+      <nav class="toc">
+        <div class="section-label">On this page</div>
+        <ol>
+          <li><a href="#already">Already in the game</a></li>
+          <li><a href="#left">Left column</a></li>
+          <li><a href="#card">The buy card</a></li>
+          <li><a href="#right">Right column</a></li>
+          <li><a href="#inspector">Inspector layout</a></li>
+          <li><a href="#rocket">Rocket</a></li>
+          <li><a href="#later">Still open</a></li>
+          <li><a href="#screen">Screen pass</a></li>
+          <li><a href="#options">Five options</a></li>
+          <li><a href="#choice">Choice</a></li>
+        </ol>
+      </nav>
+      <main>
+        <h2 id="already">Already in the game</h2>
+        <p>The header shows Range open or Range closed, the sky and the wind, then Steel, Propellant, Fleet, and Day. The version sits under those four counts and reads <code>0.3.0-panel</code>. The sound button is gone. The footer is the log.</p>
+        <p>The left column is titled Land. It shows one owned total in acres and square feet. Each site still for sale is a small button with the site name, the same acre line, and the steel price. Build site is 90 steel. Pad site is 50 steel. Buying a site places its buildings. Rockets stay on the right, after you click a building.</p>
+
+        <h2 id="left">Left column</h2>
+        <p>The column is where you buy ground. It is not a shop for Starfactory, Mega Bay, or the Orbital Pad. Those arrive when the site is bought. The card should say what the purchase is, and what it costs.</p>
+        <p>Acres and square feet do not belong on that card. The acre count is the size of the parcel. Square feet repeats the same fact in a worse unit. A player deciding to spend 90 steel needs the price and one sentence about what shows up on the map.</p>
+        <p>The owned total stays above the cards, in acres only. Square feet are gone from the column. Two named rows are better than one sum once both sites are bought. That split waits until the land line on the map is settled.</p>
+        <p>This card is in <code>index.html</code>. A click still buys the site for the same steel cost and still places the same buildings.</p>
+
+        <h2 id="card">The buy card</h2>
+        <p>The live button is a flat wood chip. The next card uses the same black plate as the header. The site name is the title. The steel price is the large number. One sentence sits under the price. No acre line. No square feet.</p>
+        <div class="pair">
+          <div>
+            <div class="col">
+              <div class="k">Land · now</div>
+              <div class="owned">Owned<b>450 acres · 19,602,000 sq ft</b></div>
+              <div class="now-card"><b>Build site</b><span>450 acres · 19,602,000 sq ft</span><span>90 steel</span></div>
+              <div class="now-card"><b>Pad site</b><span>240 acres · 10,454,400 sq ft</span><span>50 steel</span></div>
+            </div>
+            <p class="cap">What the column shows today. The acre lines are the noise.</p>
+          </div>
+          <div>
+            <div class="col">
+              <div class="k">Land · next</div>
+              <div class="owned">Owned<b>0 acres</b></div>
+              <button class="next-card" type="button">
+                <div class="name">Build site</div>
+                <div class="price">90</div>
+                <div class="unit">steel</div>
+                <div class="line">Starfactory and Mega Bay arrive on this ground.</div>
+              </button>
+              <button class="next-card" type="button">
+                <div class="name">Pad site</div>
+                <div class="price">50</div>
+                <div class="unit">steel</div>
+                <div class="line">The Orbital Pad arrives on this ground.</div>
+              </button>
+            </div>
+            <p class="cap">Price first. One sentence. The acre numbers leave the card.</p>
+          </div>
+        </div>
+        <p>The column stays the same width. The card does not grow into a second panel of stats.</p>
+
+        <h2 id="right">Right column</h2>
+        <p>The inspector, the fleet, and the goals use short sentences. Rockets and actions stay on this side after you click a building. Starfactory says it builds one vehicle. Mega Bay says it houses the fleet. The pad says static fire only. The four fire lines stay the same checks, in plain words. The goals read: buy both sites, build a rocket, house 2 vehicles, finish a static fire, finish a refurb, raise the pad to level 2.</p>
+        <p>The layout below is in the game. A fleet row opens the rocket sheet. Raise Merlin thrust is on that sheet and applies to that rocket only.</p>
+
+        <h2 id="inspector">Inspector layout</h2>
+        <p>Each building card uses the same order. The name comes first. One sentence comes next. Then the one number that matters for that building. The actions sit under that number, as cards. A waiting line, such as days left or a vehicle on the pad, sits under the cards.</p>
+        <p>Starfactory’s number is the vehicle it is building, or the one it is holding. Mega Bay’s number is how many vehicles it holds, out of 4. The pad’s number is the thrust it accepts. Merlin thrust, impulse, mass, and restarts leave this card. They belong on the rocket.</p>
+        <p>An action uses the same black card as the buy card. The action name is the title. The price, or the propellant, is the large number. One sentence sits under it. The main action has a white edge. A second action has a dim edge, so the eye hits one card first. A return to the bay keeps the black card and takes a red edge. The green fill and the red fill go.</p>
+        <div class="insp">
+          <div class="title">Starfactory</div>
+          <div class="blurb">Builds one vehicle from steel. It stays here until you stage it to Mega Bay.</div>
+          <div class="stat">
+            <div class="k">Holding</div>
+            <div class="n">0</div>
+            <div class="s">of 1 finished vehicle</div>
+          </div>
+          <button class="act" type="button">
+            <div class="name">Build Falcon 1</div>
+            <div class="price">28</div>
+            <div class="unit">steel</div>
+            <div class="line">3 days. A static fire draws 8 propellant.</div>
+          </button>
+        </div>
+        <p class="cap">Starfactory builds a rocket. It does not show the engine card.</p>
+        <h2 id="rocket">Rocket</h2>
+        <p>SpaceX did not raise Merlin thrust from the factory floor. Merlin 1A flew the first two Falcon 1 launches at 340 kN. The next engine, Merlin 1C, was qualified at the McGregor test site in Texas, on a stand, and then cleared for the next Falcon 1. Hawthorne built the rocket. The new engine was the configuration of that rocket. A test site can arrive in a later version. This version does not add one.</p>
+        <p>A click on a fleet row opens the rocket. The column stays put. The view is a dark sheet over the map. The rocket stands in the middle. Thrust, impulse, mass, and restarts sit around it. The name and the place sit in the top line: at the factory, in the bay, on the road, or on the pad.</p>
+        <p>Raise Merlin thrust moves here, off the Starfactory card. The button stays quiet until you ask to build this view. It spends the same 36 steel and takes the same 2 days. Thrust on that rocket rises from 340 kN to 381 kN. Later upgrades use the same places around the rocket. They do not get a new button on the factory.</p>
+        <div class="modal">
+          <div class="top"><b>Falcon 1</b><span>In the bay · condition 100</span></div>
+          <div class="sheet">
+            <div class="side">Thrust<b>340 kN</b>Impulse<b>260 s</b></div>
+            <div class="rocket"></div>
+            <div class="side">Mass<b>630 kg</b>Restarts<b>1</b></div>
+          </div>
+          <button class="act quiet" type="button">
+            <div class="name">Raise Merlin thrust</div>
+            <div class="price">36</div>
+            <div class="unit">steel</div>
+            <div class="line">2 days. Thrust on this rocket rises to 381 kN.</div>
+          </button>
+        </div>
+        <p class="cap">The fleet row opens this sheet. The factory card no longer carries the Merlin line.</p>
+        <div class="insp" style="margin-top:14px;">
+          <div class="title">Orbital Pad</div>
+          <div class="blurb">Static fire only. Level 2 takes more thrust and more wind.</div>
+          <div class="stat">
+            <div class="k">Pad accepts</div>
+            <div class="n">400</div>
+            <div class="s">kN · wind up to 20 knots</div>
+          </div>
+          <div class="blurb">Falcon 1 · condition 100 · 0 fires</div>
+          <button class="act" type="button">
+            <div class="name">Static fire</div>
+            <div class="price">8</div>
+            <div class="unit">propellant</div>
+            <div class="line">Thrust holds. The sky is inside the pad limit.</div>
+          </button>
+          <button class="act quiet" type="button">
+            <div class="name">Pad level 2</div>
+            <div class="price">40</div>
+            <div class="unit">steel</div>
+            <div class="line">The trench widens. The pad then accepts 900 kN.</div>
+          </button>
+          <button class="act stop" type="button">
+            <div class="name">Return to Mega Bay</div>
+            <div class="line">Refurb happens in the bay.</div>
+          </button>
+        </div>
+        <p class="cap">The pad. The fire is the white card. The upgrade is dim. The return shows only after a fire, and it uses the red edge.</p>
+        <h2 id="later">Still open</h2>
+        <ul>
+          <li>The building drawings on the map. They are flat boxes today.</li>
+          <li>The owned-land line. A dashed property line comes in a later version, with counties and towns. Not in this pass.</li>
+          <li>Sound stays out until <code>10.3.0-sound</code>.</li>
+        </ul>
+        <p>Add the next idea under a new heading on this page. Do not open a second panel design file.</p>
+        <h2 id="screen">Screen pass</h2>
+        <p>The five looks below came from the old screen-pass page. That file is gone. This page is the only notebook for this version. Some sentences in those looks still describe an earlier header: 40px numerals, a sound button, and the name range. The live header is the one in the section above. Do not treat the old mock as the current screen.</p>
+        <h2 id="goals">Goals</h2>
+        <p>Roadmap row <code>0.3.0-range</code> is the same game, easier to read. The header, the build column, the inspector, the fleet, the goals, the log, and the fire close-up change how they look. They do not change what they do.</p>
+        <p>Today the chrome is a wood-panel RTS. The bar is <code>.resource-bar</code>. Side columns are <code>.ui-panel</code> on <code>--panel</code> <code>#2a2218</code>. Labels are tiny amber uppercase stacks. Buttons are brown <code>.ui-btn</code>. The map canvas sits on <code>#2d4a28</code>. That green site stays.</p>
+        <p>SpaceX feel belongs in the type, the header, the cards, the buttons, and the fire close-up. It does not replace the site with the dark three-column dashboard from <code>~/starship-dev</code>. The roadmap already keeps that dashboard out.</p>
+        <p>This pass does not add a building, a resource, a rocket, or a fire rule. Merlin thrust, the pad check, the sky, steel, and propellant stay the numbers they are. The regions stay the same: top bar, build column, map, inspector, fleet, goals, log, and <code>#event-stage</code>.</p>
+        <p>Non-goals are a new mechanic, a split of <code>index.html</code>, and generated art. The winner is Option D. The top bar is larger than the Option A numerals. Thrust on the vehicle card keeps the Option A size. The lamp, the red edge, and the short limiter word stay.</p>
+        <p>The references are public write-ups of real SpaceX screens, not copies of their art. Shane Mielke’s webcast packages (2019 and the 2025 vehicle-wide V2) use a thin black strip, big numbers, and widgets that change with the vehicle. Eric Daly’s 2017 launch graphics are a small telemetry set plus a mission timeline. The GESAB console for SpaceX is black structure with red status light. The Starship HLS panel photo shows a right-hand engine and vehicle block beside a picture of the ship. This game keeps the green map in the middle and borrows only the chrome.</p>
+
+        <h2 id="options">Five options</h2>
+        <p>The chosen look restyles CSS variables and the markup strings that <code>renderPalette</code>, <code>renderInspector</code>, <code>renderFleetList</code>, <code>renderObjectives</code>, and the event stage already write. Drag, zoom, mute, and the version span stay wired as they are. Options A, B, C, and E stay on this page as the looks you did not pick.</p>
+
+        <h3 id="range">Option A · Range card</h3>
+        <p>The chrome becomes a thin white-on-black status strip, like a launch webcast. Numerals are large. Sentences replace the tiny uppercase stacks. Buttons are flat black with a white label.</p>
+        <div class="mock" aria-hidden="true">
+          <div style="background:#0a0a0a;color:#f4f4f4;font-family:ui-monospace,Menlo,monospace;border:1px solid #2a2a2a;">
+            <div style="display:flex;align-items:flex-end;gap:18px;padding:10px 12px;border-bottom:1px solid #2a2a2a;">
+              <div><div style="font-size:10px;color:#9a9a9a;">Steel</div><div style="font-size:28px;line-height:1;font-weight:650;">200</div></div>
+              <div><div style="font-size:10px;color:#9a9a9a;">Propellant</div><div style="font-size:28px;line-height:1;font-weight:650;">40</div></div>
+              <div><div style="font-size:10px;color:#9a9a9a;">Day</div><div style="font-size:28px;line-height:1;font-weight:650;">1</div></div>
+              <div><div style="font-size:10px;color:#9a9a9a;">Wind</div><div style="font-size:28px;line-height:1;font-weight:650;">8 kn</div></div>
+              <div style="margin-left:auto;font-size:11px;color:#9a9a9a;padding-bottom:4px;">0.2.0-merlin</div>
+            </div>
+            <div style="display:flex;gap:8px;padding:8px;background:#111;">
+              <div style="width:148px;border:1px solid #333;padding:8px;font-size:13px;">Build Falcon 1</div>
+              <div style="flex:1;background:#2d4a28;min-height:72px;"></div>
+              <div style="width:168px;background:#000;border:1px solid #fff;padding:8px 10px;">
+                <div style="font-size:11px;letter-spacing:0.04em;">FALCON 1</div>
+                <div style="font-size:36px;line-height:1;font-weight:700;margin-top:4px;">340</div>
+                <div style="font-size:12px;color:#c8c8c8;">kN thrust</div>
+                <div style="margin-top:8px;background:#000;color:#fff;border:1px solid #fff;display:inline-block;padding:4px 8px;font-size:12px;font-family:system-ui,sans-serif;">Static fire</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p><strong>Header.</strong> <code>.resource-bar</code> becomes a black strip with white type. Steel, propellant, day, and wind are four big numerals. The sky word sits under the wind number, still from <code>renderWeather</code>. Fleet count stays, smaller, beside the day. Mute stays a flat black button. <code>#ver-label</code> stays at the right and still reads the live version.</p>
+        <p><strong>Build column.</strong> The left aside stays <code>w-44</code>. The “Build site” uppercase stack goes. The title is one sentence: “Place a building.” Each palette button is flat black, white label, one line such as “Starfactory · 40 steel.” The foundation-loop paragraph stays, in the same white type, without the amber tracking style.</p>
+        <p><strong>Inspector.</strong> The right column is one vehicle card when a rocket is selected. Thrust in kN is the largest number on that card. Merlin tier, impulse in seconds, mass in kilograms, and restarts sit under it in smaller type. The same card shows pad level, condition, and the fire-check lines that <code>fireCheck</code> already returns. Empty selection still says to select the factory, the bay, or the pad. Buttons read “Build Falcon 1,” “Raise Merlin thrust,” “Stage to Mega Bay,” “Roll to pad,” “Static fire,” and “Return to Mega Bay.” Each label is a short sentence, not two stacked caption lines.</p>
+        <p><strong>Fleet list.</strong> <code>.fleet-row</code> loses the brown fill. A row is a black line with a white name and a one-line status. The selected row gets a white border, not an amber glow. The empty line stays “No vehicles yet. Build at Starfactory.”</p>
+        <p><strong>Goals.</strong> The six goals in <code>renderObjectives</code> stay the same sentences. They sit as a plain list under the card. A done goal is a white check. An open goal is a dim line. The uppercase “Goals” label becomes the sentence “What is left.”</p>
+        <p><strong>Log.</strong> <code>#log</code> stays the footer and stays monospace. The panel behind it is black. Good, warn, and bad colors shift to white, light gray, and a single red so the strip matches the webcast. The log still keeps the last twelve lines.</p>
+        <p><strong>Static-fire stage.</strong> <code>#event-stage</code> already covers the screen in near-black. The wood head and foot (<code>rgba(42, 34, 24, 0.95)</code>) become the same black strip as the header. <code>#event-title</code> drops the uppercase tracking and reads “Static fire.” The phase line stays. The canvas border is white, not amber. Skip is a flat black button with a white “Skip” label. The caption and the failure line stay, in white, without the slogan tone in the current foot copy.</p>
+        <p>You kept the large-numeral idea from this option. In the chosen header those numerals are bigger than the 28px figures drawn here, and the range sentence is large too. Thrust on the vehicle card stays at the size drawn on this card. Wind stays with the range lamp. Fleet, goals, the log, and the build column stay the Option D size.</p>
+        <p>Risk: a full black chrome can feel like the rejected <code>starship-dev</code> dashboard if the side columns grow into data walls. This option keeps the current widths and leaves the map the wide green middle. Risk: white-on-black at small sizes fails if labels shrink again. The chosen screen keeps those numerals large and the side type at body size.</p>
+
+        <h3 id="hangar">Option B · Hangar plate</h3>
+        <p>The warm metal color stays. The wood-panel RTS look goes. Each region is one stainless plate. Labels are black stencil. The selected rocket is a tall spec sheet. The map is the same green site.</p>
+        <div class="mock" aria-hidden="true">
+          <div style="background:#1c2118;padding:8px;border:1px solid #5a4830;">
+            <div style="background:linear-gradient(180deg,#d9d3c8,#b7b1a6);color:#1a1a1a;border:1px solid #8a867c;padding:8px 10px;display:flex;align-items:baseline;gap:14px;font-family:system-ui,sans-serif;">
+              <span style="font-weight:800;letter-spacing:0.14em;font-size:13px;">STARBASE</span>
+              <span style="font-family:ui-monospace,Menlo,monospace;font-size:12px;letter-spacing:0.08em;">STEEL 200</span>
+              <span style="font-family:ui-monospace,Menlo,monospace;font-size:12px;letter-spacing:0.08em;">PROP 40</span>
+              <span style="font-family:ui-monospace,Menlo,monospace;font-size:12px;letter-spacing:0.08em;">DAY 1</span>
+              <span style="font-family:ui-monospace,Menlo,monospace;font-size:12px;letter-spacing:0.08em;">WIND 8 KN</span>
+              <span style="margin-left:auto;font-size:11px;letter-spacing:0.06em;">0.2.0-merlin</span>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:8px;">
+              <div style="width:120px;background:linear-gradient(180deg,#cfc8bc,#b3ab9e);border:1px solid #6e6a62;color:#111;padding:8px;font-size:12px;font-weight:700;letter-spacing:0.06em;">STARFACTORY</div>
+              <div style="flex:1;background:#2d4a28;min-height:120px;border:1px solid #1a3018;"></div>
+              <div style="width:150px;background:#e4ddd2;color:#111;border:1px solid #6e6a62;padding:8px 10px;min-height:120px;">
+                <div style="font-size:11px;font-weight:800;letter-spacing:0.16em;">FALCON 1</div>
+                <div style="font-family:ui-monospace,Menlo,monospace;font-size:12px;margin-top:8px;line-height:1.45;">THRUST 340 kN<br>IMPULSE 260 s<br>MASS 630 kg<br>PAD L1<br>WIND 8 kn</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p><strong>Header.</strong> The gradient wood bar becomes one brushed plate, light steel on the existing warm page (<code>--bg</code> <code>#1c2118</code> stays outside the plates). “STARBASE” is a black stencil word. Steel, propellant, fleet, day, and wind are one stencil row, not swatches and amber chips. Mute is a plate button with a black mark. The version label stays on the plate.</p>
+        <p><strong>Build column.</strong> One plate, not a stack of bordered boxes. The palette is a short list of stencil names: Starfactory, Mega Bay, Orbital Pad. Cost and days sit on the same line. The loop note sits at the bottom of that same plate, in black body type. The double border on <code>.ui-panel</code> goes. One plate edge is enough.</p>
+        <p><strong>Inspector.</strong> When you select a rocket, the inspector is a tall spec sheet on one plate. Name at the top in stencil. Then thrust, impulse, mass, restarts, condition, fires, pad level, and the lines from <code>fireCheck</code>. Building selection uses the same sheet: name, level, the blurb already in the defs, and one action. Buttons are plate-colored with black type, not green “good” and red “danger” fills. A blocked action stays disabled and names the short part in the sentence under it, as the log already does.</p>
+        <p><strong>Fleet list.</strong> The fleet is not a second stack of cards. It is lines on the same right plate, under a stencil “FLEET.” A selected line is a black bar with light type. Status, short name, and condition stay on that line. The brown <code>.fleet-row</code> box goes.</p>
+        <p><strong>Goals.</strong> Goals share that plate. They are stencil lines, not a third bordered block. A finished goal is struck in black. An open goal stays solid. The six labels in <code>renderObjectives</code> do not change.</p>
+        <p><strong>Log.</strong> The footer is one plate, not another wood <code>.ui-panel</code>. Type is black on the steel color. The monospace and the twelve-line cap stay. Good and bad stay readable as dark green and dark red ink, not the current bright overlays on brown.</p>
+        <p><strong>Static-fire stage.</strong> The full-screen dim stays, so the fire still reads as a close-up. The head and foot become the same stainless plate, with black stencil for the title and the phase. The canvas keeps its dark sky fill (<code>#0a0e14</code>). Skip is a plate button labeled “Skip.” The foot sentences stay factual: what the fire is doing, and that a miss sends the vehicle to the bay.</p>
+        <p>Risk: stencil tracking can turn back into the tiny uppercase stacks this pass is trying to leave. Stencil is for names and the spec rows only. Actions stay sentences. Risk: light plates on a light map would wash out. The map fill stays <code>#2d4a28</code>, so the site stays the dark green field between the plates.</p>
+
+        <h3 id="telemetry">Option C · Telemetry</h3>
+        <p>From Eric Daly’s launch graphics: a few gauges and a timeline, not a wall of readouts. The header stays short. A thrust gauge and a wind gauge sit on the vehicle. The next three skies sit in a thin timeline under the map.</p>
+        <div class="mock" aria-hidden="true">
+          <div style="background:#070b10;color:#e8eef6;font-family:system-ui,sans-serif;border:1px solid #1e3a5f;">
+            <div style="display:flex;gap:16px;padding:8px 12px;border-bottom:1px solid #1e3a5f;font-size:12px;">
+              <b>STARBASE</b><span>Steel 200</span><span>Propellant 40</span><span style="margin-left:auto;">Day 1</span>
+            </div>
+            <div style="display:flex;gap:8px;padding:8px;">
+              <div style="width:110px;border:1px solid #1e3a5f;padding:8px;font-size:12px;">Starfactory</div>
+              <div style="flex:1;background:#2d4a28;min-height:88px;"></div>
+              <div style="width:150px;padding:8px;border:1px solid #3d8bfd;">
+                <div style="font-size:11px;color:#8eb6ff;">FALCON 1</div>
+                <div style="height:8px;background:#122033;margin-top:8px;"><i style="display:block;width:62%;height:8px;background:#3d8bfd;"></i></div>
+                <div style="font-size:12px;margin-top:4px;">340 / 400 kN</div>
+                <div style="height:8px;background:#122033;margin-top:8px;"><i style="display:block;width:28%;height:8px;background:#7dcea0;"></i></div>
+                <div style="font-size:12px;margin-top:4px;">8 / 20 kn</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:6px;padding:6px 8px;border-top:1px solid #1e3a5f;font-size:11px;">
+              <span style="border:1px solid #7dcea0;padding:2px 6px;">Day 1 · clear 8</span>
+              <span style="padding:2px 6px;color:#9bb;">Day 2 · clear 12</span>
+              <span style="padding:2px 6px;color:#e0b35a;">Day 3 · wind 24</span>
+            </div>
+          </div>
+        </div>
+        <p><strong>Header.</strong> One line. Name, steel, propellant, fleet, day. No swatches. Wind leaves the header and lives on the gauge.</p>
+        <p><strong>Build column.</strong> Three text buttons. Cost on the same line. The loop note shrinks to two sentences.</p>
+        <p><strong>Inspector.</strong> Two bars. Thrust against the pad limit. Wind against the pad limit. The numbers under the bars are the same figures the fire already uses. Impulse, mass, and restarts stay as one line under the bars.</p>
+        <p><strong>Fleet, goals, log.</strong> Fleet is names and status. Goals stay the six lines. The log stays the footer. The timeline of today and the next two days sits above the log, using the sky the header already knows.</p>
+        <p><strong>Static-fire stage.</strong> The same two bars, large, beside the canvas. A miss still names the short part under the bar that failed.</p>
+        <p>Source: Eric Daly, SpaceX launch graphics, 2017. <a href="https://www.ericdaly.com/spacex-launch-gfx">ericdaly.com/spacex-launch-gfx</a>.</p>
+
+        <h3 id="console">Option D · Range console · chosen</h3>
+        <p>This is the chosen screen. From the GESAB console built for SpaceX: black structure, red light for a stop. The screen is black around the green map. One lamp is red when the sky or the pad would refuse a fire, and green when the range is open. Numbers are white. The whole top bar is large type. Thrust on the vehicle card keeps the large numeral from Option A.</p>
+        <div class="mock" style="max-width:860px" aria-hidden="true">
+          <div style="background:#050505;color:#f2f2f2;font-family:ui-monospace,Menlo,monospace;border:1px solid #222;">
+            <div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:end;gap:16px;padding:12px 14px;border-bottom:1px solid #222;">
+              <div style="display:flex;align-items:flex-end;gap:14px;">
+                <span style="width:14px;height:14px;border-radius:50%;background:#e10600;box-shadow:0 0 8px #e10600;margin-bottom:6px;flex:none;"></span>
+                <div style="padding-bottom:2px;">
+                  <div style="font-size:22px;line-height:1;font-weight:650;">Range closed</div>
+                  <div style="font-size:15px;color:#c8c8c8;margin-top:4px;">wind 24 kn</div>
+                </div>
+              </div>
+              <div style="display:flex;gap:18px;align-items:flex-end;">
+                <div><div style="font-size:12px;color:#9a9a9a;">Steel</div><div style="font-size:40px;line-height:0.9;font-weight:650;">200</div></div>
+                <div><div style="font-size:12px;color:#9a9a9a;">Propellant</div><div style="font-size:40px;line-height:0.9;font-weight:650;">40</div></div>
+                <div><div style="font-size:12px;color:#9a9a9a;">Fleet</div><div style="font-size:40px;line-height:0.9;font-weight:650;">0</div></div>
+                <div><div style="font-size:12px;color:#9a9a9a;">Day</div><div style="font-size:40px;line-height:0.9;font-weight:650;">3</div></div>
+              </div>
+              <div style="justify-self:end;align-self:start;font-size:12px;border:1px solid #333;padding:2px 8px;">🔊</div>
+            </div>
+            <div style="display:flex;gap:8px;padding:8px;">
+              <div style="width:120px;border-left:3px solid #e10600;padding:6px 8px;font-size:13px;">Orbital Pad</div>
+              <div style="flex:1;background:#2d4a28;min-height:96px;"></div>
+              <div style="width:168px;background:#000;border-left:3px solid #e10600;padding:8px 10px;">
+                <div style="font-size:12px;color:#e10600;">Weather</div>
+                <div style="font-size:36px;line-height:1;font-weight:700;margin-top:4px;">340</div>
+                <div style="font-size:12px;color:#c8c8c8;">kN thrust</div>
+                <div style="font-size:12px;color:#c8c8c8;margin-top:8px;">wind 24 kn · pad 20 kn</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p><strong>Header.</strong> Black. A round lamp and one sentence stay on the left: “Range open” or “Range closed,” at about 22px, plus the wind under it at about 15px. Steel, propellant, fleet, and day sit in the center as four white numerals at about 40px, each with a 12px label above. That is larger than the 28px numerals in Option A. The sound button sits alone on the right, level with those labels. The version label leaves the header and sits on the footer hint.</p>
+        <p><strong>Build column and inspector.</strong> Black panels. A red edge on the pad button and on the vehicle card when the fire would miss. The card’s first line is the short part the fire already names: engine, pad, propellant, or weather. When the fire would hold, that line reads “Hold.” Thrust in kN is the large number under that word, the same size as the Option A vehicle card. Impulse, mass, restarts, and the pad lines stay smaller under the thrust figure.</p>
+        <p><strong>Fleet, goals, log.</strong> White type on black. A closed range does not add a new rule. It only paints the state the game already has.</p>
+        <p><strong>Static-fire stage.</strong> The lamp stays in the corner of the close-up. Skip stays. The canvas stays dark.</p>
+        <p>Source: GESAB control console for SpaceX, black structure and red light. <a href="https://www.criticalcommunicationsreview.com/critical-control-rooms/news/111696/gesab-to-build-hyper-customized-control-console-for-spacex">criticalcommunicationsreview.com</a>.</p>
+
+        <h3 id="engine">Option E · Engine screen</h3>
+        <p>From the webcast vehicle widgets and the Starship HLS panel: the site stays in the middle, and the right side is an engine block. For this game that block is Merlin. Thrust is the title. The other figures are a short stack. Build actions stay on the left, like a short checklist.</p>
+        <div class="mock" aria-hidden="true">
+          <div style="background:#0c1218;color:#f4f7fb;font-family:system-ui,sans-serif;border:1px solid #243140;">
+            <div style="padding:8px 12px;border-bottom:1px solid #243140;font-size:12px;letter-spacing:0.08em;">STARBASE · TEXAS · DAY 1</div>
+            <div style="display:flex;gap:8px;padding:8px;">
+              <div style="width:140px;font-size:12px;line-height:1.7;padding:4px;">1 Place Starfactory<br>2 Place Mega Bay<br>3 Place pad<br>4 Build Falcon 1</div>
+              <div style="flex:1;background:#2d4a28;min-height:100px;"></div>
+              <div style="width:160px;background:#101820;border:1px solid #d7e3f4;padding:8px;">
+                <div style="font-size:11px;color:#9eb0c6;">MERLIN</div>
+                <div style="font-size:32px;font-weight:700;line-height:1;">340<span style="font-size:14px;font-weight:500;"> kN</span></div>
+                <div style="font-size:12px;color:#c5d2e2;margin-top:6px;">260 s · 630 kg · 1 restart</div>
+                <div style="margin-top:8px;border:1px solid #f4f7fb;display:inline-block;padding:3px 8px;font-size:12px;">Static fire</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p><strong>Header.</strong> One quiet line: site, day, steel, propellant, wind. No big brand block.</p>
+        <p><strong>Build column.</strong> A numbered checklist of the same buttons you already have. The next useful action is white. The others are dim. The order is a hint, not a new lock.</p>
+        <p><strong>Inspector.</strong> A white-edged engine card. “Merlin” as the label, thrust in large type, then impulse, mass, and restarts on one line. The fire button sits on that card.</p>
+        <p><strong>Fleet, goals, log.</strong> Fleet rows name the core and point at this card when selected. Goals stay under the checklist. The log stays a thin footer.</p>
+        <p><strong>Static-fire stage.</strong> The engine card stays visible beside the canvas so the number you are testing does not disappear.</p>
+        <p>Sources: Shane Mielke, SpaceX webcast UI and webcast V2. <a href="https://shanemielke.com/work/spacex/webcast">shanemielke.com webcast</a>, <a href="https://shanemielke.com/work/spacex/webcast-v2">webcast V2</a>. The right-hand engine block also follows the public Starship HLS panel: the vehicle in the center, engine and telemetry on the side.</p>
+
+        <h2 id="stays">What stays</h2>
+        <p>The rules stay. <code>TUNING</code>, <code>ROCKET_DEFS</code>, <code>fireCheck</code>, static-fire phases, refurb days, scrap, and the sky from the day number do not move. Buildings stay Starfactory, Mega Bay, and Orbital Pad. Resources stay steel and propellant. Falcon 1 stays the only rocket you can build.</p>
+        <p>Map colors stay. The site is the earthy green field. Drag and zoom stay on <code>#map</code>, with the same min and max. Esc still cancels a placement. Mute stays on <code>#btn-mute</code>, on the right of the header. The version label reads <code>0.3.0-range</code> on the footer hint. The game you play is that screen.</p>
+        <p>No new data leaves the browser. The pass does not add an account, a network call, or a save. Tailwind stays the CDN script already in the file. New files stay out. The game stays one <code>index.html</code>.</p>
+
+        <h2 id="choice">Choice</h2>
+        <p>You chose Option D. The screen stays the black range console. The lamp, the red edge, and the limiter word stay as written under that option. Options A, B, C, and E are not built.</p>
+        <p>The slice is <code>0.3.0-range</code>. The old name, desk, is dropped. Range is the word on the lamp. That label sits on the footer hint in <code>index.html</code>.</p>
+        <p>The top bar is the large type on this screen. “Range open” or “Range closed” is about 22px, on the left, with the wind under it at about 15px. Steel, propellant, fleet, and day are about 40px in the center, with a short label above each number. That is bigger than Option A, whose header numerals are 28px. The sound button sits alone on the right.</p>
+        <p>On the vehicle card, thrust in kN is the large number from Option A. The first line of that card is still the limiter word from Option D. Impulse, mass, and restarts stay smaller under the thrust figure. Fleet, goals, the log, and the build column stay the Option D size.</p>
+
+        <h2 id="decisions">Key decisions</h2>
+        <ul>
+          <li>Option D is the look. The code follows that choice when you ask for the restyle.</li>
+          <li>The top bar is larger than Option A: range sentence about 22px, wind about 15px, steel, propellant, and day about 40px. Thrust on the vehicle card stays at the Option A size.</li>
+          <li>No new rule. Same buildings, same Merlin fire, same sky, same resources.</li>
+          <li>The map stays green. SpaceX feel stays in the chrome around it.</li>
+        </ul>
+
+        <h2 id="pr">PR plan</h2>
+        <p>One pull request, when you ask for the restyle. The choice on this page is Option D with those large numerals. The human asks for that pull request. The files in it are <code>index.html</code> only. The title is “0.3.0-range: restyle the screen.” This design page does not open that pull request.</p>
+        <p>The change is CSS and the label strings in the render functions named above. Behavior of clicks, the day clock, and the fire stays. You test in the browser before anything is called shipped. The description states that you reviewed it and that you requested the pull request.</p>
+              </main>
+    </div>
+  </div>
+</body>
+</html>
