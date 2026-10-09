@@ -52,7 +52,7 @@
       <h1>Program roadmap</h1>
       <p class="lede">
         The build map for the 2D game. Lessons live in <a href="learning-guide.html">the field guide</a>. The short story is <code>README.md</code>.
-        Version names appear in one table on this page. They do not belong on the lessons.
+        Version names appear in one table on this page. The future-feature notes are the later rows in that same table. A new idea gets the next row at the bottom.
       </p>
     </header>
     <div class="doc-grid">
@@ -65,13 +65,14 @@
           <li><a href="#done">Falcon 1, done</a></li>
           <li><a href="#versions">Version draft</a></li>
           <li><a href="#patches">Patches</a></li>
+          <li><a href="#later">Later phases</a></li>
         </ol>
       </nav>
       <main>
         <h2 id="law">How a result is decided</h2>
         <p>Every part has a spec. Every flight has a requirement. You can read both before you commit the vehicle. The flight does what those numbers say. If the stack clears the bar, it flies. If it misses, the debrief names the short part: engine, structure, pad, a tank, or the sky. Wear climbs by a known amount on each firing and falls when the bay finishes a refurb.</p>
         <p>A static fire is a hold-down test. Thrust, the pad, the tanks, and the wind decide it. Specific impulse and mass stay on the card until a hop, because impulse is how far a kilogram of propellant pushes you and mass is what the payload sum uses. The factory, the bay, the road, and the refurb stay as they are. New detail is a number on that loop, not a second game.</p>
-        <p>The first finished game is one rocket on the Texas site. Falcon 9, a second pad, Heavy, customers beyond one small commercial flight, Starlink, Starship, Louisiana, and xAI are patches. Each patch is one addition to a game you can already finish. The story a player reads is the README. This page is the build map.</p>
+        <p>The first finished game is one rocket on the Texas site. Falcon 9, a second pad, Heavy, customers beyond one small commercial flight, Starlink, Starship, Louisiana, and xAI are the next patches. The yard, the longer flight cards, the Moon and Mars sites, Florida, and the picture and save work are phases after those. Each row is one addition to a game you can already finish. The story a player reads is the README. This page is the build map.</p>
 
         <h2 id="shipped">Already playable</h2>
         <p>You can build Falcon 1 only. The factory shows a Merlin card, and one upgrade raises its thrust. A static fire follows the numbers and the sky. The exact figures live in the game and in the <a href="learning-guide.html#merlin">field guide</a>, not on this map.</p>
@@ -97,27 +98,40 @@
         <p>The label is <code>N.x.y-codename</code>. The first number is the chapter. Zero is Falcon 1 in Texas. Later chapters are the patches. The middle number is one playable slice. The last number is a small fix on that slice, and we do not spend it in advance. A version ships when you can see the change in the browser. If a row feels wrong after a sitting, we edit this table before we write the code.</p>
         <p>The next slice is the screen you already have. The panels, the type, and the way a fire is explained need a pass before any new mechanic. That pass does not add a lab or a tank.</p>
         <table class="doc">
-          <thead><tr><th>Version</th><th>What you can do when it ships</th></tr></thead>
+          <thead><tr><th>Phase</th><th>Version</th><th>What you can do when it ships</th></tr></thead>
           <tbody>
-            <tr><td>0.1.0-foundation</td><td>Shipped, then archived. Factory, bay, pad, road, and a chance roll.</td></tr>
-            <tr><td>0.2.0-merlin</td><td>Shipped. Falcon 1, Merlin card, a decided fire, and a sky you can wait out.</td></tr>
-            <tr><td>0.3.0-desk</td><td>The same game, easier to read and use. Header, factory, bay, pad, fleet, and the fire debrief. No new rule.</td></tr>
-            <tr><td>0.4.0-structure</td><td>Dry mass and strength. Payload on the stand is the sum with the Merlin.</td></tr>
-            <tr><td>0.5.0-tanks</td><td>RP-1 and liquid oxygen, each with a price, a tank, and a buy. A short tank stops the rocket.</td></tr>
-            <tr><td>0.6.0-cadence</td><td>Fires in the last 30 days, and days since the last fire.</td></tr>
-            <tr><td>0.7.0-hop</td><td>The same rocket leaves the stand. Altitude and speed come from thrust, mass, and the load.</td></tr>
-            <tr><td>0.8.0-orbit</td><td>An upper-stage burn leaves an orbit card. A miss names the short part.</td></tr>
-            <tr><td>0.9.0-contract</td><td>One commercial contract. Pay arrives when the orbit card matches.</td></tr>
-            <tr><td>0.10.0-recovery</td><td>Land or expend. Payload and bay days both change. This closes the Falcon 1 chapter.</td></tr>
-            <tr><td>1.0.0-falcon9</td><td>Nine Merlins, more of both fluids, a pad that must already be strong.</td></tr>
-            <tr><td>1.1.0-pad-b</td><td>A second pad on the Texas site. Same pad, second queue.</td></tr>
-            <tr><td>1.2.0-heavy</td><td>Falcon Heavy is three cores on the stronger pad.</td></tr>
-            <tr><td>1.3.0-customers</td><td>NASA cargo, crew, other countries, and military cards. Each opens after you have flown that class.</td></tr>
-            <tr><td>2.0.0-starlink</td><td>Your own satellites, with mass, power, radio, and life. They compete for steel, tanks, and pads.</td></tr>
-            <tr><td>3.0.0-raptor</td><td>Starship’s engine, a methane tank, and a methane price. Oxygen tanks stay.</td></tr>
-            <tr><td>3.1.0-catch</td><td>Tower, catch, and a depot in orbit. Moon and Mars are contracts on that depot.</td></tr>
-            <tr><td>4.0.0-louisiana</td><td>A second Starbase. Texas can send a rocket there in a counted number of days.</td></tr>
-            <tr><td>5.0.0-compute</td><td>xAI. A data center competes with the pads for steel and power.</td></tr>
+            <tr><td>0 · Falcon 1</td><td>0.1.0-foundation</td><td>Shipped, then archived. Factory, bay, pad, road, and a chance roll.</td></tr>
+            <tr><td>0 · Falcon 1</td><td>0.2.0-merlin</td><td>Shipped. Falcon 1, Merlin card, a decided fire, and a sky you can wait out.</td></tr>
+            <tr><td>0 · Falcon 1</td><td>0.3.0-panel</td><td>The same game, easier to read and use. Header, factory, bay, pad, fleet, and the fire debrief. No new rule.</td></tr>
+            <tr><td>0 · Falcon 1</td><td>0.4.0-structure</td><td>Dry mass and strength. Payload on the stand is the sum with the Merlin.</td></tr>
+            <tr><td>0 · Falcon 1</td><td>0.5.0-tanks</td><td>RP-1 and liquid oxygen, each with a price, a tank, and a buy. A short tank stops the rocket.</td></tr>
+            <tr><td>0 · Falcon 1</td><td>0.6.0-cadence</td><td>Fires in the last 30 days, and days since the last fire.</td></tr>
+            <tr><td>0 · Falcon 1</td><td>0.7.0-hop</td><td>The same rocket leaves the stand. Altitude and speed come from thrust, mass, and the load.</td></tr>
+            <tr><td>0 · Falcon 1</td><td>0.8.0-orbit</td><td>An upper-stage burn leaves an orbit card. A miss names the short part.</td></tr>
+            <tr><td>0 · Falcon 1</td><td>0.9.0-contract</td><td>One commercial contract. Pay arrives when the orbit card matches.</td></tr>
+            <tr><td>0 · Falcon 1</td><td>0.10.0-recovery</td><td>Land or expend. Payload and bay days both change. This closes the Falcon 1 chapter.</td></tr>
+            <tr><td>1 · Falcon fleet</td><td>1.0.0-falcon9</td><td>Nine Merlins, more of both fluids, a pad that must already be strong.</td></tr>
+            <tr><td>1 · Falcon fleet</td><td>1.1.0-pad-b</td><td>A second pad on the Texas site. Same pad, second queue.</td></tr>
+            <tr><td>1 · Falcon fleet</td><td>1.2.0-heavy</td><td>Falcon Heavy is three cores on the stronger pad.</td></tr>
+            <tr><td>1 · Falcon fleet</td><td>1.3.0-customers</td><td>NASA cargo, crew, other countries, and military cards. Each opens after you have flown that class.</td></tr>
+            <tr><td>2 · Starlink</td><td>2.0.0-starlink</td><td>Your own satellites, with mass, power, radio, and life. They compete for steel, tanks, and pads.</td></tr>
+            <tr><td>3 · Starship</td><td>3.0.0-raptor</td><td>Starship’s engine, a methane tank, and a methane price. Oxygen tanks stay.</td></tr>
+            <tr><td>3 · Starship</td><td>3.1.0-catch</td><td>Tower, catch, and a depot in orbit. Moon and Mars are contracts on that depot.</td></tr>
+            <tr><td>4 · Second coast</td><td>4.0.0-louisiana</td><td>A second Starbase. Texas can send a rocket there in a counted number of days.</td></tr>
+            <tr><td>5 · Compute</td><td>5.0.0-compute</td><td>xAI. A data center competes with the pads for steel and power.</td></tr>
+            <tr><td>6 · Yard</td><td>6.0.0-yard</td><td>Buy a strip of land beside the Texas pad. A workforce count and a few houses. The houses are demand for the people on shift at the factory and the bay. A road and a row of houses. This does not become a city builder.</td></tr>
+            <tr><td>6 · Yard</td><td>6.1.0-rounds</td><td>One-time payments on top of contract pay. The first hop, the first orbit, the first landing, and a long run of recoveries each pay once. The money buys the next building. Still one currency.</td></tr>
+            <tr><td>7 · Longer flights</td><td>7.0.0-ladder</td><td>More cards after the single Falcon 1 sale. A hop. A hop you bring home. An orbit. An orbit you bring home. A heavy payload. A pathfinder past Earth orbit. The card names the need. The rocket you stacked has to be allowed to fly it. A small hopper does not orbit. A catch needs the tower from <code>3.1.0-catch</code>. Expend, land on legs, or catch. The contract asks if you must bring it home. The rocket decides how.</td></tr>
+            <tr><td>7 · Longer flights</td><td>7.1.0-shield</td><td>A heatshield works and a flight-computer works on the map. You need them when a landing from orbit needs them. A level on either building changes its shape.</td></tr>
+            <tr><td>7 · Longer flights</td><td>7.2.0-watch</td><td>The flight you watch runs preflight, countdown, ignition, climb, stage, orbit, reentry, and recovery. A miss still names the short part. No coin flip at liftoff.</td></tr>
+            <tr><td>8 · Outer sites</td><td>8.0.0-moon</td><td>A Moon site, after the Moon contracts on the depot are fun. It needs rockets, tanks, and reliability from Texas. Earth still builds the vehicles.</td></tr>
+            <tr><td>8 · Outer sites</td><td>8.1.0-mars</td><td>A Mars site after the Moon site. The wait is longer. The same supply rule. Starbase in Texas stays the factory.</td></tr>
+            <tr><td>9 · Florida</td><td>9.0.0-florida</td><td>A third Starbase, same buildings and same fluids as Louisiana, empty at first. Texas or Louisiana can send a rocket there in a counted number of days. Only after Louisiana is fun.</td></tr>
+            <tr><td>10 · Picture and record</td><td>10.0.0-shape</td><td>When a building or an engine gains a level, its shape on the map changes. A construction state shows foundations, steel, then a finished building.</td></tr>
+            <tr><td>10 · Picture and record</td><td>10.1.0-plume</td><td>Plumes and a clearer coast. Generated art for one kind of object at a time: buildings, then vehicles, then plumes. The game stays one <code>index.html</code> while that still works. Do not hold a mechanic for the art.</td></tr>
+            <tr><td>10 · Picture and record</td><td>10.2.0-lessons</td><td>The lesson page gains pictures. Each part sits inside the thing it belongs to. Merlin sits inside Falcon 1. Thrust and specific impulse sit inside Merlin. A card stays short enough to open from a button in the game. No new game rule.</td></tr>
+            <tr><td>10 · Picture and record</td><td>10.3.0-sound</td><td>Sound comes back. A build, a countdown, a fire, and a landing each get a tone. Mute stays in the browser. The live game is quiet until this row.</td></tr>
+            <tr><td>10 · Picture and record</td><td>10.4.0-saves</td><td>Save slots, a table of past flights, and a harder or easier start.</td></tr>
           </tbody>
         </table>
 
@@ -132,6 +146,17 @@
           <li><strong>Starship.</strong> Raptor, a methane tank and price, methalox loads on the oxygen you already store, a tower, a catch, and an orbit depot. Moon and Mars are contracts on that depot.</li>
           <li><strong>Louisiana Starbase.</strong> A new site with the same buildings and the same fluids, empty at first. Texas sends a rocket there in a counted number of days. This is a site upgrade.</li>
           <li><strong>xAI.</strong> A data center competes with the pads for steel and power. The panel shows power used and whether a cluster delayed a booster.</li>
+        </ol>
+
+        <h2 id="later">Later phases</h2>
+        <p>Phases 0 through 5 are the draft you already had. Phases 6 through 10 are the future-feature notes, now versioned, and they stay below <code>5.0.0-compute</code>. A new idea is a new row under phase 10, or a new phase 11, until you move it.</p>
+        <p>An older local prototype at <code>~/starship-dev/index.html</code> already played a longer loop. The ladder, the landing choice, and the flight you watch come from that loop. Its dark dashboard stays out. Its coin flip at liftoff stays out.</p>
+        <ol>
+          <li><strong>6 · Yard.</strong> Land beside the pad, a workforce count, houses for the shift, then one-time payments for the first hop, the first orbit, the first landing, and a long run of recoveries.</li>
+          <li><strong>7 · Longer flights.</strong> Cards beyond the one Falcon 1 sale. Expend, legs, or catch. A heatshield works and a flight-computer works. The full watch from preflight through recovery.</li>
+          <li><strong>8 · Outer sites.</strong> A Moon site, then a Mars site. Texas still builds the rockets and fills the tanks.</li>
+          <li><strong>9 · Florida.</strong> A third site, after Louisiana is fun. Same buildings, same fluids, a counted transfer.</li>
+          <li><strong>10 · Picture and record.</strong> Shapes that change with level, plumes, lesson pictures, sound, save slots, a flight table, and a harder or easier start.</li>
         </ol>
 
         <p class="footer-note">The older foundation design page records the first playable site, including the chance roll. That roll is gone. The current rule is this page and the game.</p>

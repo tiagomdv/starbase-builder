@@ -23,23 +23,9 @@
       background: #050505;
       border-bottom: 1px solid #222;
       color: #f2f2f2;
-      font-family: ui-monospace, Menlo, monospace;
     }
-    #sky-label { font-size: 22px; line-height: 1; font-weight: 650; }
-    #wind-label { font-size: 15px; color: #c8c8c8; margin-top: 4px; }
-    .stat-k { font-size: 12px; color: #9a9a9a; }
-    .stat-n { font-size: 32px; line-height: 0.9; font-weight: 650; }
-    .resource-bar {
-      display: grid;
-      grid-template-columns: 1fr auto 1fr;
-      align-items: end;
-    }
-    .bar-left { display: flex; align-items: flex-end; gap: 14px; }
-    .bar-mid { display: flex; flex-direction: column; align-items: center; gap: 6px; }
-    .bar-stats { display: flex; align-items: flex-end; gap: 22px; }
-    #ver-label { font-size: 11px; line-height: 1; color: #9a9a9a; }
     .range-lamp {
-      width: 14px; height: 14px; border-radius: 50%; flex: none; margin-bottom: 6px;
+      width: 10px; height: 10px; border-radius: 50%;
       background: var(--good); box-shadow: 0 0 8px var(--good); display: inline-block;
     }
     .range-lamp.closed { background: var(--bad); box-shadow: 0 0 8px var(--bad); }
@@ -55,151 +41,10 @@
     [class*="text-amber"] { color: #f2f2f2 !important; }
     .ui-btn.good { background: #1a2e14; border-color: #3d6e34; color: var(--good); }
     .ui-btn.danger { background: #2a1414; border-color: #8a4040; color: #e8a0a0; }
-    .plot-owned { font-size: 11px; color: #c8c8c8; margin-bottom: 8px; }
-    .plot-owned b { display: block; color: #f2f2f2; font-size: 13px; font-weight: 650; }
-    .plot-card {
-      display: block; width: 100%; text-align: left; cursor: pointer;
-      background: #0e0e0e; border: 1px solid #f2f2f2; color: #f2f2f2;
-      padding: 10px 10px 12px; margin-bottom: 8px;
-    }
-    .plot-card:hover { background: #161616; }
-    .plot-card .name { font-size: 15px; font-weight: 650; }
-    .plot-card .price { font-size: 28px; line-height: 1; font-weight: 650; margin-top: 6px; }
-    .plot-card .unit { font-size: 11px; color: #9a9a9a; letter-spacing: 0.08em; text-transform: uppercase; }
-    .plot-card .line { font-size: 12px; color: #c8c8c8; margin-top: 8px; }
-    .bldg .title { font-size: 16px; font-weight: 650; color: #f2f2f2; }
-    .bldg .blurb { font-size: 12px; color: #c8c8c8; margin-top: 4px; }
-    .bldg .stat { margin-top: 12px; }
-    .bldg .stat .k { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #9a9a9a; }
-    .bldg .stat .n { font-size: 32px; line-height: 0.95; font-weight: 650; color: #f2f2f2; }
-    .bldg .stat .s { font-size: 12px; color: #c8c8c8; margin-top: 4px; }
-    .bldg .wait { font-size: 12px; color: #c8c8c8; margin-top: 8px; }
-    .bay-slot {
-      display: block; width: 100%; text-align: left; margin-top: 8px; cursor: pointer;
-      background: #0e0e0e; border: 1px solid #333; color: #f2f2f2; padding: 8px 10px 10px;
-    }
-    .bay-slot.sel { border-color: #f2f2f2; }
-    .bay-slot.empty { cursor: default; }
-    .bay-slot.empty .n { color: #444; }
-    .bay-slot .top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-    .bay-slot .name { font-size: 14px; font-weight: 650; }
-    .bay-slot .where { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: #9a9a9a; }
-    .bay-slot .n { font-size: 26px; line-height: 1; font-weight: 650; margin-top: 6px; }
-    .bay-slot .meter { height: 3px; background: #2a2a2a; margin-top: 8px; }
-    .bay-slot .meter i { display: block; height: 100%; background: #f2f2f2; }
-    .act {
-      display: block; width: 100%; text-align: left; cursor: pointer; margin-top: 10px;
-      background: #0e0e0e; border: 1px solid #f2f2f2; color: #f2f2f2; padding: 10px;
-    }
-    .act:hover:not(:disabled) { background: #161616; }
-    .act:disabled { opacity: 0.4; cursor: not-allowed; }
-    .act.quiet { border-color: #444; }
-    .act.stop { border-color: #444; border-left: 3px solid #e10600; }
-    .act.build { border-color: #6a8ab0; background: #101418; }
-    .act.up { border-color: #c4a15a; background: #16140e; }
-    .act.fire { border-color: #e07030; background: #160e0a; }
-    .act.roll { border-color: #6a9a8a; background: #0e1412; }
-    .sec { margin-top: 16px; }
-    .sec .k { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: #9a9a9a; }
-    .facts { display: flex; gap: 16px; margin-top: 8px; }
-    .facts b { display: block; font-size: 22px; line-height: 1; font-weight: 650; color: #f2f2f2; }
-    .facts span { font-size: 11px; color: #9a9a9a; }
-    .act .name { font-size: 14px; font-weight: 650; }
-    .act .price { font-size: 26px; line-height: 1; font-weight: 650; margin-top: 6px; }
-    .act .unit { font-size: 11px; color: #9a9a9a; letter-spacing: 0.08em; text-transform: uppercase; }
-    .act .line { font-size: 12px; color: #c8c8c8; margin-top: 8px; }
-    #rocket-sheet {
-      position: fixed; inset: 0; z-index: 40; display: none;
-      background: rgba(0, 0, 0, 0.72); align-items: center; justify-content: center; padding: 16px;
-    }
-    #rocket-sheet.open { display: flex; }
-    .rocket-panel { width: min(640px, 100%); background: #0a0a0a; border: 1px solid #333; color: #f2f2f2; padding: 16px; }
-    .rocket-panel .top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
-    .rocket-panel .top b { font-size: 18px; }
-    .rocket-panel .place { font-size: 12px; color: #9a9a9a; margin-top: 4px; }
-    .rocket-sheet { display: grid; grid-template-columns: 1fr 72px 1fr; gap: 12px; align-items: center; margin-top: 14px; }
-    .rocket-sheet .side { font-size: 12px; color: #c8c8c8; }
-    .rocket-sheet .side b { display: block; color: #f2f2f2; font-size: 22px; line-height: 1.1; font-weight: 650; margin-bottom: 10px; }
-    .rocket-body {
-      height: 220px; width: 36px; margin: 0 auto;
-      background: linear-gradient(#f2f2f2, #c8c8c8 70%, #8a3e24);
-      clip-path: polygon(50% 0, 100% 18%, 100% 100%, 0 100%, 0 18%);
-    }
     #map-wrap { position: relative; min-width: 0; min-height: 0; background: #07141c; }
     #map { display: block; width: 100%; height: 100%; cursor: grab; touch-action: none; }
     #map-chips, #map-zoom { position: absolute; z-index: 2; display: flex; gap: 6px; }
-    #map-corner { position: absolute; left: 10px; top: 10px; z-index: 2; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
-    #map-chips { position: static; }
-    #job-note { pointer-events: none; display: flex; flex-direction: column; gap: 4px; }
-    #job-note:empty { display: none; }
-    #job-note span { font-size: 12px; color: #f2f2f2; background: rgba(0,0,0,0.55); padding: 4px 8px; }
-    #next-goal {
-      margin-top: auto; background: transparent; border: 0; outline: none;
-      color: #9a9a9a; cursor: pointer; padding: 12px 14px;
-      font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase;
-    }
-    #next-goal:hover, #next-goal:focus { color: #f2f2f2; outline: none; }
-    #fleet-open {
-      margin-top: auto; background: transparent; border: 0; outline: none;
-      color: #9a9a9a; cursor: pointer; padding: 12px 14px; text-align: center;
-      font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase;
-    }
-    #fleet-open:hover, #fleet-open:focus { color: #f2f2f2; outline: none; }
-    #wiki-open {
-      background: transparent; border: 0; outline: none; color: #9a9a9a; cursor: pointer;
-      padding: 0 16px; font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase;
-    }
-    #wiki-open:hover, #wiki-open:focus { color: #f2f2f2; outline: none; }
-    #wiki-sheet {
-      position: fixed; inset: 0; z-index: 40; display: none;
-      background: rgba(0, 0, 0, 0.72); align-items: center; justify-content: center; padding: 16px;
-    }
-    #wiki-sheet.open { display: flex; }
-    .wiki-panel { width: min(760px, 100%); max-height: min(78vh, 640px); overflow: auto; background: #0a0a0a; color: #f2f2f2; padding: 28px; }
-    .wiki-panel .top { display: flex; justify-content: space-between; align-items: flex-start; }
-    .wiki-panel .left { font-size: 28px; letter-spacing: 0.18em; text-transform: uppercase; font-weight: 650; }
-    #wiki-close { background: transparent; border: 0; color: #9a9a9a; cursor: pointer; letter-spacing: 0.16em; text-transform: uppercase; font-size: 11px; }
-    .wiki-grid { display: grid; grid-template-columns: 180px 1fr; gap: 18px; margin-top: 18px; }
-    .wiki-topic { display: block; width: 100%; text-align: left; background: transparent; color: #f2f2f2; cursor: pointer; border: 1px solid rgba(242,242,242,0.55); padding: 8px 10px; margin-bottom: 8px; font-size: 13px; }
-    .wiki-topic.on { border-color: #f2f2f2; }
-    .wiki-body p { font-size: 14px; color: #c8c8c8; margin: 0 0 10px; }
-    .wiki-body h3 { margin: 0 0 8px; font-size: 20px; font-weight: 650; }
-    #fleet-sheet {
-      position: fixed; inset: 0; z-index: 40; display: none;
-      background: rgba(0, 0, 0, 0.72); align-items: center; justify-content: center; padding: 16px;
-    }
-    #fleet-sheet.open { display: flex; }
-    .fleet-panel { width: min(440px, 100%); max-height: min(70vh, 560px); overflow-y: auto; background: #0a0a0a; color: #f2f2f2; padding: 28px 28px 22px; }
-    .fleet-panel .top { display: flex; justify-content: space-between; align-items: flex-start; }
-    .fleet-panel .left { font-size: 42px; line-height: 0.9; font-weight: 650; }
-    .fleet-panel .left span { display: block; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #9a9a9a; font-weight: 500; margin-top: 6px; }
-    #fleet-close { background: transparent; border: 0; color: #9a9a9a; cursor: pointer; letter-spacing: 0.16em; text-transform: uppercase; font-size: 11px; }
-    #fleet-close:hover { color: #f2f2f2; }
-    .fleet-row { display: block; width: 100%; text-align: left; background: transparent; border: 1px solid rgba(242, 242, 242, 0.55); color: #f2f2f2; cursor: pointer; margin-top: 10px; padding: 10px 12px; }
-    .fleet-row .name { font-size: 18px; font-weight: 650; }
-    .fleet-row .meta { font-size: 12px; color: #9a9a9a; margin-top: 2px; }
-    .fleet-row.sel { border-color: #f2f2f2; }
-    .fleet-row.sel .name { color: #f2f2f2; }
-    .fleet-empty { margin-top: 18px; font-size: 14px; color: #c8c8c8; }
-    #goal-sheet {
-      position: fixed; inset: 0; z-index: 40; display: none;
-      background: rgba(0, 0, 0, 0.72); align-items: center; justify-content: center; padding: 16px;
-    }
-    #goal-sheet.open { display: flex; }
-    .goal-panel { width: min(440px, 100%); background: #0a0a0a; border: 0; color: #f2f2f2; padding: 28px 28px 22px; }
-    .goal-panel .top { display: flex; justify-content: space-between; align-items: flex-start; }
-    .goal-panel .left { font-size: 42px; line-height: 0.9; font-weight: 650; }
-    .goal-panel .left span { display: block; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #9a9a9a; font-weight: 500; margin-top: 6px; }
-    #goal-close { background: transparent; border: 0; color: #9a9a9a; cursor: pointer; letter-spacing: 0.16em; text-transform: uppercase; font-size: 11px; }
-    #goal-close:hover { color: #f2f2f2; }
-    .goal-row { display: flex; gap: 14px; align-items: baseline; margin-top: 10px; padding: 10px 12px; border: 1px solid rgba(242, 242, 242, 0.55); }
-    .goal-row .idx { font-size: 12px; color: #9a9a9a; width: 22px; }
-    .goal-row .name { font-size: 14px; color: #c8c8c8; }
-    .goal-row .line { font-size: 11px; color: #9a9a9a; letter-spacing: 0.08em; text-transform: uppercase; margin-top: 2px; }
-    .goal-row.now { border-color: #f2f2f2; }
-    .goal-row.now .name { font-size: 22px; font-weight: 650; color: #f2f2f2; }
-    .goal-row.done { opacity: 0.4; }
-    .goal-row.done .name { text-decoration: line-through; }
+    #map-chips { left: 10px; top: 10px; }
     #map-zoom { right: 10px; top: 10px; }
     #map-scale {
       position: absolute; left: 12px; bottom: 72px; z-index: 2; display: none;
@@ -224,6 +69,13 @@
       border: 1px solid rgba(0,0,0,0.35); display: inline-block;
     }
     .obj-done { color: var(--good); text-decoration: line-through; opacity: 0.85; }
+    .fleet-row {
+      border: 1px solid #333; border-radius: 2px; padding: 0.4rem 0.45rem;
+      margin-bottom: 0.35rem; cursor: pointer; background: #000;
+    }
+    .fleet-row:hover { border-color: #666; }
+    .fleet-row.sel { border-color: var(--accent); border-left-width: 3px; background: #120404; }
+    .fleet-row .meta { color: var(--muted); font-size: 10px; }
     .bar-track {
       height: 6px; background: #1a1510; border-radius: 3px; overflow: hidden; margin-top: 4px;
     }
@@ -264,22 +116,16 @@
 </head>
 <body class="flex flex-col h-full">
 
-  <header class="resource-bar px-3 py-3 shrink-0 z-20">
-    <div class="bar-left">
-      <span id="range-lamp" class="range-lamp" title="Green when the sky is inside the pad limit."></span>
-      <div>
-        <div id="sky-label">Range open</div>
-        <div id="wind-label">clear 8 kn</div>
-      </div>
-    </div>
-    <div class="bar-mid">
-      <div class="bar-stats">
-        <div><div class="stat-k">Steel</div><div id="res-steel" class="stat-n tabular-nums">200</div></div>
-        <div><div class="stat-k">Propellant</div><div id="res-prop" class="stat-n tabular-nums">40</div></div>
-        <div><div class="stat-k">Fleet</div><div id="res-fleet" class="stat-n tabular-nums">0</div></div>
-        <div><div class="stat-k">Day</div><div id="day-label" class="stat-n tabular-nums">1</div></div>
-      </div>
-      <div id="ver-label">0.3.0-panel</div>
+  <header class="resource-bar px-3 py-2 flex items-center gap-3 text-sm shrink-0 flex-wrap z-20">
+    <span id="range-lamp" class="range-lamp" title="Green when the sky is inside the pad limit."></span>
+    <span id="sky-label">Range open</span>
+    <div class="ml-auto flex items-center gap-3 text-xs">
+      <span>Steel <b id="res-steel" class="tabular-nums">200</b></span>
+      <span>Propellant <b id="res-prop" class="tabular-nums">40</b></span>
+      <span>Fleet <b id="res-fleet" class="tabular-nums">0</b></span>
+      <span id="day-label">Day 1</span>
+      <button type="button" class="ui-btn rounded px-2 py-0.5 text-xs" id="btn-mute" title="Toggle sound">🔊</button>
+      <span id="ver-label" class="opacity-70">0.2.1-field</span>
     </div>
   </header>
 
@@ -289,19 +135,15 @@
         <div class="text-[10px] uppercase tracking-wider text-amber-600 mb-2">Land</div>
         <div class="grid grid-cols-1 gap-1.5" id="build-palette"></div>
       </div>
-      <button type="button" id="next-goal">Goals</button>
     </aside>
 
     <div id="map-wrap" class="flex-1">
       <canvas id="map"></canvas>
-      <div id="map-corner">
-        <div id="map-chips">
-          <button type="button" class="ui-btn rounded px-2 py-1 text-xs" data-band="World" data-mpp="18000">World</button>
-          <button type="button" class="ui-btn rounded px-2 py-1 text-xs" data-band="Region" data-mpp="1600">Region</button>
-          <button type="button" class="ui-btn rounded px-2 py-1 text-xs" data-band="Site" data-mpp="100">Site</button>
-          <button type="button" class="ui-btn rounded px-2 py-1 text-xs" data-band="Work" data-mpp="1.25">Work</button>
-        </div>
-        <div id="job-note"></div>
+      <div id="map-chips">
+        <button type="button" class="ui-btn rounded px-2 py-1 text-xs" data-band="World" data-mpp="18000">World</button>
+        <button type="button" class="ui-btn rounded px-2 py-1 text-xs" data-band="Region" data-mpp="1600">Region</button>
+        <button type="button" class="ui-btn rounded px-2 py-1 text-xs" data-band="Site" data-mpp="100">Site</button>
+        <button type="button" class="ui-btn rounded px-2 py-1 text-xs" data-band="Work" data-mpp="1.25">Work</button>
       </div>
       <div id="map-zoom">
         <button type="button" class="ui-btn rounded px-2 py-1 text-xs" id="zoom-in">Zoom in</button>
@@ -311,31 +153,25 @@
     </div>
 
     <aside id="readout" class="w-64 ui-panel flex flex-col shrink-0 border-y-0 border-r-0 min-h-0">
-      <div class="p-2.5 flex-1 overflow-y-auto min-h-0">
+      <div class="p-2.5 border-b border-amber-900/40 flex-1 overflow-y-auto min-h-0">
         <div class="text-[10px] uppercase tracking-wider text-amber-600 mb-1">Inspector</div>
         <div id="inspector" class="text-xs text-amber-100/85 space-y-2"></div>
       </div>
-      <button type="button" id="fleet-open">Fleet</button>
+      <div class="p-2.5 border-b border-amber-900/40 max-h-40 overflow-y-auto">
+        <div class="text-[10px] uppercase tracking-wider text-amber-600 mb-1.5">Fleet</div>
+        <div id="fleet-list" class="text-[11px]"></div>
+      </div>
+      <div class="p-2.5 border-b border-amber-900/40">
+        <div class="text-[10px] uppercase tracking-wider text-amber-600 mb-1.5">Goals</div>
+        <ul id="objectives" class="text-[11px] space-y-1 text-amber-100/80"></ul>
+      </div>
+      <div class="p-2 text-[10px] text-amber-200/40">Drag · scroll · pinch · Esc · 🔊</div>
     </aside>
   </div>
 
-  <footer class="ui-panel border-x-0 border-b-0 shrink-0" style="display:flex; align-items:stretch;">
-    <button type="button" id="wiki-open">Wiki</button>
-    <div id="log" class="px-3 py-1.5 h-14 overflow-y-auto flex-1"></div>
+  <footer class="ui-panel border-x-0 border-b-0 shrink-0">
+    <div id="log" class="px-3 py-1.5 h-14 overflow-y-auto"></div>
   </footer>
-
-  <div id="wiki-sheet" aria-hidden="true">
-    <div class="wiki-panel" id="wiki-panel"></div>
-  </div>
-  <div id="fleet-sheet" aria-hidden="true">
-    <div class="fleet-panel" id="fleet-panel"></div>
-  </div>
-  <div id="goal-sheet" aria-hidden="true">
-    <div class="goal-panel" id="goal-panel"></div>
-  </div>
-  <div id="rocket-sheet" aria-hidden="true">
-    <div class="rocket-panel" id="rocket-panel"></div>
-  </div>
 
   <div id="event-stage" aria-hidden="true">
     <div class="event-head">
@@ -356,7 +192,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "0.3.0-panel";
+  const VERSION = "0.2.1-field";
   const CELL = 32, MAP_W = 40, MAP_H = 30, MS_PER_DAY = 4000;
   const ZOOM_MIN = 0.22, ZOOM_MAX = 2.4;
   const PAD_LAT = 25.997, PAD_LON = -97.157;
@@ -374,7 +210,7 @@
     MERLIN_MASS_KG: 630,
     MERLIN_RESTARTS: 1,
     MERLIN_UP_COST: 36,
-    MERLIN_UP_DAYS: 1,
+    MERLIN_UP_DAYS: 2,
     MERLIN_UP_MULT: 1.12,
     SF_THRUST_BAR_KN: 300,
     SF_WEAR_PER_FIRE: 0.08,
@@ -385,8 +221,7 @@
     WIND_LIMIT_L2: 28,
     PAD_THRUST_L1: 400,
     PAD_THRUST_L2: 900,
-    BAY_MAX: 4,
-    BAY_SLOT_COST: 30,
+    BAY_CAPACITY: 4,
     ROLLOUT_PX_PER_SEC: 52,
     ROLLOUT_MIN_SEC: 2.0,
     ROLLOUT_MAX_SEC: 14,
@@ -404,7 +239,7 @@
       short: "F1",
       era: "2006–2009",
       steelCost: 28,
-      buildDays: 1,
+      buildDays: 3,
       sfProp: 8,
       engines: 1,
       sfStyle: "merlin_single",
@@ -412,8 +247,8 @@
       color: "#c8d0d8",
       /** Base P(success) on a green pad with fresh vehicle */
       sfSuccess: 0.72,
-      refurbDaysOk: 1,
-      refurbDaysFail: 1,
+      refurbDaysOk: 2,
+      refurbDaysFail: 4,
       scrapOnFailChance: 0.35,
       blurb: "One Merlin. The fire follows thrust, the pad, the tanks, and the sky.",
       sfPhases: { approach: 1.0, chill: 1.0, ignition: 0.85, burn: 1.9, shutdown: 0.75, debrief: 1.0 },
@@ -425,15 +260,15 @@
       short: "F9",
       era: "2010+",
       steelCost: 52,
-      buildDays: 1,
+      buildDays: 5,
       sfProp: 16,
       engines: 9,
       sfStyle: "merlin_nine",
       mapScale: 1.12,
       color: "#e8eef4",
       sfSuccess: 0.82,
-      refurbDaysOk: 1,
-      refurbDaysFail: 1,
+      refurbDaysOk: 2,
+      refurbDaysFail: 5,
       scrapOnFailChance: 0.22,
       blurb: "Nine-engine first stage. Heavier fire, higher base reliability.",
       sfPhases: { approach: 1.15, chill: 1.4, ignition: 1.2, burn: 3.2, shutdown: 1.0, debrief: 1.2 },
@@ -452,7 +287,7 @@
       footprint: { w: 4, h: 3 },
       maxCount: 1,
       zoneHint: "production",
-      blurb: "Builds one vehicle from steel. It stays here until you stage it to Mega Bay.",
+      blurb: "Manufactures flight vehicles from steel. Not a steel mill. Holds one vehicle until staged to the bay.",
     },
     mega_bay: {
       id: "mega_bay",
@@ -462,7 +297,7 @@
       footprint: { w: 5, h: 3 },
       maxCount: 1,
       zoneHint: "production",
-      blurb: "Houses the fleet. A vehicle comes back here after a fire.",
+      blurb: "High bay / hangar: house the fleet, stage for pad, and perform post-fire refurb. Real ops keep articles indoors between pad tests.",
     },
     pad_orbital: {
       id: "pad_orbital",
@@ -474,11 +309,108 @@
       zoneHint: "launch",
       maxLevel: 2,
       upgradeVisual: { 2: "Widen flame trench and raise the mount" },
-      blurb: "Holds one vehicle for a static fire.",
+      blurb: "Static fire only. Level 2 accepts more thrust, allows more wind, and shortens a clean refurb by one day.",
     },
   };
 
   const BUILD_ORDER = ["starfactory", "mega_bay", "pad_orbital"];
+
+  // ── Audio (compact) ──
+  const SFX = { ctx: null, master: null, muted: false, lastUi: 0, engine: null };
+  function audioInit() {
+    if (SFX.ctx) { if (SFX.ctx.state === "suspended") SFX.ctx.resume(); return; }
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    SFX.ctx = new AC();
+    SFX.master = SFX.ctx.createGain();
+    SFX.master.gain.value = SFX.muted ? 0 : 0.32;
+    SFX.master.connect(SFX.ctx.destination);
+  }
+  function setMuted(m) {
+    SFX.muted = m;
+    if (SFX.master) SFX.master.gain.value = m ? 0 : 0.32;
+    const btn = document.getElementById("btn-mute");
+    if (btn) btn.textContent = m ? "🔇" : "🔊";
+    try { localStorage.setItem("starbase-mute", m ? "1" : "0"); } catch (_) {}
+  }
+  function tone(freq, dur, type = "sine", vol = 0.12, when = 0, slideTo = null) {
+    if (!SFX.ctx || SFX.muted) return;
+    const t0 = SFX.ctx.currentTime + when;
+    const o = SFX.ctx.createOscillator(), g = SFX.ctx.createGain();
+    o.type = type; o.frequency.setValueAtTime(freq, t0);
+    if (slideTo != null) o.frequency.exponentialRampToValueAtTime(Math.max(20, slideTo), t0 + dur);
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(vol, t0 + 0.015);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    o.connect(g); g.connect(SFX.master); o.start(t0); o.stop(t0 + dur + 0.02);
+  }
+  function noiseBurst(dur, vol = 0.1, when = 0, filterFreq = 800, type = "bandpass") {
+    if (!SFX.ctx || SFX.muted) return;
+    const t0 = SFX.ctx.currentTime + when;
+    const len = Math.max(1, Math.floor(SFX.ctx.sampleRate * dur));
+    const buf = SFX.ctx.createBuffer(1, len, SFX.ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
+    const src = SFX.ctx.createBufferSource(); src.buffer = buf;
+    const filter = SFX.ctx.createBiquadFilter();
+    filter.type = type; filter.frequency.value = filterFreq;
+    const g = SFX.ctx.createGain();
+    g.gain.setValueAtTime(vol, t0);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    src.connect(filter); filter.connect(g); g.connect(SFX.master);
+    src.start(t0); src.stop(t0 + dur + 0.02);
+  }
+  function sfxUi() {
+    if (!SFX.ctx || SFX.muted) return;
+    if (performance.now() - SFX.lastUi < 45) return;
+    SFX.lastUi = performance.now();
+    tone(520, 0.04, "square", 0.03);
+  }
+  function sfxBuild() { audioInit(); tone(180, 0.1, "sawtooth", 0.05); noiseBurst(0.08, 0.04, 0.04, 400, "lowpass"); }
+  function sfxReady() { audioInit(); tone(523, 0.08, "sine", 0.05); tone(659, 0.1, "sine", 0.05, 0.07); }
+  function sfxRoll() { audioInit(); noiseBurst(0.3, 0.05, 0, 200, "lowpass"); }
+  function sfxUp() { audioInit(); tone(330, 0.07, "sine", 0.05); tone(440, 0.1, "sine", 0.05, 0.06); }
+  function sfxOk() { audioInit(); tone(523, 0.1, "sine", 0.05); tone(784, 0.16, "sine", 0.06, 0.12); }
+  function sfxFail() { audioInit(); noiseBurst(0.55, 0.2, 0, 300, "lowpass"); tone(90, 0.4, "sawtooth", 0.08, 0, 40); tone(60, 0.5, "square", 0.05, 0.1, 30); }
+  function sfxErr() { audioInit(); tone(150, 0.12, "sawtooth", 0.05); }
+  function sfxSF(style) {
+    audioInit();
+    const h = style === "merlin_nine";
+    noiseBurst(h ? 0.5 : 0.3, h ? 0.15 : 0.1, 0, 160, "lowpass");
+    tone(h ? 48 : 70, h ? 0.8 : 0.5, "sawtooth", h ? 0.07 : 0.05, 0, 32);
+  }
+  function sfxIgn(style) {
+    audioInit();
+    const h = style === "merlin_nine";
+    noiseBurst(h ? 0.65 : 0.35, h ? 0.17 : 0.1, 0, 140, "lowpass");
+  }
+  function startRumble(style) {
+    stopRumble();
+    if (!SFX.ctx || SFX.muted) return;
+    audioInit();
+    const h = style === "merlin_nine";
+    const len = SFX.ctx.sampleRate * 2;
+    const buf = SFX.ctx.createBuffer(1, len, SFX.ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+    const src = SFX.ctx.createBufferSource(); src.buffer = buf; src.loop = true;
+    const f = SFX.ctx.createBiquadFilter(); f.type = "lowpass"; f.frequency.value = h ? 170 : 260;
+    const g = SFX.ctx.createGain(); g.gain.value = 0.0001;
+    g.gain.exponentialRampToValueAtTime(h ? 0.1 : 0.06, SFX.ctx.currentTime + 0.35);
+    src.connect(f); f.connect(g); g.connect(SFX.master); src.start();
+    SFX.engine = { src, g };
+  }
+  function stopRumble() {
+    if (!SFX.engine || !SFX.ctx) return;
+    try {
+      const t = SFX.ctx.currentTime;
+      SFX.engine.g.gain.cancelScheduledValues(t);
+      SFX.engine.g.gain.setValueAtTime(Math.max(SFX.engine.g.gain.value, 0.0001), t);
+      SFX.engine.g.gain.exponentialRampToValueAtTime(0.0001, t + 0.3);
+      const e = SFX.engine; SFX.engine = null;
+      setTimeout(() => { try { e.src.stop(); } catch (_) {} }, 350);
+    } catch (_) { SFX.engine = null; }
+  }
 
   // ── State ──
   // vehicle: { id, name, rocketId, buildingId|null, status, condition, refurbLeft, wx, wy, baySlot }
@@ -496,11 +428,6 @@
     nextId: 1,
     selectedId: null,
     selectedVehicleId: null,
-    rocketSheet: null,
-    goalSheet: false,
-    fleetSheet: false,
-    wikiSheet: false,
-    wikiPage: "factory",
     placeType: null,
     cam: { x: 80, y: 40, zoom: 1 },
     lon: PAD_LON, lat: PAD_LAT, span: 0.045,
@@ -527,9 +454,9 @@
     day: document.getElementById("day-label"),
     log: document.getElementById("log"),
     inspector: document.getElementById("inspector"),
-    objectives: document.getElementById("next-goal"),
+    objectives: document.getElementById("objectives"),
     palette: document.getElementById("build-palette"),
-    fleetList: null,
+    fleetList: document.getElementById("fleet-list"),
   };
 
   function log(msg, kind = "info") {
@@ -554,10 +481,6 @@
     const bay = buildingOfType("mega_bay");
     return bay ? vehiclesAt(bay.id).length : 0;
   }
-  function bayCapacity(bay) {
-    const b = bay || buildingOfType("mega_bay");
-    return Math.max(1, Math.min(TUNING.BAY_MAX, (b && b.level) || 1));
-  }
   function factoryHold() {
     const f = buildingOfType("starfactory");
     return f ? vehiclesAt(f.id)[0] || null : null;
@@ -580,7 +503,7 @@
     const baseY = (b.gy + d.footprint.h * 0.42) * CELL;
     if (b.type === "mega_bay") {
       const spread = 22;
-      const n = bayCapacity(b);
+      const n = TUNING.BAY_CAPACITY;
       const i = slot % n;
       return { x: baseX + (i - (n - 1) / 2) * spread, y: baseY };
     }
@@ -606,13 +529,14 @@
   }
 
   function buyPlot(id) {
+    audioInit();
     const plot = PLOTS[id];
     if (!plot || G.plots[id]) return;
-    if (G.steel < plot.cost) { log(`Need ${plot.cost} steel.`, "bad"); return; }
+    if (G.steel < plot.cost) { sfxErr(); log(`Need ${plot.cost} steel.`, "bad"); return; }
     for (const b of plot.buildings) {
       const check = canPlace(b.type, b.gx, b.gy);
       if (!check.ok && check.why !== `Need ${defOf(b.type).cost} steel`) {
-        log(check.why, "bad"); return;
+        sfxErr(); log(check.why, "bad"); return;
       }
     }
     G.steel -= plot.cost;
@@ -621,20 +545,23 @@
       G.buildings.push({ id: G.nextId++, type: b.type, gx: b.gx, gy: b.gy, level: 1 });
       G.selectedId = G.buildings[G.buildings.length - 1].id;
     }
+    sfxBuild();
     log(`${plot.name} bought. The buildings sit on the real Starbase layout.`, "good");
     updateObjectives();
     renderChrome();
   }
 
   function placeBuilding(type, gx, gy) {
+    audioInit();
     const check = canPlace(type, gx, gy);
-    if (!check.ok) { log(check.why, "bad"); return; }
+    if (!check.ok) { sfxErr(); log(check.why, "bad"); return; }
     const def = defOf(type);
     G.steel -= def.cost;
     G.buildings.push({ id: G.nextId++, type, gx, gy, level: 1 });
     G.selectedId = G.buildings[G.buildings.length - 1].id;
     G.placeType = null;
     canvas.classList.remove("placing");
+    sfxBuild();
     log(`Built ${def.name} (−${def.cost} steel)`, "good");
     updateObjectives();
     renderChrome();
@@ -648,7 +575,7 @@
     if (G.factoryJob) {
       G.factoryJob.daysLeft--;
       if (G.factoryJob.daysLeft <= 0) finishFactoryJob();
-      else if (G.factoryJob.kind === "merlin") log(`Merlin thrust · ${G.factoryJob.daysLeft} days left`, "info");
+      else if (G.factoryJob.kind === "merlin") log(`Engine lab: Merlin thrust upgrade — ${G.factoryJob.daysLeft}d left`, "info");
       else log(`Factory: ${rocketOf(G.factoryJob.rocketId).name} — ${G.factoryJob.daysLeft}d left`, "info");
     }
 
@@ -658,6 +585,7 @@
         if (v.refurbLeft <= 0) {
           v.status = "in_bay";
           v.condition = Math.min(100, v.condition + 25);
+          sfxReady();
           log(`${v.name} refurb complete in Mega Bay — ready`, "good");
           G.objectives.refurb = true;
         }
@@ -672,11 +600,9 @@
     G.factoryJob = null;
     if (!job || !factory) return;
     if (job.kind === "merlin") {
-      const v = vehicleById(job.vehicleId);
-      if (v) {
-        v.merlinTier = 2;
-        log(`Merlin thrust on ${v.name} is now ${Math.round(TUNING.MERLIN_THRUST_KN * TUNING.MERLIN_UP_MULT)} kN.`, "good");
-      }
+      G.merlinTier = 2;
+      sfxUp();
+      log("Merlin thrust is now 12% higher on every Falcon 1.", "good");
       renderChrome();
       return;
     }
@@ -694,7 +620,6 @@
       buildingId: factory.id,
       status: "at_factory",
       condition: 100,
-      merlinTier: 1,
       fires: 0,
       refurbLeft: 0,
       baySlot: 0,
@@ -702,6 +627,7 @@
     };
     G.fleet.push(v);
     G.selectedVehicleId = v.id;
+    sfxReady();
     log(`${v.name} complete at Starfactory — stage into Mega Bay`, "good");
     G.objectives.build_rocket = true;
     updateObjectives();
@@ -709,41 +635,46 @@
   }
 
   function startBuildRocket(rocketId) {
+    audioInit();
     const r = rocketOf(rocketId);
-    if (!r.unlocked) { log("Not on roadmap yet", "warn"); return; }
+    if (!r.unlocked) { sfxErr(); log("Not on roadmap yet", "warn"); return; }
     const factory = buildingById(G.selectedId);
     if (!factory || factory.type !== "starfactory") { log("Select Starfactory", "warn"); return; }
-    if (G.factoryJob) { log("Factory already building", "warn"); return; }
-    if (factoryHold()) { log("Move finished vehicle to Mega Bay first (factory hold is 1)", "warn"); return; }
+    if (G.factoryJob) { sfxErr(); log("Factory already building", "warn"); return; }
+    if (factoryHold()) { sfxErr(); log("Move finished vehicle to Mega Bay first (factory hold is 1)", "warn"); return; }
     if (G.event || G.rollout) { log("Ops busy", "warn"); return; }
-    if (G.steel < r.steelCost) { log(`Need ${r.steelCost} steel`, "bad"); return; }
+    if (G.steel < r.steelCost) { sfxErr(); log(`Need ${r.steelCost} steel`, "bad"); return; }
     G.steel -= r.steelCost;
     G.factoryJob = { kind: "rocket", rocketId: r.id, daysLeft: r.buildDays, totalDays: r.buildDays };
+    sfxBuild();
     log(`Factory: ${r.name} started (−${r.steelCost} steel · ${r.buildDays} days)`, "good");
     renderChrome();
   }
 
   function stageToBay(vehicleId) {
+    audioInit();
     const bay = buildingOfType("mega_bay");
-    if (!bay) { log("Need Mega Bay", "bad"); return; }
+    if (!bay) { sfxErr(); log("Need Mega Bay", "bad"); return; }
     const v = vehicleById(vehicleId || G.selectedVehicleId);
-    if (!v || v.status !== "at_factory") { log("Select a finished vehicle at the factory", "warn"); return; }
-    const cap = bayCapacity(bay);
-    if (bayCount() >= cap) {
-      log(`Mega Bay is full. It holds ${cap}.`, "bad");
+    if (!v || v.status !== "at_factory") { sfxErr(); log("Select a finished vehicle at the factory", "warn"); return; }
+    if (bayCount() >= TUNING.BAY_CAPACITY) {
+      sfxErr();
+      log(`Mega Bay full (${TUNING.BAY_CAPACITY} articles). Real hangars are capacity-limited.`, "bad");
       return;
     }
     if (G.event || G.rollout) { log("Ops busy", "warn"); return; }
+    // assign bay slot
     const used = new Set(vehiclesAt(bay.id).map((x) => x.baySlot));
     let slot = 0;
-    while (used.has(slot) && slot < cap) slot++;
+    while (used.has(slot) && slot < TUNING.BAY_CAPACITY) slot++;
     v.buildingId = bay.id;
     v.status = "in_bay";
     v.baySlot = slot;
     const a = buildingAnchor(bay, slot);
     v.wx = a.x; v.wy = a.y;
     G.selectedVehicleId = v.id;
-    log(`${v.name} staged in Mega Bay, slot ${slot + 1} of ${cap}.`, "good");
+    sfxBuild();
+    log(`${v.name} staged in Mega Bay (slot ${slot + 1}/${TUNING.BAY_CAPACITY})`, "good");
     if (bayCount() >= 2) G.objectives.multi_bay = true;
     updateObjectives();
     renderChrome();
@@ -787,24 +718,25 @@
   }
 
   function startRoll(vehicleId, destKind) {
+    audioInit();
     const v = vehicleById(vehicleId || G.selectedVehicleId);
-    if (!v) { log("Select a vehicle", "warn"); return; }
+    if (!v) { sfxErr(); log("Select a vehicle", "warn"); return; }
     if (G.rollout || G.event) { log("Transport busy", "warn"); return; }
     const pad = buildingOfType("pad_orbital");
     const bay = buildingOfType("mega_bay");
-    if (!pad || !bay) { log("Need bay and pad", "bad"); return; }
+    if (!pad || !bay) { sfxErr(); log("Need bay and pad", "bad"); return; }
 
     let fromB, toB, destStatus, speed;
     if (destKind === "pad") {
-      if (v.status !== "in_bay") { log("Only bay-ready vehicles roll to pad", "warn"); return; }
-      if (padHold()) { log("Pad occupied — one stack on OLM", "warn"); return; }
+      if (v.status !== "in_bay") { sfxErr(); log("Only bay-ready vehicles roll to pad", "warn"); return; }
+      if (padHold()) { sfxErr(); log("Pad occupied — one stack on OLM", "warn"); return; }
       fromB = bay; toB = pad; destStatus = "on_pad"; speed = TUNING.ROLLOUT_PX_PER_SEC;
     } else if (destKind === "bay") {
       if (v.status !== "on_pad" && v.status !== "needs_return") {
-        log("Return to bay from pad after fire", "warn"); return;
+        sfxErr(); log("Return to bay from pad after fire", "warn"); return;
       }
-      if (bayCount() >= bayCapacity(bay) && v.buildingId !== bay.id) {
-        log("Mega Bay is full.", "bad"); return;
+      if (bayCount() >= TUNING.BAY_CAPACITY && v.buildingId !== bay.id) {
+        sfxErr(); log("Bay full — cannot return yet", "bad"); return;
       }
       fromB = pad; toB = bay; destStatus = "refurb"; speed = TUNING.RETURN_PX_PER_SEC;
     } else return;
@@ -816,7 +748,7 @@
     if (destKind === "bay") {
       const used = new Set(vehiclesAt(bay.id).filter((x) => x.id !== v.id).map((x) => x.baySlot));
       slot = 0;
-      while (used.has(slot) && slot < bayCapacity(bay)) slot++;
+      while (used.has(slot) && slot < TUNING.BAY_CAPACITY) slot++;
       v.baySlot = slot;
     }
     const toA = buildingAnchor(toB, destKind === "bay" ? slot : 0);
@@ -832,6 +764,7 @@
       vehicleId: v.id, pts, segLens, totalLen, t: 0, duration,
       destKind, destId: toB.id, destStatus, baySlot: slot,
     };
+    sfxRoll();
     log(
       `${v.name} ${destKind === "pad" ? "rollout to pad" : "return to bay"} · ${duration.toFixed(1)}s`,
       "info"
@@ -865,6 +798,7 @@
         log(`${v.name} on pad — static fire when ready`, "good");
       }
       G.rollout = null;
+      sfxReady();
       updateObjectives();
       renderChrome();
     }
@@ -886,14 +820,13 @@
     return table[((day - 1) % table.length + table.length) % table.length];
   }
 
-  function merlinFreshKn(v) {
-    const tier = v && v.merlinTier >= 2 ? 2 : 1;
-    return Math.round(TUNING.MERLIN_THRUST_KN * (tier >= 2 ? TUNING.MERLIN_UP_MULT : 1));
+  function merlinFreshKn() {
+    return Math.round(TUNING.MERLIN_THRUST_KN * (G.merlinTier >= 2 ? TUNING.MERLIN_UP_MULT : 1));
   }
 
   function merlinNowKn(v) {
     const fires = v && v.fires ? v.fires : 0;
-    return Math.round(merlinFreshKn(v) * (1 - TUNING.SF_WEAR_PER_FIRE * fires));
+    return Math.round(merlinFreshKn() * (1 - TUNING.SF_WEAR_PER_FIRE * fires));
   }
 
   function padLimits(pad) {
@@ -950,10 +883,10 @@
     const need = rocketOf(v.rocketId).sfProp;
     const word = fireVerdict(thrust, limits.thrust, G.prop, need, sky.wind, limits.wind, sky.storm);
     const lines = [
-      `Thrust is ${thrust} kN. The fire needs ${TUNING.SF_THRUST_BAR_KN} kN.`,
-      `The pad accepts ${limits.thrust} kN and wind up to ${limits.wind} knots.`,
-      `Propellant is ${Math.floor(G.prop)}. This fire draws ${need}.`,
-      `${sky.sky[0].toUpperCase()}${sky.sky.slice(1)}, ${sky.wind} knots.`,
+      `Thrust today ${thrust} kN. The fire needs ${TUNING.SF_THRUST_BAR_KN} kN.`,
+      `Pad accepts ${limits.thrust} kN and wind up to ${limits.wind} knots.`,
+      `Propellant ${G.prop}. This fire draws ${need}.`,
+      `${sky.sky}, ${sky.wind} knots.`,
     ];
     return {
       ok: word === "hold",
@@ -963,15 +896,17 @@
   }
 
   function staticFire() {
+    audioInit();
     const pad = buildingOfType("pad_orbital");
-    if (!pad) { log("Need pad", "bad"); return; }
+    if (!pad) { sfxErr(); log("Need pad", "bad"); return; }
     const v = padHold();
-    if (!v || v.status !== "on_pad") { log("Need a vehicle on the pad", "bad"); return; }
+    if (!v || v.status !== "on_pad") { sfxErr(); log("Need a vehicle on the pad", "bad"); return; }
     if (G.event || G.rollout) { log("Busy", "warn"); return; }
     const r = rocketOf(v.rocketId);
     const check = fireCheck(v, pad);
     check.lines.forEach((line) => log(line, "info"));
     if (!check.ok && (check.limiter === "weather" || check.limiter === "propellant")) {
+      sfxErr();
       log(check.limiter === "weather"
         ? "Range is closed. Wait for a calmer day."
         : `Need ${check.need} propellant.`, "bad");
@@ -1028,9 +963,10 @@
       phases,
       done: false,
       particles: [],
-      _failShown: false,
+      _ign: false, _rumble: false, _failSfx: false,
     };
     G.flameUntil = performance.now() + (success ? 1000 : 1600);
+    sfxSF(r.sfStyle);
     elEvent.phase.classList.remove("fail");
     openEvent(
       `Static fire · ${v.name}`,
@@ -1052,6 +988,7 @@
   function closeEvent() {
     eventStage.classList.remove("open");
     eventStage.setAttribute("aria-hidden", "true");
+    stopRumble();
   }
 
   function applySfOutcome() {
@@ -1068,12 +1005,15 @@
     v.condition = next.condition;
     if (next.scrap) {
       v.buildingId = null;
+      sfxFail();
       log(`${v.name} is below the condition floor of ${TUNING.SCRAP_FLOOR}. The core is scrap. The ${ev.limiter} was short.`, "bad");
     } else if (ev.success) {
       v.refurbLeft = next.refurbLeft;
+      sfxOk();
       log(`${v.name} held. Return it to the Mega Bay for ${v.refurbLeft} days of refurb. Thrust next fire ${merlinNowKn(v)} kN.`, "good");
     } else {
       v.refurbLeft = next.refurbLeft;
+      sfxFail();
       log(`${v.name} failed because the ${ev.limiter} was short. Condition ${v.condition}. Refurb ${v.refurbLeft} days. Scrap floor is ${TUNING.SCRAP_FLOOR}.`, "bad");
     }
   }
@@ -1089,6 +1029,7 @@
 
   function skipEvent() {
     if (!G.event) { closeEvent(); return; }
+    stopRumble();
     G.event.done = true;
     finishEvent();
   }
@@ -1111,8 +1052,17 @@
     const phase = ev.phases[ev.phaseIdx];
     const pid = phase ? phase.id : "debrief";
 
-    if ((pid === "anomaly" || pid === "fail") && !ev._failShown) {
-      ev._failShown = true;
+    if ((pid === "ignition" || pid === "burn") && !ev._ign) {
+      ev._ign = true; sfxIgn(ev.sfStyle);
+    }
+    if ((pid === "ignition" || pid === "burn") && !ev._rumble) {
+      ev._rumble = true; startRumble(ev.sfStyle);
+    }
+    if ((pid === "anomaly" || pid === "fail" || pid === "shutdown" || pid === "debrief") && ev._rumble) {
+      stopRumble(); ev._rumble = false;
+    }
+    if ((pid === "anomaly" || pid === "fail") && !ev._failSfx) {
+      ev._failSfx = true; sfxFail();
       elEvent.phase.classList.add("fail");
     }
 
@@ -1316,25 +1266,15 @@
   }
 
   function upgradePad() {
+    audioInit();
     const pad = buildingById(G.selectedId);
     if (!pad || pad.type !== "pad_orbital") return;
     if (pad.level >= 2) { log("Pad already L2", "info"); return; }
-    if (G.steel < TUNING.PAD_L2_COST) { log(`Need ${TUNING.PAD_L2_COST} steel`, "bad"); return; }
+    if (G.steel < TUNING.PAD_L2_COST) { sfxErr(); log(`Need ${TUNING.PAD_L2_COST} steel`, "bad"); return; }
     G.steel -= TUNING.PAD_L2_COST;
     pad.level = 2;
-    log("Pad level 2. The trench is wider.", "good");
-    updateObjectives();
-    renderChrome();
-  }
-
-  function upgradeBay() {
-    const bay = buildingById(G.selectedId);
-    if (!bay || bay.type !== "mega_bay") return;
-    if (bay.level >= TUNING.BAY_MAX) return;
-    if (G.steel < TUNING.BAY_SLOT_COST) { log(`Need ${TUNING.BAY_SLOT_COST} steel.`, "bad"); return; }
-    G.steel -= TUNING.BAY_SLOT_COST;
-    bay.level += 1;
-    log(`Mega Bay holds ${bay.level} vehicles.`, "good");
+    sfxUp();
+    log("Pad L2 — wider trench, taller OLM, +SF reliability", "good");
     updateObjectives();
     renderChrome();
   }
@@ -1353,7 +1293,7 @@
     el.steel.textContent = Math.floor(G.steel);
     el.prop.textContent = Math.floor(G.prop);
     el.fleet.textContent = liveFleet().length;
-    el.day.textContent = String(G.day);
+    el.day.textContent = "Day " + G.day;
   }
 
   function plotSqft(plot) {
@@ -1362,127 +1302,56 @@
     const metersW = (plot.east - plot.west) * 111320 * Math.cos(mid);
     return metersH * metersW * 10.76391041671;
   }
-  function fmtAcres(n) {
+  function fmtSqft(n) {
     const acres = n / 43560;
     const acresLabel = acres >= 100 ? Math.round(acres).toLocaleString("en-US") : acres.toFixed(1);
-    return acresLabel + " acres";
+    return acresLabel + " acres · " + Math.round(n).toLocaleString("en-US") + " sq ft";
   }
   function renderPalette() {
     const ownedSq = Object.keys(PLOTS).reduce((sum, id) => sum + (G.plots[id] ? plotSqft(PLOTS[id]) : 0), 0);
     const offers = Object.keys(PLOTS).filter((id) => !G.plots[id]).map((id) => {
       const plot = PLOTS[id];
-      return `<button type="button" class="plot-card" data-plot="${id}">
-        <div class="name">${esc(plot.name)}</div>
-        <div class="price">${plot.cost}</div>
-        <div class="unit">steel</div>
-        <div class="line">${esc(plot.line)}</div>
+      return `<button type="button" class="ui-btn rounded p-2 text-left text-[11px] w-full" data-plot="${id}">
+        <div class="font-semibold">${esc(plot.name)}</div>
+        <div>${fmtSqft(plotSqft(plot))}</div>
+        <div>${plot.cost} steel</div>
       </button>`;
     }).join("");
-    el.palette.innerHTML = `<div class="plot-owned">Owned<b>${fmtAcres(ownedSq)}</b></div>` + offers;
+    el.palette.innerHTML = `<div class="px-1 pb-2 text-[11px]">Owned<br><b>${fmtSqft(ownedSq)}</b></div>` + offers;
     el.palette.querySelectorAll("[data-plot]").forEach((btn) => {
       btn.addEventListener("click", () => buyPlot(btn.getAttribute("data-plot")));
     });
   }
 
-  function wikiPages() {
-    const merlinNext = Math.round(TUNING.MERLIN_THRUST_KN * TUNING.MERLIN_UP_MULT);
-    return [
-      { id: "factory", name: "Starfactory", title: "Starfactory", lines: [
-        "Builds one vehicle from steel. The finished vehicle stays here until you stage it to Mega Bay.",
-        `Falcon 1 costs ${ROCKET_DEFS.falcon1.steelCost} steel and takes ${ROCKET_DEFS.falcon1.buildDays} days. The factory holds one finished vehicle.`,
-        "Falcon 9, Falcon Heavy, and Starship are not built here yet.",
-      ]},
-      { id: "bay", name: "Mega Bay", title: "Mega Bay", lines: [
-        "Houses the fleet. A vehicle comes back here after a fire, and the refurb happens in the bay.",
-        `The bay starts with 1 slot. Another slot costs ${TUNING.BAY_SLOT_COST} steel and adds one vehicle, up to ${TUNING.BAY_MAX}.`,
-        `A clean fire takes ${ROCKET_DEFS.falcon1.refurbDaysOk} day of refurb. A miss takes ${ROCKET_DEFS.falcon1.refurbDaysFail} day.`,
-      ]},
-      { id: "pad", name: "Orbital Pad", title: "Orbital Pad", lines: [
-        "Holds one vehicle for a static fire.",
-        `The pad accepts ${TUNING.PAD_THRUST_L1} kN. That is the most thrust this pad will hold. A rocket above that fails the pad check.`,
-        `Pad level 2 costs ${TUNING.PAD_L2_COST} steel. The trench widens. The pad then accepts ${TUNING.PAD_THRUST_L2} kN.`,
-        `The pad allows wind up to ${TUNING.WIND_LIMIT_L1} knots, then ${TUNING.WIND_LIMIT_L2} knots at level 2. The lamp in the header is the sky.`,
-      ]},
-      { id: "falcon", name: "Falcon 1", title: "Falcon 1", lines: [
-        "One Merlin. The numbers on the rocket sheet are this engine.",
-        `Thrust is the push. A fresh Merlin makes ${TUNING.MERLIN_THRUST_KN} kN. Raise Merlin thrust costs ${TUNING.MERLIN_UP_COST} steel and ${TUNING.MERLIN_UP_DAYS} days. That rocket then makes ${merlinNext} kN. Each fire wears the thrust by ${Math.round(TUNING.SF_WEAR_PER_FIRE * 100)}%.`,
-        `Impulse is ${TUNING.MERLIN_ISP_S} s. That is how long one mass of propellant lasts in the burn. Mass is ${TUNING.MERLIN_MASS_KG} kg. Restarts: ${TUNING.MERLIN_RESTARTS}.`,
-      ]},
-      { id: "fire", name: "Static fire", title: "Static fire", lines: [
-        `The engine must make at least ${TUNING.SF_THRUST_BAR_KN} kN. The fire draws ${ROCKET_DEFS.falcon1.sfProp} propellant.`,
-        "If the thrust is higher than the pad accepts, the pad fails the check. If the tanks are short, the fire does not start. If the range lamp is closed, the fire does not start.",
-        `A good fire takes ${TUNING.SF_OK_CONDITION} condition. A miss takes ${TUNING.SF_MISS_CONDITION} condition. Condition under ${TUNING.SCRAP_FLOOR} scraps the vehicle.`,
-      ]},
-    ];
-  }
-
-  function renderWiki() {
-    const panel = document.getElementById("wiki-panel");
-    const sheet = document.getElementById("wiki-sheet");
-    if (!panel || !sheet) return;
-    const pages = wikiPages();
-    const page = pages.find((p) => p.id === G.wikiPage) || pages[0];
-    const topics = pages.map((p) => `<button type="button" class="wiki-topic${p.id === page.id ? " on" : ""}" data-wiki="${p.id}">${esc(p.name)}</button>`).join("");
-    const body = page.lines.map((line) => `<p>${esc(line)}</p>`).join("");
-    panel.innerHTML = `<div class="top"><div class="left">Wiki</div><button type="button" id="wiki-close">Close</button></div>
-      <div class="wiki-grid"><div>${topics}</div><div class="wiki-body"><h3>${esc(page.title)}</h3>${body}</div></div>`;
-    sheet.classList.toggle("open", G.wikiSheet);
-    sheet.setAttribute("aria-hidden", G.wikiSheet ? "false" : "true");
-    const close = panel.querySelector("#wiki-close");
-    if (close) close.onclick = () => { G.wikiSheet = false; renderWiki(); };
-    panel.querySelectorAll("[data-wiki]").forEach((btn) => {
-      btn.onclick = () => { G.wikiPage = btn.getAttribute("data-wiki"); renderWiki(); };
-    });
-  }
-
   function renderFleetList() {
-    const panel = document.getElementById("fleet-panel");
-    const sheet = document.getElementById("fleet-sheet");
-    if (!panel || !sheet) return;
     const list = liveFleet();
-    const rows = list.length
-      ? list.map((v) => {
-        const sel = v.id === G.selectedVehicleId ? " sel" : "";
-        return `<button type="button" class="fleet-row${sel}" data-vid="${v.id}">
-          <div class="name">${esc(v.name)}</div>
-          <div class="meta">${esc(placeLabel(v))} · condition ${Math.round(v.condition)}</div>
-        </button>`;
-      }).join("")
-      : `<p class="fleet-empty">No vehicles yet. Build one at Starfactory.</p>`;
-    panel.innerHTML = `<div class="top"><div class="left">${list.length}<span>${list.length === 1 ? "vehicle" : "vehicles"}</span></div>
-      <button type="button" id="fleet-close">Close</button></div>${rows}`;
-    sheet.classList.toggle("open", G.fleetSheet);
-    sheet.setAttribute("aria-hidden", G.fleetSheet ? "false" : "true");
-    const close = panel.querySelector("#fleet-close");
-    if (close) close.onclick = () => { G.fleetSheet = false; renderFleetList(); };
-    panel.querySelectorAll("[data-vid]").forEach((row) => {
-      row.onclick = () => {
+    if (!list.length) {
+      el.fleetList.innerHTML = `<p class="text-amber-200/45">No vehicles yet. Build at Starfactory.</p>`;
+      return;
+    }
+    el.fleetList.innerHTML = list.map((v) => {
+      const r = rocketOf(v.rocketId);
+      const sel = v.id === G.selectedVehicleId ? "sel" : "";
+      let loc = v.status;
+      if (v.status === "in_bay") loc = `bay slot ${(v.baySlot || 0) + 1}`;
+      if (v.status === "at_factory") loc = "factory hold";
+      if (v.status === "on_pad" || v.status === "needs_return") loc = "pad";
+      if (v.status === "refurb") loc = `bay refurb ${v.refurbLeft}d`;
+      if (v.status === "rolling") loc = "on road";
+      return `<div class="fleet-row ${sel}" data-vid="${v.id}">
+        <div class="font-semibold text-amber-100">${esc(v.name)} <span class="text-amber-200/50">${esc(r.short)}</span></div>
+        <div class="meta">${esc(loc)} · cond ${Math.round(v.condition)}%</div>
+      </div>`;
+    }).join("");
+    el.fleetList.querySelectorAll("[data-vid]").forEach((row) => {
+      row.addEventListener("click", () => {
+        sfxUi();
         G.selectedVehicleId = +row.getAttribute("data-vid");
-        G.fleetSheet = false;
-        G.rocketSheet = G.selectedVehicleId;
         const v = selectedVehicle();
         if (v && v.buildingId) G.selectedId = v.buildingId;
         renderChrome();
-      };
+      });
     });
-  }
-
-  function placeLabel(v) {
-    if (v.status === "in_bay") return `Bay slot ${(v.baySlot || 0) + 1}`;
-    if (v.status === "at_factory") return "At the factory";
-    if (v.status === "on_pad" || v.status === "needs_return") return "On the pad";
-    if (v.status === "refurb") return `Refurb · ${v.refurbLeft} days left`;
-    if (v.status === "rolling") return "On the road";
-    return v.status;
-  }
-
-  function actCard(cls, id, extra, name, price, unit, line) {
-    const idAttr = id ? ` id="${id}"` : "";
-    const priceHtml = price == null ? "" : `<div class="price">${price}</div><div class="unit">${unit}</div>`;
-    const lineHtml = line ? `<div class="line">${line}</div>` : "";
-    return `<button type="button" class="act ${cls}"${idAttr}${extra || ""}>
-      <div class="name">${name}</div>${priceHtml}${lineHtml}
-    </button>`;
   }
 
   function renderInspector() {
@@ -1500,117 +1369,102 @@
 
     const b = buildingById(G.selectedId);
     if (!b) {
-      box.innerHTML = `<p class="text-amber-200/55">Select Starfactory, Mega Bay, or the Orbital Pad.</p>`;
+      box.innerHTML = `<p class="text-amber-200/55">Select the factory, the bay, or the pad.</p>
+        <p class="text-amber-200/40 mt-2">Falcon 1 only. The fire holds when thrust, the pad, propellant, and the sky all clear.</p>`;
       return;
     }
     const d = defOf(b.type);
-    let html = `<div class="bldg"><div class="title">${esc(d.name)}</div><p class="blurb">${esc(d.blurb)}</p>`;
+    let html = `<div class="text-amber-100 font-semibold">${esc(d.name)} <span class="text-amber-200/50">L${b.level}</span></div>
+      <p class="text-amber-200/55">${esc(d.blurb)}</p>`;
 
     if (b.type === "starfactory") {
-      const hold = factoryHold();
-      html += `<div class="stat"><div class="k">Holding</div><div class="n">${hold ? 1 : 0}</div><div class="s">of 1 finished vehicle</div></div>`;
+      html += `<p class="text-amber-200/45 mt-1">Hold: 1 finished vehicle max until staged to bay.</p>`;
+      html += `<p class="text-amber-100/90 mt-1">Merlin tier ${G.merlinTier}. Thrust ${merlinFreshKn()} kN fresh. Impulse ${TUNING.MERLIN_ISP_S} s. Mass ${TUNING.MERLIN_MASS_KG} kg. Restarts ${TUNING.MERLIN_RESTARTS}.</p>
+        <p class="text-amber-200/45">Impulse and mass are on the card. This test uses thrust.</p>`;
       if (G.factoryJob) {
         const pct = 1 - G.factoryJob.daysLeft / G.factoryJob.totalDays;
-        const label = G.factoryJob.kind === "merlin" ? "Merlin thrust" : rocketOf(G.factoryJob.rocketId).name;
-        html += `<p class="wait">${esc(label)} · ${G.factoryJob.daysLeft} days left</p>
+        const label = G.factoryJob.kind === "merlin" ? "Merlin thrust upgrade" : rocketOf(G.factoryJob.rocketId).name;
+        html += `<p class="mt-2">Building <b>${esc(label)}</b> · ${G.factoryJob.daysLeft}d</p>
           <div class="bar-track"><i style="width:${Math.round(pct * 100)}%"></i></div>`;
       } else {
         const r = rocketOf("falcon1");
-        const busy = !!(factoryHold() || G.event || G.rollout);
-        html += actCard("build", "", ` data-rocket="falcon1"${busy || G.steel < r.steelCost ? " disabled" : ""}`,
-          "Build Falcon 1", r.steelCost, "steel", `${r.buildDays} days. A static fire draws ${r.sfProp} propellant.`);
-        html += `<p class="wait">Falcon 9, Falcon Heavy, and Starship come later.</p>`;
+        const busy = !!(G.factoryJob || factoryHold() || G.event || G.rollout);
+        html += `<button type="button" class="ui-btn good rounded px-2 py-1.5 text-[11px] w-full mt-1 text-left" data-rocket="falcon1" ${busy || G.steel < r.steelCost ? "disabled" : ""}>
+            <div class="font-semibold">Build Falcon 1 · ${r.steelCost} steel</div>
+            <div class="text-amber-200/50">${r.buildDays} days · fire draws ${r.sfProp} propellant</div>
+          </button>`;
+        if (G.merlinTier < 2) {
+          html += `<button type="button" class="ui-btn rounded px-2 py-1.5 text-[11px] w-full mt-1 text-left" id="btn-merlin" ${busy || G.steel < TUNING.MERLIN_UP_COST ? "disabled" : ""}>
+            <div class="font-semibold">Raise Merlin thrust · ${TUNING.MERLIN_UP_COST} steel</div>
+            <div class="text-amber-200/50">${TUNING.MERLIN_UP_DAYS} days · thrust becomes ${Math.round(TUNING.MERLIN_THRUST_KN * TUNING.MERLIN_UP_MULT)} kN</div>
+          </button>`;
+        }
+        html += `<p class="text-amber-200/40 mt-2 text-[10px]">Later: Falcon 9, Falcon Heavy, Starship.</p>`;
       }
+      const hold = factoryHold();
       if (hold) {
-        html += `<p class="wait">${esc(hold.name)} is ready.</p>`;
-        html += actCard("roll", "btn-stage", "", "Stage to Mega Bay", null, "", "The vehicle leaves the factory.");
+        html += `<p class="mt-2 text-amber-100">● ${esc(hold.name)} ready</p>
+          <button type="button" class="ui-btn good rounded px-2 py-1.5 text-[11px] w-full mt-1" id="btn-stage">Stage to Mega Bay</button>`;
       }
     }
 
     if (b.type === "mega_bay") {
       const n = bayCount();
-      const cap = bayCapacity(b);
-      html += `<div class="stat"><div class="k">Housed</div><div class="n">${n}</div><div class="s">of ${cap} ${cap === 1 ? "vehicle" : "vehicles"}</div></div>`;
+      html += `<p class="text-amber-200/70 mt-1">Housed: <b>${n}/${TUNING.BAY_CAPACITY}</b> articles (hangar capacity)</p>
+        <p class="text-amber-200/45">Vehicles park in bay slots (visual). Post-fire refurb happens here — not on the pad.</p>`;
       const here = vehiclesAt(b.id);
-      for (let slot = 0; slot < cap; slot++) {
-        const v = here.find((item) => (item.baySlot || 0) === slot);
-        if (!v) {
-          html += `<div class="bay-slot empty"><div class="top"><span class="name">Bay ${slot + 1}</span></div><div class="n">—</div></div>`;
-          continue;
+      if (here.length) {
+        html += `<div class="mt-2 space-y-1">`;
+        for (const v of here) {
+          const r = rocketOf(v.rocketId);
+          html += `<div class="text-amber-100/90">· ${esc(v.name)} (${esc(r.short)}) · ${v.status}${v.status === "refurb" ? ` ${v.refurbLeft}d` : ""} · ${Math.round(v.condition)}%</div>`;
         }
-        const refurb = v.status === "refurb";
-        const sel = v.id === G.selectedVehicleId ? " sel" : "";
-        const cond = Math.round(v.condition);
-        html += `<button type="button" class="bay-slot${sel}" data-bay="${v.id}">
-          <div class="top"><span class="name">${esc(v.name)}</span><span class="where">${refurb ? "Refurb" : "In the bay"}</span></div>
-          <div class="n">${refurb ? v.refurbLeft : cond}</div>
-          <div class="where">${refurb ? "days left" : "condition"}</div>
-          <div class="meter"><i style="width:${cond}%"></i></div>
-        </button>`;
+        html += `</div>`;
       }
       const v = selectedVehicle();
       if (v && v.status === "in_bay") {
-        html += actCard("roll", "btn-topad", "", `Roll ${esc(v.name)} to the pad`, null, "", "The vehicle leaves the bay.");
+        html += `<button type="button" class="ui-btn good rounded px-2 py-1.5 text-[11px] w-full mt-2" id="btn-topad">Roll ${esc(v.name)} to pad</button>`;
       } else {
-        html += `<p class="wait">Select a vehicle in the bay to roll it out.</p>`;
+        html += `<p class="text-amber-200/40 mt-2">Select a ready vehicle in Fleet (in bay) to roll out.</p>`;
       }
-      html += `<div class="sec"><div class="k">Upgrade</div>`;
-      if (cap < TUNING.BAY_MAX) {
-        html += actCard("up", "btn-bay", "", "Another slot", TUNING.BAY_SLOT_COST, "steel", `The bay then holds ${cap + 1} vehicles.`);
-      } else {
-        html += `<p class="wait">The bay holds ${TUNING.BAY_MAX} vehicles.</p>`;
-      }
-      html += `</div>`;
     }
 
     if (b.type === "pad_orbital") {
-      const limits = padLimits(b);
-      html += `<div class="stat"><div class="k">Pad accepts</div><div class="n">${limits.thrust}</div><div class="s">kN</div></div>`;
-      html += `<div class="sec"><div class="k">Fire</div>`;
       const on = padHold();
-      if (on && on.status === "on_pad") {
+      if (on) {
         const r = rocketOf(on.rocketId);
-        const check = fireCheck(on, b);
-        html += `<div class="facts"><div><b>${esc(on.name)}</b><span>condition ${Math.round(on.condition)} · ${on.fires || 0} fires</span></div><div><b>${check.thrust}</b><span>kN · needs ${TUNING.SF_THRUST_BAR_KN}</span></div></div>`;
-        html += `<p class="wait">Condition under ${TUNING.SCRAP_FLOOR} scraps the vehicle. A miss takes ${TUNING.SF_MISS_CONDITION} condition.</p>`;
-        const fireLine = check.ok ? "Thrust holds." : check.limiter === "weather" ? "The range is closed." : "A check is short.";
-        html += actCard("fire", "btn-sf", "", check.ok ? "Static fire" : "Try static fire", r.sfProp, "propellant", fireLine);
-      } else if (on && on.status === "needs_return") {
-        html += `<div class="facts"><div><b>${esc(on.name)}</b><span>condition ${Math.round(on.condition)} · ${on.fires || 0} fires</span></div></div>`;
-        html += actCard("roll", "btn-return", "", "Return to Mega Bay", null, "", "Refurb happens in the bay.");
+        html += `<p class="mt-2 text-amber-100">● ${esc(on.name)} on pad · condition ${Math.round(on.condition)} · fires ${on.fires || 0}</p>`;
+        if (on.status === "on_pad") {
+          const check = fireCheck(on, b);
+          html += check.lines.map((line) => `<p class="text-amber-200/70">${esc(line)}</p>`).join("");
+          html += `<p class="text-amber-200/50">Scrap floor ${TUNING.SCRAP_FLOOR}. A miss costs ${TUNING.SF_MISS_CONDITION} condition.</p>
+            <button type="button" class="ui-btn good rounded px-2 py-1.5 text-[11px] w-full mt-1" id="btn-sf">${check.ok ? "Static fire" : "Try static fire"} · ${r.sfProp} propellant</button>`;
+        }
+        if (on.status === "needs_return") {
+          html += `<button type="button" class="ui-btn danger rounded px-2 py-1.5 text-[11px] w-full mt-1" id="btn-return">Return to Mega Bay (refurb)</button>
+            <p class="text-amber-200/45 mt-1">Pad is not a hangar. Move indoors for inspection.</p>`;
+        }
       } else {
-        html += `<p class="wait">The pad is empty. Roll a vehicle here from the bay.</p>`;
+        html += `<p class="text-amber-200/50 mt-2">Pad empty. Roll a bay-ready vehicle here.</p>`;
       }
-      html += `</div>`;
-      if (G.rollout) {
-        const rv = vehicleById(G.rollout.vehicleId);
-        const dest = G.rollout.destKind === "pad" ? "the pad" : "Mega Bay";
-        const left = Math.max(0, G.rollout.duration - G.rollout.t).toFixed(0);
-        html += `<div class="sec"><div class="k">Roll</div><p class="wait">${rv ? esc(rv.name) : "Vehicle"} is rolling to ${dest} · ${left} s left</p></div>`;
-      }
-      html += `<div class="sec"><div class="k">Upgrade</div>`;
       if (b.level < 2) {
-        html += actCard("up", "btn-up", "", "Pad level 2", TUNING.PAD_L2_COST, "steel", `The trench widens. The pad then accepts ${TUNING.PAD_THRUST_L2} kN.`);
+        html += `<button type="button" class="ui-btn rounded px-2 py-1.5 text-[11px] w-full mt-2" id="btn-up">Upgrade pad level 2 · wider trench · ${TUNING.PAD_L2_COST} steel</button>`;
       } else {
-        html += `<p class="wait">The trench is wide. The pad accepts ${TUNING.PAD_THRUST_L2} kN.</p>`;
+        html += `<p class="text-amber-200/45 mt-2">Pad level 2 accepts ${TUNING.PAD_THRUST_L2} kN and wind up to ${TUNING.WIND_LIMIT_L2} knots. A clean refurb is one day shorter.</p>`;
       }
-      html += `</div>`;
+      if (G.rollout) {
+        html += `<p class="text-amber-200/55 mt-1">Transport ETA ${(G.rollout.duration - G.rollout.t).toFixed(1)}s</p>`;
+      }
     }
-    html += `</div>`;
 
     box.innerHTML = html;
     box.querySelectorAll("[data-rocket]").forEach((btn) => {
       btn.onclick = () => startBuildRocket(btn.getAttribute("data-rocket"));
     });
+    const mer = box.querySelector("#btn-merlin");
+    if (mer) mer.onclick = startMerlinUpgrade;
     const st = box.querySelector("#btn-stage");
     if (st) st.onclick = () => stageToBay(factoryHold() && factoryHold().id);
-    box.querySelectorAll("[data-bay]").forEach((btn) => {
-      btn.onclick = () => {
-        G.selectedVehicleId = +btn.getAttribute("data-bay");
-        G.rocketSheet = G.selectedVehicleId;
-        renderChrome();
-      };
-    });
     const tp = box.querySelector("#btn-topad");
     if (tp) tp.onclick = () => startRoll(G.selectedVehicleId, "pad");
     const sf = box.querySelector("#btn-sf");
@@ -1619,65 +1473,21 @@
     if (ret) ret.onclick = () => startRoll(padHold() && padHold().id, "bay");
     const up = box.querySelector("#btn-up");
     if (up) up.onclick = upgradePad;
-    const bayUp = box.querySelector("#btn-bay");
-    if (bayUp) bayUp.onclick = upgradeBay;
   }
 
   function renderObjectives() {
     const items = [
-      ["place_all", "Buy both sites"],
-      ["build_rocket", "Build a rocket at Starfactory"],
-      ["multi_bay", "House 2 vehicles in Mega Bay"],
-      ["static_fire", "Finish a static fire"],
-      ["refurb", "Finish a refurb in the bay"],
-      ["pad_l2", "Raise the pad to level 2"],
+      ["place_all", "Place Factory, Mega Bay, Pad"],
+      ["build_rocket", "Build a rocket at the factory"],
+      ["multi_bay", "House 2+ vehicles in the bay"],
+      ["static_fire", "Complete a static fire (success or fail)"],
+      ["refurb", "Finish a bay refurb after fire"],
+      ["pad_l2", "Upgrade the pad"],
     ];
-    const open = items.filter(([k]) => !G.objectives[k]).length;
-    const panel = document.getElementById("goal-panel");
-    const sheet = document.getElementById("goal-sheet");
-    if (!panel || !sheet) return;
-    const next = items.find(([k]) => !G.objectives[k]);
-    const rows = items.map(([k, label], i) => {
+    el.objectives.innerHTML = items.map(([k, label]) => {
       const done = G.objectives[k];
-      const now = next && next[0] === k;
-      const cls = done ? "done" : now ? "now" : "";
-      const mark = done ? "Done" : now ? "Next" : "";
-      return `<div class="goal-row ${cls}"><div class="idx">${String(i + 1).padStart(2, "0")}</div><div><div class="name">${esc(label)}</div>${mark ? `<div class="line">${mark}</div>` : ""}</div></div>`;
+      return `<li class="${done ? "obj-done" : ""}">${done ? "✓" : "○"} ${esc(label)}</li>`;
     }).join("");
-    panel.innerHTML = `<div class="top"><div class="left">${open}<span>${open ? "still open" : "all done"}</span></div>
-      <button type="button" id="goal-close">Close</button></div>${rows}`;
-    sheet.classList.toggle("open", G.goalSheet);
-    sheet.setAttribute("aria-hidden", G.goalSheet ? "false" : "true");
-    const close = panel.querySelector("#goal-close");
-    if (close) close.onclick = () => { G.goalSheet = false; renderObjectives(); };
-  }
-
-  function renderJobNote() {
-    const note = document.getElementById("job-note");
-    if (!note) return;
-    const lines = [];
-    const days = (n) => (n === 1 ? "1 day left" : `${n} days left`);
-    if (G.factoryJob) {
-      const job = G.factoryJob;
-      if (job.kind === "merlin") {
-        const v = vehicleById(job.vehicleId);
-        lines.push(`${v ? v.name : "Rocket"} · Merlin thrust to ${Math.round(TUNING.MERLIN_THRUST_KN * TUNING.MERLIN_UP_MULT)} kN · ${days(job.daysLeft)}`);
-      } else {
-        lines.push(`Starfactory · building ${rocketOf(job.rocketId).name} · ${days(job.daysLeft)}`);
-      }
-    }
-    if (G.rollout) {
-      const v = vehicleById(G.rollout.vehicleId);
-      const dest = G.rollout.destKind === "pad" ? "the Orbital Pad" : "Mega Bay";
-      const left = Math.max(0, G.rollout.duration - G.rollout.t);
-      lines.push(`${v ? v.name : "Vehicle"} · rolling to ${dest} · ${left.toFixed(0)} s left`);
-    }
-    for (const v of liveFleet()) {
-      if (v.status === "refurb" && v.refurbLeft > 0) {
-        lines.push(`${v.name} · refurb in Mega Bay · ${days(v.refurbLeft)}`);
-      }
-    }
-    note.innerHTML = lines.map((line) => `<span>${esc(line)}</span>`).join("");
   }
 
   function rangeClosed() {
@@ -1693,9 +1503,9 @@
     const now = weatherOn(G.day);
     const closed = rangeClosed();
     if (lamp) lamp.classList.toggle("closed", closed);
-    sky.textContent = closed ? "Range closed" : "Range open";
-    const wind = document.getElementById("wind-label");
-    if (wind) wind.textContent = `${now.sky} ${now.wind} kn`;
+    sky.textContent = closed
+      ? `Range closed · ${now.sky} ${now.wind} kn`
+      : `Range open · ${now.sky} ${now.wind} kn`;
     const readout = document.getElementById("readout");
     if (readout) {
       const pad = buildingOfType("pad_orbital");
@@ -1705,46 +1515,16 @@
     }
   }
 
-  function startMerlinUpgrade(vehicleId) {
-    const v = vehicleById(vehicleId);
-    if (!v || v.merlinTier >= 2) return;
-    if (G.factoryJob) { log("The factory is already busy.", "warn"); return; }
-    if (G.steel < TUNING.MERLIN_UP_COST) { log(`Need ${TUNING.MERLIN_UP_COST} steel.`, "bad"); return; }
+  function startMerlinUpgrade() {
+    audioInit();
+    if (G.merlinTier >= 2) return;
+    if (G.factoryJob) { sfxErr(); log("The factory is already busy.", "warn"); return; }
+    if (G.steel < TUNING.MERLIN_UP_COST) { sfxErr(); log(`Need ${TUNING.MERLIN_UP_COST} steel.`, "bad"); return; }
     G.steel -= TUNING.MERLIN_UP_COST;
-    G.factoryJob = { kind: "merlin", vehicleId: v.id, daysLeft: TUNING.MERLIN_UP_DAYS, totalDays: TUNING.MERLIN_UP_DAYS };
-    log(`Merlin thrust on ${v.name} rises in ${TUNING.MERLIN_UP_DAYS} days.`, "good");
+    G.factoryJob = { kind: "merlin", daysLeft: TUNING.MERLIN_UP_DAYS, totalDays: TUNING.MERLIN_UP_DAYS };
+    sfxBuild();
+    log(`Engine lab started. Merlin thrust rises in ${TUNING.MERLIN_UP_DAYS} days.`, "good");
     renderChrome();
-  }
-
-  function renderRocketSheet() {
-    const sheet = document.getElementById("rocket-sheet");
-    const panel = document.getElementById("rocket-panel");
-    const v = G.rocketSheet ? vehicleById(G.rocketSheet) : null;
-    if (!sheet || !panel || !v) {
-      if (sheet) { sheet.classList.remove("open"); sheet.setAttribute("aria-hidden", "true"); }
-      G.rocketSheet = null;
-      return;
-    }
-    const job = G.factoryJob && G.factoryJob.kind === "merlin" && G.factoryJob.vehicleId === v.id ? G.factoryJob : null;
-    const nextKn = Math.round(TUNING.MERLIN_THRUST_KN * TUNING.MERLIN_UP_MULT);
-    let action = "";
-    if (job) action = `<p class="wait">Merlin thrust · ${job.daysLeft} days left</p>`;
-    else if ((v.merlinTier || 1) < 2) {
-      action = actCard("up", "btn-merlin", G.steel < TUNING.MERLIN_UP_COST ? " disabled" : "",
-        "Raise Merlin thrust", TUNING.MERLIN_UP_COST, "steel", `${TUNING.MERLIN_UP_DAYS} day. Thrust on this rocket rises to ${nextKn} kN.`);
-    }
-    panel.innerHTML = `<div class="top"><div><b>${esc(v.name)}</b><div class="place">${esc(placeLabel(v))} · condition ${Math.round(v.condition)}</div></div>
-        <button type="button" class="ui-btn rounded px-2 py-1 text-xs" id="rocket-close">Close</button></div>
-      <div class="rocket-sheet">
-        <div class="side">Thrust<b>${merlinNowKn(v)} kN</b>Impulse<b>${TUNING.MERLIN_ISP_S} s</b></div>
-        <div class="rocket-body"></div>
-        <div class="side">Mass<b>${TUNING.MERLIN_MASS_KG} kg</b>Restarts<b>${TUNING.MERLIN_RESTARTS}</b></div>
-      </div>${action}`;
-    sheet.classList.add("open");
-    sheet.setAttribute("aria-hidden", "false");
-    panel.querySelector("#rocket-close").onclick = () => { G.rocketSheet = null; renderRocketSheet(); };
-    const mer = panel.querySelector("#btn-merlin");
-    if (mer) mer.onclick = () => startMerlinUpgrade(v.id);
   }
 
   function renderChrome() {
@@ -1753,9 +1533,6 @@
     renderPalette();
     renderFleetList();
     renderInspector();
-    renderRocketSheet();
-    renderJobNote();
-    renderWiki();
     updateObjectives();
   }
 
@@ -1775,11 +1552,9 @@
 
   const GEO_W = -97.215, GEO_E = -97.140, GEO_N = 26.015, GEO_S = 25.975;
   const PLOTS = {
-    production: { name: "Build site", cost: 90, line: "Starfactory and Mega Bay arrive on this ground.",
-      west: -97.199, east: -97.173, south: 25.9952, north: 26.0016,
+    production: { name: "Build site", cost: 90, west: -97.199, east: -97.173, south: 25.9952, north: 26.0016,
       buildings: [{ type: "starfactory", gx: 10, gy: 11 }, { type: "mega_bay", gx: 16, gy: 11 }] },
-    launch: { name: "Pad site", cost: 50, line: "The Orbital Pad arrives on this ground.",
-      west: -97.163, east: -97.152, south: 25.9938, north: 26.0018,
+    launch: { name: "Pad site", cost: 50, west: -97.163, east: -97.152, south: 25.9938, north: 26.0018,
       buildings: [{ type: "pad_orbital", gx: 29, gy: 11 }] },
   };
 
@@ -1850,6 +1625,17 @@
     ctx.restore();
     drawGeoReadout();
     updateFieldChrome(band);
+
+    if (G.factoryJob) {
+      ctx.fillStyle = "rgba(0,0,0,0.5)"; ctx.fillRect(10, 10, 280, 26);
+      ctx.fillStyle = "#8fbc6a"; ctx.font = "12px system-ui";
+      ctx.fillText(`Factory: ${rocketOf(G.factoryJob.rocketId).name} · ${G.factoryJob.daysLeft}d`, 18, 27);
+    } else if (G.rollout) {
+      const v = vehicleById(G.rollout.vehicleId);
+      ctx.fillStyle = "rgba(0,0,0,0.5)"; ctx.fillRect(10, 10, 300, 26);
+      ctx.fillStyle = "#e8c56a"; ctx.font = "12px system-ui";
+      ctx.fillText(`${v ? v.name : "?"} · ${(G.rollout.duration - G.rollout.t).toFixed(1)}s`, 18, 27);
+    }
   }
 
   function lonToX(lon) {
@@ -2131,16 +1917,18 @@
   function drawPlots() {
     if (G.span > 1.2) return;
     for (const id of Object.keys(PLOTS)) {
-      if (!G.plots[id]) continue;
       const plot = PLOTS[id];
+      const owned = G.plots[id];
       const x0 = lonToX(plot.west), x1 = lonToX(plot.east);
       const y0 = latToY(plot.north), y1 = latToY(plot.south);
       ctx.save();
-      ctx.strokeStyle = "#f4f4f4";
-      ctx.fillStyle = "rgba(255,255,255,0.06)";
-      ctx.lineWidth = 2 / G.cam.zoom;
+      ctx.strokeStyle = owned ? "#f4f4f4" : "rgba(244,244,244,0.45)";
+      ctx.fillStyle = owned ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.02)";
+      ctx.lineWidth = (owned ? 2 : 1) / G.cam.zoom;
+      ctx.setLineDash(owned ? [] : [10 / G.cam.zoom, 7 / G.cam.zoom]);
       ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
       ctx.strokeRect(x0, y0, x1 - x0, y1 - y0);
+      ctx.setLineDash([]);
       if (G.span < 0.08) {
         ctx.fillStyle = "#f4f4f4";
         ctx.font = `${Math.max(10, 12 / G.cam.zoom)}px ui-monospace, monospace`;
@@ -2308,6 +2096,8 @@
         }
       }
     }
+    const offerId = !G.plots.production ? "production" : !G.plots.launch ? "launch" : null;
+    if (offerId) strokeBox(cellBox(PLOTS[offerId], false), "rgba(138, 62, 36, 0.7)", 1.25, [5, 4]);
   }
 
   function drawGeoReadout() {
@@ -2353,12 +2143,12 @@
     } else if (onScreen > 36 && def.id === "mega_bay") {
       // multi-bay doors for housing visual
       ctx.fillStyle = "#3a3028";
-      const doors = bayCapacity();
-      for (let i = 0; i < doors; i++) {
-        ctx.fillRect(x + 12 + i * (w / (doors + 0.4)), y + h - depth - 30, w / (doors + 1.5), 28);
+      for (let i = 0; i < 3; i++) {
+        ctx.fillRect(x + 12 + i * (w / 3.2), y + h - depth - 30, w / 4.5, 28);
       }
+      // capacity pips
       const n = bayCount();
-      for (let i = 0; i < doors; i++) {
+      for (let i = 0; i < TUNING.BAY_CAPACITY; i++) {
         ctx.fillStyle = i < n ? "#8fbc6a" : "#3a3028";
         ctx.fillRect(x + 8 + i * 14, y + 8, 10, 6);
       }
@@ -2376,7 +2166,7 @@
     }
     if (label && mode !== "ok" && mode !== "bad" && metersPerPx() < 600 && onScreen > 22) {
       let tag = def.short + (level > 1 ? " L" + level : "");
-      if (def.id === "mega_bay") tag += ` ${bayCount()}/${bayCapacity()}`;
+      if (def.id === "mega_bay") tag += ` ${bayCount()}/${TUNING.BAY_CAPACITY}`;
       ctx.font = "bold 11px system-ui";
       const tw = ctx.measureText(tag).width;
       ctx.fillStyle = "rgba(255,248,220,0.92)";
@@ -2462,6 +2252,7 @@
     syncCamFromGeo();
   }
   canvas.addEventListener("pointerdown", (ev) => {
+    audioInit();
     canvas.setPointerCapture(ev.pointerId);
     const p = canvasPos(ev);
     pointers.set(ev.pointerId, p);
@@ -2480,6 +2271,7 @@
     if (G.span < 1.2) {
       const hv = hitVeh(w.x, w.y);
       if (hv) {
+        sfxUi();
         G.selectedVehicleId = hv.id;
         if (hv.buildingId) G.selectedId = hv.buildingId;
         renderChrome();
@@ -2487,6 +2279,7 @@
       }
       const hb = hitBldg(w.x, w.y);
       if (hb) {
+        sfxUi();
         G.selectedId = hb.id;
         renderChrome();
         return;
@@ -2539,45 +2332,12 @@
   window.addEventListener("keydown", (ev) => {
     if (ev.key === "Escape") {
       if (G.event) { skipEvent(); return; }
-      if (G.wikiSheet) { G.wikiSheet = false; renderWiki(); return; }
-      if (G.fleetSheet) { G.fleetSheet = false; renderFleetList(); return; }
-      if (G.goalSheet) { G.goalSheet = false; renderObjectives(); return; }
-      if (G.rocketSheet) { G.rocketSheet = null; renderRocketSheet(); return; }
       G.placeType = null; canvas.classList.remove("placing");
       renderPalette(); renderInspector();
     }
   });
-  document.getElementById("wiki-open").addEventListener("click", () => {
-    G.wikiSheet = !G.wikiSheet;
-    renderWiki();
-  });
-  document.getElementById("wiki-sheet").addEventListener("click", (ev) => {
-    if (ev.target.id !== "wiki-sheet") return;
-    G.wikiSheet = false;
-    renderWiki();
-  });
-  document.getElementById("fleet-open").addEventListener("click", () => {
-    G.fleetSheet = !G.fleetSheet;
-    renderFleetList();
-  });
-  document.getElementById("fleet-sheet").addEventListener("click", (ev) => {
-    if (ev.target.id !== "fleet-sheet") return;
-    G.fleetSheet = false;
-    renderFleetList();
-  });
-  document.getElementById("next-goal").addEventListener("click", () => {
-    G.goalSheet = !G.goalSheet;
-    renderObjectives();
-  });
-  document.getElementById("goal-sheet").addEventListener("click", (ev) => {
-    if (ev.target.id !== "goal-sheet") return;
-    G.goalSheet = false;
-    renderObjectives();
-  });
-  document.getElementById("rocket-sheet").addEventListener("click", (ev) => {
-    if (ev.target.id !== "rocket-sheet") return;
-    G.rocketSheet = null;
-    renderRocketSheet();
+  document.getElementById("btn-mute").addEventListener("click", () => {
+    audioInit(); setMuted(!SFX.muted);
   });
   document.querySelectorAll("#map-chips button").forEach((b) => {
     b.addEventListener("click", () => {
@@ -2599,7 +2359,7 @@
       updateRollout(dt);
       if (G.rollout || G.factoryJob) {
         inspAcc += dt;
-        if (inspAcc > 0.3) { inspAcc = 0; renderInspector(); renderResources(); renderFleetList(); renderJobNote(); }
+        if (inspAcc > 0.3) { inspAcc = 0; renderInspector(); renderResources(); renderFleetList(); }
       }
     } else updateEvent(dt);
     draw();
@@ -2607,6 +2367,7 @@
   }
 
   window.addEventListener("resize", () => { resize(); if (G.event) resizeEventCanvas(); });
+  try { if (localStorage.getItem("starbase-mute") === "1") setMuted(true); } catch (_) {}
   document.getElementById("ver-label").textContent = VERSION;
   resize();
   G.cam.x = (MAP_W * CELL) / 2 - W / 2;
