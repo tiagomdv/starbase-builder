@@ -32,7 +32,17 @@ Leave the map free of a caption for every part. Leave the launch track off until
 
 The owned line shipped in `0.4.0-borderline`. It follows the coast, about 8 km inland on the solid beach, and it follows the bay where the water cuts in. Each building is a separate buy on a fixed plot, and the building is about one tenth of that plot. The Land column counts plots. The picture is `design-docs/0.4.0-borderline-design.html`.
 
-Later rows on `design-docs/program-roadmap-design.html` move that same line. `6.0.0-yard` adds pad buffer, the first houses, and the highway closure. `6.2.0-stand` is the 930 acre strip and an inland test stand. `6.3.0-farm` lets tank-pad acres set propellant and deluge capacity. `6.4.0-mitigation` is wetland you cannot build on, required before the second pad. `6.5.0-town` adds a clinic and a school after the beds exist. None of those rules ship with the line.
+## Pictures, then motion
+
+`0.12.0-picture` replaces the plain halls. Starfactory, Mega Bay, and the Orbital Pad each get a picture you can read on the map. The seats stay. The buys stay. No new rule.
+
+`0.13.0-motion` plays the loop you already have, on the map. The static-fire modal closes. A build shows in the Starfactory. The finished Falcon 1 rolls along the yard road to Mega Bay. It rolls from the bay to the Orbital Pad on that same road. At the pad it rises onto the mount. The static fire burns on the mount, and the flame stays on the map.
+
+This chapter builds one Falcon 1. The factory finishes that rocket. The bay holds it and refurbishes it. The bay does not stack sections yet. Sections come from the factory and get mounted in the bay when Starship arrives. The tower that lifts a stack is the later pad upgrade, not this raise.
+
+No new fire rule. The numbers that pass or fail the fire stay the ones you already have.
+
+Later rows on `design-docs/program-roadmap-design.html` add rules on that same coast line. `6.0.0-yard` adds pad buffer, the first houses, and the highway closure. `6.2.0-stand` is an inland test stand on a parcel of about 930 acres. `6.3.0-farm` lets tank-pad acres set propellant and deluge capacity. `6.4.0-mitigation` is wetland you cannot build on, required before the second pad. `6.5.0-town` adds a clinic and a school after the beds exist. None of those rules ship with the line.
 
 ## Sound
 

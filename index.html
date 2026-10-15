@@ -503,7 +503,7 @@
     wikiPage: "factory",
     placeType: null,
     cam: { x: 80, y: 40, zoom: 1 },
-    lon: -97.185, lat: 26.010, span: 0.12,
+    lon: -97.178, lat: 26.002, span: 0.12,
     plots: { starfactory: false, mega_bay: false, pad_orbital: false },
     drag: null,
     flameUntil: 0,
@@ -1760,18 +1760,18 @@
     return { x: sx / G.cam.zoom + G.cam.x, y: sy / G.cam.zoom + G.cam.y };
   }
 
-  // The grid is the yard. Each building sits in its own plot, about one tenth of that plot.
-  const GEO_W = -97.210, GEO_E = -97.170, GEO_N = 26.005, GEO_S = 25.975;
+  // West is inland. East is the gulf. Each building sits in its own plot, about one tenth of that plot.
+  const GEO_W = -97.196, GEO_E = -97.156, GEO_N = 26.005, GEO_S = 25.975;
   const PLOTS = {
     starfactory: { name: "Starfactory", cost: 40, line: "One hall on its own plot.",
-      gx: 1, gy: 2, pw: 10, ph: 12,
-      buildings: [{ type: "starfactory", gx: 4, gy: 6 }] },
+      gx: 0, gy: 2, pw: 10, ph: 12,
+      buildings: [{ type: "starfactory", gx: 2, gy: 6 }] },
     mega_bay: { name: "Mega Bay", cost: 50, line: "One hall on its own plot.",
-      gx: 29, gy: 2, pw: 10, ph: 12,
-      buildings: [{ type: "mega_bay", gx: 32, gy: 6 }] },
+      gx: 12, gy: 2, pw: 10, ph: 12,
+      buildings: [{ type: "mega_bay", gx: 15, gy: 6 }] },
     pad_orbital: { name: "Orbital Pad", cost: 40, line: "One pad on its own plot.",
-      gx: 15, gy: 20, pw: 10, ph: 9,
-      buildings: [{ type: "pad_orbital", gx: 18, gy: 23 }] },
+      gx: 29, gy: 3, pw: 10, ph: 9,
+      buildings: [{ type: "pad_orbital", gx: 35, gy: 6 }] },
   };
 
 
@@ -2724,8 +2724,8 @@
   });
   document.querySelectorAll("#map-chips button").forEach((b) => {
     b.addEventListener("click", () => {
-      G.lon = -97.185;
-      G.lat = 26.010;
+      G.lon = -97.178;
+      G.lat = 26.002;
       setSpan(spanForMpp(Number(b.dataset.mpp)));
     });
   });

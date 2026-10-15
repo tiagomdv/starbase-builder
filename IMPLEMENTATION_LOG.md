@@ -96,7 +96,7 @@ History of what **shipped**, keyed by **version**.
 **Version:** `0.4.0-borderline`
 
 - Owned ground is one red dashed line. The water side follows the coast for the whole beach. The back side sits about 8 km inland where the land is continuous, and it follows the bay where the water cuts in. The word on the line is limit. The only dash is that red line.
-- Each building is its own buy and its own plot. Starfactory, Mega Bay, and the Orbital Pad sit in fixed seats, with open ground between them. The hall is about one tenth of its plot.
+- Each building is its own buy and its own plot. Starfactory sits inland. Mega Bay sits between the factory and the pad. The Orbital Pad sits nearest the coast. The hall is about one tenth of its plot.
 - The Land column counts plots. The highway is off the map. A rollout from Mega Bay to the Orbital Pad follows the yard road drawn between those two doors. The return uses that same road.
 - The copper boxes and the corner dots are gone. The previous live file is `archive/index-0.3.0-panel.html`.
 - No new fire rule. No yard purchase. No houses. The picture is `design-docs/0.4.0-borderline-design.html`.
