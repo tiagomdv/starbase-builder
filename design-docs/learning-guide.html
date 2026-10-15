@@ -84,7 +84,7 @@
         lede: "Falcon 1 is the small rocket SpaceX flew first. One Merlin sits on the first stage. The job of this chapter is to learn that rocket before any larger one shows up.",
         real: [
           "The real Falcon 1 flew from a Pacific atoll, not from Texas. This game keeps you on the Texas dirt so the site can grow later. The rocket is still the small one.",
-          "It was built to put a few hundred kilograms into low Earth orbit. That payload number arrives when the structure lab and the hop exist."
+          "It was built to put a few hundred kilograms into low Earth orbit. That payload capacity arrives when the structure lab and the suborbital flight exist."
         ],
         game: "The factory builds only Falcon 1. Falcon 9, Heavy, and Starship are names you can see and cannot build."
       },
@@ -97,7 +97,7 @@
           "A Merlin burns a fuel and an oxidizer together in a chamber, and the hot gas leaves through a nozzle. That push is thrust.",
           "The early Merlins burned RP-1 and liquid oxygen. A later engine, Raptor, burns methane and liquid oxygen. That is a different family, and it waits."
         ],
-        game: "The factory card shows thrust, specific impulse, mass, and restarts. One purchase raises thrust for every Falcon 1 you have."
+        game: "The rocket sheet shows thrust, specific impulse, engine mass, and restarts. One purchase raises thrust on that Falcon 1."
       },
       {
         id: "thrust",
@@ -107,7 +107,7 @@
         real: [
           "More thrust lifts a heavier stack, and it also loads the stand. A weak engine fails the test. A stand that is too light for the push fails it too."
         ],
-        game: "The pad prints thrust today and the bar the fire needs. Wear lowers thrust by a fixed share after each fire. Impulse and mass are on the card and do not decide this test."
+        game: "The pad prints the thrust limit and the bar the fire needs. Each fire lowers thrust by a fixed share. Specific impulse and engine mass are on the rocket sheet and do not decide this test."
       },
       {
         id: "impulse",
@@ -115,10 +115,10 @@
         title: "Specific impulse",
         lede: "Specific impulse is how much push you get from each kilogram of propellant. A higher number means the same tank takes you further.",
         real: [
-          "It is written in seconds. Sea-level impulse and vacuum impulse differ, because the nozzle works better once the air is gone.",
-          "Impulse does not tell you if the engine can light on the stand. It tells you about the burn that comes after."
+          "It is written in seconds. Sea-level specific impulse and vacuum specific impulse differ, because the nozzle works better once the air is gone.",
+          "Specific impulse does not tell you if the engine can light on the stand. It tells you about the burn that comes after."
         ],
-        game: "You can read it now. It starts to change altitude and the orbit when the hop and the orbit slices arrive."
+        game: "You can read it now. It starts to change altitude and the orbit when the suborbital flight and the orbit slices arrive."
       },
       {
         id: "static-fire",
@@ -148,7 +148,7 @@
         real: [
           "After a firing, crews roll the vehicle back under a roof. Inspection and part swaps take days. The stand needs its own recovery time too."
         ],
-        game: "A fire that holds sends the rocket home for a short refurb. A miss costs more condition and more days. A stronger pad accepts more thrust and more wind, and it shortens a clean refurb by one day."
+        game: "A fire that holds sends the rocket home for a short refurbishment. A miss costs more condition and more days. A higher pad level raises the thrust limit and the wind limit."
       },
       {
         id: "rp1",
@@ -175,31 +175,31 @@
         id: "structure",
         group: "Falcon 1",
         title: "Structure and payload",
-        lede: "The stage has a dry mass and a strength. Dry mass is the rocket without propellant. Strength is the load it can take on the way up.",
+        lede: "The stage has a dry mass and a structural limit. Stage dry mass is the stage with no usable propellant and no payload. The structural limit is the design load.",
         real: [
-          "Payload is what is left after you subtract the rocket, the engines, and the propellant you must carry. A heavier engine buys thrust and spends payload."
+          "Payload capacity is the mass you can deliver to a named orbit. A heavier engine buys thrust and spends payload capacity."
         ],
-        game: "Not in the game yet. The panel will add the Merlin and the stage and show the kilograms this Falcon 1 can lift."
+        game: "Not in the game yet. The rocket sheet will show stage dry mass, the structural limit, and the payload capacity."
       },
       {
         id: "hop-orbit",
         group: "Falcon 1",
-        title: "Hop and orbit",
-        lede: "A hop leaves the stand and comes back to altitude and speed. An orbit attempt adds a second burn and tries to stay up.",
+        title: "Suborbital flight and orbit",
+        lede: "A suborbital flight leaves the stand and comes back to altitude and speed. An orbit attempt adds an upper-stage burn and tries to stay up.",
         real: [
-          "Getting off the pad is thrust and mass. Staying in orbit is impulse, a restart, and steering. Those are different failures, and the debrief should say which one you hit."
+          "Getting off the pad is thrust and mass. Staying in orbit is specific impulse, a restart, and steering. Those are different failures, and the debrief should say which one you hit."
         ],
-        game: "Not in the game yet. A success leaves an orbit card with altitude, inclination, and the mass on board."
+        game: "Not in the game yet. A success leaves an orbit card with altitude, inclination, and the payload mass."
       },
       {
         id: "reuse",
         group: "Falcon 1",
-        title: "Land or expend",
-        lede: "You can throw the first stage away and lift more, or you can bring it home and spend days putting it back together.",
+        title: "Recover or expendable",
+        lede: "You can fly the first stage expendable and lift more, or you can recover it and spend days putting it back together.",
         real: [
-          "Landing fuel is fuel you do not spend on the payload. The bay then inspects the core. A tired core flies again at the condition you left it in."
+          "Landing propellant is propellant you do not spend on the payload. The bay then inspects the first stage. A used stage flies again at the life you left it with."
         ],
-        game: "Not in the game yet. The choice will change the payload number and the days the bay is busy."
+        game: "Not in the game yet. The choice will change the payload capacity and the days the bay is busy."
       },
       {
         id: "customers",
