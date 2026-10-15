@@ -279,7 +279,7 @@
         <div><div class="stat-k">Fleet</div><div id="res-fleet" class="stat-n tabular-nums">0</div></div>
         <div><div class="stat-k">Day</div><div id="day-label" class="stat-n tabular-nums">1</div></div>
       </div>
-      <div id="ver-label">0.3.0-panel</div>
+      <div id="ver-label">0.4.0-borderline</div>
     </div>
   </header>
 
@@ -356,7 +356,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "0.3.0-panel";
+  const VERSION = "0.4.0-borderline";
   const CELL = 32, MAP_W = 40, MAP_H = 30, MS_PER_DAY = 4000;
   const ZOOM_MIN = 0.22, ZOOM_MAX = 2.4;
   const PAD_LAT = 25.997, PAD_LON = -97.157;
@@ -452,14 +452,14 @@
       footprint: { w: 4, h: 3 },
       maxCount: 1,
       zoneHint: "production",
-      blurb: "Builds one vehicle from steel. It stays here until you stage it to Mega Bay.",
+      blurb: "Builds one vehicle from steel. It stays here until you roll it to Mega Bay.",
     },
     mega_bay: {
       id: "mega_bay",
       name: "Mega Bay",
       short: "Bay",
       cost: 50,
-      footprint: { w: 5, h: 3 },
+      footprint: { w: 4, h: 3 },
       maxCount: 1,
       zoneHint: "production",
       blurb: "Houses the fleet. A vehicle comes back here after a fire.",
@@ -469,7 +469,7 @@
       name: "Orbital Pad",
       short: "Pad",
       cost: 40,
-      footprint: { w: 3, h: 4 },
+      footprint: { w: 3, h: 3 },
       maxCount: 1,
       zoneHint: "launch",
       maxLevel: 2,
@@ -503,8 +503,8 @@
     wikiPage: "factory",
     placeType: null,
     cam: { x: 80, y: 40, zoom: 1 },
-    lon: PAD_LON, lat: PAD_LAT, span: 0.045,
-    plots: { production: false, launch: false },
+    lon: -97.185, lat: 26.010, span: 0.12,
+    plots: { starfactory: false, mega_bay: false, pad_orbital: false },
     drag: null,
     flameUntil: 0,
     log: [],
@@ -621,7 +621,7 @@
       G.buildings.push({ id: G.nextId++, type: b.type, gx: b.gx, gy: b.gy, level: 1 });
       G.selectedId = G.buildings[G.buildings.length - 1].id;
     }
-    log(`${plot.name} bought. The buildings sit on the real Starbase layout.`, "good");
+    log(`${plot.name} bought.`, "good");
     updateObjectives();
     renderChrome();
   }
@@ -702,7 +702,7 @@
     };
     G.fleet.push(v);
     G.selectedVehicleId = v.id;
-    log(`${v.name} complete at Starfactory — stage into Mega Bay`, "good");
+    log(`${v.name} complete at Starfactory. Roll it to Mega Bay.`, "good");
     G.objectives.build_rocket = true;
     updateObjectives();
     renderChrome();
@@ -743,7 +743,7 @@
     const a = buildingAnchor(bay, slot);
     v.wx = a.x; v.wy = a.y;
     G.selectedVehicleId = v.id;
-    log(`${v.name} staged in Mega Bay, slot ${slot + 1} of ${cap}.`, "good");
+    log(`${v.name} is in Mega Bay, slot ${slot + 1} of ${cap}.`, "good");
     if (bayCount() >= 2) G.objectives.multi_bay = true;
     updateObjectives();
     renderChrome();
@@ -772,12 +772,9 @@
     }
     return pts[pts.length - 1];
   }
-  function roadPath(from, to) {
-    const roadY = 14 * CELL;
-    const pts = [{ x: from.x, y: from.y }];
-    if (Math.abs(from.y - roadY) > 8) pts.push({ x: from.x, y: roadY });
-    if (Math.abs(from.x - to.x) > 8) pts.push({ x: to.x, y: roadY });
-    pts.push({ x: to.x, y: to.y });
+  function roadPath(from, to, fromB, toB) {
+    const road = fromB && toB ? yardSegment(fromB, toB) : [];
+    const pts = [{ x: from.x, y: from.y }].concat(road, [{ x: to.x, y: to.y }]);
     const clean = [pts[0]];
     for (let i = 1; i < pts.length; i++) {
       const p = pts[i], q = clean[clean.length - 1];
@@ -820,7 +817,7 @@
       v.baySlot = slot;
     }
     const toA = buildingAnchor(toB, destKind === "bay" ? slot : 0);
-    const pts = roadPath(fromA, toA);
+    const pts = roadPath(fromA, toA, fromB, toB);
     const { segLens, totalLen } = pathMetrics(pts);
     let duration = totalLen / speed;
     duration = clamp(duration, TUNING.ROLLOUT_MIN_SEC, TUNING.ROLLOUT_MAX_SEC);
@@ -951,7 +948,7 @@
     const word = fireVerdict(thrust, limits.thrust, G.prop, need, sky.wind, limits.wind, sky.storm);
     const lines = [
       `Thrust is ${thrust} kN. The fire needs ${TUNING.SF_THRUST_BAR_KN} kN.`,
-      `The pad accepts ${limits.thrust} kN and wind up to ${limits.wind} knots.`,
+      `The thrust limit is ${limits.thrust} kN. The wind limit is ${limits.wind} knots.`,
       `Propellant is ${Math.floor(G.prop)}. This fire draws ${need}.`,
       `${sky.sky[0].toUpperCase()}${sky.sky.slice(1)}, ${sky.wind} knots.`,
     ];
@@ -1068,7 +1065,7 @@
     v.condition = next.condition;
     if (next.scrap) {
       v.buildingId = null;
-      log(`${v.name} is below the condition floor of ${TUNING.SCRAP_FLOOR}. The core is scrap. The ${ev.limiter} was short.`, "bad");
+      log(`${v.name} is below the condition floor of ${TUNING.SCRAP_FLOOR}. The first stage is scrap. The ${ev.limiter} was short.`, "bad");
     } else if (ev.success) {
       v.refurbLeft = next.refurbLeft;
       log(`${v.name} held. Return it to the Mega Bay for ${v.refurbLeft} days of refurb. Thrust next fire ${merlinNowKn(v)} kN.`, "good");
@@ -1356,19 +1353,8 @@
     el.day.textContent = String(G.day);
   }
 
-  function plotSqft(plot) {
-    const mid = (plot.north + plot.south) / 2 * Math.PI / 180;
-    const metersH = (plot.north - plot.south) * 110540;
-    const metersW = (plot.east - plot.west) * 111320 * Math.cos(mid);
-    return metersH * metersW * 10.76391041671;
-  }
-  function fmtAcres(n) {
-    const acres = n / 43560;
-    const acresLabel = acres >= 100 ? Math.round(acres).toLocaleString("en-US") : acres.toFixed(1);
-    return acresLabel + " acres";
-  }
   function renderPalette() {
-    const ownedSq = Object.keys(PLOTS).reduce((sum, id) => sum + (G.plots[id] ? plotSqft(PLOTS[id]) : 0), 0);
+    const ownedCount = Object.keys(PLOTS).filter((id) => G.plots[id]).length;
     const offers = Object.keys(PLOTS).filter((id) => !G.plots[id]).map((id) => {
       const plot = PLOTS[id];
       return `<button type="button" class="plot-card" data-plot="${id}">
@@ -1378,7 +1364,8 @@
         <div class="line">${esc(plot.line)}</div>
       </button>`;
     }).join("");
-    el.palette.innerHTML = `<div class="plot-owned">Owned<b>${fmtAcres(ownedSq)}</b></div>` + offers;
+    const ownedLabel = ownedCount === 1 ? "1 plot" : `${ownedCount} plots`;
+    el.palette.innerHTML = `<div class="plot-owned">Owned<b>${ownedLabel}</b></div>` + offers;
     el.palette.querySelectorAll("[data-plot]").forEach((btn) => {
       btn.addEventListener("click", () => buyPlot(btn.getAttribute("data-plot")));
     });
@@ -1388,7 +1375,7 @@
     const merlinNext = Math.round(TUNING.MERLIN_THRUST_KN * TUNING.MERLIN_UP_MULT);
     return [
       { id: "factory", name: "Starfactory", title: "Starfactory", lines: [
-        "Builds one vehicle from steel. The finished vehicle stays here until you stage it to Mega Bay.",
+        "Builds one vehicle from steel. The finished vehicle stays here until you roll it to Mega Bay.",
         `Falcon 1 costs ${ROCKET_DEFS.falcon1.steelCost} steel and takes ${ROCKET_DEFS.falcon1.buildDays} days. The factory holds one finished vehicle.`,
         "Falcon 9, Falcon Heavy, and Starship are not built here yet.",
       ]},
@@ -1399,18 +1386,18 @@
       ]},
       { id: "pad", name: "Orbital Pad", title: "Orbital Pad", lines: [
         "Holds one vehicle for a static fire.",
-        `The pad accepts ${TUNING.PAD_THRUST_L1} kN. That is the most thrust this pad will hold. A rocket above that fails the pad check.`,
-        `Pad level 2 costs ${TUNING.PAD_L2_COST} steel. The trench widens. The pad then accepts ${TUNING.PAD_THRUST_L2} kN.`,
+        `The thrust limit is ${TUNING.PAD_THRUST_L1} kN. A rocket above that fails the pad check.`,
+        `Pad level 2 costs ${TUNING.PAD_L2_COST} steel. The trench widens. The thrust limit becomes ${TUNING.PAD_THRUST_L2} kN.`,
         `The pad allows wind up to ${TUNING.WIND_LIMIT_L1} knots, then ${TUNING.WIND_LIMIT_L2} knots at level 2. The lamp in the header is the sky.`,
       ]},
       { id: "falcon", name: "Falcon 1", title: "Falcon 1", lines: [
         "One Merlin. The numbers on the rocket sheet are this engine.",
-        `Thrust is the push. A fresh Merlin makes ${TUNING.MERLIN_THRUST_KN} kN. Raise Merlin thrust costs ${TUNING.MERLIN_UP_COST} steel and ${TUNING.MERLIN_UP_DAYS} days. That rocket then makes ${merlinNext} kN. Each fire wears the thrust by ${Math.round(TUNING.SF_WEAR_PER_FIRE * 100)}%.`,
-        `Impulse is ${TUNING.MERLIN_ISP_S} s. That is how long one mass of propellant lasts in the burn. Mass is ${TUNING.MERLIN_MASS_KG} kg. Restarts: ${TUNING.MERLIN_RESTARTS}.`,
+        `Thrust is the push, in kilonewtons. A fresh Merlin makes ${TUNING.MERLIN_THRUST_KN} kN. Raise Merlin thrust costs ${TUNING.MERLIN_UP_COST} steel and ${TUNING.MERLIN_UP_DAYS} days. That rocket then makes ${merlinNext} kN. Each fire lowers thrust by ${Math.round(TUNING.SF_WEAR_PER_FIRE * 100)}%.`,
+        `Specific impulse (Isp) is ${TUNING.MERLIN_ISP_S} s. That is how much push one kilogram of propellant gives. Engine mass is ${TUNING.MERLIN_MASS_KG} kg. Restarts: ${TUNING.MERLIN_RESTARTS}.`,
       ]},
       { id: "fire", name: "Static fire", title: "Static fire", lines: [
         `The engine must make at least ${TUNING.SF_THRUST_BAR_KN} kN. The fire draws ${ROCKET_DEFS.falcon1.sfProp} propellant.`,
-        "If the thrust is higher than the pad accepts, the pad fails the check. If the tanks are short, the fire does not start. If the range lamp is closed, the fire does not start.",
+        "If the thrust is above the thrust limit, the pad fails the check. If the tanks are short, the fire does not start. If the range lamp is closed, the fire does not start.",
         `A good fire takes ${TUNING.SF_OK_CONDITION} condition. A miss takes ${TUNING.SF_MISS_CONDITION} condition. Condition under ${TUNING.SCRAP_FLOOR} scraps the vehicle.`,
       ]},
     ];
@@ -1523,7 +1510,7 @@
       }
       if (hold) {
         html += `<p class="wait">${esc(hold.name)} is ready.</p>`;
-        html += actCard("roll", "btn-stage", "", "Stage to Mega Bay", null, "", "The vehicle leaves the factory.");
+        html += actCard("roll", "btn-stage", "", "Roll to Mega Bay", null, "", "The vehicle leaves the factory.");
       }
     }
 
@@ -1565,7 +1552,7 @@
 
     if (b.type === "pad_orbital") {
       const limits = padLimits(b);
-      html += `<div class="stat"><div class="k">Pad accepts</div><div class="n">${limits.thrust}</div><div class="s">kN</div></div>`;
+      html += `<div class="stat"><div class="k">Thrust limit</div><div class="n">${limits.thrust}</div><div class="s">kN</div></div>`;
       html += `<div class="sec"><div class="k">Fire</div>`;
       const on = padHold();
       if (on && on.status === "on_pad") {
@@ -1590,9 +1577,9 @@
       }
       html += `<div class="sec"><div class="k">Upgrade</div>`;
       if (b.level < 2) {
-        html += actCard("up", "btn-up", "", "Pad level 2", TUNING.PAD_L2_COST, "steel", `The trench widens. The pad then accepts ${TUNING.PAD_THRUST_L2} kN.`);
+        html += actCard("up", "btn-up", "", "Pad level 2", TUNING.PAD_L2_COST, "steel", `The trench widens. The thrust limit becomes ${TUNING.PAD_THRUST_L2} kN.`);
       } else {
-        html += `<p class="wait">The trench is wide. The pad accepts ${TUNING.PAD_THRUST_L2} kN.</p>`;
+        html += `<p class="wait">The trench is wide. The thrust limit is ${TUNING.PAD_THRUST_L2} kN.</p>`;
       }
       html += `</div>`;
     }
@@ -1736,9 +1723,9 @@
     panel.innerHTML = `<div class="top"><div><b>${esc(v.name)}</b><div class="place">${esc(placeLabel(v))} · condition ${Math.round(v.condition)}</div></div>
         <button type="button" class="ui-btn rounded px-2 py-1 text-xs" id="rocket-close">Close</button></div>
       <div class="rocket-sheet">
-        <div class="side">Thrust<b>${merlinNowKn(v)} kN</b>Impulse<b>${TUNING.MERLIN_ISP_S} s</b></div>
+        <div class="side">Thrust<b>${merlinNowKn(v)} kN</b>Isp<b>${TUNING.MERLIN_ISP_S} s</b></div>
         <div class="rocket-body"></div>
-        <div class="side">Mass<b>${TUNING.MERLIN_MASS_KG} kg</b>Restarts<b>${TUNING.MERLIN_RESTARTS}</b></div>
+        <div class="side">Engine mass<b>${TUNING.MERLIN_MASS_KG} kg</b>Restarts<b>${TUNING.MERLIN_RESTARTS}</b></div>
       </div>${action}`;
     sheet.classList.add("open");
     sheet.setAttribute("aria-hidden", "false");
@@ -1773,15 +1760,31 @@
     return { x: sx / G.cam.zoom + G.cam.x, y: sy / G.cam.zoom + G.cam.y };
   }
 
-  const GEO_W = -97.215, GEO_E = -97.140, GEO_N = 26.015, GEO_S = 25.975;
+  // The grid is the yard. Each building sits in its own plot, about one tenth of that plot.
+  const GEO_W = -97.210, GEO_E = -97.170, GEO_N = 26.005, GEO_S = 25.975;
   const PLOTS = {
-    production: { name: "Build site", cost: 90, line: "Starfactory and Mega Bay arrive on this ground.",
-      west: -97.199, east: -97.173, south: 25.9952, north: 26.0016,
-      buildings: [{ type: "starfactory", gx: 10, gy: 11 }, { type: "mega_bay", gx: 16, gy: 11 }] },
-    launch: { name: "Pad site", cost: 50, line: "The Orbital Pad arrives on this ground.",
-      west: -97.163, east: -97.152, south: 25.9938, north: 26.0018,
-      buildings: [{ type: "pad_orbital", gx: 29, gy: 11 }] },
+    starfactory: { name: "Starfactory", cost: 40, line: "One hall on its own plot.",
+      gx: 1, gy: 2, pw: 10, ph: 12,
+      buildings: [{ type: "starfactory", gx: 4, gy: 6 }] },
+    mega_bay: { name: "Mega Bay", cost: 50, line: "One hall on its own plot.",
+      gx: 29, gy: 2, pw: 10, ph: 12,
+      buildings: [{ type: "mega_bay", gx: 32, gy: 6 }] },
+    pad_orbital: { name: "Orbital Pad", cost: 40, line: "One pad on its own plot.",
+      gx: 15, gy: 20, pw: 10, ph: 9,
+      buildings: [{ type: "pad_orbital", gx: 18, gy: 23 }] },
   };
+
+
+  const TRACT = [[-97.14944,26.00125],[-97.14944,26.00002],[-97.14944,25.99878],[-97.14944,25.99755],[-97.14937,25.99632],[-97.14884,25.99508],[-97.15293,25.99508],[-97.15346,25.99632],[-97.15353,25.99755],[-97.15353,25.99878],[-97.15353,26.00002],[-97.15353,26.00125]];
+  const YARD = [[-97.14991,26.00496],[-97.14985,26.00372],[-97.14961,26.00249],[-97.14944,26.00125],[-97.14944,26.00002],[-97.14944,25.99878],[-97.14944,25.99755],[-97.14937,25.99632],[-97.14884,25.99508],[-97.14884,25.99385],[-97.14867,25.99261],[-97.14867,25.99138],[-97.15407,25.99138],[-97.15407,25.99261],[-97.15424,25.99385],[-97.15424,25.99508],[-97.15477,25.99632],[-97.15484,25.99755],[-97.15484,25.99878],[-97.15484,26.00002],[-97.15484,26.00125],[-97.15501,26.00249],[-97.15525,26.00372],[-97.15531,26.00496]];
+  const LAGOON = [[-97.23338,26.19792],[-97.23233,26.19653],[-97.2316,26.1941],[-97.23121,26.19064],[-97.23114,26.18613],[-97.23139,26.18058],[-97.23115,26.17596],[-97.2304,26.17226],[-97.22916,26.16949],[-97.22741,26.16764],[-97.22623,26.16555],[-97.22561,26.16324],[-97.22556,26.1607],[-97.22608,26.15792],[-97.22728,26.15538],[-97.22917,26.15307],[-97.23174,26.15098],[-97.23501,26.14913],[-97.23752,26.14705],[-97.2393,26.14474],[-97.24033,26.1422],[-97.24062,26.13942],[-97.24038,26.13711],[-97.2396,26.13526],[-97.2383,26.13387],[-97.23647,26.13295],[-97.23447,26.13133],[-97.23231,26.12902],[-97.22999,26.12601],[-97.2275,26.12231],[-97.22403,26.11896],[-97.2196,26.11595],[-97.21419,26.11329],[-97.20781,26.11098],[-97.20325,26.10855],[-97.20052,26.10601],[-97.19961,26.10335],[-97.20053,26.10057],[-97.19948,26.09768],[-97.19647,26.09467],[-97.1915,26.09155],[-97.18458,26.08831],[-97.1845,26.08588],[-97.19129,26.08426],[-97.20493,26.08345],[-97.22543,26.08345],[-97.24197,26.08414],[-97.25455,26.08553],[-97.26317,26.08761],[-97.26783,26.09039],[-97.27135,26.09328],[-97.27372,26.09629],[-97.27495,26.09941],[-97.27503,26.10265],[-97.27432,26.106],[-97.27282,26.10947],[-97.27052,26.11306],[-97.26744,26.11676],[-97.26655,26.12034],[-97.26786,26.12381],[-97.27138,26.12717],[-97.27711,26.1304],[-97.28096,26.13353],[-97.28295,26.13653],[-97.28307,26.13942],[-97.28133,26.1422],[-97.28035,26.14463],[-97.28013,26.14671],[-97.28068,26.14844],[-97.282,26.14983],[-97.28164,26.15145],[-97.27961,26.1533],[-97.2759,26.15538],[-97.27052,26.15769],[-97.26605,26.16012],[-97.26249,26.16266],[-97.25983,26.16532],[-97.25809,26.1681],[-97.25857,26.17087],[-97.26127,26.17365],[-97.2662,26.17642],[-97.27336,26.1792],[-97.27867,26.18232],[-97.28213,26.18579],[-97.28375,26.1896],[-97.28351,26.19376],[-97.28033,26.19688],[-97.27419,26.19896],[-97.26509,26.2],[-97.25304,26.2],[-97.24374,26.19965],[-97.23718,26.19896]];
+  const SOUTH_BAY = [[-97.19011,26.04199],[-97.18968,26.04192],[-97.18936,26.04168],[-97.18915,26.0413],[-97.18904,26.04076],[-97.18904,26.04007],[-97.18874,26.03955],[-97.18814,26.0392],[-97.18724,26.03903],[-97.18603,26.03903],[-97.185,26.03874],[-97.18414,26.03816],[-97.18346,26.03729],[-97.18294,26.03614],[-97.18266,26.03517],[-97.18262,26.0344],[-97.18282,26.03382],[-97.18324,26.03344],[-97.18352,26.03296],[-97.18365,26.03238],[-97.18363,26.0317],[-97.18346,26.03093],[-97.18314,26.03043],[-97.18266,26.0302],[-97.18204,26.03023],[-97.18127,26.03055],[-97.18073,26.03024],[-97.18043,26.02931],[-97.18037,26.02777],[-97.18054,26.02561],[-97.1808,26.02395],[-97.18114,26.02279],[-97.18157,26.02214],[-97.18209,26.02198],[-97.18234,26.0216],[-97.18234,26.02098],[-97.18209,26.02013],[-97.18157,26.01905],[-97.18125,26.01818],[-97.18112,26.01753],[-97.18119,26.01708],[-97.18144,26.01686],[-97.18189,26.01689],[-97.18254,26.0172],[-97.18338,26.01778],[-97.1844,26.01863],[-97.18524,26.01909],[-97.18589,26.01917],[-97.18634,26.01886],[-97.18659,26.01816],[-97.18717,26.01747],[-97.18807,26.01677],[-97.1893,26.01608],[-97.19084,26.01539],[-97.19202,26.01504],[-97.19284,26.01504],[-97.19329,26.01539],[-97.19337,26.01608],[-97.19376,26.0165],[-97.19444,26.01666],[-97.19543,26.01654],[-97.19672,26.01616],[-97.19771,26.016],[-97.19839,26.01608],[-97.19878,26.01639],[-97.19886,26.01693],[-97.19908,26.0173],[-97.19942,26.01749],[-97.19989,26.01751],[-97.2005,26.01735],[-97.20095,26.01741],[-97.20125,26.01768],[-97.2014,26.01816],[-97.2014,26.01886],[-97.20114,26.01934],[-97.20063,26.01961],[-97.19985,26.01967],[-97.19883,26.01951],[-97.19786,26.01978],[-97.19696,26.02048],[-97.19612,26.02159],[-97.19535,26.02314],[-97.19496,26.02431],[-97.19496,26.02512],[-97.19535,26.02557],[-97.19612,26.02564],[-97.19681,26.02559],[-97.19741,26.02539],[-97.19792,26.02507],[-97.19835,26.0246],[-97.19886,26.02453],[-97.19946,26.02484],[-97.20015,26.02553],[-97.20092,26.02661],[-97.20167,26.02728],[-97.2024,26.02755],[-97.20311,26.02742],[-97.2038,26.02688],[-97.2044,26.02659],[-97.20491,26.02655],[-97.20534,26.02676],[-97.20569,26.02723],[-97.20575,26.02788],[-97.20553,26.02873],[-97.20504,26.02977],[-97.20427,26.03101],[-97.20347,26.03189],[-97.20266,26.03243],[-97.20182,26.03263],[-97.20097,26.03247],[-97.19996,26.03257],[-97.1988,26.03291],[-97.19749,26.03351],[-97.19603,26.03436],[-97.19474,26.0354],[-97.19363,26.03663],[-97.19268,26.03806],[-97.19191,26.03968],[-97.19134,26.04089],[-97.19095,26.04171],[-97.19076,26.04211],[-97.19076,26.04211],[-97.19065,26.04209],[-97.19044,26.04205]];
+  const CHANNEL = [[-97.15281,26.06401],[-97.16809,26.0637],[-97.1695,26.06309],[-97.17108,26.06232],[-97.17285,26.06139],[-97.17529,26.06005],[-97.17839,26.05829],[-97.18146,26.05653],[-97.18448,26.05477],[-97.18759,26.05297],[-97.19078,26.05111],[-97.19399,26.04917],[-97.19722,26.04714],[-97.2003,26.04519],[-97.20324,26.04334],[-97.20632,26.04144],[-97.20955,26.0395],[-97.21279,26.03765],[-97.21606,26.03589],[-97.21941,26.03409],[-97.22286,26.03224],[-97.22656,26.03043],[-97.23051,26.02867],[-97.23442,26.02686],[-97.23828,26.02501],[-97.24227,26.0232],[-97.2464,26.02144],[-97.25029,26.01964],[-97.25394,26.01778],[-97.25763,26.01589],[-97.26133,26.01394],[-97.26482,26.012],[-97.26808,26.01005],[-97.27125,26.00825],[-97.27432,26.00658],[-97.27735,26.00491],[-97.28034,26.00324],[-97.28382,26.00125],[-97.28781,25.99894],[-97.29167,25.99671],[-97.29542,25.99459],[-97.29918,25.99241],[-97.30295,25.99018],[-97.30705,25.98791],[-97.31149,25.9856],[-97.31585,25.98319],[-97.32014,25.98069],[-97.32427,25.97852],[-97.32824,25.97666],[-97.33251,25.97486],[-97.3371,25.9731],[-97.34055,25.97177],[-97.34288,25.97086],[-97.34513,25.96989],[-97.34732,25.96885],[-97.34842,25.96833]];
+  const COAST_ROAD = [[-97.50444,25.92525],[-97.50194,25.92489],[-97.50038,25.92404],[-97.49878,25.92306],[-97.49644,25.92266],[-97.49237,25.92238],[-97.49032,25.92225],[-97.48949,25.92227],[-97.48741,25.922],[-97.48348,25.92176],[-97.48086,25.9216],[-97.47677,25.92134],[-97.4737,25.92115],[-97.46971,25.92091],[-97.4676,25.9209],[-97.46639,25.92061],[-97.46468,25.92007],[-97.4611,25.91892],[-97.45876,25.91794],[-97.45535,25.91627],[-97.45356,25.91584],[-97.45019,25.91573],[-97.44729,25.91564],[-97.44374,25.91551],[-97.43906,25.91537],[-97.43709,25.91583],[-97.43432,25.91595],[-97.4326,25.91609],[-97.43084,25.9167],[-97.41869,25.91691],[-97.41416,25.91695],[-97.40753,25.917],[-97.39794,25.91707],[-97.39213,25.91712],[-97.38515,25.91714],[-97.38286,25.91716],[-97.37868,25.91719],[-97.37735,25.91743],[-97.37574,25.91858],[-97.36778,25.92854],[-97.36156,25.93633],[-97.35312,25.94433],[-97.35069,25.94662],[-97.34645,25.94907],[-97.34153,25.95095],[-97.32515,25.95297],[-97.31535,25.95473],[-97.31068,25.95893],[-97.30119,25.96175],[-97.29342,25.96195],[-97.28365,25.96215],[-97.26353,25.96268],[-97.26065,25.96364],[-97.25391,25.96333],[-97.24865,25.96311],[-97.24019,25.96527],[-97.23795,25.96573],[-97.23432,25.96483],[-97.22819,25.963],[-97.21488,25.96511],[-97.20694,25.96781],[-97.20622,25.96825],[-97.18951,25.98242],[-97.18453,25.98708],[-97.18328,25.98866],[-97.1818,25.9905],[-97.18134,25.99087],[-97.18064,25.99128],[-97.18023,25.99145],[-97.17948,25.99166],[-97.17454,25.99272],[-97.17265,25.99313],[-97.16752,25.99485],[-97.16432,25.99588],[-97.16105,25.99712],[-97.15942,25.99799],[-97.15873,25.99819],[-97.15813,25.99826],[-97.15763,25.99824],[-97.15434,25.99758],[-97.15268,25.99734],[-97.15279,25.99713],[-97.15266,25.99723]];
+  const RIVER = [[-97.14708,25.97901],[-97.14723,25.97832],[-97.14753,25.97693],[-97.14721,25.97555],[-97.14626,25.97415],[-97.14613,25.97184],[-97.14682,25.9686],[-97.14685,25.96605],[-97.14623,25.9642],[-97.14623,25.96292],[-97.14685,25.96223],[-97.14688,25.96176],[-97.14633,25.96153],[-97.14599,25.96038],[-97.14589,25.95829],[-97.14654,25.95702],[-97.14795,25.95656],[-97.14868,25.95575],[-97.14873,25.95459],[-97.14978,25.9532],[-97.15184,25.95158],[-97.15287,25.95077]];
+  const SHORE = [[-97.15049,26.01730],[-97.15049,26.01606],[-97.15040,26.01483],[-97.15040,26.01360],[-97.15040,26.01236],[-97.15040,26.01113],[-97.14991,26.00989],[-97.14991,26.00866],[-97.14991,26.00742],[-97.14991,26.00619],[-97.14991,26.00496],[-97.14985,26.00372],[-97.14961,26.00249],[-97.14944,26.00125],[-97.14944,26.00002],[-97.14944,25.99878],[-97.14944,25.99755],[-97.14937,25.99632],[-97.14884,25.99508],[-97.14884,25.99385],[-97.14867,25.99261],[-97.14867,25.99138],[-97.14849,25.99014],[-97.14867,25.98891],[-97.14867,25.98767],[-97.14867,25.98644],[-97.14867,25.98521],[-97.14867,25.98397],[-97.14867,25.98278]];
+
+
 
   function syncCamFromGeo() {
     if (!W) return;
@@ -1819,7 +1822,6 @@
     ctx.translate(-G.cam.x, -G.cam.y);
 
     if (band !== "Region") drawSiteRoad();
-    drawCoast();
 
     if (G.placeType && G._hover) {
       const def = defOf(G.placeType);
@@ -1846,8 +1848,8 @@
       }
     }
 
-    drawSurvey();
     ctx.restore();
+    if (band === "Site" || band === "Work") drawTractLines();
     drawGeoReadout();
     updateFieldChrome(band);
   }
@@ -2081,17 +2083,25 @@
     if (edge === "east") return [x0 + w, y0 + h / 2];
     return [x0, y0 + h / 2];
   }
+  function yardSegment(fromB, toB) {
+    const order = ["starfactory", "mega_bay", "pad_orbital"];
+    const left = order.indexOf(fromB.type) <= order.indexOf(toB.type) ? fromB : toB;
+    const right = left === fromB ? toB : fromB;
+    const a = edgePoint(left, "east");
+    const b = edgePoint(right, "west");
+    const northPx = 80 / (110540 * (GEO_N - GEO_S) / (MAP_H * CELL));
+    const mid = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2 - northPx];
+    const pts = smoothRoad([a, mid, b]).map((p) => ({ x: p[0], y: p[1] }));
+    if (left !== fromB) pts.reverse();
+    return pts;
+  }
   function drawSiteRoad() {
     const placed = ["starfactory", "mega_bay", "pad_orbital"].map((t) => buildingOfType(t)).filter(Boolean);
     if (placed.length < 2) return;
     const metersX = 111320 * Math.cos(PAD_LAT * Math.PI / 180) * (GEO_E - GEO_W) / (MAP_W * CELL);
-    const northPx = 80 / (110540 * (GEO_N - GEO_S) / (MAP_H * CELL));
     const segs = [];
     for (let i = 0; i < placed.length - 1; i++) {
-      const a = edgePoint(placed[i], "east");
-      const b = edgePoint(placed[i + 1], "west");
-      const mid = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2 - northPx];
-      segs.push(smoothRoad([a, mid, b]));
+      segs.push(yardSegment(placed[i], placed[i + 1]).map((p) => [p.x, p.y]));
     }
     function stroke(widthM, color) {
       ctx.strokeStyle = color;
@@ -2126,7 +2136,191 @@
     });
   }
 
-  function drawCoast() {}
+  function screenRing(ring, closePath) {
+    const pts = ring.map((p) => projectFlat(p[0], p[1]));
+    ctx.beginPath();
+    pts.forEach((q, i) => i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1]));
+    if (closePath) ctx.closePath();
+    return pts;
+  }
+  function ringBox(pts) {
+    let minx = Infinity, miny = Infinity, maxx = -Infinity, maxy = -Infinity;
+    pts.forEach((q) => {
+      minx = Math.min(minx, q[0]);
+      miny = Math.min(miny, q[1]);
+      maxx = Math.max(maxx, q[0]);
+      maxy = Math.max(maxy, q[1]);
+    });
+    return { minx, miny, maxx, maxy, w: maxx - minx, h: maxy - miny };
+  }
+  function metersOnScreen(meters) {
+    return Math.max(1, meters / metersPerPx());
+  }
+  function pointInRing(lon, lat, ring) {
+    let inside = false;
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      const yi = ring[i][1], yj = ring[j][1];
+      if ((yi > lat) !== (yj > lat)) {
+        const x = (ring[j][0] - ring[i][0]) * (lat - yi) / (yj - yi) + ring[i][0];
+        if (lon < x) inside = !inside;
+      }
+    }
+    return inside;
+  }
+  let shelfCache = null;
+  function beachShelf() {
+    if (shelfCache) return shelfCache;
+    const ring = (typeof GEO_RINGS !== "undefined" && (GEO_RINGS.gulfLand || GEO_RINGS.boca)) || null;
+    if (!ring) return null;
+    const step = 0.00028;
+    const n = SHORE.length;
+    const inner = new Array(n);
+    const outer = new Array(n);
+    for (let i = 0; i < n; i++) {
+      const lon = SHORE[i][0];
+      const lat = SHORE[i][1];
+      let hit = lon;
+      for (let k = 0; k < 40; k++) {
+        const x = lon - k * step;
+        if (pointInRing(x, lat, ring)) { hit = x - step; break; }
+      }
+      const t = Math.min(1, Math.min(i, n - 1 - i) / 4);
+      inner[i] = [hit, lat];
+      outer[i] = [hit + (lon - hit) * t, lat];
+    }
+    shelfCache = { inner, outer };
+    return shelfCache;
+  }
+  function pathLonLat(ring, close) {
+    ring.forEach((p, i) => {
+      const q = projectFlat(p[0], p[1]);
+      if (i) ctx.lineTo(q[0], q[1]);
+      else ctx.moveTo(q[0], q[1]);
+    });
+    if (close) ctx.closePath();
+  }
+  function drawBeachShelf() {
+    const shelf = beachShelf();
+    if (!shelf) return;
+    ctx.beginPath();
+    pathLonLat(shelf.outer, false);
+    for (let i = shelf.inner.length - 1; i >= 0; i--) {
+      const q = projectFlat(shelf.inner[i][0], shelf.inner[i][1]);
+      ctx.lineTo(q[0], q[1]);
+    }
+    ctx.closePath();
+    ctx.fillStyle = "#e0c99a";
+    ctx.fill();
+    ctx.beginPath();
+    pathLonLat(shelf.outer, false);
+    ctx.strokeStyle = "#f4e7c8";
+    ctx.lineWidth = 2;
+    ctx.lineJoin = "round";
+    ctx.lineCap = "butt";
+    ctx.stroke();
+  }
+  function limitWords(spot) {
+    if (!spot) return;
+    ctx.save();
+    ctx.translate(spot.x, spot.y);
+    ctx.rotate(spot.ang);
+    ctx.fillText("limit", 0, 0);
+    ctx.restore();
+  }
+  function sideLabel(side, other) {
+    const pts = side.map((p) => projectFlat(p[0], p[1]));
+    const on = [];
+    for (let i = 0; i < pts.length; i++) {
+      const q = pts[i];
+      if (q[0] > 36 && q[0] < W - 36 && q[1] > 36 && q[1] < H - 36) on.push(i);
+    }
+    if (!on.length) return null;
+    const i = on[Math.floor(on.length / 2)];
+    const q = pts[i];
+    const a = pts[Math.max(0, i - 1)];
+    const b = pts[Math.min(pts.length - 1, i + 1)];
+    let ang = Math.atan2(b[1] - a[1], b[0] - a[0]);
+    if (ang > Math.PI / 2 || ang < -Math.PI / 2) ang += Math.PI;
+    const j = Math.min(other.length - 1, Math.round(i * (other.length - 1) / Math.max(1, side.length - 1)));
+    const o = projectFlat(other[j][0], other[j][1]);
+    const dx = o[0] - q[0];
+    const dy = o[1] - q[1];
+    const len = Math.hypot(dx, dy) || 1;
+    return { x: q[0] + dx / len * 14, y: q[1] + dy / len * 14, ang };
+  }
+  function capLabel(a, b, toward) {
+    const p = projectFlat(a[0], a[1]);
+    const q = projectFlat(b[0], b[1]);
+    const m = [(p[0] + q[0]) / 2, (p[1] + q[1]) / 2];
+    if (m[0] < 36 || m[0] > W - 36 || m[1] < 36 || m[1] > H - 36) return null;
+    let ang = Math.atan2(q[1] - p[1], q[0] - p[0]);
+    if (ang > Math.PI / 2 || ang < -Math.PI / 2) ang += Math.PI;
+    const t = projectFlat(toward[0], toward[1]);
+    const dx = t[0] - m[0];
+    const dy = t[1] - m[1];
+    const len = Math.hypot(dx, dy) || 1;
+    return { x: m[0] + dx / len * 14, y: m[1] + dy / len * 14, ang };
+  }
+  let limitCache = null;
+  function coastCrossings(ring, lat) {
+    const xs = [];
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      const y0 = ring[j][1], y1 = ring[i][1];
+      if ((y0 > lat) === (y1 > lat)) continue;
+      const x = (ring[i][0] - ring[j][0]) * (lat - y0) / (y1 - y0) + ring[j][0];
+      if (x >= -97.55 && x <= -97.05) xs.push(x);
+    }
+    xs.sort((a, b) => b - a);
+    return xs;
+  }
+  function coastLimit() {
+    if (limitCache) return limitCache;
+    const ring = (typeof GEO_RINGS !== "undefined" && (GEO_RINGS.gulfLand || GEO_RINGS.boca)) || null;
+    if (!ring) return null;
+    const depth = 8000 / (111320 * Math.cos(26 * Math.PI / 180));
+    const shore = [];
+    const inland = [];
+    let prev = null;
+    for (let lat = 25.80; lat <= 26.09; lat += 0.003) {
+      const y = Math.round(lat * 1000) / 1000;
+      const xs = coastCrossings(ring, y);
+      if (!xs.length) continue;
+      const hit = xs[0];
+      if (hit < -97.20) break;
+      if (prev != null && hit < prev - 0.015) break;
+      let back = hit - depth;
+      if (xs.length > 1 && xs[1] > back) back = xs[1];
+      shore.push([Math.round(hit * 1e5) / 1e5, y]);
+      inland.push([Math.round(back * 1e5) / 1e5, y]);
+      prev = hit;
+    }
+    if (shore.length < 4) return null;
+    limitCache = { shore, inland };
+    return limitCache;
+  }
+  function drawTractLines() {
+    const parts = coastLimit();
+    if (!parts) return;
+    const ring = parts.shore.concat(parts.inland.slice().reverse());
+    const pts = screenRing(ring, true);
+    const box = ringBox(pts);
+    if (box.w < 48 || box.h < 36) return;
+    ctx.setLineDash([8, 6]);
+    ctx.strokeStyle = "rgba(176, 32, 24, 1)";
+    ctx.lineWidth = 2;
+    ctx.lineJoin = "round";
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.font = "12px system-ui, sans-serif";
+    ctx.fillStyle = "rgba(176, 32, 24, 0.95)";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    const n = parts.shore.length - 1;
+    limitWords(sideLabel(parts.shore, parts.inland));
+    limitWords(sideLabel(parts.inland, parts.shore));
+    limitWords(capLabel(parts.shore[0], parts.inland[0], parts.shore[Math.floor(n / 2)]));
+    limitWords(capLabel(parts.shore[n], parts.inland[n], parts.shore[Math.floor(n / 2)]));
+  }
 
   function drawPlots() {
     if (G.span > 1.2) return;
@@ -2257,57 +2451,6 @@
   function toScreen(lon, lat) {
     if (viewBand() === "World") return projectGlobe(lon, lat);
     return projectFlat(lon, lat);
-  }
-
-  function drawSurvey() {
-    const z = Math.max(G.cam.zoom, 0.001);
-    const pad = 18;
-    function cellBox(plot, owned) {
-      let x0 = lonToX(plot.west), x1 = lonToX(plot.east);
-      let y0 = latToY(plot.north), y1 = latToY(plot.south);
-      if (!owned) return [x0, y0, x1, y1];
-      for (const b of G.buildings) {
-        const d = defOf(b.type);
-        const bx0 = b.gx * CELL, by0 = b.gy * CELL;
-        const bx1 = bx0 + d.footprint.w * CELL, by1 = by0 + d.footprint.h * CELL;
-        const cx = (bx0 + bx1) / 2, cy = (by0 + by1) / 2;
-        if (cx < x0 - 80 || cx > x1 + 80 || cy < y0 - 80 || cy > y1 + 80) continue;
-        x0 = Math.min(x0, bx0 - pad);
-        x1 = Math.max(x1, bx1 + pad);
-        y0 = Math.min(y0, by0 - pad);
-        y1 = Math.max(y1, by1 + pad);
-      }
-      return [x0, y0, x1, y1];
-    }
-    function strokeBox(box, color, widthPx, dashPx) {
-      const [x0, y0, x1, y1] = box;
-      if ((x1 - x0) * z < 8) return;
-      ctx.beginPath();
-      ctx.rect(x0, y0, x1 - x0, y1 - y0);
-      ctx.setLineDash(dashPx.map((n) => n / z));
-      ctx.strokeStyle = color;
-      ctx.lineWidth = widthPx / z;
-      ctx.stroke();
-      ctx.setLineDash([]);
-    }
-    for (const id of Object.keys(PLOTS)) {
-      if (!G.plots[id]) continue;
-      const box = cellBox(PLOTS[id], true);
-      strokeBox(box, "rgba(244, 234, 216, 0.9)", 5, []);
-      strokeBox(box, "#8a3e24", 1.75, []);
-      if (metersPerPx() < 600 && (box[2] - box[0]) * z >= 8) {
-        const [x0, y0, x1, y1] = box;
-        for (const p of [[x0, y0], [x1, y0], [x1, y1], [x0, y1]]) {
-          ctx.beginPath();
-          ctx.arc(p[0], p[1], 3.5 / z, 0, Math.PI * 2);
-          ctx.fillStyle = "#f4ead8";
-          ctx.fill();
-          ctx.lineWidth = 1.5 / z;
-          ctx.strokeStyle = "#8a3e24";
-          ctx.stroke();
-        }
-      }
-    }
   }
 
   function drawGeoReadout() {
@@ -2581,8 +2724,8 @@
   });
   document.querySelectorAll("#map-chips button").forEach((b) => {
     b.addEventListener("click", () => {
-      G.lon = PAD_LON;
-      G.lat = PAD_LAT;
+      G.lon = -97.185;
+      G.lat = 26.010;
       setSpan(spanForMpp(Number(b.dataset.mpp)));
     });
   });

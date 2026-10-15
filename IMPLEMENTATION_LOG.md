@@ -87,3 +87,16 @@ History of what **shipped**, keyed by **version**.
 - Fleet is a word at the bottom of the right column and opens the fleet sheet. Mega Bay starts with one slot. Another slot costs 30 steel, up to 4. The pad card is split into Fire, Roll, and Upgrade.
 - A Wiki word at the left of the log opens pages for the three buildings, Falcon 1, and the static fire.
 - Build, Merlin thrust, and refurb each take 1 day. A rollout is still a few seconds.
+- The rocket sheet says Isp and engine mass. The pad number is the thrust limit. The factory button says Roll to Mega Bay. A scrap line says first stage.
+
+---
+
+## `0.4.0-borderline` — 2026-10-15
+
+**Version:** `0.4.0-borderline`
+
+- Owned ground is one red dashed line. The water side follows the coast for the whole beach. The back side sits about 8 km inland where the land is continuous, and it follows the bay where the water cuts in. The word on the line is limit. The only dash is that red line.
+- Each building is its own buy and its own plot. Starfactory, Mega Bay, and the Orbital Pad sit in fixed seats, with open ground between them. The hall is about one tenth of its plot.
+- The Land column counts plots. The highway is off the map. A rollout from Mega Bay to the Orbital Pad follows the yard road drawn between those two doors. The return uses that same road.
+- The copper boxes and the corner dots are gone. The previous live file is `archive/index-0.3.0-panel.html`.
+- No new fire rule. No yard purchase. No houses. The picture is `design-docs/0.4.0-borderline-design.html`.

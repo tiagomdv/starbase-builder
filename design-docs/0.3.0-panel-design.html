@@ -154,7 +154,7 @@
 
         <h2 id="inspector">Inspector layout</h2>
         <p>Each building card uses the same order. The name comes first. One sentence comes next. Then the one number that matters for that building. The actions sit under that number, as cards. A waiting line, such as days left or a vehicle on the pad, sits under the cards.</p>
-        <p>Starfactory’s number is the vehicle it is building, or the one it is holding. Mega Bay’s number is how many vehicles it holds, out of 4. The pad’s number is the thrust it accepts. Merlin thrust, impulse, mass, and restarts leave this card. They belong on the rocket.</p>
+        <p>Starfactory’s number is the vehicle it is building, or the one it is holding. Mega Bay’s number is how many vehicles it holds, out of 4. The pad’s number is the thrust limit. Merlin thrust, specific impulse, engine mass, and restarts leave this card. They belong on the rocket.</p>
         <p>An action uses the same black card as the buy card. The action name is the title. The price, or the propellant, is the large number. One sentence sits under it. The main action has a white edge. A second action has a dim edge, so the eye hits one card first. A return to the bay keeps the black card and takes a red edge. The green fill and the red fill go.</p>
         <div class="insp">
           <div class="title">Starfactory</div>
@@ -174,14 +174,14 @@
         <p class="cap">Starfactory builds a rocket. It does not show the engine card.</p>
         <h2 id="rocket">Rocket</h2>
         <p>SpaceX did not raise Merlin thrust from the factory floor. Merlin 1A flew the first two Falcon 1 launches at 340 kN. The next engine, Merlin 1C, was qualified at the McGregor test site in Texas, on a stand, and then cleared for the next Falcon 1. Hawthorne built the rocket. The new engine was the configuration of that rocket. A test site can arrive in a later version. This version does not add one.</p>
-        <p>A click on a fleet row opens the rocket. The column stays put. The view is a dark sheet over the map. The rocket stands in the middle. Thrust, impulse, mass, and restarts sit around it. The name and the place sit in the top line: at the factory, in the bay, on the road, or on the pad.</p>
+        <p>A click on a fleet row opens the rocket. The column stays put. The view is a dark sheet over the map. The rocket stands in the middle. Thrust, specific impulse, engine mass, and restarts sit around it. The name and the place sit in the top line: at the factory, in the bay, on the road, or on the pad.</p>
         <p>Raise Merlin thrust moves here, off the Starfactory card. The button stays quiet until you ask to build this view. It spends the same 36 steel and takes the same 2 days. Thrust on that rocket rises from 340 kN to 381 kN. Later upgrades use the same places around the rocket. They do not get a new button on the factory.</p>
         <div class="modal">
           <div class="top"><b>Falcon 1</b><span>In the bay · condition 100</span></div>
           <div class="sheet">
-            <div class="side">Thrust<b>340 kN</b>Impulse<b>260 s</b></div>
+            <div class="side">Thrust<b>340 kN</b>Isp<b>260 s</b></div>
             <div class="rocket"></div>
-            <div class="side">Mass<b>630 kg</b>Restarts<b>1</b></div>
+            <div class="side">Engine mass<b>630 kg</b>Restarts<b>1</b></div>
           </div>
           <button class="act quiet" type="button">
             <div class="name">Raise Merlin thrust</div>

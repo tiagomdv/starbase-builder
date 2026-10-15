@@ -28,7 +28,11 @@ Massey's is its own site inland, later. Its parts are the ship cryo stand, the b
 
 The object rule and the part pictures are in `design-docs/site-objects-design.html`.
 
-Leave the map free of a caption for every part. Leave the launch track off until a rocket actually flies. Land you own is one soft shape, not a stack of white boxes. Area is shown in acres, with square feet beside it, and the number has to match the ground the building sits on.
+Leave the map free of a caption for every part. Leave the launch track off until a rocket actually flies.
+
+The owned line shipped in `0.4.0-borderline`. It follows the coast, about 8 km inland on the solid beach, and it follows the bay where the water cuts in. Each building is a separate buy on a fixed plot, and the building is about one tenth of that plot. The Land column counts plots. The picture is `design-docs/0.4.0-borderline-design.html`.
+
+Later rows on `design-docs/program-roadmap-design.html` move that same line. `6.0.0-yard` adds pad buffer, the first houses, and the highway closure. `6.2.0-stand` is the 930 acre strip and an inland test stand. `6.3.0-farm` lets tank-pad acres set propellant and deluge capacity. `6.4.0-mitigation` is wetland you cannot build on, required before the second pad. `6.5.0-town` adds a clinic and a school after the beds exist. None of those rules ship with the line.
 
 ## Sound
 
