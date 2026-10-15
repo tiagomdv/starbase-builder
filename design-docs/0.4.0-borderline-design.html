@@ -52,12 +52,12 @@
         <span class="tag">0.4.0-borderline</span>
         <span class="tag muted">Live release</span>
       </div>
-      <h1>The line around the yard</h1>
+      <h1>The coast limit</h1>
       <p class="lede">The map in <code>index.html</code> draws one dashed line on the coast. The line runs inland about 8 km on the solid beach, and it follows the bay where the water cuts in. Site and Work show that line. This page is the picture the line came from.</p>
     </header>
     <div class="role">
       <b>Live release</b>
-      The live limit follows the coast, about 8 km inland on the solid beach, and along the bay where the water cuts in. Each building is its own plot. The version under the header counts is <code>0.4.0-borderline</code>.
+      The live limit follows the coast, about 8 km inland on the solid beach, and along the bay where the water cuts in. Starfactory sits inland. Mega Bay sits between the factory and the pad. The Orbital Pad sits nearest the coast. Each building is its own plot. The version under the header counts is <code>0.4.0-borderline</code>.
     </div>
     <div class="doc-grid">
       <nav class="toc">
@@ -77,19 +77,19 @@
       </nav>
       <article>
         <h2 id="see">What you see</h2>
-        <p>The working game draws one red dash for the ground you own. Buying either site sets the column to 69 acres. The second site leaves that number where it is.</p>
-        <p>The line is the stroke only. The sand inside stays sand. The word on each side of the line is <strong>limit</strong>. The acres stay in the Land column. The range lamp still says Range open or Range closed.</p>
-        <p>The Land column reads <strong>69 acres</strong>. Square feet stay off that column. The number matches the polygon. Acres are not printed on the sand.</p>
+        <p>The working game draws one red dash. The water side follows the coast. The back side sits about 8 km inland where the land is continuous, and it follows the bay where the water cuts in. The sand inside stays sand.</p>
+        <p>The word on the line is <strong>limit</strong>. The Land column counts plots. It does not say 69 acres. The range lamp still says Range open or Range closed. There is no second dash and no highway.</p>
+        <p>Starfactory sits inland. Mega Bay sits between the factory and the pad. The Orbital Pad sits nearest the coast. A rollout from the bay to the pad follows the yard road between those doors.</p>
 
         <h2 id="ground">The two lines</h2>
-        <p>The sand shows two lines at most. One is the ground you own. The other is the next piece you can buy. The water edge of both is the surf line traced from the November 2025 photo. The wider coast is the outline below, drawn from the references.</p>
+        <p>The live map has one line. The drawings under this heading are the earlier study of a 69 acre beach and a pale next buy. They are not the line in <code>index.html</code>. The reference photos and outlines below stay as the study of the coast.</p>
         <figure class="sand">
           <canvas id="view-site" width="1100" height="700"></canvas>
           <figcaption>The traced shore, the owned line, and the next buy. Gulf on the right. The pale line is the waterline taken from the photo.</figcaption>
         </figure>
         <figure class="sand">
           <canvas id="view-work" width="1100" height="700"></canvas>
-          <figcaption>Closer on the same lines. The red edge is that waterline. The inland edge is set back so the owned ground is about 69 acres.</figcaption>
+          <figcaption>Earlier study, not the live map. The inland edge here is set back so the tract is about 69 acres.</figcaption>
         </figure>
         <h2 id="images">Reference images</h2>
         <p>These photos are references. They are not the map, and they do not go in the game. The outlines below are traced from them.</p>
@@ -165,46 +165,45 @@
         </figure>
 
         <h2 id="size">69 acres</h2>
-        <p>The first tract is the 2014 licensed site, 68.9 acres, shown as 69. A square of that size is about 530 m on a side. The 2014 papers split it into a beach parcel and a control parcel about 2 miles inland. This chapter draws them as one tract you own.</p>
-        <p>A Falcon 1 hall, a bay, and a pad together cover a couple of acres. They read as marks inside the line. A Mega Bay at Starbase is about 38 m by 54 m, half an acre. Starfactory’s floor is about 23 acres, which would fill a third of this tract. That hall waits until the line has moved out.</p>
+        <p>The 2014 licensed site was 68.9 acres, shown here as 69. A square of that size is about 530 m on a side. The papers split it into a beach parcel and a control parcel about 2 miles inland. The live line does not draw that square.</p>
+        <p>A Falcon 1 hall, a bay, and a pad together cover a couple of acres. A Mega Bay at Starbase is about 38 m by 54 m. Starfactory’s floor is about 23 acres. The halls in the game are larger than those buildings so the later roads have room. Their readable pictures wait for <code>0.12.0-picture</code>.</p>
         <table>
           <thead><tr><th>Ground</th><th>Acres</th><th>Against the 69 acre tract</th></tr></thead>
           <tbody>
             <tr><td>Falcon 1 hall, bay, and pad together</td><td>about 2</td><td>a few marks inside the line</td></tr>
             <tr><td>One Mega Bay, 38 m by 54 m</td><td>0.5</td><td>still a speck</td></tr>
             <tr><td>Starfactory floor, about 1 million sq ft</td><td>about 23</td><td>about a third of this tract</td></tr>
-            <tr><td>First tract, 2014 licensed site</td><td>69</td><td>the line in this slice</td></tr>
+            <tr><td>First tract, 2014 licensed site</td><td>69</td><td>the license, not the line in the game</td></tr>
           </tbody>
         </table>
 
         <h2 id="draw">How the line is drawn</h2>
         <ul>
-          <li>One closed shape for every acre you own. The game draws that shape in screen space, on the same coast as the sand.</li>
-          <li>The pad side of the shape is the shore. The line meets the water and runs along it for the beach you own. The other sides cross the dune and stop inland. The line does not enter the Gulf.</li>
-          <li>The stroke is <code>rgba(176, 32, 24, 1)</code>, dash 8 and 6, about 2 px wide. The game skips it until the box is at least 48 px wide and 36 px tall. The word limit appears when the box is at least 64 px wide and 28 px tall.</li>
-          <li>No fill inside the line. The word on each side is limit. The acres stay in the Land column.</li>
-          <li>The map draws the next buy as one pale dash. It does not draw the buys after that.</li>
+          <li>One closed shape. The water side is the gulf shore from about lat 25.80 until the shore jumps inland at the pass. The back side is about 8 km inland, and it stops at the first water so the stroke stays on sand.</li>
+          <li>The stroke is <code>rgba(176, 32, 24, 1)</code>, dash 8 and 6, about 2 px wide. The word limit sits on the part of the stroke that is on screen.</li>
+          <li>No fill. No pale next dash. No grey plot dash. The Land column counts plots.</li>
         </ul>
         <p>The real pad sits in the dunes at the end of the highway, against Boca Chica Beach. The tract reaches that waterline. You do not own the Gulf, and the line does not cross it. In Texas the wet beach stays a public beach. A fire can close it. The line on the map is the shore for that stretch, then it turns inland across the dune.</p>
-        <p>The wide map uses the Gulf shore from <code>geo-land.js</code>. Site and Work add a short beach beside the tract and one smooth highway. The traced lagoon, the channel, and the old kinked road stay off this map. A 69 acre tract meets the Gulf beside the pad. Starfactory, Mega Bay, and the Orbital Pad sit inside that line. When the tract grows, the same line moves out.</p>
+        <p>Site and Work use the Gulf shore from <code>geo-land.js</code>. The highway, the traced lagoon, the channel, and the river stay off the map. The three buildings sit inside the line. Starfactory is inland. The Orbital Pad is nearest the shore.</p>
 
         <h2 id="later">When the line moves</h2>
-        <p>Later buys move this same line outward. The old line goes away. Buildings do not grow a private border when the tract grows. The dash and the red stay as on this page. The larger line still follows the shore.</p>
-        <p>A buy replaces the owned line with the next line. The old line goes away, and the buy after that becomes the pale dash. The column is where you compare 200, 930, and 8,000 acres. The sand never stacks those shapes.</p>
+        <p>Later rows add rules on this same coast line. They do not replace it with a 69 acre square or a pale next dash. Buildings do not grow a private border.</p>
+        <p>The acres below are the later land story. They are not stacked shapes on the sand, and they are not the live column.</p>
         <table>
           <thead><tr><th>Tract</th><th>Acres</th><th>Why it exists</th></tr></thead>
           <tbody>
-            <tr><td>Start, this slice</td><td>69 owned</td><td>The pad side of the beach. The live hall and bay sit outside it.</td></tr>
+            <tr><td>2014 license</td><td>69</td><td>Not the live line. The live line is the coast.</td></tr>
             <tr><td>Yard, for sale</td><td>about 200</td><td>Empty ground around the pad, then the first houses. The range lamp uses the clear distance. Beds cut bay days.</td></tr>
             <tr><td>The 2025 city strip</td><td>about 930</td><td>Room for a test stand off the factory, and for a tank farm whose acres set how much propellant you can hold.</td></tr>
             <tr><td>The 2026 annex</td><td>toward 8,000</td><td>A second pad, plus wetland you own and cannot build on. The second pad waits until that wetland is inside the tract.</td></tr>
           </tbody>
         </table>
-        <p>Those buys are later rows on <code>design-docs/program-roadmap-design.html</code>. This slice draws the 69 acre line and the next buy. The later tracts stay in the column.</p>
+        <p>Those rules are later rows on <code>design-docs/program-roadmap-design.html</code>. This slice draws the coast line. The column counts plots.</p>
 
         <h2 id="out">Left out of this slice</h2>
         <ul>
-          <li>No new buy rule. The two site buttons stay. Buying either one shows 69 acres. The pale dash has no button.</li>
+          <li>No acre buy. Each building is its own plot. The column counts plots. There is no pale dash.</li>
+          <li>Readable building pictures wait for <code>0.12.0-picture</code>. The build, the rolls, the raise onto the mount, and the static fire on the map wait for <code>0.13.0-motion</code>. The static fire is still a modal.</li>
           <li>No village, no test stand, no tank-farm acre rule, and no second pad.</li>
           <li>No structure lab. That stays <code>0.5.0-structure</code>.</li>
           <li>No forest and no mountain range on the Site view. Those are not on this coast.</li>

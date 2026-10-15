@@ -99,4 +99,4 @@ History of what **shipped**, keyed by **version**.
 - Each building is its own buy and its own plot. Starfactory sits inland. Mega Bay sits between the factory and the pad. The Orbital Pad sits nearest the coast. The hall is about one tenth of its plot.
 - The Land column counts plots. The highway is off the map. A rollout from Mega Bay to the Orbital Pad follows the yard road drawn between those two doors. The return uses that same road.
 - The copper boxes and the corner dots are gone. The previous live file is `archive/index-0.3.0-panel.html`.
-- No new fire rule. No yard purchase. No houses. The picture is `design-docs/0.4.0-borderline-design.html`.
+- No new fire rule. No yard purchase. No houses. The static fire is still a modal. Building pictures are `0.12.0-picture`. Map motion is `0.13.0-motion`. The design page is `design-docs/0.4.0-borderline-design.html`.

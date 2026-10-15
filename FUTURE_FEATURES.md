@@ -2,11 +2,11 @@
 
 The ordered draft is the version table in `design-docs/program-roadmap-design.html`.
 
-Phases 0 through 5 are the earlier draft, through `5.0.0-compute`. Phases 6 through 10 are the notes that used to live only in this file. A new idea is a new row at the bottom of that table.
+Phases 0 through 5 are the earlier draft, through `5.0.0-compute`. Phases 6 through 10 are the notes that used to live only in this file. A new idea is a new row. Building pictures and map motion are already inside Falcon 1, after the rules.
 
 When a row ships or is dropped, remove it from the table and note the ship in `IMPLEMENTATION_LOG.md`.
 
-**Last shipped:** Falcon 1 only. Merlin card, a fire that follows the numbers, and a sky you can wait out. See `IMPLEMENTATION_LOG.md`.
+**Last shipped:** `0.4.0-borderline`. One coast limit, three plot buys, and a rollout that follows the yard road. See `IMPLEMENTATION_LOG.md`.
 
 ## UI and UX
 
@@ -30,7 +30,7 @@ The object rule and the part pictures are in `design-docs/site-objects-design.ht
 
 Leave the map free of a caption for every part. Leave the launch track off until a rocket actually flies.
 
-The owned line shipped in `0.4.0-borderline`. It follows the coast, about 8 km inland on the solid beach, and it follows the bay where the water cuts in. Each building is a separate buy on a fixed plot, and the building is about one tenth of that plot. The Land column counts plots. The picture is `design-docs/0.4.0-borderline-design.html`.
+The owned line shipped in `0.4.0-borderline`. It follows the coast, about 8 km inland on the solid beach, and it follows the bay where the water cuts in. Starfactory sits inland. Mega Bay sits between the factory and the pad. The Orbital Pad sits nearest the coast. Each building is a separate buy on a fixed plot, and the building is about one tenth of that plot. The Land column counts plots. A rollout from the bay to the pad follows the yard road. The factory still hands a finished rocket to the bay with no roll. The design page is `design-docs/0.4.0-borderline-design.html`.
 
 ## Pictures, then motion
 
