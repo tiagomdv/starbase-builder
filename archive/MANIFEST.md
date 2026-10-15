@@ -6,3 +6,4 @@
 | index-0.2.0-merlin.html | 0.2.0-merlin | Playable site before the gulf shore and the two-plot column. |
 | index-0.2.1-field.html | 0.2.1-field | Playable site before the large range header. |
 | index-0.3.0-panel.html | 0.3.0-panel | Playable site before the owned beach line. |
+| index-0.4.0-borderline.html | 0.4.0-borderline | Playable site before stage dry mass and the structural limit. |

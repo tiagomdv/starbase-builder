@@ -1,0 +1,2764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Starbase Builder</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="geo-land.js"></script>
+  <script src="design-docs/countries.js"></script>
+  <style>
+    :root {
+      --bg: #050505; --panel: #0a0a0a; --border: #2a2a2a;
+      --text: #f2f2f2; --muted: #9a9a9a; --accent: #e10600;
+      --good: #3dd68c; --bad: #e10600;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; overflow: hidden; touch-action: none; }
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+      background: var(--bg); color: var(--text);
+    }
+    .resource-bar {
+      background: #050505;
+      border-bottom: 1px solid #222;
+      color: #f2f2f2;
+      font-family: ui-monospace, Menlo, monospace;
+    }
+    #sky-label { font-size: 22px; line-height: 1; font-weight: 650; }
+    #wind-label { font-size: 15px; color: #c8c8c8; margin-top: 4px; }
+    .stat-k { font-size: 12px; color: #9a9a9a; }
+    .stat-n { font-size: 32px; line-height: 0.9; font-weight: 650; }
+    .resource-bar {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: end;
+    }
+    .bar-left { display: flex; align-items: flex-end; gap: 14px; }
+    .bar-mid { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    .bar-stats { display: flex; align-items: flex-end; gap: 22px; }
+    #ver-label { font-size: 11px; line-height: 1; color: #9a9a9a; }
+    .range-lamp {
+      width: 14px; height: 14px; border-radius: 50%; flex: none; margin-bottom: 6px;
+      background: var(--good); box-shadow: 0 0 8px var(--good); display: inline-block;
+    }
+    .range-lamp.closed { background: var(--bad); box-shadow: 0 0 8px var(--bad); }
+    .ui-panel { background: var(--panel); border: 1px solid var(--border); }
+    .ui-panel.hold { box-shadow: inset 3px 0 0 var(--bad); }
+    .ui-btn {
+      background: #000; border: 1px solid #333; color: #f2f2f2;
+      transition: background 0.12s, border-color 0.12s, opacity 0.12s;
+    }
+    .ui-btn:hover:not(:disabled) { background: #161616; border-color: #666; }
+    .ui-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .ui-btn.active { background: #140404; border-color: var(--accent); }
+    [class*="text-amber"] { color: #f2f2f2 !important; }
+    .ui-btn.good { background: #1a2e14; border-color: #3d6e34; color: var(--good); }
+    .ui-btn.danger { background: #2a1414; border-color: #8a4040; color: #e8a0a0; }
+    .plot-owned { font-size: 11px; color: #c8c8c8; margin-bottom: 8px; }
+    .plot-owned b { display: block; color: #f2f2f2; font-size: 13px; font-weight: 650; }
+    .plot-card {
+      display: block; width: 100%; text-align: left; cursor: pointer;
+      background: #0e0e0e; border: 1px solid #f2f2f2; color: #f2f2f2;
+      padding: 10px 10px 12px; margin-bottom: 8px;
+    }
+    .plot-card:hover { background: #161616; }
+    .plot-card .name { font-size: 15px; font-weight: 650; }
+    .plot-card .price { font-size: 28px; line-height: 1; font-weight: 650; margin-top: 6px; }
+    .plot-card .unit { font-size: 11px; color: #9a9a9a; letter-spacing: 0.08em; text-transform: uppercase; }
+    .plot-card .line { font-size: 12px; color: #c8c8c8; margin-top: 8px; }
+    .bldg .title { font-size: 16px; font-weight: 650; color: #f2f2f2; }
+    .bldg .blurb { font-size: 12px; color: #c8c8c8; margin-top: 4px; }
+    .bldg .stat { margin-top: 12px; }
+    .bldg .stat .k { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #9a9a9a; }
+    .bldg .stat .n { font-size: 32px; line-height: 0.95; font-weight: 650; color: #f2f2f2; }
+    .bldg .stat .s { font-size: 12px; color: #c8c8c8; margin-top: 4px; }
+    .bldg .wait { font-size: 12px; color: #c8c8c8; margin-top: 8px; }
+    .bay-slot {
+      display: block; width: 100%; text-align: left; margin-top: 8px; cursor: pointer;
+      background: #0e0e0e; border: 1px solid #333; color: #f2f2f2; padding: 8px 10px 10px;
+    }
+    .bay-slot.sel { border-color: #f2f2f2; }
+    .bay-slot.empty { cursor: default; }
+    .bay-slot.empty .n { color: #444; }
+    .bay-slot .top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+    .bay-slot .name { font-size: 14px; font-weight: 650; }
+    .bay-slot .where { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: #9a9a9a; }
+    .bay-slot .n { font-size: 26px; line-height: 1; font-weight: 650; margin-top: 6px; }
+    .bay-slot .meter { height: 3px; background: #2a2a2a; margin-top: 8px; }
+    .bay-slot .meter i { display: block; height: 100%; background: #f2f2f2; }
+    .act {
+      display: block; width: 100%; text-align: left; cursor: pointer; margin-top: 10px;
+      background: #0e0e0e; border: 1px solid #f2f2f2; color: #f2f2f2; padding: 10px;
+    }
+    .act:hover:not(:disabled) { background: #161616; }
+    .act:disabled { opacity: 0.4; cursor: not-allowed; }
+    .act.quiet { border-color: #444; }
+    .act.stop { border-color: #444; border-left: 3px solid #e10600; }
+    .act.build { border-color: #6a8ab0; background: #101418; }
+    .act.up { border-color: #c4a15a; background: #16140e; }
+    .act.fire { border-color: #e07030; background: #160e0a; }
+    .act.roll { border-color: #6a9a8a; background: #0e1412; }
+    .sec { margin-top: 16px; }
+    .sec .k { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: #9a9a9a; }
+    .facts { display: flex; gap: 16px; margin-top: 8px; }
+    .facts b { display: block; font-size: 22px; line-height: 1; font-weight: 650; color: #f2f2f2; }
+    .facts span { font-size: 11px; color: #9a9a9a; }
+    .act .name { font-size: 14px; font-weight: 650; }
+    .act .price { font-size: 26px; line-height: 1; font-weight: 650; margin-top: 6px; }
+    .act .unit { font-size: 11px; color: #9a9a9a; letter-spacing: 0.08em; text-transform: uppercase; }
+    .act .line { font-size: 12px; color: #c8c8c8; margin-top: 8px; }
+    #rocket-sheet {
+      position: fixed; inset: 0; z-index: 40; display: none;
+      background: rgba(0, 0, 0, 0.72); align-items: center; justify-content: center; padding: 16px;
+    }
+    #rocket-sheet.open { display: flex; }
+    .rocket-panel { width: min(640px, 100%); background: #0a0a0a; border: 1px solid #333; color: #f2f2f2; padding: 16px; }
+    .rocket-panel .top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+    .rocket-panel .top b { font-size: 18px; }
+    .rocket-panel .place { font-size: 12px; color: #9a9a9a; margin-top: 4px; }
+    .rocket-sheet { display: grid; grid-template-columns: 1fr 72px 1fr; gap: 12px; align-items: center; margin-top: 14px; }
+    .rocket-sheet .side { font-size: 12px; color: #c8c8c8; }
+    .rocket-sheet .side b { display: block; color: #f2f2f2; font-size: 22px; line-height: 1.1; font-weight: 650; margin-bottom: 10px; }
+    .rocket-body {
+      height: 220px; width: 36px; margin: 0 auto;
+      background: linear-gradient(#f2f2f2, #c8c8c8 70%, #8a3e24);
+      clip-path: polygon(50% 0, 100% 18%, 100% 100%, 0 100%, 0 18%);
+    }
+    #map-wrap { position: relative; min-width: 0; min-height: 0; background: #07141c; }
+    #map { display: block; width: 100%; height: 100%; cursor: grab; touch-action: none; }
+    #map-chips, #map-zoom { position: absolute; z-index: 2; display: flex; gap: 6px; }
+    #map-corner { position: absolute; left: 10px; top: 10px; z-index: 2; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+    #map-chips { position: static; }
+    #job-note { pointer-events: none; display: flex; flex-direction: column; gap: 4px; }
+    #job-note:empty { display: none; }
+    #job-note span { font-size: 12px; color: #f2f2f2; background: rgba(0,0,0,0.55); padding: 4px 8px; }
+    #next-goal {
+      margin-top: auto; background: transparent; border: 0; outline: none;
+      color: #9a9a9a; cursor: pointer; padding: 12px 14px;
+      font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase;
+    }
+    #next-goal:hover, #next-goal:focus { color: #f2f2f2; outline: none; }
+    #fleet-open {
+      margin-top: auto; background: transparent; border: 0; outline: none;
+      color: #9a9a9a; cursor: pointer; padding: 12px 14px; text-align: center;
+      font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase;
+    }
+    #fleet-open:hover, #fleet-open:focus { color: #f2f2f2; outline: none; }
+    #wiki-open {
+      background: transparent; border: 0; outline: none; color: #9a9a9a; cursor: pointer;
+      padding: 0 16px; font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase;
+    }
+    #wiki-open:hover, #wiki-open:focus { color: #f2f2f2; outline: none; }
+    #wiki-sheet {
+      position: fixed; inset: 0; z-index: 40; display: none;
+      background: rgba(0, 0, 0, 0.72); align-items: center; justify-content: center; padding: 16px;
+    }
+    #wiki-sheet.open { display: flex; }
+    .wiki-panel { width: min(760px, 100%); max-height: min(78vh, 640px); overflow: auto; background: #0a0a0a; color: #f2f2f2; padding: 28px; }
+    .wiki-panel .top { display: flex; justify-content: space-between; align-items: flex-start; }
+    .wiki-panel .left { font-size: 28px; letter-spacing: 0.18em; text-transform: uppercase; font-weight: 650; }
+    #wiki-close { background: transparent; border: 0; color: #9a9a9a; cursor: pointer; letter-spacing: 0.16em; text-transform: uppercase; font-size: 11px; }
+    .wiki-grid { display: grid; grid-template-columns: 180px 1fr; gap: 18px; margin-top: 18px; }
+    .wiki-topic { display: block; width: 100%; text-align: left; background: transparent; color: #f2f2f2; cursor: pointer; border: 1px solid rgba(242,242,242,0.55); padding: 8px 10px; margin-bottom: 8px; font-size: 13px; }
+    .wiki-topic.on { border-color: #f2f2f2; }
+    .wiki-body p { font-size: 14px; color: #c8c8c8; margin: 0 0 10px; }
+    .wiki-body h3 { margin: 0 0 8px; font-size: 20px; font-weight: 650; }
+    #fleet-sheet {
+      position: fixed; inset: 0; z-index: 40; display: none;
+      background: rgba(0, 0, 0, 0.72); align-items: center; justify-content: center; padding: 16px;
+    }
+    #fleet-sheet.open { display: flex; }
+    .fleet-panel { width: min(440px, 100%); max-height: min(70vh, 560px); overflow-y: auto; background: #0a0a0a; color: #f2f2f2; padding: 28px 28px 22px; }
+    .fleet-panel .top { display: flex; justify-content: space-between; align-items: flex-start; }
+    .fleet-panel .left { font-size: 42px; line-height: 0.9; font-weight: 650; }
+    .fleet-panel .left span { display: block; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #9a9a9a; font-weight: 500; margin-top: 6px; }
+    #fleet-close { background: transparent; border: 0; color: #9a9a9a; cursor: pointer; letter-spacing: 0.16em; text-transform: uppercase; font-size: 11px; }
+    #fleet-close:hover { color: #f2f2f2; }
+    .fleet-row { display: block; width: 100%; text-align: left; background: transparent; border: 1px solid rgba(242, 242, 242, 0.55); color: #f2f2f2; cursor: pointer; margin-top: 10px; padding: 10px 12px; }
+    .fleet-row .name { font-size: 18px; font-weight: 650; }
+    .fleet-row .meta { font-size: 12px; color: #9a9a9a; margin-top: 2px; }
+    .fleet-row.sel { border-color: #f2f2f2; }
+    .fleet-row.sel .name { color: #f2f2f2; }
+    .fleet-empty { margin-top: 18px; font-size: 14px; color: #c8c8c8; }
+    #goal-sheet {
+      position: fixed; inset: 0; z-index: 40; display: none;
+      background: rgba(0, 0, 0, 0.72); align-items: center; justify-content: center; padding: 16px;
+    }
+    #goal-sheet.open { display: flex; }
+    .goal-panel { width: min(440px, 100%); background: #0a0a0a; border: 0; color: #f2f2f2; padding: 28px 28px 22px; }
+    .goal-panel .top { display: flex; justify-content: space-between; align-items: flex-start; }
+    .goal-panel .left { font-size: 42px; line-height: 0.9; font-weight: 650; }
+    .goal-panel .left span { display: block; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #9a9a9a; font-weight: 500; margin-top: 6px; }
+    #goal-close { background: transparent; border: 0; color: #9a9a9a; cursor: pointer; letter-spacing: 0.16em; text-transform: uppercase; font-size: 11px; }
+    #goal-close:hover { color: #f2f2f2; }
+    .goal-row { display: flex; gap: 14px; align-items: baseline; margin-top: 10px; padding: 10px 12px; border: 1px solid rgba(242, 242, 242, 0.55); }
+    .goal-row .idx { font-size: 12px; color: #9a9a9a; width: 22px; }
+    .goal-row .name { font-size: 14px; color: #c8c8c8; }
+    .goal-row .line { font-size: 11px; color: #9a9a9a; letter-spacing: 0.08em; text-transform: uppercase; margin-top: 2px; }
+    .goal-row.now { border-color: #f2f2f2; }
+    .goal-row.now .name { font-size: 22px; font-weight: 650; color: #f2f2f2; }
+    .goal-row.done { opacity: 0.4; }
+    .goal-row.done .name { text-decoration: line-through; }
+    #map-zoom { right: 10px; top: 10px; }
+    #map-scale {
+      position: absolute; left: 12px; bottom: 72px; z-index: 2; display: none;
+      align-items: flex-end; gap: 8px; pointer-events: none;
+      font: 12px ui-monospace, monospace; color: #f4ead8;
+    }
+    #map-scale .bar {
+      height: 8px;
+      border-left: 2px solid #f4ead8;
+      border-right: 2px solid #f4ead8;
+      border-bottom: 2px solid #f4ead8;
+    }
+    #map.placing { cursor: crosshair; }
+    #map.panning { cursor: grabbing; }
+    #log { font-family: ui-monospace, Menlo, monospace; font-size: 11px; line-height: 1.35; }
+    #log .good { color: var(--good); }
+    #log .warn { color: var(--accent); }
+    #log .bad { color: var(--bad); }
+    #log .info { color: var(--muted); }
+    .swatch {
+      width: 0.85rem; height: 0.85rem; border-radius: 2px;
+      border: 1px solid rgba(0,0,0,0.35); display: inline-block;
+    }
+    .obj-done { color: var(--good); text-decoration: line-through; opacity: 0.85; }
+    .bar-track {
+      height: 6px; background: #1a1510; border-radius: 3px; overflow: hidden; margin-top: 4px;
+    }
+    .bar-track > i { display: block; height: 100%; background: linear-gradient(90deg, #6a8a40, #a8c86a); }
+    .bar-track.bad > i { background: linear-gradient(90deg, #8a4040, #d07060); }
+    #event-stage {
+      position: fixed; inset: 0; z-index: 80; display: none; flex-direction: column;
+      background: rgba(8, 10, 12, 0.9); backdrop-filter: blur(4px);
+    }
+    #event-stage.open { display: flex; }
+    #event-stage .event-head {
+      flex-shrink: 0; display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;
+      padding: 0.65rem 1rem; border-bottom: 1px solid var(--border);
+      background: #050505;
+    }
+    #event-stage .event-head h2 {
+      margin: 0; font-size: 0.95rem; letter-spacing: 0.08em;
+      text-transform: uppercase; color: #f5edd8;
+    }
+    #event-stage .event-phase {
+      font-family: ui-monospace, Menlo, monospace; font-size: 0.8rem; color: var(--accent);
+    }
+    #event-stage .event-phase.fail { color: var(--bad); }
+    #event-stage .event-body {
+      flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 0.5rem;
+    }
+    #event-canvas {
+      width: min(920px, 96vw); height: min(520px, 70vh); max-width: 100%;
+      border: 1px solid var(--border); border-radius: 8px; background: #0a0e14;
+      box-shadow: 0 12px 48px rgba(0,0,0,0.55);
+    }
+    #event-stage .event-foot {
+      flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; gap: 0.75rem;
+      padding: 0.55rem 1rem 0.75rem; border-top: 1px solid var(--border);
+      background: #050505; font-size: 0.78rem; color: var(--muted);
+    }
+  </style>
+</head>
+<body class="flex flex-col h-full">
+
+  <header class="resource-bar px-3 py-3 shrink-0 z-20">
+    <div class="bar-left">
+      <span id="range-lamp" class="range-lamp" title="Green when the sky is inside the pad limit."></span>
+      <div>
+        <div id="sky-label">Range open</div>
+        <div id="wind-label">clear 8 kn</div>
+      </div>
+    </div>
+    <div class="bar-mid">
+      <div class="bar-stats">
+        <div><div class="stat-k">Steel</div><div id="res-steel" class="stat-n tabular-nums">200</div></div>
+        <div><div class="stat-k">Propellant</div><div id="res-prop" class="stat-n tabular-nums">40</div></div>
+        <div><div class="stat-k">Fleet</div><div id="res-fleet" class="stat-n tabular-nums">0</div></div>
+        <div><div class="stat-k">Day</div><div id="day-label" class="stat-n tabular-nums">1</div></div>
+      </div>
+      <div id="ver-label">0.4.0-borderline</div>
+    </div>
+  </header>
+
+  <div class="flex flex-1 min-h-0">
+    <aside class="w-44 ui-panel flex flex-col shrink-0 border-y-0 border-l-0">
+      <div class="p-2.5 border-b border-amber-900/40">
+        <div class="text-[10px] uppercase tracking-wider text-amber-600 mb-2">Land</div>
+        <div class="grid grid-cols-1 gap-1.5" id="build-palette"></div>
+      </div>
+      <button type="button" id="next-goal">Goals</button>
+    </aside>
+
+    <div id="map-wrap" class="flex-1">
+      <canvas id="map"></canvas>
+      <div id="map-corner">
+        <div id="map-chips">
+          <button type="button" class="ui-btn rounded px-2 py-1 text-xs" data-band="World" data-mpp="18000">World</button>
+          <button type="button" class="ui-btn rounded px-2 py-1 text-xs" data-band="Region" data-mpp="1600">Region</button>
+          <button type="button" class="ui-btn rounded px-2 py-1 text-xs" data-band="Site" data-mpp="100">Site</button>
+          <button type="button" class="ui-btn rounded px-2 py-1 text-xs" data-band="Work" data-mpp="1.25">Work</button>
+        </div>
+        <div id="job-note"></div>
+      </div>
+      <div id="map-zoom">
+        <button type="button" class="ui-btn rounded px-2 py-1 text-xs" id="zoom-in">Zoom in</button>
+        <button type="button" class="ui-btn rounded px-2 py-1 text-xs" id="zoom-out">Zoom out</button>
+      </div>
+      <div id="map-scale"><span class="bar" id="map-scale-bar"></span><span id="map-scale-label"></span></div>
+    </div>
+
+    <aside id="readout" class="w-64 ui-panel flex flex-col shrink-0 border-y-0 border-r-0 min-h-0">
+      <div class="p-2.5 flex-1 overflow-y-auto min-h-0">
+        <div class="text-[10px] uppercase tracking-wider text-amber-600 mb-1">Inspector</div>
+        <div id="inspector" class="text-xs text-amber-100/85 space-y-2"></div>
+      </div>
+      <button type="button" id="fleet-open">Fleet</button>
+    </aside>
+  </div>
+
+  <footer class="ui-panel border-x-0 border-b-0 shrink-0" style="display:flex; align-items:stretch;">
+    <button type="button" id="wiki-open">Wiki</button>
+    <div id="log" class="px-3 py-1.5 h-14 overflow-y-auto flex-1"></div>
+  </footer>
+
+  <div id="wiki-sheet" aria-hidden="true">
+    <div class="wiki-panel" id="wiki-panel"></div>
+  </div>
+  <div id="fleet-sheet" aria-hidden="true">
+    <div class="fleet-panel" id="fleet-panel"></div>
+  </div>
+  <div id="goal-sheet" aria-hidden="true">
+    <div class="goal-panel" id="goal-panel"></div>
+  </div>
+  <div id="rocket-sheet" aria-hidden="true">
+    <div class="rocket-panel" id="rocket-panel"></div>
+  </div>
+
+  <div id="event-stage" aria-hidden="true">
+    <div class="event-head">
+      <h2 id="event-title">Ops</h2>
+      <span class="event-phase" id="event-phase">—</span>
+      <div class="ml-auto">
+        <button type="button" class="ui-btn rounded px-3 py-1 text-xs" id="event-skip">Skip</button>
+      </div>
+    </div>
+    <div class="event-body"><canvas id="event-canvas" width="900" height="500"></canvas></div>
+    <div class="event-foot">
+      <span id="event-caption">Static fire · success is not guaranteed</span>
+      <span>Failure → anomaly animation · return to bay for refurb / scrap</span>
+    </div>
+  </div>
+
+  <script>
+(() => {
+  "use strict";
+
+  const VERSION = "0.4.0-borderline";
+  const CELL = 32, MAP_W = 40, MAP_H = 30, MS_PER_DAY = 4000;
+  const ZOOM_MIN = 0.22, ZOOM_MAX = 2.4;
+  const PAD_LAT = 25.997, PAD_LON = -97.157;
+
+  const TUNING = {
+    START_STEEL: 200,
+    START_PROP: 40,
+    /** Environment: materials + propellant without tank farm */
+    ENV_STEEL_PER_DAY: 6,
+    ENV_PROP_PER_DAY: 8,
+    PROP_CAP: 120,
+    PAD_L2_COST: 40,
+    MERLIN_THRUST_KN: 340,
+    MERLIN_ISP_S: 260,
+    MERLIN_MASS_KG: 630,
+    MERLIN_RESTARTS: 1,
+    MERLIN_UP_COST: 36,
+    MERLIN_UP_DAYS: 1,
+    MERLIN_UP_MULT: 1.12,
+    SF_THRUST_BAR_KN: 300,
+    SF_WEAR_PER_FIRE: 0.08,
+    SF_MISS_CONDITION: 40,
+    SF_OK_CONDITION: 12,
+    SCRAP_FLOOR: 20,
+    WIND_LIMIT_L1: 20,
+    WIND_LIMIT_L2: 28,
+    PAD_THRUST_L1: 400,
+    PAD_THRUST_L2: 900,
+    BAY_MAX: 4,
+    BAY_SLOT_COST: 30,
+    ROLLOUT_PX_PER_SEC: 52,
+    ROLLOUT_MIN_SEC: 2.0,
+    ROLLOUT_MAX_SEC: 14,
+    RETURN_PX_PER_SEC: 56,
+  };
+
+  /**
+   * SpaceX-ish roadmap. Static fire can fail (RUD / engine anomaly).
+   * Post-fire vehicles need hangar/bay inspection & refurb — not left “hot” on the pad.
+   */
+  const ROCKET_DEFS = {
+    falcon1: {
+      id: "falcon1",
+      name: "Falcon 1",
+      short: "F1",
+      era: "2006–2009",
+      steelCost: 28,
+      buildDays: 1,
+      sfProp: 8,
+      engines: 1,
+      sfStyle: "merlin_single",
+      mapScale: 0.82,
+      color: "#c8d0d8",
+      /** Base P(success) on a green pad with fresh vehicle */
+      sfSuccess: 0.72,
+      refurbDaysOk: 1,
+      refurbDaysFail: 1,
+      scrapOnFailChance: 0.35,
+      blurb: "One Merlin. The fire follows thrust, the pad, the tanks, and the sky.",
+      sfPhases: { approach: 1.0, chill: 1.0, ignition: 0.85, burn: 1.9, shutdown: 0.75, debrief: 1.0 },
+      unlocked: true,
+    },
+    falcon9: {
+      id: "falcon9",
+      name: "Falcon 9",
+      short: "F9",
+      era: "2010+",
+      steelCost: 52,
+      buildDays: 1,
+      sfProp: 16,
+      engines: 9,
+      sfStyle: "merlin_nine",
+      mapScale: 1.12,
+      color: "#e8eef4",
+      sfSuccess: 0.82,
+      refurbDaysOk: 1,
+      refurbDaysFail: 1,
+      scrapOnFailChance: 0.22,
+      blurb: "Nine-engine first stage. Heavier fire, higher base reliability.",
+      sfPhases: { approach: 1.15, chill: 1.4, ignition: 1.2, burn: 3.2, shutdown: 1.0, debrief: 1.2 },
+      unlocked: false,
+    },
+    falcon_heavy: { id: "falcon_heavy", name: "Falcon Heavy", short: "FH", unlocked: false, blurb: "Later." },
+    starship: { id: "starship", name: "Starship", short: "SS", unlocked: false, blurb: "Later." },
+  };
+
+  const BUILDING_DEFS = {
+    starfactory: {
+      id: "starfactory",
+      name: "Starfactory",
+      short: "Factory",
+      cost: 40,
+      footprint: { w: 4, h: 3 },
+      maxCount: 1,
+      zoneHint: "production",
+      blurb: "Builds one vehicle from steel. It stays here until you roll it to Mega Bay.",
+    },
+    mega_bay: {
+      id: "mega_bay",
+      name: "Mega Bay",
+      short: "Bay",
+      cost: 50,
+      footprint: { w: 4, h: 3 },
+      maxCount: 1,
+      zoneHint: "production",
+      blurb: "Houses the fleet. A vehicle comes back here after a fire.",
+    },
+    pad_orbital: {
+      id: "pad_orbital",
+      name: "Orbital Pad",
+      short: "Pad",
+      cost: 40,
+      footprint: { w: 3, h: 3 },
+      maxCount: 1,
+      zoneHint: "launch",
+      maxLevel: 2,
+      upgradeVisual: { 2: "Widen flame trench and raise the mount" },
+      blurb: "Holds one vehicle for a static fire.",
+    },
+  };
+
+  const BUILD_ORDER = ["starfactory", "mega_bay", "pad_orbital"];
+
+  // ── State ──
+  // vehicle: { id, name, rocketId, buildingId|null, status, condition, refurbLeft, wx, wy, baySlot }
+  // status: at_factory | in_bay | rolling | on_pad | refurb | destroyed
+  const G = {
+    day: 1, dayAcc: 0,
+    merlinTier: 1,
+    steel: TUNING.START_STEEL,
+    prop: TUNING.START_PROP,
+    buildings: [],
+    fleet: [],
+    factoryJob: null,
+    rollout: null, // { vehicleId, pts, segLens, totalLen, t, duration, destKind: 'pad'|'bay', destId }
+    event: null,
+    nextId: 1,
+    selectedId: null,
+    selectedVehicleId: null,
+    rocketSheet: null,
+    goalSheet: false,
+    fleetSheet: false,
+    wikiSheet: false,
+    wikiPage: "factory",
+    placeType: null,
+    cam: { x: 80, y: 40, zoom: 1 },
+    lon: -97.178, lat: 26.002, span: 0.12,
+    plots: { starfactory: false, mega_bay: false, pad_orbital: false },
+    drag: null,
+    flameUntil: 0,
+    log: [],
+    objectives: {
+      place_all: false,
+      build_rocket: false,
+      multi_bay: false,
+      static_fire: false,
+      refurb: false,
+      pad_l2: false,
+    },
+  };
+
+  const canvas = document.getElementById("map");
+  const ctx = canvas.getContext("2d");
+  const el = {
+    steel: document.getElementById("res-steel"),
+    prop: document.getElementById("res-prop"),
+    fleet: document.getElementById("res-fleet"),
+    day: document.getElementById("day-label"),
+    log: document.getElementById("log"),
+    inspector: document.getElementById("inspector"),
+    objectives: document.getElementById("next-goal"),
+    palette: document.getElementById("build-palette"),
+    fleetList: null,
+  };
+
+  function log(msg, kind = "info") {
+    G.log.unshift({ msg, kind });
+    if (G.log.length > 45) G.log.pop();
+    el.log.innerHTML = G.log.slice(0, 12).map((e) => `<div class="${e.kind}">${esc(e.msg)}</div>`).join("");
+  }
+  function esc(s) {
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+  function defOf(t) { return BUILDING_DEFS[t]; }
+  function rocketOf(id) { return ROCKET_DEFS[id] || ROCKET_DEFS.falcon1; }
+  function buildingById(id) { return G.buildings.find((b) => b.id === id) || null; }
+  function buildingOfType(t) { return G.buildings.find((b) => b.type === t) || null; }
+  function countType(t) { return G.buildings.filter((b) => b.type === t).length; }
+  function vehicleById(id) { return G.fleet.find((v) => v.id === id) || null; }
+  function selectedVehicle() { return vehicleById(G.selectedVehicleId); }
+  function liveFleet() { return G.fleet.filter((v) => v.status !== "destroyed"); }
+  function vehiclesAt(buildingId) { return liveFleet().filter((v) => v.buildingId === buildingId); }
+  function bayCount() {
+    const bay = buildingOfType("mega_bay");
+    return bay ? vehiclesAt(bay.id).length : 0;
+  }
+  function bayCapacity(bay) {
+    const b = bay || buildingOfType("mega_bay");
+    return Math.max(1, Math.min(TUNING.BAY_MAX, (b && b.level) || 1));
+  }
+  function factoryHold() {
+    const f = buildingOfType("starfactory");
+    return f ? vehiclesAt(f.id)[0] || null : null;
+  }
+  function padHold() {
+    const p = buildingOfType("pad_orbital");
+    return p ? vehiclesAt(p.id)[0] || null : null;
+  }
+  function cellZone(gx, gy) {
+    if (gx >= 28 && gy >= 20) return "water";
+    if (gy < 12) return "production";
+    if (gy < 16) return "corridor";
+    if (gx < 22) return "launch";
+    return "propellant";
+  }
+  function isWater() { return false; }
+  function buildingAnchor(b, slot = 0) {
+    const d = defOf(b.type);
+    const baseX = (b.gx + d.footprint.w / 2) * CELL;
+    const baseY = (b.gy + d.footprint.h * 0.42) * CELL;
+    if (b.type === "mega_bay") {
+      const spread = 22;
+      const n = bayCapacity(b);
+      const i = slot % n;
+      return { x: baseX + (i - (n - 1) / 2) * spread, y: baseY };
+    }
+    return { x: baseX, y: baseY };
+  }
+
+  function canPlace(type, gx, gy) {
+    const def = defOf(type);
+    if (!def) return { ok: false, why: "Unknown" };
+    if (countType(type) >= def.maxCount) return { ok: false, why: `Only one ${def.name}` };
+    const { w, h } = def.footprint;
+    if (gx < 0 || gy < 0 || gx + w > MAP_W || gy + h > MAP_H) return { ok: false, why: "Off map" };
+    for (let y = gy; y < gy + h; y++)
+      for (let x = gx; x < gx + w; x++)
+        if (isWater(x, y)) return { ok: false, why: "Water" };
+    for (const b of G.buildings) {
+      const d = defOf(b.type);
+      if (b.gx < gx + w && b.gx + d.footprint.w > gx && b.gy < gy + h && b.gy + d.footprint.h > gy)
+        return { ok: false, why: "Overlap" };
+    }
+    if (G.steel < def.cost) return { ok: false, why: `Need ${def.cost} steel` };
+    return { ok: true };
+  }
+
+  function buyPlot(id) {
+    const plot = PLOTS[id];
+    if (!plot || G.plots[id]) return;
+    if (G.steel < plot.cost) { log(`Need ${plot.cost} steel.`, "bad"); return; }
+    for (const b of plot.buildings) {
+      const check = canPlace(b.type, b.gx, b.gy);
+      if (!check.ok && check.why !== `Need ${defOf(b.type).cost} steel`) {
+        log(check.why, "bad"); return;
+      }
+    }
+    G.steel -= plot.cost;
+    G.plots[id] = true;
+    for (const b of plot.buildings) {
+      G.buildings.push({ id: G.nextId++, type: b.type, gx: b.gx, gy: b.gy, level: 1 });
+      G.selectedId = G.buildings[G.buildings.length - 1].id;
+    }
+    log(`${plot.name} bought.`, "good");
+    updateObjectives();
+    renderChrome();
+  }
+
+  function placeBuilding(type, gx, gy) {
+    const check = canPlace(type, gx, gy);
+    if (!check.ok) { log(check.why, "bad"); return; }
+    const def = defOf(type);
+    G.steel -= def.cost;
+    G.buildings.push({ id: G.nextId++, type, gx, gy, level: 1 });
+    G.selectedId = G.buildings[G.buildings.length - 1].id;
+    G.placeType = null;
+    canvas.classList.remove("placing");
+    log(`Built ${def.name} (−${def.cost} steel)`, "good");
+    updateObjectives();
+    renderChrome();
+  }
+
+  function dayTick() {
+    G.day++;
+    G.steel += TUNING.ENV_STEEL_PER_DAY;
+    G.prop = Math.min(TUNING.PROP_CAP, G.prop + TUNING.ENV_PROP_PER_DAY);
+
+    if (G.factoryJob) {
+      G.factoryJob.daysLeft--;
+      if (G.factoryJob.daysLeft <= 0) finishFactoryJob();
+      else if (G.factoryJob.kind === "merlin") log(`Merlin thrust · ${G.factoryJob.daysLeft} days left`, "info");
+      else log(`Factory: ${rocketOf(G.factoryJob.rocketId).name} — ${G.factoryJob.daysLeft}d left`, "info");
+    }
+
+    for (const v of liveFleet()) {
+      if (v.status === "refurb" && v.refurbLeft > 0) {
+        v.refurbLeft--;
+        if (v.refurbLeft <= 0) {
+          v.status = "in_bay";
+          v.condition = Math.min(100, v.condition + 25);
+          log(`${v.name} refurb complete in Mega Bay — ready`, "good");
+          G.objectives.refurb = true;
+        }
+      }
+    }
+    renderChrome();
+  }
+
+  function finishFactoryJob() {
+    const job = G.factoryJob;
+    const factory = buildingOfType("starfactory");
+    G.factoryJob = null;
+    if (!job || !factory) return;
+    if (job.kind === "merlin") {
+      const v = vehicleById(job.vehicleId);
+      if (v) {
+        v.merlinTier = 2;
+        log(`Merlin thrust on ${v.name} is now ${Math.round(TUNING.MERLIN_THRUST_KN * TUNING.MERLIN_UP_MULT)} kN.`, "good");
+      }
+      renderChrome();
+      return;
+    }
+    if (factoryHold()) {
+      log("Factory hold full — job lost (should not happen)", "bad");
+      return;
+    }
+    const r = rocketOf(job.rocketId);
+    const n = liveFleet().filter((v) => v.rocketId === r.id).length + 1;
+    const a = buildingAnchor(factory);
+    const v = {
+      id: G.nextId++,
+      name: `${r.short}-${n}`,
+      rocketId: r.id,
+      buildingId: factory.id,
+      status: "at_factory",
+      condition: 100,
+      merlinTier: 1,
+      fires: 0,
+      refurbLeft: 0,
+      baySlot: 0,
+      wx: a.x, wy: a.y,
+    };
+    G.fleet.push(v);
+    G.selectedVehicleId = v.id;
+    log(`${v.name} complete at Starfactory. Roll it to Mega Bay.`, "good");
+    G.objectives.build_rocket = true;
+    updateObjectives();
+    renderChrome();
+  }
+
+  function startBuildRocket(rocketId) {
+    const r = rocketOf(rocketId);
+    if (!r.unlocked) { log("Not on roadmap yet", "warn"); return; }
+    const factory = buildingById(G.selectedId);
+    if (!factory || factory.type !== "starfactory") { log("Select Starfactory", "warn"); return; }
+    if (G.factoryJob) { log("Factory already building", "warn"); return; }
+    if (factoryHold()) { log("Move finished vehicle to Mega Bay first (factory hold is 1)", "warn"); return; }
+    if (G.event || G.rollout) { log("Ops busy", "warn"); return; }
+    if (G.steel < r.steelCost) { log(`Need ${r.steelCost} steel`, "bad"); return; }
+    G.steel -= r.steelCost;
+    G.factoryJob = { kind: "rocket", rocketId: r.id, daysLeft: r.buildDays, totalDays: r.buildDays };
+    log(`Factory: ${r.name} started (−${r.steelCost} steel · ${r.buildDays} days)`, "good");
+    renderChrome();
+  }
+
+  function stageToBay(vehicleId) {
+    const bay = buildingOfType("mega_bay");
+    if (!bay) { log("Need Mega Bay", "bad"); return; }
+    const v = vehicleById(vehicleId || G.selectedVehicleId);
+    if (!v || v.status !== "at_factory") { log("Select a finished vehicle at the factory", "warn"); return; }
+    const cap = bayCapacity(bay);
+    if (bayCount() >= cap) {
+      log(`Mega Bay is full. It holds ${cap}.`, "bad");
+      return;
+    }
+    if (G.event || G.rollout) { log("Ops busy", "warn"); return; }
+    const used = new Set(vehiclesAt(bay.id).map((x) => x.baySlot));
+    let slot = 0;
+    while (used.has(slot) && slot < cap) slot++;
+    v.buildingId = bay.id;
+    v.status = "in_bay";
+    v.baySlot = slot;
+    const a = buildingAnchor(bay, slot);
+    v.wx = a.x; v.wy = a.y;
+    G.selectedVehicleId = v.id;
+    log(`${v.name} is in Mega Bay, slot ${slot + 1} of ${cap}.`, "good");
+    if (bayCount() >= 2) G.objectives.multi_bay = true;
+    updateObjectives();
+    renderChrome();
+  }
+
+  function pathMetrics(pts) {
+    const segLens = [];
+    let total = 0;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const len = Math.hypot(pts[i + 1].x - pts[i].x, pts[i + 1].y - pts[i].y);
+      segLens.push(len); total += len;
+    }
+    return { segLens, totalLen: Math.max(total, 1) };
+  }
+  function pointAlong(pts, segLens, totalLen, u) {
+    let dist = clamp(u, 0, 1) * totalLen;
+    for (let i = 0; i < segLens.length; i++) {
+      if (dist <= segLens[i] || i === segLens.length - 1) {
+        const t = segLens[i] < 1e-6 ? 1 : dist / segLens[i];
+        return {
+          x: pts[i].x + (pts[i + 1].x - pts[i].x) * t,
+          y: pts[i].y + (pts[i + 1].y - pts[i].y) * t,
+        };
+      }
+      dist -= segLens[i];
+    }
+    return pts[pts.length - 1];
+  }
+  function roadPath(from, to, fromB, toB) {
+    const road = fromB && toB ? yardSegment(fromB, toB) : [];
+    const pts = [{ x: from.x, y: from.y }].concat(road, [{ x: to.x, y: to.y }]);
+    const clean = [pts[0]];
+    for (let i = 1; i < pts.length; i++) {
+      const p = pts[i], q = clean[clean.length - 1];
+      if (Math.hypot(p.x - q.x, p.y - q.y) > 1) clean.push(p);
+    }
+    return clean;
+  }
+
+  function startRoll(vehicleId, destKind) {
+    const v = vehicleById(vehicleId || G.selectedVehicleId);
+    if (!v) { log("Select a vehicle", "warn"); return; }
+    if (G.rollout || G.event) { log("Transport busy", "warn"); return; }
+    const pad = buildingOfType("pad_orbital");
+    const bay = buildingOfType("mega_bay");
+    if (!pad || !bay) { log("Need bay and pad", "bad"); return; }
+
+    let fromB, toB, destStatus, speed;
+    if (destKind === "pad") {
+      if (v.status !== "in_bay") { log("Only bay-ready vehicles roll to pad", "warn"); return; }
+      if (padHold()) { log("Pad occupied — one stack on OLM", "warn"); return; }
+      fromB = bay; toB = pad; destStatus = "on_pad"; speed = TUNING.ROLLOUT_PX_PER_SEC;
+    } else if (destKind === "bay") {
+      if (v.status !== "on_pad" && v.status !== "needs_return") {
+        log("Return to bay from pad after fire", "warn"); return;
+      }
+      if (bayCount() >= bayCapacity(bay) && v.buildingId !== bay.id) {
+        log("Mega Bay is full.", "bad"); return;
+      }
+      fromB = pad; toB = bay; destStatus = "refurb"; speed = TUNING.RETURN_PX_PER_SEC;
+    } else return;
+
+    const fromA = v.buildingId === fromB.id
+      ? { x: v.wx, y: v.wy }
+      : buildingAnchor(fromB, v.baySlot || 0);
+    let slot = v.baySlot || 0;
+    if (destKind === "bay") {
+      const used = new Set(vehiclesAt(bay.id).filter((x) => x.id !== v.id).map((x) => x.baySlot));
+      slot = 0;
+      while (used.has(slot) && slot < bayCapacity(bay)) slot++;
+      v.baySlot = slot;
+    }
+    const toA = buildingAnchor(toB, destKind === "bay" ? slot : 0);
+    const pts = roadPath(fromA, toA, fromB, toB);
+    const { segLens, totalLen } = pathMetrics(pts);
+    let duration = totalLen / speed;
+    duration = clamp(duration, TUNING.ROLLOUT_MIN_SEC, TUNING.ROLLOUT_MAX_SEC);
+
+    v.buildingId = null;
+    v.status = "rolling";
+    v.wx = pts[0].x; v.wy = pts[0].y;
+    G.rollout = {
+      vehicleId: v.id, pts, segLens, totalLen, t: 0, duration,
+      destKind, destId: toB.id, destStatus, baySlot: slot,
+    };
+    log(
+      `${v.name} ${destKind === "pad" ? "rollout to pad" : "return to bay"} · ${duration.toFixed(1)}s`,
+      "info"
+    );
+    renderChrome();
+  }
+
+  function updateRollout(dt) {
+    if (!G.rollout) return;
+    const r = G.rollout;
+    const v = vehicleById(r.vehicleId);
+    if (!v) { G.rollout = null; return; }
+    r.t += dt;
+    const u = clamp(r.t / r.duration, 0, 1);
+    const p = pointAlong(r.pts, r.segLens, r.totalLen, u);
+    v.wx = p.x; v.wy = p.y;
+    if (u >= 1) {
+      v.buildingId = r.destId;
+      v.status = r.destStatus;
+      v.baySlot = r.baySlot || 0;
+      const b = buildingById(r.destId);
+      const a = buildingAnchor(b, v.baySlot);
+      v.wx = a.x; v.wy = a.y;
+      if (r.destStatus === "refurb") {
+        // refurb days already set at end of SF
+        if (v.refurbLeft <= 0) {
+          v.status = "in_bay";
+        }
+        log(`${v.name} in Mega Bay for post-fire refurb (${v.refurbLeft}d)`, "warn");
+      } else {
+        log(`${v.name} on pad — static fire when ready`, "good");
+      }
+      G.rollout = null;
+      updateObjectives();
+      renderChrome();
+    }
+  }
+
+  function weatherOn(day) {
+    const table = [
+      { sky: "Clear", wind: 8, storm: false },
+      { sky: "Clear", wind: 12, storm: false },
+      { sky: "Wind", wind: 24, storm: false },
+      { sky: "Clear", wind: 10, storm: false },
+      { sky: "Storm", wind: 36, storm: true },
+      { sky: "Wind", wind: 22, storm: false },
+      { sky: "Clear", wind: 6, storm: false },
+      { sky: "Clear", wind: 14, storm: false },
+      { sky: "Wind", wind: 26, storm: false },
+      { sky: "Storm", wind: 32, storm: true },
+    ];
+    return table[((day - 1) % table.length + table.length) % table.length];
+  }
+
+  function merlinFreshKn(v) {
+    const tier = v && v.merlinTier >= 2 ? 2 : 1;
+    return Math.round(TUNING.MERLIN_THRUST_KN * (tier >= 2 ? TUNING.MERLIN_UP_MULT : 1));
+  }
+
+  function merlinNowKn(v) {
+    const fires = v && v.fires ? v.fires : 0;
+    return Math.round(merlinFreshKn(v) * (1 - TUNING.SF_WEAR_PER_FIRE * fires));
+  }
+
+  function padLimits(pad) {
+    const l2 = pad && pad.level >= 2;
+    return {
+      thrust: l2 ? TUNING.PAD_THRUST_L2 : TUNING.PAD_THRUST_L1,
+      wind: l2 ? TUNING.WIND_LIMIT_L2 : TUNING.WIND_LIMIT_L1,
+    };
+  }
+
+  // The range lamp and the fire share this check so the two cannot drift.
+  function rangeShut(storm, wind, windLimit) {
+    return !!(storm || wind > windLimit);
+  }
+
+  // Numbers in, one word out. Same inputs always return the same word.
+  // fireVerdict(340, 400, 80, 8, 12, 20, false) is "hold".
+  // fireVerdict(340, 400, 80, 8, 24, 20, false) is "weather".
+  function fireVerdict(thrust, padThrust, prop, need, wind, windLimit, storm) {
+    if (rangeShut(storm, wind, windLimit)) return "weather";
+    if (prop < need) return "propellant";
+    if (thrust > padThrust) return "pad";
+    if (thrust < TUNING.SF_THRUST_BAR_KN) return "engine";
+    return "hold";
+  }
+
+  // Condition and refurb days after a fire. The caller writes the vehicle.
+  function sfNext(success, condition, refurbDaysOk, refurbDaysFail, padLevel) {
+    if (success) {
+      const cut = padLevel >= 2 ? 1 : 0;
+      return {
+        scrap: false,
+        status: "needs_return",
+        condition: Math.max(0, condition - TUNING.SF_OK_CONDITION),
+        refurbLeft: Math.max(1, refurbDaysOk - cut),
+      };
+    }
+    const next = condition - TUNING.SF_MISS_CONDITION;
+    if (next < TUNING.SCRAP_FLOOR) {
+      return { scrap: true, status: "destroyed", condition: 0, refurbLeft: 0 };
+    }
+    return {
+      scrap: false,
+      status: "needs_return",
+      condition: next,
+      refurbLeft: refurbDaysFail,
+    };
+  }
+
+  function fireCheck(v, pad) {
+    const sky = weatherOn(G.day);
+    const limits = padLimits(pad);
+    const thrust = merlinNowKn(v);
+    const need = rocketOf(v.rocketId).sfProp;
+    const word = fireVerdict(thrust, limits.thrust, G.prop, need, sky.wind, limits.wind, sky.storm);
+    const lines = [
+      `Thrust is ${thrust} kN. The fire needs ${TUNING.SF_THRUST_BAR_KN} kN.`,
+      `The thrust limit is ${limits.thrust} kN. The wind limit is ${limits.wind} knots.`,
+      `Propellant is ${Math.floor(G.prop)}. This fire draws ${need}.`,
+      `${sky.sky[0].toUpperCase()}${sky.sky.slice(1)}, ${sky.wind} knots.`,
+    ];
+    return {
+      ok: word === "hold",
+      limiter: word === "hold" ? null : word,
+      lines, thrust, need, sky, limits,
+    };
+  }
+
+  function staticFire() {
+    const pad = buildingOfType("pad_orbital");
+    if (!pad) { log("Need pad", "bad"); return; }
+    const v = padHold();
+    if (!v || v.status !== "on_pad") { log("Need a vehicle on the pad", "bad"); return; }
+    if (G.event || G.rollout) { log("Busy", "warn"); return; }
+    const r = rocketOf(v.rocketId);
+    const check = fireCheck(v, pad);
+    check.lines.forEach((line) => log(line, "info"));
+    if (!check.ok && (check.limiter === "weather" || check.limiter === "propellant")) {
+      log(check.limiter === "weather"
+        ? "Range is closed. Wait for a calmer day."
+        : `Need ${check.need} propellant.`, "bad");
+      renderChrome();
+      return;
+    }
+    G.prop -= check.need;
+    log(check.ok
+      ? `STATIC FIRE · ${v.name} · thrust holds · −${check.need} prop`
+      : `STATIC FIRE · ${v.name} · ${check.limiter} is short · −${check.need} prop`, check.ok ? "good" : "bad");
+    startEventSF(v, pad, r, check.need, check.ok, check);
+    renderChrome();
+  }
+
+  // ── Close-up event ──
+  const eventStage = document.getElementById("event-stage");
+  const eventCanvas = document.getElementById("event-canvas");
+  const ectx = eventCanvas.getContext("2d");
+  const elEvent = {
+    title: document.getElementById("event-title"),
+    phase: document.getElementById("event-phase"),
+    caption: document.getElementById("event-caption"),
+    skip: document.getElementById("event-skip"),
+  };
+
+  function startEventSF(v, pad, r, spent, success, check) {
+    const ph = r.sfPhases;
+    const phases = success
+      ? [
+          { id: "approach", label: "Camera · approach", dur: ph.approach },
+          { id: "chill", label: "Engine chill", dur: ph.chill },
+          { id: "ignition", label: r.engines === 9 ? "9-engine ignition" : "Ignition", dur: ph.ignition },
+          { id: "burn", label: "Full burn", dur: ph.burn },
+          { id: "shutdown", label: "Shutdown", dur: ph.shutdown },
+          { id: "debrief", label: "Stable · hold-downs OK", dur: ph.debrief },
+        ]
+      : [
+          { id: "approach", label: "Camera · approach", dur: ph.approach * 0.9 },
+          { id: "chill", label: "Engine chill", dur: ph.chill * 0.85 },
+          { id: "ignition", label: "Ignition", dur: ph.ignition },
+          { id: "anomaly", label: "ANOMALY · RUD / engine fail", dur: 1.6 },
+          { id: "fail", label: "Range safe · vehicle compromised", dur: 1.4 },
+        ];
+    G.event = {
+      kind: "static_fire",
+      vehicleId: v.id,
+      rocketId: r.id,
+      sfStyle: r.sfStyle,
+      padLevel: pad.level,
+      success,
+      limiter: success ? null : check.limiter,
+      spent,
+      t: 0, phaseIdx: 0, phaseT: 0,
+      phases,
+      done: false,
+      particles: [],
+      _failShown: false,
+    };
+    G.flameUntil = performance.now() + (success ? 1000 : 1600);
+    elEvent.phase.classList.remove("fail");
+    openEvent(
+      `Static fire · ${v.name}`,
+      phases[0].label,
+      success
+        ? `${r.name} · thrust ${check.thrust} kN holds · ${check.sky.sky}`
+        : `${r.name} · the ${check.limiter} is short`
+    );
+  }
+
+  function openEvent(title, phase, cap) {
+    elEvent.title.textContent = title;
+    elEvent.phase.textContent = phase;
+    elEvent.caption.textContent = cap;
+    eventStage.classList.add("open");
+    eventStage.setAttribute("aria-hidden", "false");
+    resizeEventCanvas();
+  }
+  function closeEvent() {
+    eventStage.classList.remove("open");
+    eventStage.setAttribute("aria-hidden", "true");
+  }
+
+  function applySfOutcome() {
+    const ev = G.event;
+    if (!ev) return;
+    const v = vehicleById(ev.vehicleId);
+    const r = rocketOf(ev.rocketId);
+    if (!v) return;
+    G.objectives.static_fire = true;
+    v.fires = (v.fires || 0) + 1;
+    const pad = buildingOfType("pad_orbital");
+    const next = sfNext(ev.success, v.condition, r.refurbDaysOk, r.refurbDaysFail, pad ? pad.level : 1);
+    v.status = next.status;
+    v.condition = next.condition;
+    if (next.scrap) {
+      v.buildingId = null;
+      log(`${v.name} is below the condition floor of ${TUNING.SCRAP_FLOOR}. The first stage is scrap. The ${ev.limiter} was short.`, "bad");
+    } else if (ev.success) {
+      v.refurbLeft = next.refurbLeft;
+      log(`${v.name} held. Return it to the Mega Bay for ${v.refurbLeft} days of refurb. Thrust next fire ${merlinNowKn(v)} kN.`, "good");
+    } else {
+      v.refurbLeft = next.refurbLeft;
+      log(`${v.name} failed because the ${ev.limiter} was short. Condition ${v.condition}. Refurb ${v.refurbLeft} days. Scrap floor is ${TUNING.SCRAP_FLOOR}.`, "bad");
+    }
+  }
+
+  function finishEvent() {
+    if (!G.event) return;
+    applySfOutcome();
+    G.event = null;
+    closeEvent();
+    updateObjectives();
+    renderChrome();
+  }
+
+  function skipEvent() {
+    if (!G.event) { closeEvent(); return; }
+    G.event.done = true;
+    finishEvent();
+  }
+  elEvent.skip.addEventListener("click", skipEvent);
+
+  function resizeEventCanvas() {
+    const d = Math.min(window.devicePixelRatio || 1, 2);
+    const rect = eventCanvas.getBoundingClientRect();
+    const w = Math.max(320, Math.floor(rect.width));
+    const h = Math.max(200, Math.floor(rect.height));
+    eventCanvas.width = w * d; eventCanvas.height = h * d;
+    ectx.setTransform(d, 0, 0, d, 0, 0);
+    G._ew = w; G._eh = h;
+  }
+
+  function updateEvent(dt) {
+    const ev = G.event;
+    if (!ev) return;
+    ev.t += dt; ev.phaseT += dt;
+    const phase = ev.phases[ev.phaseIdx];
+    const pid = phase ? phase.id : "debrief";
+
+    if ((pid === "anomaly" || pid === "fail") && !ev._failShown) {
+      ev._failShown = true;
+      elEvent.phase.classList.add("fail");
+    }
+
+    if (!ev.done && phase && ev.phaseT >= phase.dur) {
+      ev.phaseT = 0;
+      ev.phaseIdx++;
+      if (ev.phaseIdx >= ev.phases.length) {
+        ev.done = true;
+        ev.phaseIdx = ev.phases.length - 1;
+        elEvent.phase.textContent = ev.phases[ev.phaseIdx].label;
+        const snap = ev;
+        setTimeout(() => { if (G.event === snap) finishEvent(); }, 450);
+      } else {
+        elEvent.phase.textContent = ev.phases[ev.phaseIdx].label;
+        if (ev.phases[ev.phaseIdx].id === "anomaly" || ev.phases[ev.phaseIdx].id === "fail")
+          elEvent.phase.classList.add("fail");
+      }
+    }
+
+    const rate = pid === "anomaly" ? 14 : (ev.sfStyle === "merlin_nine" ? 5 : 2);
+    if (pid === "ignition" || pid === "burn" || pid === "anomaly") {
+      for (let i = 0; i < rate; i++) {
+        ev.particles.push({
+          x: (Math.random() - 0.5) * (pid === "anomaly" ? 90 : 50),
+          y: pid === "anomaly" ? -20 - Math.random() * 40 : 0,
+          vx: (Math.random() - 0.5) * (pid === "anomaly" ? 120 : 40),
+          vy: pid === "anomaly" ? -40 - Math.random() * 80 : 50 + Math.random() * 80,
+          life: 0.25 + Math.random() * 0.5,
+          r: 3 + Math.random() * 8,
+          hot: Math.random() > 0.3,
+        });
+      }
+    }
+    for (const p of ev.particles) {
+      p.life -= dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += (pid === "anomaly" ? 20 : 50) * dt;
+    }
+    ev.particles = ev.particles.filter((p) => p.life > 0);
+    drawEvent();
+  }
+
+  function drawEvent() {
+    const ev = G.event;
+    if (!ev) return;
+    const W = G._ew || 900, H = G._eh || 500;
+    const r = rocketOf(ev.rocketId);
+    ectx.clearRect(0, 0, W, H);
+    const g = ectx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, "#152030"); g.addColorStop(0.55, "#2a3848"); g.addColorStop(1, "#3a4840");
+    ectx.fillStyle = g; ectx.fillRect(0, 0, W, H);
+
+    const cx = W * 0.5, groundY = H * 0.78;
+    const phase = ev.phases[ev.phaseIdx];
+    const pid = phase ? phase.id : "debrief";
+    const zoom = pid === "approach" ? 0.85 + 0.15 * clamp(ev.phaseT / 1, 0, 1) : 1;
+
+    ectx.fillStyle = "#4a453c"; ectx.fillRect(0, groundY, W, H - groundY);
+    const trenchW = (ev.padLevel >= 2 ? 150 : 95) * zoom;
+    ectx.fillStyle = "#1a1a20";
+    ectx.fillRect(cx - trenchW / 2, groundY + 6, trenchW, 28 * zoom);
+    const olmH = (ev.padLevel >= 2 ? 70 : 48) * zoom;
+    ectx.fillStyle = "#9aa0a8";
+    ectx.fillRect(cx - 18 * zoom, groundY - olmH, 36 * zoom, olmH);
+
+    const base = groundY - olmH;
+    const broken = pid === "anomaly" || pid === "fail" || (!ev.success && ev.done);
+    drawCloseupRocket(ectx, cx, base, zoom, r, pid, broken, ev);
+
+    if (pid === "chill" || pid === "ignition" || pid === "burn" || pid === "shutdown") {
+      drawPlume(ectx, cx, base + 4, zoom, r, pid, ev, 1);
+    }
+    if (pid === "anomaly") {
+      drawPlume(ectx, cx, base + 4, zoom, r, pid, ev, 1.4);
+      // fireball
+      ectx.fillStyle = "rgba(255,120,40,0.55)";
+      ectx.beginPath();
+      ectx.arc(cx + Math.sin(ev.t * 20) * 8, base - 40, 50 + Math.sin(ev.t * 15) * 10, 0, Math.PI * 2);
+      ectx.fill();
+      ectx.fillStyle = "rgba(255,200,80,0.4)";
+      ectx.beginPath();
+      ectx.arc(cx, base - 55, 28, 0, Math.PI * 2);
+      ectx.fill();
+    }
+
+    for (const p of ev.particles) {
+      ectx.globalAlpha = clamp(p.life * 2, 0, 1);
+      ectx.fillStyle = p.hot ? "#ff9a3a" : "#ffcc66";
+      ectx.beginPath();
+      ectx.arc(cx + p.x, base + 10 + p.y, p.r, 0, Math.PI * 2);
+      ectx.fill();
+      ectx.globalAlpha = 1;
+    }
+
+    ectx.fillStyle = "rgba(0,0,0,0.5)";
+    ectx.fillRect(12, 12, 260, 58);
+    ectx.fillStyle = "#e8d9b0";
+    ectx.font = "600 13px system-ui";
+    ectx.fillText(rocketOf(ev.rocketId).name.toUpperCase(), 22, 32);
+    ectx.font = "11px ui-monospace, monospace";
+    ectx.fillStyle = ev.success || pid === "approach" || pid === "chill" ? "#d4a84b" : "#e08070";
+    ectx.fillText(ev.success ? `Thrust holds · ${pid.toUpperCase()}` : `${ev.limiter || "short"} · ${pid.toUpperCase()}`, 22, 50);
+
+    ectx.fillStyle = "rgba(0,0,0,0.5)";
+    ectx.fillRect(W - 160, 12, 148, 40);
+    ectx.fillStyle = "#8fbc6a";
+    ectx.font = "11px ui-monospace, monospace";
+    ectx.fillText(`PROP −${ev.spent}`, W - 148, 36);
+
+    if (pid === "debrief" && ev.success) {
+      ectx.fillStyle = "rgba(20,40,24,0.8)";
+      ectx.fillRect(W / 2 - 120, 22, 240, 36);
+      ectx.fillStyle = "#8fbc6a"; ectx.font = "600 14px system-ui"; ectx.textAlign = "center";
+      ectx.fillText("ENGINES STABLE", W / 2, 46); ectx.textAlign = "left";
+    }
+    if (pid === "fail" || (broken && pid === "anomaly" && ev.phaseT > 0.8)) {
+      ectx.fillStyle = "rgba(50,16,16,0.85)";
+      ectx.fillRect(W / 2 - 130, 22, 260, 36);
+      ectx.fillStyle = "#e07070"; ectx.font = "600 14px system-ui"; ectx.textAlign = "center";
+      ectx.fillText("STATIC FIRE FAILURE", W / 2, 46); ectx.textAlign = "left";
+    }
+    drawEventRange(W, H);
+  }
+
+  function drawEventRange(W, H) {
+    const x = 16, y = H - 78, w = 220, h = 62;
+    ectx.fillStyle = "rgba(0,0,0,0.72)";
+    ectx.fillRect(x, y, w, h);
+    ectx.strokeStyle = "#e10600";
+    ectx.strokeRect(x, y, w, h);
+    ectx.beginPath();
+    ectx.moveTo(x + 18, y + 48);
+    ectx.quadraticCurveTo(x + 90, y + 36, x + 190, y + 14);
+    ectx.stroke();
+    const pitch = G.event ? Math.max(26, 90 - G.event.t * 14) : 90;
+    const endLon = PAD_LON + 50 / (111.32 * Math.cos(PAD_LAT * Math.PI / 180));
+    ectx.fillStyle = "#f2f2f2";
+    ectx.font = "11px ui-monospace, monospace";
+    ectx.fillText(`${PAD_LAT.toFixed(3)}° N  heading 90°  pitch ${pitch.toFixed(0)}°`, x + 8, y + 14);
+    ectx.fillText(`Gulf track to ${Math.abs(endLon).toFixed(2)}° W`, x + 8, y + 28);
+  }
+
+  function drawCloseupRocket(c, cx, baseY, zoom, r, pid, broken, ev) {
+    const nine = r.sfStyle === "merlin_nine";
+    const scale = (nine ? 1.18 : 0.95) * zoom;
+    const bw = (nine ? 32 : 22) * scale;
+    const bh = (nine ? 120 : 85) * scale;
+    const shipH = (nine ? 95 : 68) * scale;
+    const tilt = broken ? Math.sin(ev.t * 8) * 0.15 + 0.2 : 0;
+    c.save();
+    c.translate(cx, baseY);
+    c.rotate(tilt);
+    c.translate(-cx, -baseY);
+    const x = cx - bw / 2;
+    const yBoost = baseY - bh;
+    const yShip = yBoost - shipH;
+    if (broken && pid === "fail") {
+      // debris-ish short stack
+      c.fillStyle = "#666";
+      c.fillRect(x + 4, yBoost + bh * 0.4, bw - 8, bh * 0.35);
+    } else {
+      c.fillStyle = r.color;
+      c.fillRect(x + 3, yShip, bw - 6, shipH);
+      c.beginPath();
+      c.moveTo(cx, yShip - 20 * scale);
+      c.lineTo(x + 3, yShip); c.lineTo(x + bw - 3, yShip); c.closePath();
+      c.fill();
+      c.fillStyle = nine ? "#e4eaf0" : "#c5ccd4";
+      c.fillRect(x, yBoost, bw, bh);
+      c.fillStyle = "#3a4048";
+      if (nine) {
+        for (let row = 0; row < 3; row++)
+          for (let col = 0; col < 3; col++) {
+            c.beginPath();
+            c.arc(cx + (col - 1) * 11 * scale, baseY - 2, 4 * scale, 0, Math.PI * 2);
+            c.fill();
+          }
+      } else {
+        c.beginPath(); c.arc(cx, baseY - 2, 6 * scale, 0, Math.PI * 2); c.fill();
+      }
+    }
+    c.restore();
+  }
+
+  function drawPlume(c, cx, baseY, zoom, r, pid, ev, mult) {
+    const nine = r.sfStyle === "merlin_nine";
+    const intensity = pid === "chill" ? 0.2 : pid === "ignition" ? 0.7 : pid === "shutdown" ? 0.3 : 1;
+    const n = Math.floor((nine ? 14 : 7) * intensity * mult) + 2;
+    for (let i = 0; i < n; i++) {
+      const ox = Math.sin(ev.t * 11 + i) * (nine ? 26 : 12) * zoom * intensity;
+      const h = (18 + (i % 5) * 10) * zoom * intensity * mult;
+      const grad = c.createLinearGradient(cx, baseY, cx, baseY + h + 40);
+      grad.addColorStop(0, `rgba(255,220,120,${0.9 * intensity})`);
+      grad.addColorStop(0.4, `rgba(255,100,30,${0.75 * intensity})`);
+      grad.addColorStop(1, "rgba(40,40,40,0)");
+      c.fillStyle = grad;
+      c.beginPath();
+      c.moveTo(cx + ox - 7 * zoom, baseY);
+      c.lineTo(cx + ox, baseY + h + 20);
+      c.lineTo(cx + ox + 7 * zoom, baseY);
+      c.fill();
+    }
+  }
+
+  function upgradePad() {
+    const pad = buildingById(G.selectedId);
+    if (!pad || pad.type !== "pad_orbital") return;
+    if (pad.level >= 2) { log("Pad already L2", "info"); return; }
+    if (G.steel < TUNING.PAD_L2_COST) { log(`Need ${TUNING.PAD_L2_COST} steel`, "bad"); return; }
+    G.steel -= TUNING.PAD_L2_COST;
+    pad.level = 2;
+    log("Pad level 2. The trench is wider.", "good");
+    updateObjectives();
+    renderChrome();
+  }
+
+  function upgradeBay() {
+    const bay = buildingById(G.selectedId);
+    if (!bay || bay.type !== "mega_bay") return;
+    if (bay.level >= TUNING.BAY_MAX) return;
+    if (G.steel < TUNING.BAY_SLOT_COST) { log(`Need ${TUNING.BAY_SLOT_COST} steel.`, "bad"); return; }
+    G.steel -= TUNING.BAY_SLOT_COST;
+    bay.level += 1;
+    log(`Mega Bay holds ${bay.level} vehicles.`, "good");
+    updateObjectives();
+    renderChrome();
+  }
+
+  function updateObjectives() {
+    G.objectives.place_all = BUILD_ORDER.every((t) => countType(t) >= 1);
+    if (liveFleet().length) G.objectives.build_rocket = true;
+    if (bayCount() >= 2) G.objectives.multi_bay = true;
+    const pad = buildingOfType("pad_orbital");
+    G.objectives.pad_l2 = !!(pad && pad.level >= 2);
+    renderObjectives();
+  }
+
+  // ── Chrome ──
+  function renderResources() {
+    el.steel.textContent = Math.floor(G.steel);
+    el.prop.textContent = Math.floor(G.prop);
+    el.fleet.textContent = liveFleet().length;
+    el.day.textContent = String(G.day);
+  }
+
+  function renderPalette() {
+    const ownedCount = Object.keys(PLOTS).filter((id) => G.plots[id]).length;
+    const offers = Object.keys(PLOTS).filter((id) => !G.plots[id]).map((id) => {
+      const plot = PLOTS[id];
+      return `<button type="button" class="plot-card" data-plot="${id}">
+        <div class="name">${esc(plot.name)}</div>
+        <div class="price">${plot.cost}</div>
+        <div class="unit">steel</div>
+        <div class="line">${esc(plot.line)}</div>
+      </button>`;
+    }).join("");
+    const ownedLabel = ownedCount === 1 ? "1 plot" : `${ownedCount} plots`;
+    el.palette.innerHTML = `<div class="plot-owned">Owned<b>${ownedLabel}</b></div>` + offers;
+    el.palette.querySelectorAll("[data-plot]").forEach((btn) => {
+      btn.addEventListener("click", () => buyPlot(btn.getAttribute("data-plot")));
+    });
+  }
+
+  function wikiPages() {
+    const merlinNext = Math.round(TUNING.MERLIN_THRUST_KN * TUNING.MERLIN_UP_MULT);
+    return [
+      { id: "factory", name: "Starfactory", title: "Starfactory", lines: [
+        "Builds one vehicle from steel. The finished vehicle stays here until you roll it to Mega Bay.",
+        `Falcon 1 costs ${ROCKET_DEFS.falcon1.steelCost} steel and takes ${ROCKET_DEFS.falcon1.buildDays} days. The factory holds one finished vehicle.`,
+        "Falcon 9, Falcon Heavy, and Starship are not built here yet.",
+      ]},
+      { id: "bay", name: "Mega Bay", title: "Mega Bay", lines: [
+        "Houses the fleet. A vehicle comes back here after a fire, and the refurb happens in the bay.",
+        `The bay starts with 1 slot. Another slot costs ${TUNING.BAY_SLOT_COST} steel and adds one vehicle, up to ${TUNING.BAY_MAX}.`,
+        `A clean fire takes ${ROCKET_DEFS.falcon1.refurbDaysOk} day of refurb. A miss takes ${ROCKET_DEFS.falcon1.refurbDaysFail} day.`,
+      ]},
+      { id: "pad", name: "Orbital Pad", title: "Orbital Pad", lines: [
+        "Holds one vehicle for a static fire.",
+        `The thrust limit is ${TUNING.PAD_THRUST_L1} kN. A rocket above that fails the pad check.`,
+        `Pad level 2 costs ${TUNING.PAD_L2_COST} steel. The trench widens. The thrust limit becomes ${TUNING.PAD_THRUST_L2} kN.`,
+        `The pad allows wind up to ${TUNING.WIND_LIMIT_L1} knots, then ${TUNING.WIND_LIMIT_L2} knots at level 2. The lamp in the header is the sky.`,
+      ]},
+      { id: "falcon", name: "Falcon 1", title: "Falcon 1", lines: [
+        "One Merlin. The numbers on the rocket sheet are this engine.",
+        `Thrust is the push, in kilonewtons. A fresh Merlin makes ${TUNING.MERLIN_THRUST_KN} kN. Raise Merlin thrust costs ${TUNING.MERLIN_UP_COST} steel and ${TUNING.MERLIN_UP_DAYS} days. That rocket then makes ${merlinNext} kN. Each fire lowers thrust by ${Math.round(TUNING.SF_WEAR_PER_FIRE * 100)}%.`,
+        `Specific impulse (Isp) is ${TUNING.MERLIN_ISP_S} s. That is how much push one kilogram of propellant gives. Engine mass is ${TUNING.MERLIN_MASS_KG} kg. Restarts: ${TUNING.MERLIN_RESTARTS}.`,
+      ]},
+      { id: "fire", name: "Static fire", title: "Static fire", lines: [
+        `The engine must make at least ${TUNING.SF_THRUST_BAR_KN} kN. The fire draws ${ROCKET_DEFS.falcon1.sfProp} propellant.`,
+        "If the thrust is above the thrust limit, the pad fails the check. If the tanks are short, the fire does not start. If the range lamp is closed, the fire does not start.",
+        `A good fire takes ${TUNING.SF_OK_CONDITION} condition. A miss takes ${TUNING.SF_MISS_CONDITION} condition. Condition under ${TUNING.SCRAP_FLOOR} scraps the vehicle.`,
+      ]},
+    ];
+  }
+
+  function renderWiki() {
+    const panel = document.getElementById("wiki-panel");
+    const sheet = document.getElementById("wiki-sheet");
+    if (!panel || !sheet) return;
+    const pages = wikiPages();
+    const page = pages.find((p) => p.id === G.wikiPage) || pages[0];
+    const topics = pages.map((p) => `<button type="button" class="wiki-topic${p.id === page.id ? " on" : ""}" data-wiki="${p.id}">${esc(p.name)}</button>`).join("");
+    const body = page.lines.map((line) => `<p>${esc(line)}</p>`).join("");
+    panel.innerHTML = `<div class="top"><div class="left">Wiki</div><button type="button" id="wiki-close">Close</button></div>
+      <div class="wiki-grid"><div>${topics}</div><div class="wiki-body"><h3>${esc(page.title)}</h3>${body}</div></div>`;
+    sheet.classList.toggle("open", G.wikiSheet);
+    sheet.setAttribute("aria-hidden", G.wikiSheet ? "false" : "true");
+    const close = panel.querySelector("#wiki-close");
+    if (close) close.onclick = () => { G.wikiSheet = false; renderWiki(); };
+    panel.querySelectorAll("[data-wiki]").forEach((btn) => {
+      btn.onclick = () => { G.wikiPage = btn.getAttribute("data-wiki"); renderWiki(); };
+    });
+  }
+
+  function renderFleetList() {
+    const panel = document.getElementById("fleet-panel");
+    const sheet = document.getElementById("fleet-sheet");
+    if (!panel || !sheet) return;
+    const list = liveFleet();
+    const rows = list.length
+      ? list.map((v) => {
+        const sel = v.id === G.selectedVehicleId ? " sel" : "";
+        return `<button type="button" class="fleet-row${sel}" data-vid="${v.id}">
+          <div class="name">${esc(v.name)}</div>
+          <div class="meta">${esc(placeLabel(v))} · condition ${Math.round(v.condition)}</div>
+        </button>`;
+      }).join("")
+      : `<p class="fleet-empty">No vehicles yet. Build one at Starfactory.</p>`;
+    panel.innerHTML = `<div class="top"><div class="left">${list.length}<span>${list.length === 1 ? "vehicle" : "vehicles"}</span></div>
+      <button type="button" id="fleet-close">Close</button></div>${rows}`;
+    sheet.classList.toggle("open", G.fleetSheet);
+    sheet.setAttribute("aria-hidden", G.fleetSheet ? "false" : "true");
+    const close = panel.querySelector("#fleet-close");
+    if (close) close.onclick = () => { G.fleetSheet = false; renderFleetList(); };
+    panel.querySelectorAll("[data-vid]").forEach((row) => {
+      row.onclick = () => {
+        G.selectedVehicleId = +row.getAttribute("data-vid");
+        G.fleetSheet = false;
+        G.rocketSheet = G.selectedVehicleId;
+        const v = selectedVehicle();
+        if (v && v.buildingId) G.selectedId = v.buildingId;
+        renderChrome();
+      };
+    });
+  }
+
+  function placeLabel(v) {
+    if (v.status === "in_bay") return `Bay slot ${(v.baySlot || 0) + 1}`;
+    if (v.status === "at_factory") return "At the factory";
+    if (v.status === "on_pad" || v.status === "needs_return") return "On the pad";
+    if (v.status === "refurb") return `Refurb · ${v.refurbLeft} days left`;
+    if (v.status === "rolling") return "On the road";
+    return v.status;
+  }
+
+  function actCard(cls, id, extra, name, price, unit, line) {
+    const idAttr = id ? ` id="${id}"` : "";
+    const priceHtml = price == null ? "" : `<div class="price">${price}</div><div class="unit">${unit}</div>`;
+    const lineHtml = line ? `<div class="line">${line}</div>` : "";
+    return `<button type="button" class="act ${cls}"${idAttr}${extra || ""}>
+      <div class="name">${name}</div>${priceHtml}${lineHtml}
+    </button>`;
+  }
+
+  function renderInspector() {
+    const box = el.inspector;
+    if (G.placeType) {
+      const d = defOf(G.placeType);
+      box.innerHTML = `<div class="text-amber-200 font-semibold">Placing: ${esc(d.name)}</div>
+        <p class="text-amber-200/60">${esc(d.blurb)}</p>
+        <button type="button" class="ui-btn rounded px-2 py-1 text-[11px]" id="btn-x">Cancel</button>`;
+      box.querySelector("#btn-x").onclick = () => {
+        G.placeType = null; canvas.classList.remove("placing"); renderPalette(); renderInspector();
+      };
+      return;
+    }
+
+    const b = buildingById(G.selectedId);
+    if (!b) {
+      box.innerHTML = `<p class="text-amber-200/55">Select Starfactory, Mega Bay, or the Orbital Pad.</p>`;
+      return;
+    }
+    const d = defOf(b.type);
+    let html = `<div class="bldg"><div class="title">${esc(d.name)}</div><p class="blurb">${esc(d.blurb)}</p>`;
+
+    if (b.type === "starfactory") {
+      const hold = factoryHold();
+      html += `<div class="stat"><div class="k">Holding</div><div class="n">${hold ? 1 : 0}</div><div class="s">of 1 finished vehicle</div></div>`;
+      if (G.factoryJob) {
+        const pct = 1 - G.factoryJob.daysLeft / G.factoryJob.totalDays;
+        const label = G.factoryJob.kind === "merlin" ? "Merlin thrust" : rocketOf(G.factoryJob.rocketId).name;
+        html += `<p class="wait">${esc(label)} · ${G.factoryJob.daysLeft} days left</p>
+          <div class="bar-track"><i style="width:${Math.round(pct * 100)}%"></i></div>`;
+      } else {
+        const r = rocketOf("falcon1");
+        const busy = !!(factoryHold() || G.event || G.rollout);
+        html += actCard("build", "", ` data-rocket="falcon1"${busy || G.steel < r.steelCost ? " disabled" : ""}`,
+          "Build Falcon 1", r.steelCost, "steel", `${r.buildDays} days. A static fire draws ${r.sfProp} propellant.`);
+        html += `<p class="wait">Falcon 9, Falcon Heavy, and Starship come later.</p>`;
+      }
+      if (hold) {
+        html += `<p class="wait">${esc(hold.name)} is ready.</p>`;
+        html += actCard("roll", "btn-stage", "", "Roll to Mega Bay", null, "", "The vehicle leaves the factory.");
+      }
+    }
+
+    if (b.type === "mega_bay") {
+      const n = bayCount();
+      const cap = bayCapacity(b);
+      html += `<div class="stat"><div class="k">Housed</div><div class="n">${n}</div><div class="s">of ${cap} ${cap === 1 ? "vehicle" : "vehicles"}</div></div>`;
+      const here = vehiclesAt(b.id);
+      for (let slot = 0; slot < cap; slot++) {
+        const v = here.find((item) => (item.baySlot || 0) === slot);
+        if (!v) {
+          html += `<div class="bay-slot empty"><div class="top"><span class="name">Bay ${slot + 1}</span></div><div class="n">—</div></div>`;
+          continue;
+        }
+        const refurb = v.status === "refurb";
+        const sel = v.id === G.selectedVehicleId ? " sel" : "";
+        const cond = Math.round(v.condition);
+        html += `<button type="button" class="bay-slot${sel}" data-bay="${v.id}">
+          <div class="top"><span class="name">${esc(v.name)}</span><span class="where">${refurb ? "Refurb" : "In the bay"}</span></div>
+          <div class="n">${refurb ? v.refurbLeft : cond}</div>
+          <div class="where">${refurb ? "days left" : "condition"}</div>
+          <div class="meter"><i style="width:${cond}%"></i></div>
+        </button>`;
+      }
+      const v = selectedVehicle();
+      if (v && v.status === "in_bay") {
+        html += actCard("roll", "btn-topad", "", `Roll ${esc(v.name)} to the pad`, null, "", "The vehicle leaves the bay.");
+      } else {
+        html += `<p class="wait">Select a vehicle in the bay to roll it out.</p>`;
+      }
+      html += `<div class="sec"><div class="k">Upgrade</div>`;
+      if (cap < TUNING.BAY_MAX) {
+        html += actCard("up", "btn-bay", "", "Another slot", TUNING.BAY_SLOT_COST, "steel", `The bay then holds ${cap + 1} vehicles.`);
+      } else {
+        html += `<p class="wait">The bay holds ${TUNING.BAY_MAX} vehicles.</p>`;
+      }
+      html += `</div>`;
+    }
+
+    if (b.type === "pad_orbital") {
+      const limits = padLimits(b);
+      html += `<div class="stat"><div class="k">Thrust limit</div><div class="n">${limits.thrust}</div><div class="s">kN</div></div>`;
+      html += `<div class="sec"><div class="k">Fire</div>`;
+      const on = padHold();
+      if (on && on.status === "on_pad") {
+        const r = rocketOf(on.rocketId);
+        const check = fireCheck(on, b);
+        html += `<div class="facts"><div><b>${esc(on.name)}</b><span>condition ${Math.round(on.condition)} · ${on.fires || 0} fires</span></div><div><b>${check.thrust}</b><span>kN · needs ${TUNING.SF_THRUST_BAR_KN}</span></div></div>`;
+        html += `<p class="wait">Condition under ${TUNING.SCRAP_FLOOR} scraps the vehicle. A miss takes ${TUNING.SF_MISS_CONDITION} condition.</p>`;
+        const fireLine = check.ok ? "Thrust holds." : check.limiter === "weather" ? "The range is closed." : "A check is short.";
+        html += actCard("fire", "btn-sf", "", check.ok ? "Static fire" : "Try static fire", r.sfProp, "propellant", fireLine);
+      } else if (on && on.status === "needs_return") {
+        html += `<div class="facts"><div><b>${esc(on.name)}</b><span>condition ${Math.round(on.condition)} · ${on.fires || 0} fires</span></div></div>`;
+        html += actCard("roll", "btn-return", "", "Return to Mega Bay", null, "", "Refurb happens in the bay.");
+      } else {
+        html += `<p class="wait">The pad is empty. Roll a vehicle here from the bay.</p>`;
+      }
+      html += `</div>`;
+      if (G.rollout) {
+        const rv = vehicleById(G.rollout.vehicleId);
+        const dest = G.rollout.destKind === "pad" ? "the pad" : "Mega Bay";
+        const left = Math.max(0, G.rollout.duration - G.rollout.t).toFixed(0);
+        html += `<div class="sec"><div class="k">Roll</div><p class="wait">${rv ? esc(rv.name) : "Vehicle"} is rolling to ${dest} · ${left} s left</p></div>`;
+      }
+      html += `<div class="sec"><div class="k">Upgrade</div>`;
+      if (b.level < 2) {
+        html += actCard("up", "btn-up", "", "Pad level 2", TUNING.PAD_L2_COST, "steel", `The trench widens. The thrust limit becomes ${TUNING.PAD_THRUST_L2} kN.`);
+      } else {
+        html += `<p class="wait">The trench is wide. The thrust limit is ${TUNING.PAD_THRUST_L2} kN.</p>`;
+      }
+      html += `</div>`;
+    }
+    html += `</div>`;
+
+    box.innerHTML = html;
+    box.querySelectorAll("[data-rocket]").forEach((btn) => {
+      btn.onclick = () => startBuildRocket(btn.getAttribute("data-rocket"));
+    });
+    const st = box.querySelector("#btn-stage");
+    if (st) st.onclick = () => stageToBay(factoryHold() && factoryHold().id);
+    box.querySelectorAll("[data-bay]").forEach((btn) => {
+      btn.onclick = () => {
+        G.selectedVehicleId = +btn.getAttribute("data-bay");
+        G.rocketSheet = G.selectedVehicleId;
+        renderChrome();
+      };
+    });
+    const tp = box.querySelector("#btn-topad");
+    if (tp) tp.onclick = () => startRoll(G.selectedVehicleId, "pad");
+    const sf = box.querySelector("#btn-sf");
+    if (sf) sf.onclick = staticFire;
+    const ret = box.querySelector("#btn-return");
+    if (ret) ret.onclick = () => startRoll(padHold() && padHold().id, "bay");
+    const up = box.querySelector("#btn-up");
+    if (up) up.onclick = upgradePad;
+    const bayUp = box.querySelector("#btn-bay");
+    if (bayUp) bayUp.onclick = upgradeBay;
+  }
+
+  function renderObjectives() {
+    const items = [
+      ["place_all", "Buy both sites"],
+      ["build_rocket", "Build a rocket at Starfactory"],
+      ["multi_bay", "House 2 vehicles in Mega Bay"],
+      ["static_fire", "Finish a static fire"],
+      ["refurb", "Finish a refurb in the bay"],
+      ["pad_l2", "Raise the pad to level 2"],
+    ];
+    const open = items.filter(([k]) => !G.objectives[k]).length;
+    const panel = document.getElementById("goal-panel");
+    const sheet = document.getElementById("goal-sheet");
+    if (!panel || !sheet) return;
+    const next = items.find(([k]) => !G.objectives[k]);
+    const rows = items.map(([k, label], i) => {
+      const done = G.objectives[k];
+      const now = next && next[0] === k;
+      const cls = done ? "done" : now ? "now" : "";
+      const mark = done ? "Done" : now ? "Next" : "";
+      return `<div class="goal-row ${cls}"><div class="idx">${String(i + 1).padStart(2, "0")}</div><div><div class="name">${esc(label)}</div>${mark ? `<div class="line">${mark}</div>` : ""}</div></div>`;
+    }).join("");
+    panel.innerHTML = `<div class="top"><div class="left">${open}<span>${open ? "still open" : "all done"}</span></div>
+      <button type="button" id="goal-close">Close</button></div>${rows}`;
+    sheet.classList.toggle("open", G.goalSheet);
+    sheet.setAttribute("aria-hidden", G.goalSheet ? "false" : "true");
+    const close = panel.querySelector("#goal-close");
+    if (close) close.onclick = () => { G.goalSheet = false; renderObjectives(); };
+  }
+
+  function renderJobNote() {
+    const note = document.getElementById("job-note");
+    if (!note) return;
+    const lines = [];
+    const days = (n) => (n === 1 ? "1 day left" : `${n} days left`);
+    if (G.factoryJob) {
+      const job = G.factoryJob;
+      if (job.kind === "merlin") {
+        const v = vehicleById(job.vehicleId);
+        lines.push(`${v ? v.name : "Rocket"} · Merlin thrust to ${Math.round(TUNING.MERLIN_THRUST_KN * TUNING.MERLIN_UP_MULT)} kN · ${days(job.daysLeft)}`);
+      } else {
+        lines.push(`Starfactory · building ${rocketOf(job.rocketId).name} · ${days(job.daysLeft)}`);
+      }
+    }
+    if (G.rollout) {
+      const v = vehicleById(G.rollout.vehicleId);
+      const dest = G.rollout.destKind === "pad" ? "the Orbital Pad" : "Mega Bay";
+      const left = Math.max(0, G.rollout.duration - G.rollout.t);
+      lines.push(`${v ? v.name : "Vehicle"} · rolling to ${dest} · ${left.toFixed(0)} s left`);
+    }
+    for (const v of liveFleet()) {
+      if (v.status === "refurb" && v.refurbLeft > 0) {
+        lines.push(`${v.name} · refurb in Mega Bay · ${days(v.refurbLeft)}`);
+      }
+    }
+    note.innerHTML = lines.map((line) => `<span>${esc(line)}</span>`).join("");
+  }
+
+  function rangeClosed() {
+    const sky = weatherOn(G.day);
+    const lim = padLimits(buildingOfType("pad_orbital"));
+    return rangeShut(sky.storm, sky.wind, lim.wind);
+  }
+
+  function renderWeather() {
+    const sky = document.getElementById("sky-label");
+    const lamp = document.getElementById("range-lamp");
+    if (!sky) return;
+    const now = weatherOn(G.day);
+    const closed = rangeClosed();
+    if (lamp) lamp.classList.toggle("closed", closed);
+    sky.textContent = closed ? "Range closed" : "Range open";
+    const wind = document.getElementById("wind-label");
+    if (wind) wind.textContent = `${now.sky} ${now.wind} kn`;
+    const readout = document.getElementById("readout");
+    if (readout) {
+      const pad = buildingOfType("pad_orbital");
+      const v = pad && padHold();
+      const hold = !!(v && v.status === "on_pad" && !fireCheck(v, pad).ok);
+      readout.classList.toggle("hold", closed || hold);
+    }
+  }
+
+  function startMerlinUpgrade(vehicleId) {
+    const v = vehicleById(vehicleId);
+    if (!v || v.merlinTier >= 2) return;
+    if (G.factoryJob) { log("The factory is already busy.", "warn"); return; }
+    if (G.steel < TUNING.MERLIN_UP_COST) { log(`Need ${TUNING.MERLIN_UP_COST} steel.`, "bad"); return; }
+    G.steel -= TUNING.MERLIN_UP_COST;
+    G.factoryJob = { kind: "merlin", vehicleId: v.id, daysLeft: TUNING.MERLIN_UP_DAYS, totalDays: TUNING.MERLIN_UP_DAYS };
+    log(`Merlin thrust on ${v.name} rises in ${TUNING.MERLIN_UP_DAYS} days.`, "good");
+    renderChrome();
+  }
+
+  function renderRocketSheet() {
+    const sheet = document.getElementById("rocket-sheet");
+    const panel = document.getElementById("rocket-panel");
+    const v = G.rocketSheet ? vehicleById(G.rocketSheet) : null;
+    if (!sheet || !panel || !v) {
+      if (sheet) { sheet.classList.remove("open"); sheet.setAttribute("aria-hidden", "true"); }
+      G.rocketSheet = null;
+      return;
+    }
+    const job = G.factoryJob && G.factoryJob.kind === "merlin" && G.factoryJob.vehicleId === v.id ? G.factoryJob : null;
+    const nextKn = Math.round(TUNING.MERLIN_THRUST_KN * TUNING.MERLIN_UP_MULT);
+    let action = "";
+    if (job) action = `<p class="wait">Merlin thrust · ${job.daysLeft} days left</p>`;
+    else if ((v.merlinTier || 1) < 2) {
+      action = actCard("up", "btn-merlin", G.steel < TUNING.MERLIN_UP_COST ? " disabled" : "",
+        "Raise Merlin thrust", TUNING.MERLIN_UP_COST, "steel", `${TUNING.MERLIN_UP_DAYS} day. Thrust on this rocket rises to ${nextKn} kN.`);
+    }
+    panel.innerHTML = `<div class="top"><div><b>${esc(v.name)}</b><div class="place">${esc(placeLabel(v))} · condition ${Math.round(v.condition)}</div></div>
+        <button type="button" class="ui-btn rounded px-2 py-1 text-xs" id="rocket-close">Close</button></div>
+      <div class="rocket-sheet">
+        <div class="side">Thrust<b>${merlinNowKn(v)} kN</b>Isp<b>${TUNING.MERLIN_ISP_S} s</b></div>
+        <div class="rocket-body"></div>
+        <div class="side">Engine mass<b>${TUNING.MERLIN_MASS_KG} kg</b>Restarts<b>${TUNING.MERLIN_RESTARTS}</b></div>
+      </div>${action}`;
+    sheet.classList.add("open");
+    sheet.setAttribute("aria-hidden", "false");
+    panel.querySelector("#rocket-close").onclick = () => { G.rocketSheet = null; renderRocketSheet(); };
+    const mer = panel.querySelector("#btn-merlin");
+    if (mer) mer.onclick = () => startMerlinUpgrade(v.id);
+  }
+
+  function renderChrome() {
+    renderWeather();
+    renderResources();
+    renderPalette();
+    renderFleetList();
+    renderInspector();
+    renderRocketSheet();
+    renderJobNote();
+    renderWiki();
+    updateObjectives();
+  }
+
+  // ── Map ──
+  let W = 0, H = 0, dpr = 1;
+  function resize() {
+    const wrap = document.getElementById("map-wrap");
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = wrap.clientWidth; H = wrap.clientHeight;
+    canvas.width = Math.max(1, W * dpr); canvas.height = Math.max(1, H * dpr);
+    canvas.style.width = W + "px"; canvas.style.height = H + "px";
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  function screenToWorld(sx, sy) {
+    return { x: sx / G.cam.zoom + G.cam.x, y: sy / G.cam.zoom + G.cam.y };
+  }
+
+  // West is inland. East is the gulf. Each building sits in its own plot, about one tenth of that plot.
+  const GEO_W = -97.196, GEO_E = -97.156, GEO_N = 26.005, GEO_S = 25.975;
+  const PLOTS = {
+    starfactory: { name: "Starfactory", cost: 40, line: "One hall on its own plot.",
+      gx: 0, gy: 2, pw: 10, ph: 12,
+      buildings: [{ type: "starfactory", gx: 2, gy: 6 }] },
+    mega_bay: { name: "Mega Bay", cost: 50, line: "One hall on its own plot.",
+      gx: 12, gy: 2, pw: 10, ph: 12,
+      buildings: [{ type: "mega_bay", gx: 15, gy: 6 }] },
+    pad_orbital: { name: "Orbital Pad", cost: 40, line: "One pad on its own plot.",
+      gx: 29, gy: 3, pw: 10, ph: 9,
+      buildings: [{ type: "pad_orbital", gx: 35, gy: 6 }] },
+  };
+
+
+  const TRACT = [[-97.14944,26.00125],[-97.14944,26.00002],[-97.14944,25.99878],[-97.14944,25.99755],[-97.14937,25.99632],[-97.14884,25.99508],[-97.15293,25.99508],[-97.15346,25.99632],[-97.15353,25.99755],[-97.15353,25.99878],[-97.15353,26.00002],[-97.15353,26.00125]];
+  const YARD = [[-97.14991,26.00496],[-97.14985,26.00372],[-97.14961,26.00249],[-97.14944,26.00125],[-97.14944,26.00002],[-97.14944,25.99878],[-97.14944,25.99755],[-97.14937,25.99632],[-97.14884,25.99508],[-97.14884,25.99385],[-97.14867,25.99261],[-97.14867,25.99138],[-97.15407,25.99138],[-97.15407,25.99261],[-97.15424,25.99385],[-97.15424,25.99508],[-97.15477,25.99632],[-97.15484,25.99755],[-97.15484,25.99878],[-97.15484,26.00002],[-97.15484,26.00125],[-97.15501,26.00249],[-97.15525,26.00372],[-97.15531,26.00496]];
+  const LAGOON = [[-97.23338,26.19792],[-97.23233,26.19653],[-97.2316,26.1941],[-97.23121,26.19064],[-97.23114,26.18613],[-97.23139,26.18058],[-97.23115,26.17596],[-97.2304,26.17226],[-97.22916,26.16949],[-97.22741,26.16764],[-97.22623,26.16555],[-97.22561,26.16324],[-97.22556,26.1607],[-97.22608,26.15792],[-97.22728,26.15538],[-97.22917,26.15307],[-97.23174,26.15098],[-97.23501,26.14913],[-97.23752,26.14705],[-97.2393,26.14474],[-97.24033,26.1422],[-97.24062,26.13942],[-97.24038,26.13711],[-97.2396,26.13526],[-97.2383,26.13387],[-97.23647,26.13295],[-97.23447,26.13133],[-97.23231,26.12902],[-97.22999,26.12601],[-97.2275,26.12231],[-97.22403,26.11896],[-97.2196,26.11595],[-97.21419,26.11329],[-97.20781,26.11098],[-97.20325,26.10855],[-97.20052,26.10601],[-97.19961,26.10335],[-97.20053,26.10057],[-97.19948,26.09768],[-97.19647,26.09467],[-97.1915,26.09155],[-97.18458,26.08831],[-97.1845,26.08588],[-97.19129,26.08426],[-97.20493,26.08345],[-97.22543,26.08345],[-97.24197,26.08414],[-97.25455,26.08553],[-97.26317,26.08761],[-97.26783,26.09039],[-97.27135,26.09328],[-97.27372,26.09629],[-97.27495,26.09941],[-97.27503,26.10265],[-97.27432,26.106],[-97.27282,26.10947],[-97.27052,26.11306],[-97.26744,26.11676],[-97.26655,26.12034],[-97.26786,26.12381],[-97.27138,26.12717],[-97.27711,26.1304],[-97.28096,26.13353],[-97.28295,26.13653],[-97.28307,26.13942],[-97.28133,26.1422],[-97.28035,26.14463],[-97.28013,26.14671],[-97.28068,26.14844],[-97.282,26.14983],[-97.28164,26.15145],[-97.27961,26.1533],[-97.2759,26.15538],[-97.27052,26.15769],[-97.26605,26.16012],[-97.26249,26.16266],[-97.25983,26.16532],[-97.25809,26.1681],[-97.25857,26.17087],[-97.26127,26.17365],[-97.2662,26.17642],[-97.27336,26.1792],[-97.27867,26.18232],[-97.28213,26.18579],[-97.28375,26.1896],[-97.28351,26.19376],[-97.28033,26.19688],[-97.27419,26.19896],[-97.26509,26.2],[-97.25304,26.2],[-97.24374,26.19965],[-97.23718,26.19896]];
+  const SOUTH_BAY = [[-97.19011,26.04199],[-97.18968,26.04192],[-97.18936,26.04168],[-97.18915,26.0413],[-97.18904,26.04076],[-97.18904,26.04007],[-97.18874,26.03955],[-97.18814,26.0392],[-97.18724,26.03903],[-97.18603,26.03903],[-97.185,26.03874],[-97.18414,26.03816],[-97.18346,26.03729],[-97.18294,26.03614],[-97.18266,26.03517],[-97.18262,26.0344],[-97.18282,26.03382],[-97.18324,26.03344],[-97.18352,26.03296],[-97.18365,26.03238],[-97.18363,26.0317],[-97.18346,26.03093],[-97.18314,26.03043],[-97.18266,26.0302],[-97.18204,26.03023],[-97.18127,26.03055],[-97.18073,26.03024],[-97.18043,26.02931],[-97.18037,26.02777],[-97.18054,26.02561],[-97.1808,26.02395],[-97.18114,26.02279],[-97.18157,26.02214],[-97.18209,26.02198],[-97.18234,26.0216],[-97.18234,26.02098],[-97.18209,26.02013],[-97.18157,26.01905],[-97.18125,26.01818],[-97.18112,26.01753],[-97.18119,26.01708],[-97.18144,26.01686],[-97.18189,26.01689],[-97.18254,26.0172],[-97.18338,26.01778],[-97.1844,26.01863],[-97.18524,26.01909],[-97.18589,26.01917],[-97.18634,26.01886],[-97.18659,26.01816],[-97.18717,26.01747],[-97.18807,26.01677],[-97.1893,26.01608],[-97.19084,26.01539],[-97.19202,26.01504],[-97.19284,26.01504],[-97.19329,26.01539],[-97.19337,26.01608],[-97.19376,26.0165],[-97.19444,26.01666],[-97.19543,26.01654],[-97.19672,26.01616],[-97.19771,26.016],[-97.19839,26.01608],[-97.19878,26.01639],[-97.19886,26.01693],[-97.19908,26.0173],[-97.19942,26.01749],[-97.19989,26.01751],[-97.2005,26.01735],[-97.20095,26.01741],[-97.20125,26.01768],[-97.2014,26.01816],[-97.2014,26.01886],[-97.20114,26.01934],[-97.20063,26.01961],[-97.19985,26.01967],[-97.19883,26.01951],[-97.19786,26.01978],[-97.19696,26.02048],[-97.19612,26.02159],[-97.19535,26.02314],[-97.19496,26.02431],[-97.19496,26.02512],[-97.19535,26.02557],[-97.19612,26.02564],[-97.19681,26.02559],[-97.19741,26.02539],[-97.19792,26.02507],[-97.19835,26.0246],[-97.19886,26.02453],[-97.19946,26.02484],[-97.20015,26.02553],[-97.20092,26.02661],[-97.20167,26.02728],[-97.2024,26.02755],[-97.20311,26.02742],[-97.2038,26.02688],[-97.2044,26.02659],[-97.20491,26.02655],[-97.20534,26.02676],[-97.20569,26.02723],[-97.20575,26.02788],[-97.20553,26.02873],[-97.20504,26.02977],[-97.20427,26.03101],[-97.20347,26.03189],[-97.20266,26.03243],[-97.20182,26.03263],[-97.20097,26.03247],[-97.19996,26.03257],[-97.1988,26.03291],[-97.19749,26.03351],[-97.19603,26.03436],[-97.19474,26.0354],[-97.19363,26.03663],[-97.19268,26.03806],[-97.19191,26.03968],[-97.19134,26.04089],[-97.19095,26.04171],[-97.19076,26.04211],[-97.19076,26.04211],[-97.19065,26.04209],[-97.19044,26.04205]];
+  const CHANNEL = [[-97.15281,26.06401],[-97.16809,26.0637],[-97.1695,26.06309],[-97.17108,26.06232],[-97.17285,26.06139],[-97.17529,26.06005],[-97.17839,26.05829],[-97.18146,26.05653],[-97.18448,26.05477],[-97.18759,26.05297],[-97.19078,26.05111],[-97.19399,26.04917],[-97.19722,26.04714],[-97.2003,26.04519],[-97.20324,26.04334],[-97.20632,26.04144],[-97.20955,26.0395],[-97.21279,26.03765],[-97.21606,26.03589],[-97.21941,26.03409],[-97.22286,26.03224],[-97.22656,26.03043],[-97.23051,26.02867],[-97.23442,26.02686],[-97.23828,26.02501],[-97.24227,26.0232],[-97.2464,26.02144],[-97.25029,26.01964],[-97.25394,26.01778],[-97.25763,26.01589],[-97.26133,26.01394],[-97.26482,26.012],[-97.26808,26.01005],[-97.27125,26.00825],[-97.27432,26.00658],[-97.27735,26.00491],[-97.28034,26.00324],[-97.28382,26.00125],[-97.28781,25.99894],[-97.29167,25.99671],[-97.29542,25.99459],[-97.29918,25.99241],[-97.30295,25.99018],[-97.30705,25.98791],[-97.31149,25.9856],[-97.31585,25.98319],[-97.32014,25.98069],[-97.32427,25.97852],[-97.32824,25.97666],[-97.33251,25.97486],[-97.3371,25.9731],[-97.34055,25.97177],[-97.34288,25.97086],[-97.34513,25.96989],[-97.34732,25.96885],[-97.34842,25.96833]];
+  const COAST_ROAD = [[-97.50444,25.92525],[-97.50194,25.92489],[-97.50038,25.92404],[-97.49878,25.92306],[-97.49644,25.92266],[-97.49237,25.92238],[-97.49032,25.92225],[-97.48949,25.92227],[-97.48741,25.922],[-97.48348,25.92176],[-97.48086,25.9216],[-97.47677,25.92134],[-97.4737,25.92115],[-97.46971,25.92091],[-97.4676,25.9209],[-97.46639,25.92061],[-97.46468,25.92007],[-97.4611,25.91892],[-97.45876,25.91794],[-97.45535,25.91627],[-97.45356,25.91584],[-97.45019,25.91573],[-97.44729,25.91564],[-97.44374,25.91551],[-97.43906,25.91537],[-97.43709,25.91583],[-97.43432,25.91595],[-97.4326,25.91609],[-97.43084,25.9167],[-97.41869,25.91691],[-97.41416,25.91695],[-97.40753,25.917],[-97.39794,25.91707],[-97.39213,25.91712],[-97.38515,25.91714],[-97.38286,25.91716],[-97.37868,25.91719],[-97.37735,25.91743],[-97.37574,25.91858],[-97.36778,25.92854],[-97.36156,25.93633],[-97.35312,25.94433],[-97.35069,25.94662],[-97.34645,25.94907],[-97.34153,25.95095],[-97.32515,25.95297],[-97.31535,25.95473],[-97.31068,25.95893],[-97.30119,25.96175],[-97.29342,25.96195],[-97.28365,25.96215],[-97.26353,25.96268],[-97.26065,25.96364],[-97.25391,25.96333],[-97.24865,25.96311],[-97.24019,25.96527],[-97.23795,25.96573],[-97.23432,25.96483],[-97.22819,25.963],[-97.21488,25.96511],[-97.20694,25.96781],[-97.20622,25.96825],[-97.18951,25.98242],[-97.18453,25.98708],[-97.18328,25.98866],[-97.1818,25.9905],[-97.18134,25.99087],[-97.18064,25.99128],[-97.18023,25.99145],[-97.17948,25.99166],[-97.17454,25.99272],[-97.17265,25.99313],[-97.16752,25.99485],[-97.16432,25.99588],[-97.16105,25.99712],[-97.15942,25.99799],[-97.15873,25.99819],[-97.15813,25.99826],[-97.15763,25.99824],[-97.15434,25.99758],[-97.15268,25.99734],[-97.15279,25.99713],[-97.15266,25.99723]];
+  const RIVER = [[-97.14708,25.97901],[-97.14723,25.97832],[-97.14753,25.97693],[-97.14721,25.97555],[-97.14626,25.97415],[-97.14613,25.97184],[-97.14682,25.9686],[-97.14685,25.96605],[-97.14623,25.9642],[-97.14623,25.96292],[-97.14685,25.96223],[-97.14688,25.96176],[-97.14633,25.96153],[-97.14599,25.96038],[-97.14589,25.95829],[-97.14654,25.95702],[-97.14795,25.95656],[-97.14868,25.95575],[-97.14873,25.95459],[-97.14978,25.9532],[-97.15184,25.95158],[-97.15287,25.95077]];
+  const SHORE = [[-97.15049,26.01730],[-97.15049,26.01606],[-97.15040,26.01483],[-97.15040,26.01360],[-97.15040,26.01236],[-97.15040,26.01113],[-97.14991,26.00989],[-97.14991,26.00866],[-97.14991,26.00742],[-97.14991,26.00619],[-97.14991,26.00496],[-97.14985,26.00372],[-97.14961,26.00249],[-97.14944,26.00125],[-97.14944,26.00002],[-97.14944,25.99878],[-97.14944,25.99755],[-97.14937,25.99632],[-97.14884,25.99508],[-97.14884,25.99385],[-97.14867,25.99261],[-97.14867,25.99138],[-97.14849,25.99014],[-97.14867,25.98891],[-97.14867,25.98767],[-97.14867,25.98644],[-97.14867,25.98521],[-97.14867,25.98397],[-97.14867,25.98278]];
+
+
+
+  function syncCamFromGeo() {
+    if (!W) return;
+    const MW = MAP_W * CELL, MH = MAP_H * CELL;
+    const cx = (G.lon - GEO_W) / (GEO_E - GEO_W) * MW;
+    const cy = (GEO_N - G.lat) / (GEO_N - GEO_S) * MH;
+    const worldW = G.span / (GEO_E - GEO_W) * MW;
+    G.cam.zoom = W / worldW;
+    G.cam.x = cx - (W * 0.5) / G.cam.zoom;
+    G.cam.y = cy - (H * 0.5) / G.cam.zoom;
+  }
+
+  function draw() {
+    if (!W) return;
+    syncCamFromGeo();
+    ctx.clearRect(0, 0, W, H);
+    const band = viewBand();
+    if (band === "World") {
+      drawGlobe();
+      drawCountryBorders("globe");
+      drawCountryNames("globe");
+      drawSiteDots("globe");
+      drawGeoReadout();
+      updateFieldChrome(band);
+      return;
+    }
+    drawFlatLand();
+    if (band === "Region") {
+      drawCountryBorders("flat");
+      drawCountryNames("flat");
+      drawSiteDots("flat");
+    }
+    ctx.save();
+    ctx.scale(G.cam.zoom, G.cam.zoom);
+    ctx.translate(-G.cam.x, -G.cam.y);
+
+    if (band !== "Region") drawSiteRoad();
+
+    if (G.placeType && G._hover) {
+      const def = defOf(G.placeType);
+      const ok = canPlace(G.placeType, G._hover.gx, G._hover.gy).ok;
+      drawBldg(G._hover.gx, G._hover.gy, def, 1, ok ? "ok" : "bad", false);
+    }
+
+    for (const b of G.buildings) {
+      drawBldg(b.gx, b.gy, defOf(b.type), b.level, b.id === G.selectedId ? "sel" : "n", true);
+      if (b.type === "pad_orbital" && performance.now() < G.flameUntil) drawFlame(b);
+    }
+
+    // vehicles
+    for (const v of liveFleet()) {
+      if (v.status === "rolling" && G.rollout && G.rollout.vehicleId === v.id) {
+        ctx.strokeStyle = "rgba(232,200,100,0.4)";
+        ctx.lineWidth = 2; ctx.setLineDash([6, 6]);
+        ctx.beginPath();
+        G.rollout.pts.forEach((p, i) => (i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)));
+        ctx.stroke(); ctx.setLineDash([]);
+        drawVeh(v.wx, v.wy, v, true);
+      } else if (v.buildingId) {
+        drawVeh(v.wx, v.wy, v, false);
+      }
+    }
+
+    ctx.restore();
+    if (band === "Site" || band === "Work") drawTractLines();
+    drawGeoReadout();
+    updateFieldChrome(band);
+  }
+
+  function lonToX(lon) {
+    return (lon - GEO_W) / (GEO_E - GEO_W) * MAP_W * CELL;
+  }
+  function latToY(lat) {
+    return (GEO_N - lat) / (GEO_N - GEO_S) * MAP_H * CELL;
+  }
+  function traceRing(ring, move) {
+    let started = false;
+    for (const p of ring) {
+      const x = lonToX(p[0]), y = latToY(p[1]);
+      if (!started) { move(true, x, y); started = true; }
+      else move(false, x, y);
+    }
+  }
+  function fillRings(rings, color) {
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    for (const ring of rings) traceRing(ring, (start, x, y) => start ? ctx.moveTo(x, y) : ctx.lineTo(x, y));
+    ctx.fill();
+  }
+  function strokeRings(rings, color, width) {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
+    ctx.beginPath();
+    for (const ring of rings) traceRing(ring, (start, x, y) => start ? ctx.moveTo(x, y) : ctx.lineTo(x, y));
+    ctx.stroke();
+  }
+
+  function strokeScreen(rings) {
+    ctx.beginPath();
+    const limit = Math.min(W, H) * 0.35;
+    for (const ring of rings) {
+      let prev = null;
+      for (const p of ring) {
+        const q = projectFlat(p[0], p[1]);
+        if (prev && Math.hypot(q[0] - prev[0], q[1] - prev[1]) > limit) {
+          prev = null;
+          continue;
+        }
+        if (!prev) ctx.moveTo(q[0], q[1]);
+        else ctx.lineTo(q[0], q[1]);
+        prev = q;
+      }
+    }
+    ctx.stroke();
+  }
+
+  function fillProjected(rings) {
+    ctx.fillStyle = "#2f6a3c";
+    ctx.beginPath();
+    for (const ring of rings) {
+      ring.forEach((p, i) => {
+        const q = projectFlat(p[0], p[1]);
+        if (i) ctx.lineTo(q[0], q[1]);
+        else ctx.moveTo(q[0], q[1]);
+      });
+      ctx.closePath();
+    }
+    ctx.fill();
+  }
+
+  function metersPerPx() {
+    return G.span * 111320 * Math.cos(PAD_LAT * Math.PI / 180) / Math.max(1, W);
+  }
+  function viewBand() {
+    const m = metersPerPx();
+    if (m >= 8000) return "World";
+    if (m >= 600) return "Region";
+    if (m >= 24) return "Site";
+    return "Work";
+  }
+  function spanForMpp(mpp) {
+    return mpp * Math.max(1, W) / (111320 * Math.cos(PAD_LAT * Math.PI / 180));
+  }
+  function hash(n) {
+    const x = Math.sin(n * 127.1) * 43758.5453;
+    return x - Math.floor(x);
+  }
+  function meterScreen(mx, my) {
+    const lon = PAD_LON + mx / (111320 * Math.cos(PAD_LAT * Math.PI / 180));
+    const lat = PAD_LAT + my / 110540;
+    return projectFlat(lon, lat);
+  }
+  function landRings() {
+    if (metersPerPx() >= 600 && GEO_RINGS.americas) return GEO_RINGS.americas;
+    if (GEO_RINGS.gulfLand) return [GEO_RINGS.gulfLand];
+    if (GEO_RINGS.boca) return [GEO_RINGS.boca];
+    return [];
+  }
+  function traceLandPath() {
+    ctx.beginPath();
+    for (const ring of landRings()) {
+      ring.forEach((p, i) => {
+        const q = projectFlat(p[0], p[1]);
+        if (i) ctx.lineTo(q[0], q[1]);
+        else ctx.moveTo(q[0], q[1]);
+      });
+      ctx.closePath();
+    }
+  }
+  function drawFlatLand() {
+    const mpp = metersPerPx();
+    ctx.fillStyle = "#0e4e5c";
+    ctx.fillRect(0, 0, W, H);
+    for (let i = 0; i < 18; i++) {
+      const mx = (hash(i + 3) - 0.4) * 1800000;
+      const my = (hash(i + 19) - 0.5) * 1400000;
+      const rx = 80000 + hash(i + 40) * 260000;
+      const ry = 60000 + hash(i + 60) * 180000;
+      const p = meterScreen(mx, my);
+      ctx.fillStyle = i % 2 ? "rgba(8, 60, 74, 0.45)" : "rgba(40, 130, 140, 0.18)";
+      ctx.beginPath();
+      ctx.ellipse(p[0], p[1], rx / mpp, ry / mpp, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    traceLandPath();
+    ctx.fillStyle = "#e0c99a";
+    ctx.fill();
+    ctx.save();
+    traceLandPath();
+    ctx.clip();
+    const patches = [["#c9a56a", 0.35], ["#edd7a8", 0.4], ["#b98a55", 0.22], ["#8ea36a", 0.16]];
+    for (let i = 0; i < 70; i++) {
+      const mx = (hash(i + 2) - 0.72) * 900000;
+      const my = (hash(i + 80) - 0.45) * 700000;
+      const rx = 6000 + hash(i + 11) * 42000;
+      const ry = 2000 + hash(i + 21) * 9000;
+      const p = meterScreen(mx, my);
+      ctx.fillStyle = patches[i % patches.length][0];
+      ctx.globalAlpha = patches[i % patches.length][1];
+      ctx.beginPath();
+      ctx.ellipse(p[0], p[1], Math.max(8, rx / mpp), Math.max(3, ry / mpp), hash(i) * 2.2, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    if (mpp < 400) {
+      ctx.globalAlpha = 0.55;
+      ctx.strokeStyle = "#6d5a38";
+      ctx.lineWidth = 1;
+      for (let i = 0; i < 80; i++) {
+        const mx = (hash(i + 200) - 0.7) * 40000;
+        const my = (hash(i + 260) - 0.4) * 30000;
+        const len = 12 + hash(i + 9) * 28;
+        const a = meterScreen(mx, my);
+        const bpt = meterScreen(mx + len, my + len * 0.3);
+        ctx.beginPath();
+        ctx.moveTo(a[0], a[1]);
+        ctx.lineTo(bpt[0], bpt[1]);
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+    ctx.globalAlpha = 1;
+    traceLandPath();
+    ctx.strokeStyle = "#f4e7c8";
+    ctx.lineWidth = Math.max(1.5, Math.min(10, 80 / mpp));
+    ctx.stroke();
+  }
+  function countryPoint(mode, lon, lat) {
+    if (mode === "globe") return projectGlobe(lon, lat);
+    return projectFlat(lon, lat);
+  }
+  function drawCountryBorders(mode) {
+    if (typeof COUNTRIES === "undefined") return;
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = mode === "globe" ? "rgba(20, 36, 24, 0.55)" : "rgba(90, 62, 36, 0.55)";
+    for (const country of COUNTRIES) {
+      for (const ring of country.r) {
+        ctx.beginPath();
+        let pen = false;
+        for (const pair of ring) {
+          const p = countryPoint(mode, pair[0], pair[1]);
+          if (!p) { pen = false; continue; }
+          if (!pen) { ctx.moveTo(p[0], p[1]); pen = true; }
+          else ctx.lineTo(p[0], p[1]);
+        }
+        ctx.stroke();
+      }
+    }
+  }
+  function drawCountryNames(mode) {
+    if (typeof COUNTRIES === "undefined") return;
+    ctx.fillStyle = "rgba(36, 24, 15, 0.82)";
+    ctx.font = "13px Georgia, serif";
+    ctx.textAlign = "center";
+    for (const country of COUNTRIES) {
+      if (!country.r.some((ring) => ring.length > 18)) continue;
+      const p = countryPoint(mode, country.lon, country.lat);
+      if (!p) continue;
+      if (mode !== "globe" && (p[0] < 24 || p[1] < 24 || p[0] > W - 24 || p[1] > H - 24)) continue;
+      ctx.fillText(country.n, p[0], p[1]);
+    }
+    ctx.textAlign = "left";
+  }
+  const FAR_SITES = [
+    { lon: PAD_LON, lat: PAD_LAT, open: true },
+    { lon: -89.4, lat: 29.2, open: false },
+    { lon: -80.6, lat: 28.6, open: false },
+  ];
+  function drawSiteDots(mode) {
+    for (const s of FAR_SITES) {
+      const p = countryPoint(mode, s.lon, s.lat);
+      if (!p) continue;
+      ctx.beginPath();
+      ctx.arc(p[0], p[1], s.open ? 5 : 3.5, 0, Math.PI * 2);
+      ctx.fillStyle = s.open ? "#c46a3a" : "rgba(196,106,58,0.55)";
+      ctx.fill();
+    }
+  }
+  function smoothRoad(pts) {
+    let cur = pts;
+    for (let pass = 0; pass < 3; pass++) {
+      const next = [cur[0]];
+      for (let i = 0; i < cur.length - 1; i++) {
+        const a = cur[i], b = cur[i + 1];
+        next.push([a[0] * 0.75 + b[0] * 0.25, a[1] * 0.75 + b[1] * 0.25]);
+        next.push([a[0] * 0.25 + b[0] * 0.75, a[1] * 0.25 + b[1] * 0.75]);
+      }
+      next.push(cur[cur.length - 1]);
+      cur = next;
+    }
+    return cur;
+  }
+  function edgePoint(b, edge) {
+    const d = defOf(b.type);
+    const x0 = b.gx * CELL, y0 = b.gy * CELL;
+    const w = d.footprint.w * CELL, h = d.footprint.h * CELL;
+    if (edge === "east") return [x0 + w, y0 + h / 2];
+    return [x0, y0 + h / 2];
+  }
+  function yardSegment(fromB, toB) {
+    const order = ["starfactory", "mega_bay", "pad_orbital"];
+    const left = order.indexOf(fromB.type) <= order.indexOf(toB.type) ? fromB : toB;
+    const right = left === fromB ? toB : fromB;
+    const a = edgePoint(left, "east");
+    const b = edgePoint(right, "west");
+    const northPx = 80 / (110540 * (GEO_N - GEO_S) / (MAP_H * CELL));
+    const mid = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2 - northPx];
+    const pts = smoothRoad([a, mid, b]).map((p) => ({ x: p[0], y: p[1] }));
+    if (left !== fromB) pts.reverse();
+    return pts;
+  }
+  function drawSiteRoad() {
+    const placed = ["starfactory", "mega_bay", "pad_orbital"].map((t) => buildingOfType(t)).filter(Boolean);
+    if (placed.length < 2) return;
+    const metersX = 111320 * Math.cos(PAD_LAT * Math.PI / 180) * (GEO_E - GEO_W) / (MAP_W * CELL);
+    const segs = [];
+    for (let i = 0; i < placed.length - 1; i++) {
+      segs.push(yardSegment(placed[i], placed[i + 1]).map((p) => [p.x, p.y]));
+    }
+    function stroke(widthM, color) {
+      ctx.strokeStyle = color;
+      ctx.lineWidth = widthM / metersX;
+      ctx.lineCap = "butt";
+      ctx.lineJoin = "round";
+      for (const pts of segs) {
+        ctx.beginPath();
+        pts.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]));
+        ctx.stroke();
+      }
+    }
+    stroke(16, "#c4a06a");
+    stroke(9, "#8d7a62");
+  }
+  function updateFieldChrome(band) {
+    const scale = document.getElementById("map-scale");
+    if (!scale) return;
+    if (band === "World") scale.style.display = "none";
+    else {
+      const steps = [100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000, 500000];
+      const mpp = metersPerPx();
+      const aim = 110 * mpp;
+      let meters = steps[0];
+      for (const step of steps) if (step <= aim) meters = step;
+      scale.style.display = "flex";
+      document.getElementById("map-scale-bar").style.width = (meters / mpp) + "px";
+      document.getElementById("map-scale-label").textContent = meters >= 1000 ? (meters / 1000) + " km" : meters + " m";
+    }
+    document.querySelectorAll("#map-chips button").forEach((b) => {
+      b.classList.toggle("active", b.dataset.band === band);
+    });
+  }
+
+  function screenRing(ring, closePath) {
+    const pts = ring.map((p) => projectFlat(p[0], p[1]));
+    ctx.beginPath();
+    pts.forEach((q, i) => i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1]));
+    if (closePath) ctx.closePath();
+    return pts;
+  }
+  function ringBox(pts) {
+    let minx = Infinity, miny = Infinity, maxx = -Infinity, maxy = -Infinity;
+    pts.forEach((q) => {
+      minx = Math.min(minx, q[0]);
+      miny = Math.min(miny, q[1]);
+      maxx = Math.max(maxx, q[0]);
+      maxy = Math.max(maxy, q[1]);
+    });
+    return { minx, miny, maxx, maxy, w: maxx - minx, h: maxy - miny };
+  }
+  function metersOnScreen(meters) {
+    return Math.max(1, meters / metersPerPx());
+  }
+  function pointInRing(lon, lat, ring) {
+    let inside = false;
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      const yi = ring[i][1], yj = ring[j][1];
+      if ((yi > lat) !== (yj > lat)) {
+        const x = (ring[j][0] - ring[i][0]) * (lat - yi) / (yj - yi) + ring[i][0];
+        if (lon < x) inside = !inside;
+      }
+    }
+    return inside;
+  }
+  let shelfCache = null;
+  function beachShelf() {
+    if (shelfCache) return shelfCache;
+    const ring = (typeof GEO_RINGS !== "undefined" && (GEO_RINGS.gulfLand || GEO_RINGS.boca)) || null;
+    if (!ring) return null;
+    const step = 0.00028;
+    const n = SHORE.length;
+    const inner = new Array(n);
+    const outer = new Array(n);
+    for (let i = 0; i < n; i++) {
+      const lon = SHORE[i][0];
+      const lat = SHORE[i][1];
+      let hit = lon;
+      for (let k = 0; k < 40; k++) {
+        const x = lon - k * step;
+        if (pointInRing(x, lat, ring)) { hit = x - step; break; }
+      }
+      const t = Math.min(1, Math.min(i, n - 1 - i) / 4);
+      inner[i] = [hit, lat];
+      outer[i] = [hit + (lon - hit) * t, lat];
+    }
+    shelfCache = { inner, outer };
+    return shelfCache;
+  }
+  function pathLonLat(ring, close) {
+    ring.forEach((p, i) => {
+      const q = projectFlat(p[0], p[1]);
+      if (i) ctx.lineTo(q[0], q[1]);
+      else ctx.moveTo(q[0], q[1]);
+    });
+    if (close) ctx.closePath();
+  }
+  function drawBeachShelf() {
+    const shelf = beachShelf();
+    if (!shelf) return;
+    ctx.beginPath();
+    pathLonLat(shelf.outer, false);
+    for (let i = shelf.inner.length - 1; i >= 0; i--) {
+      const q = projectFlat(shelf.inner[i][0], shelf.inner[i][1]);
+      ctx.lineTo(q[0], q[1]);
+    }
+    ctx.closePath();
+    ctx.fillStyle = "#e0c99a";
+    ctx.fill();
+    ctx.beginPath();
+    pathLonLat(shelf.outer, false);
+    ctx.strokeStyle = "#f4e7c8";
+    ctx.lineWidth = 2;
+    ctx.lineJoin = "round";
+    ctx.lineCap = "butt";
+    ctx.stroke();
+  }
+  function limitWords(spot) {
+    if (!spot) return;
+    ctx.save();
+    ctx.translate(spot.x, spot.y);
+    ctx.rotate(spot.ang);
+    ctx.fillText("limit", 0, 0);
+    ctx.restore();
+  }
+  function sideLabel(side, other) {
+    const pts = side.map((p) => projectFlat(p[0], p[1]));
+    const on = [];
+    for (let i = 0; i < pts.length; i++) {
+      const q = pts[i];
+      if (q[0] > 36 && q[0] < W - 36 && q[1] > 36 && q[1] < H - 36) on.push(i);
+    }
+    if (!on.length) return null;
+    const i = on[Math.floor(on.length / 2)];
+    const q = pts[i];
+    const a = pts[Math.max(0, i - 1)];
+    const b = pts[Math.min(pts.length - 1, i + 1)];
+    let ang = Math.atan2(b[1] - a[1], b[0] - a[0]);
+    if (ang > Math.PI / 2 || ang < -Math.PI / 2) ang += Math.PI;
+    const j = Math.min(other.length - 1, Math.round(i * (other.length - 1) / Math.max(1, side.length - 1)));
+    const o = projectFlat(other[j][0], other[j][1]);
+    const dx = o[0] - q[0];
+    const dy = o[1] - q[1];
+    const len = Math.hypot(dx, dy) || 1;
+    return { x: q[0] + dx / len * 14, y: q[1] + dy / len * 14, ang };
+  }
+  function capLabel(a, b, toward) {
+    const p = projectFlat(a[0], a[1]);
+    const q = projectFlat(b[0], b[1]);
+    const m = [(p[0] + q[0]) / 2, (p[1] + q[1]) / 2];
+    if (m[0] < 36 || m[0] > W - 36 || m[1] < 36 || m[1] > H - 36) return null;
+    let ang = Math.atan2(q[1] - p[1], q[0] - p[0]);
+    if (ang > Math.PI / 2 || ang < -Math.PI / 2) ang += Math.PI;
+    const t = projectFlat(toward[0], toward[1]);
+    const dx = t[0] - m[0];
+    const dy = t[1] - m[1];
+    const len = Math.hypot(dx, dy) || 1;
+    return { x: m[0] + dx / len * 14, y: m[1] + dy / len * 14, ang };
+  }
+  let limitCache = null;
+  function coastCrossings(ring, lat) {
+    const xs = [];
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      const y0 = ring[j][1], y1 = ring[i][1];
+      if ((y0 > lat) === (y1 > lat)) continue;
+      const x = (ring[i][0] - ring[j][0]) * (lat - y0) / (y1 - y0) + ring[j][0];
+      if (x >= -97.55 && x <= -97.05) xs.push(x);
+    }
+    xs.sort((a, b) => b - a);
+    return xs;
+  }
+  function coastLimit() {
+    if (limitCache) return limitCache;
+    const ring = (typeof GEO_RINGS !== "undefined" && (GEO_RINGS.gulfLand || GEO_RINGS.boca)) || null;
+    if (!ring) return null;
+    const depth = 8000 / (111320 * Math.cos(26 * Math.PI / 180));
+    const shore = [];
+    const inland = [];
+    let prev = null;
+    for (let lat = 25.80; lat <= 26.09; lat += 0.003) {
+      const y = Math.round(lat * 1000) / 1000;
+      const xs = coastCrossings(ring, y);
+      if (!xs.length) continue;
+      const hit = xs[0];
+      if (hit < -97.20) break;
+      if (prev != null && hit < prev - 0.015) break;
+      let back = hit - depth;
+      if (xs.length > 1 && xs[1] > back) back = xs[1];
+      shore.push([Math.round(hit * 1e5) / 1e5, y]);
+      inland.push([Math.round(back * 1e5) / 1e5, y]);
+      prev = hit;
+    }
+    if (shore.length < 4) return null;
+    limitCache = { shore, inland };
+    return limitCache;
+  }
+  function drawTractLines() {
+    const parts = coastLimit();
+    if (!parts) return;
+    const ring = parts.shore.concat(parts.inland.slice().reverse());
+    const pts = screenRing(ring, true);
+    const box = ringBox(pts);
+    if (box.w < 48 || box.h < 36) return;
+    ctx.setLineDash([8, 6]);
+    ctx.strokeStyle = "rgba(176, 32, 24, 1)";
+    ctx.lineWidth = 2;
+    ctx.lineJoin = "round";
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.font = "12px system-ui, sans-serif";
+    ctx.fillStyle = "rgba(176, 32, 24, 0.95)";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    const n = parts.shore.length - 1;
+    limitWords(sideLabel(parts.shore, parts.inland));
+    limitWords(sideLabel(parts.inland, parts.shore));
+    limitWords(capLabel(parts.shore[0], parts.inland[0], parts.shore[Math.floor(n / 2)]));
+    limitWords(capLabel(parts.shore[n], parts.inland[n], parts.shore[Math.floor(n / 2)]));
+  }
+
+  function drawPlots() {
+    if (G.span > 1.2) return;
+    for (const id of Object.keys(PLOTS)) {
+      if (!G.plots[id]) continue;
+      const plot = PLOTS[id];
+      const x0 = lonToX(plot.west), x1 = lonToX(plot.east);
+      const y0 = latToY(plot.north), y1 = latToY(plot.south);
+      ctx.save();
+      ctx.strokeStyle = "#f4f4f4";
+      ctx.fillStyle = "rgba(255,255,255,0.06)";
+      ctx.lineWidth = 2 / G.cam.zoom;
+      ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
+      ctx.strokeRect(x0, y0, x1 - x0, y1 - y0);
+      if (G.span < 0.08) {
+        ctx.fillStyle = "#f4f4f4";
+        ctx.font = `${Math.max(10, 12 / G.cam.zoom)}px ui-monospace, monospace`;
+        ctx.fillText(plot.name, x0 + 6 / G.cam.zoom, y0 + 16 / G.cam.zoom);
+      }
+      ctx.restore();
+    }
+    if (G.plots.production && G.plots.launch) {
+      ctx.strokeStyle = "#8d734c";
+      ctx.lineWidth = 8;
+      ctx.beginPath();
+      ctx.moveTo(lonToX(-97.170), latToY(25.997));
+      ctx.lineTo(lonToX(-97.156), latToY(25.997));
+      ctx.stroke();
+    }
+  }
+
+  function projectFlat(lon, lat) {
+    const x = W * 0.5 + (lon - G.lon) / G.span * W;
+    const y = H * 0.5 - (lat - G.lat) / G.span * W;
+    return [x, y];
+  }
+  function projectGlobe(lon, lat) {
+    const λ = (lon - G.lon) * Math.PI / 180;
+    const φ = lat * Math.PI / 180;
+    const φ0 = G.lat * Math.PI / 180;
+    const cosφ = Math.cos(φ);
+    const x = cosφ * Math.sin(λ);
+    const y = Math.sin(φ) * Math.cos(φ0) - cosφ * Math.sin(φ0) * Math.cos(λ);
+    const z = Math.sin(φ) * Math.sin(φ0) + cosφ * Math.cos(φ0) * Math.cos(λ);
+    if (z < 0) return null;
+    const R = Math.min(W, H) * 0.42;
+    return [W * 0.5 + x * R, H * 0.5 - y * R];
+  }
+  function frontPoint(lon, lat) {
+    const λ = (lon - G.lon) * Math.PI / 180;
+    const φ = lat * Math.PI / 180;
+    const φ0 = G.lat * Math.PI / 180;
+    const cosφ = Math.cos(φ);
+    const z = Math.sin(φ) * Math.sin(φ0) + cosφ * Math.cos(φ0) * Math.cos(λ);
+    const x = cosφ * Math.sin(λ);
+    const y = Math.sin(φ) * Math.cos(φ0) - cosφ * Math.sin(φ0) * Math.cos(λ);
+    const R = Math.min(W, H) * 0.42;
+    return { x: W * 0.5 + x * R, y: H * 0.5 - y * R, z };
+  }
+
+  let landMask = null;
+  function buildLandMask() {
+    const mw = 720, mh = 360;
+    const c = document.createElement("canvas");
+    c.width = mw; c.height = mh;
+    const g = c.getContext("2d");
+    g.beginPath();
+    for (const ring of GEO_RINGS.world) {
+      let prev = null;
+      let open = false;
+      for (const p of ring) {
+        if (prev && Math.abs(p[0] - prev[0]) > 180) open = false;
+        const x = ((p[0] + 180) / 360) * mw;
+        const y = ((90 - p[1]) / 180) * mh;
+        if (!open) { g.moveTo(x, y); open = true; }
+        else g.lineTo(x, y);
+        prev = p;
+      }
+      g.closePath();
+    }
+    g.fillStyle = "#000";
+    g.fill();
+    landMask = { data: g.getImageData(0, 0, mw, mh).data, mw, mh };
+  }
+  function maskLand(lon, lat) {
+    if (!landMask) buildLandMask();
+    let x = Math.floor(((lon + 180) % 360) / 360 * landMask.mw);
+    if (x < 0) x += landMask.mw;
+    const y = Math.floor((90 - lat) / 180 * landMask.mh);
+    if (y < 0 || y >= landMask.mh || x >= landMask.mw) return false;
+    return landMask.data[(y * landMask.mw + x) * 4 + 3] > 10;
+  }
+
+  function drawGlobe() {
+    ctx.fillStyle = "#071018";
+    ctx.fillRect(0, 0, W, H);
+    const R = Math.min(W, H) * 0.42;
+    const S = Math.max(160, Math.floor(R * 2));
+    const c = document.createElement("canvas");
+    c.width = S; c.height = S;
+    const g = c.getContext("2d");
+    const img = g.createImageData(S, S);
+    const d = img.data;
+    const φ0 = G.lat * Math.PI / 180;
+    const λ0 = G.lon * Math.PI / 180;
+    const sinφ = Math.sin(φ0), cosφ = Math.cos(φ0);
+    for (let py = 0; py < S; py++) {
+      for (let px = 0; px < S; px++) {
+        const dx = (px + 0.5) / S * 2 - 1;
+        const dy = 1 - (py + 0.5) / S * 2;
+        const r2 = dx * dx + dy * dy;
+        const i = (py * S + px) * 4;
+        if (r2 > 1) continue;
+        const z = Math.sqrt(1 - r2);
+        const lat = Math.asin(Math.max(-1, Math.min(1, z * sinφ + dy * cosφ))) * 180 / Math.PI;
+        const lon = (λ0 + Math.atan2(dx, z * cosφ - dy * sinφ)) * 180 / Math.PI;
+        const land = maskLand(lon, lat);
+        d[i] = land ? 47 : 11;
+        d[i + 1] = land ? 106 : 58;
+        d[i + 2] = land ? 60 : 74;
+        d[i + 3] = 255;
+      }
+    }
+    g.putImageData(img, 0, 0);
+    ctx.drawImage(c, W * 0.5 - R, H * 0.5 - R, R * 2, R * 2);
+  }
+
+  function toScreen(lon, lat) {
+    if (viewBand() === "World") return projectGlobe(lon, lat);
+    return projectFlat(lon, lat);
+  }
+
+  function drawGeoReadout() {
+    const heading = 90;
+    const pitch = G.event ? Math.max(26, 90 - G.event.t * 14) : 90;
+    const dLon = 50 / (111.32 * Math.cos(PAD_LAT * Math.PI / 180));
+    const endLon = PAD_LON + dLon;
+    ctx.save();
+    const ns = G.lat >= 0 ? "N" : "S";
+    const ew = G.lon >= 0 ? "E" : "W";
+    ctx.fillStyle = "#f2f2f2";
+    ctx.font = "12px ui-monospace, monospace";
+    ctx.fillText(`View ${Math.abs(G.lat).toFixed(3)}° ${ns}  ${Math.abs(G.lon).toFixed(3)}° ${ew}`, 12, H - 52);
+    ctx.fillText(`Pad ${PAD_LAT.toFixed(3)}° N  ${Math.abs(PAD_LON).toFixed(3)}° W`, 12, H - 34);
+    ctx.fillText(`Heading ${heading}°  pitch ${pitch.toFixed(0)}°  50 km to ${Math.abs(endLon).toFixed(2)}° W`, 12, H - 16);
+    ctx.restore();
+  }
+
+  function drawBldg(gx, gy, def, level, mode, label) {
+    const x = gx * CELL, y = gy * CELL;
+    const w = def.footprint.w * CELL, h = def.footprint.h * CELL;
+    const depth = 10 + (level > 1 ? 4 : 0);
+    const onScreen = w * G.cam.zoom;
+    ctx.fillStyle = "rgba(90, 70, 48, 0.35)";
+    ctx.beginPath();
+    ctx.ellipse(x + w * 0.5, y + h * 0.62, w * 0.62, h * 0.28, 0, 0, Math.PI * 2);
+    ctx.fill();
+    let top = "#8c4536", front = "#6d382c";
+    if (def.id === "mega_bay") { top = "#3e5560"; front = "#2c3e46"; }
+    if (def.id === "pad_orbital") { top = "#8a8680"; front = "#5c5148"; }
+    if (mode === "ok") { top = "rgba(140,180,100,0.45)"; front = "rgba(100,140,70,0.45)"; }
+    if (mode === "bad") { top = "rgba(180,80,70,0.45)"; front = "rgba(140,50,45,0.45)"; }
+    ctx.fillStyle = top; ctx.fillRect(x, y, w, h - depth);
+    ctx.fillStyle = front; ctx.fillRect(x, y + h - depth, w, depth);
+    if (onScreen > 36 && def.id === "pad_orbital") {
+      const tw = level >= 2 ? w * 0.72 : w * 0.42;
+      const th = level >= 2 ? 14 : 10;
+      ctx.fillStyle = "#2a2a30";
+      ctx.fillRect(x + (w - tw) / 2, y + h - depth - th - 4, tw, th);
+      const oh = level >= 2 ? 22 : 14;
+      ctx.fillStyle = "#c0c0c8";
+      ctx.fillRect(x + w / 2 - 7, y + h - depth - th - 4 - oh, 14, oh);
+    } else if (onScreen > 36 && def.id === "mega_bay") {
+      // multi-bay doors for housing visual
+      ctx.fillStyle = "#3a3028";
+      const doors = bayCapacity();
+      for (let i = 0; i < doors; i++) {
+        ctx.fillRect(x + 12 + i * (w / (doors + 0.4)), y + h - depth - 30, w / (doors + 1.5), 28);
+      }
+      const n = bayCount();
+      for (let i = 0; i < doors; i++) {
+        ctx.fillStyle = i < n ? "#8fbc6a" : "#3a3028";
+        ctx.fillRect(x + 8 + i * 14, y + 8, 10, 6);
+      }
+    } else if (onScreen > 36 && def.id === "starfactory") {
+      ctx.fillStyle = "#4a6a8a";
+      ctx.fillRect(x + w * 0.28, y + h - depth - 22, w * 0.44, 18);
+      if (G.factoryJob) {
+        ctx.fillStyle = "#d4a84b";
+        ctx.fillRect(x + 8, y + 8, w - 16, 5);
+      }
+    }
+    if (mode === "sel") {
+      ctx.strokeStyle = "#d4a84b"; ctx.lineWidth = 2;
+      ctx.strokeRect(x + 1, y + 1, w - 2, h - 2);
+    }
+    if (label && mode !== "ok" && mode !== "bad" && metersPerPx() < 600 && onScreen > 22) {
+      let tag = def.short + (level > 1 ? " L" + level : "");
+      if (def.id === "mega_bay") tag += ` ${bayCount()}/${bayCapacity()}`;
+      ctx.font = "bold 11px system-ui";
+      const tw = ctx.measureText(tag).width;
+      ctx.fillStyle = "rgba(255,248,220,0.92)";
+      ctx.strokeStyle = "#8a7848";
+      ctx.fillRect(x + 4, y - 16, tw + 8, 14);
+      ctx.strokeRect(x + 4, y - 16, tw + 8, 14);
+      ctx.fillStyle = "#1f1a12";
+      ctx.fillText(tag, x + 8, y - 5);
+    }
+  }
+
+  function drawVeh(x, y, v, rolling) {
+    const r = rocketOf(v.rocketId);
+    const s = r.mapScale || 1;
+    const sel = v.id === G.selectedVehicleId;
+    if (rolling) {
+      ctx.fillStyle = "#3a342c";
+      ctx.fillRect(x - 14 * s, y + 6, 28 * s, 10);
+    }
+    if (v.status === "refurb") {
+      ctx.strokeStyle = "#d4a84b";
+      ctx.strokeRect(x - 10 * s, y - 36 * s, 20 * s, 42 * s);
+    }
+    const h = 32 * s, w = (r.engines === 9 ? 11 : 8) * s;
+    ctx.fillStyle = r.color;
+    ctx.fillRect(x - w / 2, y - h, w, h);
+    ctx.fillStyle = rolling ? "#f5c542" : "#ff8a3d";
+    ctx.fillRect(x - 2, y + 2, 4, 3);
+    if (sel) {
+      ctx.strokeStyle = "#d4a84b"; ctx.lineWidth = 1.5;
+      ctx.strokeRect(x - w / 2 - 2, y - h - 2, w + 4, h + 10);
+    }
+    ctx.font = "bold 9px system-ui";
+    ctx.fillStyle = "rgba(255,248,220,0.92)";
+    ctx.fillText(v.name, x - 12, y - h - 4);
+  }
+
+  function drawFlame(b) {
+    const def = defOf(b.type);
+    const x = b.gx * CELL + def.footprint.w * CELL * 0.5;
+    const baseY = b.gy * CELL + def.footprint.h * CELL - 12;
+    const t = performance.now() / 40;
+    for (let i = 0; i < 8; i++) {
+      const ox = Math.sin(t + i) * 7;
+      const h = 12 + (i % 3) * 6;
+      ctx.fillStyle = i % 2 ? "rgba(255,140,40,0.85)" : "rgba(255,200,60,0.75)";
+      ctx.beginPath();
+      ctx.moveTo(x + ox - 4, baseY);
+      ctx.lineTo(x + ox, baseY - h);
+      ctx.lineTo(x + ox + 4, baseY);
+      ctx.fill();
+    }
+  }
+
+  // ── Input ──
+  function canvasPos(ev) {
+    const r = canvas.getBoundingClientRect();
+    return { x: ev.clientX - r.left, y: ev.clientY - r.top };
+  }
+  function hitBldg(wx, wy) {
+    for (let i = G.buildings.length - 1; i >= 0; i--) {
+      const b = G.buildings[i], d = defOf(b.type);
+      const x0 = b.gx * CELL, y0 = b.gy * CELL;
+      if (wx >= x0 && wx < x0 + d.footprint.w * CELL && wy >= y0 && wy < y0 + d.footprint.h * CELL) return b;
+    }
+    return null;
+  }
+  function hitVeh(wx, wy) {
+    for (let i = liveFleet().length - 1; i >= 0; i--) {
+      const v = liveFleet()[i];
+      if (Math.hypot(wx - v.wx, wy - v.wy) < 18) return v;
+    }
+    return null;
+  }
+
+  const pointers = new Map();
+  let pinch = null;
+  function setSpan(next) {
+    G.span = clamp(next, 0.008, 1200);
+    G.lat = clamp(G.lat, -70, 78);
+    if (G.lon > 180) G.lon -= 360;
+    if (G.lon < -180) G.lon += 360;
+    syncCamFromGeo();
+  }
+  canvas.addEventListener("pointerdown", (ev) => {
+    canvas.setPointerCapture(ev.pointerId);
+    const p = canvasPos(ev);
+    pointers.set(ev.pointerId, p);
+    if (pointers.size === 2) {
+      const [a, b] = [...pointers.values()];
+      pinch = { dist: Math.max(12, Math.hypot(a.x - b.x, a.y - b.y)), span: G.span };
+      G.drag = null;
+      return;
+    }
+    syncCamFromGeo();
+    const w = screenToWorld(p.x, p.y);
+    if (G.span < 1.2 && G.placeType) {
+      placeBuilding(G.placeType, Math.floor(w.x / CELL), Math.floor(w.y / CELL));
+      return;
+    }
+    if (G.span < 1.2) {
+      const hv = hitVeh(w.x, w.y);
+      if (hv) {
+        G.selectedVehicleId = hv.id;
+        if (hv.buildingId) G.selectedId = hv.buildingId;
+        renderChrome();
+        return;
+      }
+      const hb = hitBldg(w.x, w.y);
+      if (hb) {
+        G.selectedId = hb.id;
+        renderChrome();
+        return;
+      }
+    }
+    G.selectedId = null;
+    renderInspector();
+    G.drag = { sx: p.x, sy: p.y, lon: G.lon, lat: G.lat };
+    canvas.classList.add("panning");
+  });
+  canvas.addEventListener("pointermove", (ev) => {
+    const p = canvasPos(ev);
+    if (pointers.has(ev.pointerId)) pointers.set(ev.pointerId, p);
+    if (pointers.size >= 2 && pinch) {
+      const [a, b] = [...pointers.values()];
+      const dist = Math.max(12, Math.hypot(a.x - b.x, a.y - b.y));
+      setSpan(pinch.span * (pinch.dist / dist));
+      return;
+    }
+    syncCamFromGeo();
+    const w = screenToWorld(p.x, p.y);
+    if (G.placeType) G._hover = { gx: Math.floor(w.x / CELL), gy: Math.floor(w.y / CELL) };
+    if (G.drag) {
+      G.lon = G.drag.lon - (p.x - G.drag.sx) / W * G.span;
+      G.lat = G.drag.lat + (p.y - G.drag.sy) / W * G.span;
+      setSpan(G.span);
+    }
+  });
+  function endPointer(ev) {
+    pointers.delete(ev.pointerId);
+    if (pointers.size < 2) pinch = null;
+    if (pointers.size === 0) {
+      G.drag = null;
+      canvas.classList.remove("panning");
+    }
+  }
+  canvas.addEventListener("pointerup", endPointer);
+  canvas.addEventListener("pointercancel", endPointer);
+  canvas.addEventListener("wheel", (ev) => {
+    if (ev.ctrlKey) return;
+    ev.preventDefault();
+    setSpan(G.span * (ev.deltaY > 0 ? 1.25 : 0.8));
+  }, { passive: false });
+  window.addEventListener("wheel", (ev) => {
+    if (!ev.ctrlKey) return;
+    ev.preventDefault();
+    setSpan(G.span * Math.exp(ev.deltaY * 0.01));
+  }, { passive: false });
+
+  window.addEventListener("keydown", (ev) => {
+    if (ev.key === "Escape") {
+      if (G.event) { skipEvent(); return; }
+      if (G.wikiSheet) { G.wikiSheet = false; renderWiki(); return; }
+      if (G.fleetSheet) { G.fleetSheet = false; renderFleetList(); return; }
+      if (G.goalSheet) { G.goalSheet = false; renderObjectives(); return; }
+      if (G.rocketSheet) { G.rocketSheet = null; renderRocketSheet(); return; }
+      G.placeType = null; canvas.classList.remove("placing");
+      renderPalette(); renderInspector();
+    }
+  });
+  document.getElementById("wiki-open").addEventListener("click", () => {
+    G.wikiSheet = !G.wikiSheet;
+    renderWiki();
+  });
+  document.getElementById("wiki-sheet").addEventListener("click", (ev) => {
+    if (ev.target.id !== "wiki-sheet") return;
+    G.wikiSheet = false;
+    renderWiki();
+  });
+  document.getElementById("fleet-open").addEventListener("click", () => {
+    G.fleetSheet = !G.fleetSheet;
+    renderFleetList();
+  });
+  document.getElementById("fleet-sheet").addEventListener("click", (ev) => {
+    if (ev.target.id !== "fleet-sheet") return;
+    G.fleetSheet = false;
+    renderFleetList();
+  });
+  document.getElementById("next-goal").addEventListener("click", () => {
+    G.goalSheet = !G.goalSheet;
+    renderObjectives();
+  });
+  document.getElementById("goal-sheet").addEventListener("click", (ev) => {
+    if (ev.target.id !== "goal-sheet") return;
+    G.goalSheet = false;
+    renderObjectives();
+  });
+  document.getElementById("rocket-sheet").addEventListener("click", (ev) => {
+    if (ev.target.id !== "rocket-sheet") return;
+    G.rocketSheet = null;
+    renderRocketSheet();
+  });
+  document.querySelectorAll("#map-chips button").forEach((b) => {
+    b.addEventListener("click", () => {
+      G.lon = -97.178;
+      G.lat = 26.002;
+      setSpan(spanForMpp(Number(b.dataset.mpp)));
+    });
+  });
+  document.getElementById("zoom-in").addEventListener("click", () => setSpan(G.span / 1.25));
+  document.getElementById("zoom-out").addEventListener("click", () => setSpan(G.span * 1.25));
+
+  let last = performance.now(), inspAcc = 0;
+  function frame(now) {
+    const dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    if (!G.event) {
+      G.dayAcc += dt * 1000;
+      while (G.dayAcc >= MS_PER_DAY) { G.dayAcc -= MS_PER_DAY; dayTick(); }
+      updateRollout(dt);
+      if (G.rollout || G.factoryJob) {
+        inspAcc += dt;
+        if (inspAcc > 0.3) { inspAcc = 0; renderInspector(); renderResources(); renderFleetList(); renderJobNote(); }
+      }
+    } else updateEvent(dt);
+    draw();
+    requestAnimationFrame(frame);
+  }
+
+  window.addEventListener("resize", () => { resize(); if (G.event) resizeEventCanvas(); });
+  document.getElementById("ver-label").textContent = VERSION;
+  resize();
+  G.cam.x = (MAP_W * CELL) / 2 - W / 2;
+  G.cam.y = (MAP_H * CELL) / 2 - H / 2;
+  renderChrome();
+  log("Foundation: Factory · Mega Bay · Pad. Resources from environment.", "info");
+  log("Bay houses multiple vehicles & refurbs after static fire. SF can fail.", "info");
+  requestAnimationFrame(frame);
+})();
+  </script>
+</body>
+</html>

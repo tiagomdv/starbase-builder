@@ -100,3 +100,12 @@ History of what **shipped**, keyed by **version**.
 - The Land column counts plots. The highway is off the map. A rollout from Mega Bay to the Orbital Pad follows the yard road drawn between those two doors. The return uses that same road.
 - The copper boxes and the corner dots are gone. The previous live file is `archive/index-0.3.0-panel.html`.
 - No new fire rule. No yard purchase. No houses. The picture is `design-docs/0.4.0-borderline-design.html`.
+
+## `0.5.0-structure` — 2026-10-15
+
+**Version:** `0.5.0-structure`
+
+- The rocket sheet shows stage dry mass, the structural limit, and payload to low Earth orbit. Stage dry mass starts at 1080 kg. That is the first stage with no propellant and no payload. The structural limit is 27572 kg, the design liftoff load.
+- Payload is the lesser of what the burn can lift and what that load still has room for. A fresh Falcon 1 shows 420 kg. It is not the sum of the masses. The rocket does not fly the orbit yet.
+- Lighten the stage costs 32 steel and takes 1 day in the Starfactory. Dry mass on that rocket falls by 80 kg, and payload rises to 486 kg. The burn is what stops the second number. The design load stops the first.
+- No tanks. No suborbital flight. No new fire rule. The previous live file is `archive/index-0.4.0-borderline.html`.

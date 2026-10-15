@@ -279,7 +279,7 @@
         <div><div class="stat-k">Fleet</div><div id="res-fleet" class="stat-n tabular-nums">0</div></div>
         <div><div class="stat-k">Day</div><div id="day-label" class="stat-n tabular-nums">1</div></div>
       </div>
-      <div id="ver-label">0.4.0-borderline</div>
+      <div id="ver-label">0.5.0-structure</div>
     </div>
   </header>
 
@@ -356,7 +356,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "0.4.0-borderline";
+  const VERSION = "0.5.0-structure";
   const CELL = 32, MAP_W = 40, MAP_H = 30, MS_PER_DAY = 4000;
   const ZOOM_MIN = 0.22, ZOOM_MAX = 2.4;
   const PAD_LAT = 25.997, PAD_LON = -97.157;
@@ -376,6 +376,19 @@
     MERLIN_UP_COST: 36,
     MERLIN_UP_DAYS: 1,
     MERLIN_UP_MULT: 1.12,
+    // First stage with no propellant and no payload. The Merlin mass sits beside it.
+    STAGE_DRY_KG: 1080,
+    STAGE_LIGHTEN_KG: 80,
+    STAGE_LIGHTEN_COST: 32,
+    STAGE_LIGHTEN_DAYS: 1,
+    // Published Falcon 1 liftoff mass. Payload is whatever this load still has room for.
+    STRUCT_LIMIT_KG: 27572,
+    STAGE_PROP_KG: 21092,
+    UPPER_DRY_KG: 450,
+    UPPER_PROP_KG: 3900,
+    KESTREL_ISP_S: 317,
+    // Sea-level Merlin Isp understates a vacuum burn, so this budget matches that Isp.
+    LEO_DV_MS: 8800,
     SF_THRUST_BAR_KN: 300,
     SF_WEAR_PER_FIRE: 0.08,
     SF_MISS_CONDITION: 40,
@@ -649,6 +662,7 @@
       G.factoryJob.daysLeft--;
       if (G.factoryJob.daysLeft <= 0) finishFactoryJob();
       else if (G.factoryJob.kind === "merlin") log(`Merlin thrust · ${G.factoryJob.daysLeft} days left`, "info");
+      else if (G.factoryJob.kind === "structure") log(`Stage dry mass · ${G.factoryJob.daysLeft} days left`, "info");
       else log(`Factory: ${rocketOf(G.factoryJob.rocketId).name} — ${G.factoryJob.daysLeft}d left`, "info");
     }
 
@@ -680,6 +694,15 @@
       renderChrome();
       return;
     }
+    if (job.kind === "structure") {
+      const v = vehicleById(job.vehicleId);
+      if (v) {
+        v.structureTier = 2;
+        log(`Stage dry mass on ${v.name} is now ${stageDryKg(v)} kg. Payload to low Earth orbit is ${payloadKg(v)} kg.`, "good");
+      }
+      renderChrome();
+      return;
+    }
     if (factoryHold()) {
       log("Factory hold full — job lost (should not happen)", "bad");
       return;
@@ -695,6 +718,7 @@
       status: "at_factory",
       condition: 100,
       merlinTier: 1,
+      structureTier: 1,
       fires: 0,
       refurbLeft: 0,
       baySlot: 0,
@@ -881,6 +905,40 @@
       { sky: "Storm", wind: 32, storm: true },
     ];
     return table[((day - 1) % table.length + table.length) % table.length];
+  }
+
+  function stageDryKg(v) {
+    const cut = v && v.structureTier >= 2 ? TUNING.STAGE_LIGHTEN_KG : 0;
+    return TUNING.STAGE_DRY_KG - cut;
+  }
+
+  // Payload is the lesser of the burn and the design load. It is not a sum of the masses.
+  function payloadToLeo(stageDryKg, engineMassKg, ispS, structLimitKg) {
+    const prop1 = TUNING.STAGE_PROP_KG;
+    const prop2 = TUNING.UPPER_PROP_KG;
+    const upper = TUNING.UPPER_DRY_KG;
+    const isp2 = TUNING.KESTREL_ISP_S;
+    const need = TUNING.LEO_DV_MS;
+    const g0 = 9.80665;
+    const room = Math.floor(structLimitKg - (stageDryKg + engineMassKg + prop1 + upper + prop2));
+    let lo = 0;
+    let hi = 8000;
+    let burn = 0;
+    while (lo <= hi) {
+      const p = (lo + hi) >> 1;
+      const m0 = stageDryKg + engineMassKg + prop1 + upper + prop2 + p;
+      const m1 = m0 - prop1;
+      const m3 = upper + p;
+      if (m1 <= 0 || m3 <= 0) { hi = p - 1; continue; }
+      const dv = ispS * g0 * Math.log(m0 / m1) + isp2 * g0 * Math.log((upper + prop2 + p) / m3);
+      if (dv >= need) { burn = p; lo = p + 1; }
+      else hi = p - 1;
+    }
+    return Math.max(0, Math.min(room, burn));
+  }
+
+  function payloadKg(v) {
+    return payloadToLeo(stageDryKg(v), TUNING.MERLIN_MASS_KG, TUNING.MERLIN_ISP_S, TUNING.STRUCT_LIMIT_KG);
   }
 
   function merlinFreshKn(v) {
@@ -1394,6 +1452,8 @@
         "One Merlin. The numbers on the rocket sheet are this engine.",
         `Thrust is the push, in kilonewtons. A fresh Merlin makes ${TUNING.MERLIN_THRUST_KN} kN. Raise Merlin thrust costs ${TUNING.MERLIN_UP_COST} steel and ${TUNING.MERLIN_UP_DAYS} days. That rocket then makes ${merlinNext} kN. Each fire lowers thrust by ${Math.round(TUNING.SF_WEAR_PER_FIRE * 100)}%.`,
         `Specific impulse (Isp) is ${TUNING.MERLIN_ISP_S} s. That is how much push one kilogram of propellant gives. Engine mass is ${TUNING.MERLIN_MASS_KG} kg. Restarts: ${TUNING.MERLIN_RESTARTS}.`,
+        `Stage dry mass starts at ${TUNING.STAGE_DRY_KG} kg. That is the first stage with no propellant and no payload. The Merlin is not part of that number. Lighten the stage costs ${TUNING.STAGE_LIGHTEN_COST} steel and takes ${TUNING.STAGE_LIGHTEN_DAYS} day. Dry mass on that rocket falls by ${TUNING.STAGE_LIGHTEN_KG} kg.`,
+        `The structural limit is ${TUNING.STRUCT_LIMIT_KG} kg. That is the most mass this stage is designed to lift. Payload to low Earth orbit is the lesser of what the burn can lift and what that load still has room for. A heavier engine spends payload. The rocket does not fly the orbit yet.`,
       ]},
       { id: "fire", name: "Static fire", title: "Static fire", lines: [
         `The engine must make at least ${TUNING.SF_THRUST_BAR_KN} kN. The fire draws ${ROCKET_DEFS.falcon1.sfProp} propellant.`,
@@ -1649,6 +1709,9 @@
       if (job.kind === "merlin") {
         const v = vehicleById(job.vehicleId);
         lines.push(`${v ? v.name : "Rocket"} · Merlin thrust to ${Math.round(TUNING.MERLIN_THRUST_KN * TUNING.MERLIN_UP_MULT)} kN · ${days(job.daysLeft)}`);
+      } else if (job.kind === "structure") {
+        const v = vehicleById(job.vehicleId);
+        lines.push(`${v ? v.name : "Rocket"} · lightening the stage · ${days(job.daysLeft)}`);
       } else {
         lines.push(`Starfactory · building ${rocketOf(job.rocketId).name} · ${days(job.daysLeft)}`);
       }
@@ -1703,6 +1766,17 @@
     renderChrome();
   }
 
+  function startStructureLighten(vehicleId) {
+    const v = vehicleById(vehicleId);
+    if (!v || v.structureTier >= 2) return;
+    if (G.factoryJob) { log("The factory is already busy.", "warn"); return; }
+    if (G.steel < TUNING.STAGE_LIGHTEN_COST) { log(`Need ${TUNING.STAGE_LIGHTEN_COST} steel.`, "bad"); return; }
+    G.steel -= TUNING.STAGE_LIGHTEN_COST;
+    G.factoryJob = { kind: "structure", vehicleId: v.id, daysLeft: TUNING.STAGE_LIGHTEN_DAYS, totalDays: TUNING.STAGE_LIGHTEN_DAYS };
+    log(`Stage dry mass on ${v.name} falls in ${TUNING.STAGE_LIGHTEN_DAYS} day.`, "good");
+    renderChrome();
+  }
+
   function renderRocketSheet() {
     const sheet = document.getElementById("rocket-sheet");
     const panel = document.getElementById("rocket-panel");
@@ -1712,13 +1786,20 @@
       G.rocketSheet = null;
       return;
     }
-    const job = G.factoryJob && G.factoryJob.kind === "merlin" && G.factoryJob.vehicleId === v.id ? G.factoryJob : null;
+    const merlinJob = G.factoryJob && G.factoryJob.kind === "merlin" && G.factoryJob.vehicleId === v.id ? G.factoryJob : null;
+    const structureJob = G.factoryJob && G.factoryJob.kind === "structure" && G.factoryJob.vehicleId === v.id ? G.factoryJob : null;
     const nextKn = Math.round(TUNING.MERLIN_THRUST_KN * TUNING.MERLIN_UP_MULT);
+    const dry = stageDryKg(v);
     let action = "";
-    if (job) action = `<p class="wait">Merlin thrust · ${job.daysLeft} days left</p>`;
+    if (merlinJob) action += `<p class="wait">Merlin thrust · ${merlinJob.daysLeft} days left</p>`;
     else if ((v.merlinTier || 1) < 2) {
-      action = actCard("up", "btn-merlin", G.steel < TUNING.MERLIN_UP_COST ? " disabled" : "",
+      action += actCard("up", "btn-merlin", G.steel < TUNING.MERLIN_UP_COST ? " disabled" : "",
         "Raise Merlin thrust", TUNING.MERLIN_UP_COST, "steel", `${TUNING.MERLIN_UP_DAYS} day. Thrust on this rocket rises to ${nextKn} kN.`);
+    }
+    if (structureJob) action += `<p class="wait">Stage dry mass · ${structureJob.daysLeft} days left</p>`;
+    else if ((v.structureTier || 1) < 2) {
+      action += actCard("up", "btn-structure", G.steel < TUNING.STAGE_LIGHTEN_COST ? " disabled" : "",
+        "Lighten the stage", TUNING.STAGE_LIGHTEN_COST, "steel", `${TUNING.STAGE_LIGHTEN_DAYS} day. Stage dry mass on this rocket falls by ${TUNING.STAGE_LIGHTEN_KG} kg.`);
     }
     panel.innerHTML = `<div class="top"><div><b>${esc(v.name)}</b><div class="place">${esc(placeLabel(v))} · condition ${Math.round(v.condition)}</div></div>
         <button type="button" class="ui-btn rounded px-2 py-1 text-xs" id="rocket-close">Close</button></div>
@@ -1726,12 +1807,19 @@
         <div class="side">Thrust<b>${merlinNowKn(v)} kN</b>Isp<b>${TUNING.MERLIN_ISP_S} s</b></div>
         <div class="rocket-body"></div>
         <div class="side">Engine mass<b>${TUNING.MERLIN_MASS_KG} kg</b>Restarts<b>${TUNING.MERLIN_RESTARTS}</b></div>
+      </div>
+      <div class="facts">
+        <div><b>${dry} kg</b><span>Stage dry mass</span></div>
+        <div><b>${TUNING.STRUCT_LIMIT_KG} kg</b><span>Structural limit</span></div>
+        <div><b>${payloadKg(v)} kg</b><span>Payload to low Earth orbit</span></div>
       </div>${action}`;
     sheet.classList.add("open");
     sheet.setAttribute("aria-hidden", "false");
     panel.querySelector("#rocket-close").onclick = () => { G.rocketSheet = null; renderRocketSheet(); };
     const mer = panel.querySelector("#btn-merlin");
     if (mer) mer.onclick = () => startMerlinUpgrade(v.id);
+    const structure = panel.querySelector("#btn-structure");
+    if (structure) structure.onclick = () => startStructureLighten(v.id);
   }
 
   function renderChrome() {
