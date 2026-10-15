@@ -6,7 +6,7 @@ Phases 0 through 5 are the earlier draft, through `5.0.0-compute`. Phases 6 thro
 
 When a row ships or is dropped, remove it from the table and note the ship in `IMPLEMENTATION_LOG.md`.
 
-**Last shipped:** Falcon 1 only. Merlin card, a fire that follows the numbers, and a sky you can wait out. See `IMPLEMENTATION_LOG.md`.
+**Last shipped:** `0.5.0-structure`. The rocket sheet shows stage dry mass, the structural limit, and payload to low Earth orbit. Lighten the stage cuts dry mass on that rocket. See `IMPLEMENTATION_LOG.md`.
 
 ## UI and UX
 
