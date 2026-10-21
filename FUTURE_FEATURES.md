@@ -6,7 +6,7 @@ Phases 0 through 5 are the earlier draft, through `5.0.0-compute`. Phases 6 thro
 
 When a row ships or is dropped, remove it from the table and note the ship in `IMPLEMENTATION_LOG.md`.
 
-**Last shipped:** `0.5.1-liftoff`. See `IMPLEMENTATION_LOG.md`. The next open rows are `0.5.2-realism`, then `0.5.3-polish`.
+**Last shipped:** `0.5.3-polish`. Pause sits beside the day count. The line above the count reads Paused, and a static fire stops with the day clock. Wiki articles read the live settings. A note says In real life when the game and the Falcon 1 sources differ. See `IMPLEMENTATION_LOG.md`.
 
 ## UI and UX
 

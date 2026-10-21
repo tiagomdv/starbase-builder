@@ -28,8 +28,15 @@
     #sky-label { font-size: 22px; line-height: 1; font-weight: 650; }
     #wind-label { font-size: 15px; color: #c8c8c8; margin-top: 4px; }
     .stat-k { font-size: 12px; color: #9a9a9a; }
-    #day-pause { background: transparent; border: 1px solid #555; color: #cfcfcf; font-size: 10px; padding: 0 5px; margin-left: 4px; cursor: pointer; }
-    #day-pause:hover, #day-pause:focus { color: #f2f2f2; border-color: #9a9a9a; outline: none; }
+    .day-stat { display: flex; flex-direction: column; align-items: flex-start; }
+    .day-row { display: flex; align-items: center; gap: 8px; }
+    #day-run { white-space: nowrap; }
+    #day-pause {
+      min-width: 6.5rem; text-align: center; flex: none; cursor: pointer;
+      background: #000; border: 1px solid #333; color: #f2f2f2;
+      font: inherit; font-size: 12px; line-height: 1.25; padding: 4px 8px;
+    }
+    #day-pause:hover, #day-pause:focus { background: #161616; border-color: #666; outline: none; }
     .stat-n { font-size: 32px; line-height: 0.9; font-weight: 650; }
     .resource-bar {
       display: grid;
@@ -135,37 +142,59 @@
     #job-note { pointer-events: none; display: flex; flex-direction: column; gap: 4px; }
     #job-note:empty { display: none; }
     #job-note span { font-size: 12px; color: #f2f2f2; background: rgba(0,0,0,0.55); padding: 4px 8px; }
-    #next-goal {
-      margin-top: auto; background: transparent; border: 0; outline: none;
-      color: #e6e6e6; cursor: pointer; padding: 12px 14px;
+    #next-goal, #fleet-open, #wiki-open {
+      background: #0e0e0e; border: 1px solid #8a8a8a; color: #e6e6e6; cursor: pointer;
       font-size: 15px; font-weight: 650; letter-spacing: 0.22em; text-transform: uppercase;
     }
-    #next-goal:hover, #next-goal:focus { color: #f2f2f2; outline: none; }
-    #fleet-open {
-      margin-top: auto; background: transparent; border: 0; outline: none;
-      color: #e6e6e6; cursor: pointer; padding: 12px 14px; text-align: center;
-      font-size: 15px; font-weight: 650; letter-spacing: 0.22em; text-transform: uppercase;
+    #next-goal, #fleet-open {
+      display: block; width: calc(100% - 16px); margin: auto 8px 8px; padding: 12px 14px; text-align: center;
     }
-    #fleet-open:hover, #fleet-open:focus { color: #f2f2f2; outline: none; }
-    #wiki-open {
-      background: transparent; border: 0; outline: none; color: #e6e6e6; cursor: pointer;
-      padding: 0 16px; font-size: 15px; font-weight: 650; letter-spacing: 0.22em; text-transform: uppercase;
+    #wiki-open { align-self: center; margin: 8px; padding: 8px 14px; }
+    #next-goal:hover, #next-goal:focus,
+    #fleet-open:hover, #fleet-open:focus,
+    #wiki-open:hover, #wiki-open:focus {
+      color: #f2f2f2; background: #161616; border-color: #f2f2f2; outline: none;
     }
-    #wiki-open:hover, #wiki-open:focus { color: #f2f2f2; outline: none; }
     #wiki-sheet {
       position: fixed; inset: 0; z-index: 40; display: none;
       background: rgba(0, 0, 0, 0.72); align-items: center; justify-content: center; padding: 16px;
     }
     #wiki-sheet.open { display: flex; }
-    .wiki-panel { width: min(760px, 100%); max-height: min(78vh, 640px); overflow: auto; background: #0a0a0a; color: #f2f2f2; padding: 28px; }
-    .wiki-panel .top { display: flex; justify-content: space-between; align-items: flex-start; }
-    .wiki-panel .left { font-size: 28px; letter-spacing: 0.18em; text-transform: uppercase; font-weight: 650; }
+    .wiki-panel {
+      width: min(920px, 100%); height: min(640px, calc(100vh - 32px)); max-height: calc(100vh - 32px);
+      overflow: hidden; display: flex; flex-direction: column;
+      background: #0a0a0a; color: #f2f2f2; padding: 16px 18px 12px;
+    }
+    .wiki-panel .top { display: flex; justify-content: space-between; align-items: center; }
+    .wiki-panel .left { font-size: 22px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 650; }
     #wiki-close { background: transparent; border: 0; color: #9a9a9a; cursor: pointer; letter-spacing: 0.16em; text-transform: uppercase; font-size: 11px; }
-    .wiki-grid { display: grid; grid-template-columns: 180px 1fr; gap: 18px; margin-top: 18px; }
-    .wiki-topic { display: block; width: 100%; text-align: left; background: transparent; color: #f2f2f2; cursor: pointer; border: 1px solid rgba(242,242,242,0.55); padding: 8px 10px; margin-bottom: 8px; font-size: 13px; }
-    .wiki-topic.on { border-color: #f2f2f2; }
-    .wiki-body p { font-size: 14px; color: #c8c8c8; margin: 0 0 10px; }
-    .wiki-body h3 { margin: 0 0 8px; font-size: 20px; font-weight: 650; }
+    .wiki-split { display: flex; min-height: 0; flex: 1; margin-top: 12px; border-top: 1px solid #2a2a2a; }
+    .wiki-nav { width: 210px; flex: 0 0 210px; overflow-y: auto; border-right: 1px solid #2a2a2a; padding: 6px 0; }
+    .wiki-topic {
+      display: block; width: 100%; text-align: left; background: transparent; color: #f2f2f2;
+      cursor: pointer; border: 0; border-left: 2px solid transparent; padding: 8px 12px; font-size: 14px;
+    }
+    .wiki-topic.on, .wiki-topic:hover { border-left-color: #e10600; background: #161616; }
+    .wiki-read { flex: 1; overflow-y: auto; padding: 4px 4px 12px 18px; }
+    .wiki-read h2 { font-size: 22px; font-weight: 650; margin: 8px 0 12px; }
+    .wiki-read p { font-size: 15px; line-height: 1.45; color: #d8d8d8; margin: 0 0 10px; }
+    .wiki-read a, .wiki-link {
+      background: none; border: 0; padding: 0; color: #f2f2f2; text-decoration: underline;
+      cursor: pointer; font: inherit;
+    }
+    .wiki-facts {
+      display: flex; flex-wrap: wrap; gap: 12px 18px; margin: 4px 0 14px; padding: 10px 12px;
+      background: #141414; border: 1px solid #2a2a2a;
+    }
+    .wiki-facts div { flex: 1 1 120px; }
+    .wiki-facts b { display: block; font-size: 18px; font-weight: 650; color: #f2f2f2; }
+    .wiki-facts span { display: block; font-size: 12px; color: #9a9a9a; margin-top: 2px; }
+    .wiki-real { margin-top: 8px; padding: 10px 12px; border-left: 3px solid #e10600; background: #120a0a; }
+    .wiki-real h3 { font-size: 13px; font-weight: 650; color: #f2f2f2; margin: 0 0 6px; }
+    @media (max-width: 700px) {
+      .wiki-split { flex-direction: column; }
+      .wiki-nav { width: auto; flex: 0 0 auto; max-height: 140px; border-right: 0; border-bottom: 1px solid #2a2a2a; }
+    }
     #fleet-sheet {
       position: fixed; inset: 0; z-index: 40; display: none;
       background: rgba(0, 0, 0, 0.72); align-items: center; justify-content: center; padding: 16px;
@@ -277,12 +306,12 @@
     </div>
     <div class="bar-mid">
       <div class="bar-stats">
-        <div><div class="stat-k">Steel</div><div id="res-steel" class="stat-n tabular-nums">200</div></div>
+        <div><div class="stat-k">Steel</div><div id="res-steel" class="stat-n tabular-nums">150</div></div>
         <div><div class="stat-k">Propellant</div><div id="res-prop" class="stat-n tabular-nums">40</div></div>
         <div><div class="stat-k">Fleet</div><div id="res-fleet" class="stat-n tabular-nums">0</div></div>
-        <div><div class="stat-k"><span id="day-run">Day</span> <button type="button" id="day-pause">Pause</button></div><div id="day-label" class="stat-n tabular-nums">1</div></div>
+        <div class="day-stat"><div class="stat-k" id="day-run">Day</div><div class="day-row"><div id="day-label" class="stat-n tabular-nums">1</div><button type="button" id="day-pause">Pause</button></div></div>
       </div>
-      <div id="ver-label">0.5.1-liftoff</div>
+      <div id="ver-label">0.5.3-polish</div>
     </div>
   </header>
 
@@ -359,39 +388,52 @@
 (() => {
   "use strict";
 
-  const VERSION = "0.5.1-liftoff";
-  const CELL = 32, MAP_W = 40, MAP_H = 30, MS_PER_DAY = 4000;
+  const VERSION = "0.5.3-polish";
+  const CELL = 32, MAP_W = 40, MAP_H = 30;
+  // ?test is a fast open. It changes the day length and the starting steel, and nothing else.
+  const TEST = new URLSearchParams(location.search).has("test");
+  const MS_PER_DAY = TEST ? 500 : 4000;
   const ZOOM_MIN = 0.22, ZOOM_MAX = 2.4;
   const PAD_LAT = 25.997, PAD_LON = -97.157;
 
   const TUNING = {
-    START_STEEL: 200,
+    START_STEEL: 150,
     START_PROP: 40,
     /** Environment: materials + propellant without tank farm */
     ENV_STEEL_PER_DAY: 6,
-    ENV_PROP_PER_DAY: 8,
+    // A static fire draws 8, so 3 a day is about one fire every 2 to 3 days.
+    ENV_PROP_PER_DAY: 3,
     PROP_CAP: 120,
     PAD_L2_COST: 40,
-    MERLIN_THRUST_KN: 340,
-    MERLIN_ISP_S: 260,
+    MERLIN_THRUST_KN: 318,
+    MERLIN_1C_KN: 343,
+    MERLIN_ISP_S: 255,
     MERLIN_MASS_KG: 630,
     MERLIN_RESTARTS: 1,
     MERLIN_UP_COST: 36,
-    MERLIN_UP_DAYS: 1,
-    MERLIN_UP_MULT: 1.12,
+    MERLIN_UP_DAYS_MIN: 3,
+    MERLIN_UP_DAYS_MAX: 5,
     // First stage with no propellant and no payload. The Merlin mass sits beside it.
     STAGE_DRY_KG: 1080,
     STAGE_LIGHTEN_KG: 80,
     STAGE_LIGHTEN_COST: 32,
-    STAGE_LIGHTEN_DAYS: 1,
-    // Published Falcon 1 liftoff mass. Payload is whatever this load still has room for.
+    STAGE_LIGHTEN_DAYS_MIN: 3,
+    STAGE_LIGHTEN_DAYS_MAX: 5,
+    // Shown on the sheet. The 2008 data sheet lists 27670 kg. Payload does not come from the room under this mass.
     STRUCT_LIMIT_KG: 27572,
     STAGE_PROP_KG: 21092,
     UPPER_DRY_KG: 450,
     UPPER_PROP_KG: 3900,
     KESTREL_ISP_S: 317,
-    // Sea-level Merlin Isp understates a vacuum burn, so this budget matches that Isp.
-    LEO_DV_MS: 8800,
+    // The wiki names this engine only when the upper stage is on. The fire does not use it.
+    KESTREL_THRUST_KN: 31,
+    // One stage cannot make a full orbital climb. This is the speed change the sum asks for, after gravity loss.
+    LEO_DV_MS: 4500,
+    BUILD_DAYS_MIN: 8,
+    BUILD_DAYS_MAX: 12,
+    REFURB_OK_DAYS: 2,
+    REFURB_FAIL_MIN: 4,
+    REFURB_FAIL_MAX: 5,
     SF_THRUST_BAR_KN: 300,
     SF_WEAR_PER_FIRE: 0.08,
     SF_MISS_CONDITION: 40,
@@ -409,6 +451,52 @@
     RETURN_PX_PER_SEC: 56,
   };
 
+  // Real Falcon 1 figures for the wiki notes. Article numbers read TUNING and ROCKET_DEFS.
+  const REAL_REFS = {
+    sources: {
+      guide: {
+        href: "https://web.archive.org/web/20110927110059/http://www.spacex.com/Falcon1UsersGuide.pdf",
+        label: "Falcon 1 User's Guide, 2008",
+      },
+      sheet: {
+        href: "https://web.archive.org/web/20081001161859/http://www.spacex.com/Falcon1DataSheet.pdf",
+        label: "Falcon 1 data sheet, 2008",
+      },
+      flight: {
+        href: "https://web.archive.org/web/20130126131020/http://www.spacex.com/F1-004-summary.php",
+        label: "SpaceX Flight 4 summary",
+      },
+      page: {
+        href: "https://web.archive.org/web/20130430222417/http://www.spacex.com/falcon1.php",
+        label: "SpaceX Falcon 1 page",
+      },
+    },
+    stageDryKg: { n: 1361, text: "3000 pounds (1361 kg)", source: "guide" },
+    engineMassKg: { n: null, text: "The guide does not print engine mass.", source: "guide" },
+    propellantKg: { n: 21491, text: "47380 pounds (21491 kg)", source: "guide" },
+    payloadKg: { n: 420, text: "420 kg to low Earth orbit, from two burns", source: "sheet" },
+    liftoffKg: { n: 27670, text: "27670 kg", source: "sheet" },
+    upperDryKg: { n: 544, text: "1200 pounds (544 kg)", source: "guide" },
+    upperPropKg: { n: 4037, text: "8900 pounds (4037 kg)", source: "guide" },
+    merlin1aKn: { n: 347, text: "347 kN at liftoff, printed for the Merlin 1C", source: "sheet" },
+    merlin1cKn: { n: 347, text: "347 kN at liftoff", source: "sheet" },
+    merlinIspS: { n: 300, text: "300 seconds in vacuum", source: "guide" },
+    merlinRestart: { n: null, text: "The Merlin does not restart", source: "guide" },
+    kestrelKn: { n: 31, text: "6900 pounds of thrust (31 kN)", source: "guide" },
+    kestrelIspS: { n: 317, text: "317 seconds in vacuum", source: "guide" },
+    speedMs: { n: 7330, text: "7330 meters per second on Flight 4", source: "flight" },
+    unpublished: { n: null, text: "Not printed in the 2008 user's guide.", source: "guide" },
+    fluids: { n: null, text: "RP-1 and liquid oxygen", source: "guide" },
+    stages: { n: null, text: "Two stages", source: "guide" },
+    site: { n: null, text: "Omelek Island, Kwajalein", source: "page" },
+    flightReached: { n: null, text: "Flight 4 reached orbit", source: "flight" },
+    climb: { n: null, text: "A curved path to orbit", source: "sheet" },
+    recovery: { n: null, text: "The user's guide says the first stage returns by parachute", source: "guide" },
+    dayLengthS: { n: 86400, text: "A calendar day is 24 hours. The user's guide does not define this wait.", source: "guide" },
+    newEngine: { n: null, text: "The guide lists a Merlin 1C, not a few days of work", source: "guide" },
+    payloadRule: { n: null, text: "420 kg from two burns", source: "sheet" },
+  };
+
   /**
    * SpaceX-ish roadmap. Static fire can fail (RUD / engine anomaly).
    * Post-fire vehicles need hangar/bay inspection & refurb — not left “hot” on the pad.
@@ -420,7 +508,7 @@
       short: "F1",
       era: "2006–2009",
       steelCost: 28,
-      buildDays: 1,
+      buildDays: 8,
       sfProp: 8,
       engines: 1,
       sfStyle: "merlin_single",
@@ -428,12 +516,14 @@
       color: "#c8d0d8",
       /** Base P(success) on a green pad with fresh vehicle */
       sfSuccess: 0.72,
-      refurbDaysOk: 1,
-      refurbDaysFail: 1,
+      refurbDaysOk: 2,
+      refurbDaysFail: 4,
       scrapOnFailChance: 0.35,
       blurb: "One Merlin. The fire follows thrust, the pad, the tanks, and the sky.",
       sfPhases: { approach: 1.0, chill: 1.0, ignition: 0.85, burn: 1.9, shutdown: 0.75, debrief: 1.0 },
       unlocked: true,
+      // The payload sum ignores the upper stage until a later patch turns this on.
+      upperStage: false,
     },
     falcon9: {
       id: "falcon9",
@@ -502,7 +592,7 @@
   const G = {
     day: 1, dayAcc: 0, paused: false,
     merlinTier: 1,
-    steel: TUNING.START_STEEL,
+    steel: TEST ? 2000 : TUNING.START_STEEL,
     prop: TUNING.START_PROP,
     buildings: [],
     fleet: [],
@@ -516,7 +606,7 @@
     goalSheet: false,
     fleetSheet: false,
     wikiSheet: false,
-    wikiPage: "factory",
+    wikiPage: "launch",
     placeType: null,
     cam: { x: 80, y: 40, zoom: 1 },
     lon: -97.178, lat: 26.002, span: 0.12,
@@ -561,6 +651,8 @@
   }
   // A count of one reads "1 day", so the player never sees "1 days".
   function dayCount(n) { return n === 1 ? "1 day" : `${n} days`; }
+  function daySpan(min, max) { return min === max ? dayCount(min) : `${min} to ${max} days`; }
+  function spanDays(min, max) { return min + Math.floor(Math.random() * (max - min + 1)); }
   function esc(s) {
     return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   }
@@ -683,7 +775,8 @@
         if (v.refurbLeft <= 0) {
           v.status = "in_bay";
           v.condition = Math.min(100, v.condition + 25);
-          log(`${v.name} refurb complete in Mega Bay — ready`, "good");
+          v.wearFires = 0;
+          log(`${v.name} refurb complete in Mega Bay. Thrust is ${merlinNowKn(v)} kN.`, "good");
           G.objectives.refurb = true;
         }
       }
@@ -700,7 +793,7 @@
       const v = vehicleById(job.vehicleId);
       if (v) {
         v.merlinTier = 2;
-        log(`Merlin thrust on ${v.name} is now ${Math.round(TUNING.MERLIN_THRUST_KN * TUNING.MERLIN_UP_MULT)} kN.`, "good");
+        log(`Merlin thrust on ${v.name} is now ${TUNING.MERLIN_1C_KN} kN.`, "good");
       }
       renderChrome();
       return;
@@ -709,7 +802,7 @@
       const v = vehicleById(job.vehicleId);
       if (v) {
         v.structureTier = 2;
-        log(`Stage dry mass on ${v.name} is now ${stageDryKg(v)} kg. Payload to low Earth orbit is ${payloadKg(v)} kg.`, "good");
+        log(`Stage dry mass on ${v.name} is now ${stageDryKg(v)} kg. One-stage payload is ${payloadKg(v)} kg.`, "good");
       }
       renderChrome();
       return;
@@ -731,6 +824,7 @@
       merlinTier: 1,
       structureTier: 1,
       fires: 0,
+      wearFires: 0,
       refurbLeft: 0,
       baySlot: 0,
       wx: a.x, wy: a.y,
@@ -753,8 +847,9 @@
     if (G.event || G.rollout) { log("Ops busy", "warn"); return; }
     if (G.steel < r.steelCost) { log(`Need ${r.steelCost} steel`, "bad"); return; }
     G.steel -= r.steelCost;
-    G.factoryJob = { kind: "rocket", rocketId: r.id, daysLeft: r.buildDays, totalDays: r.buildDays };
-    log(`Starfactory · building ${r.name} · −${r.steelCost} steel · ${dayCount(r.buildDays)}`, "good");
+    const buildDays = spanDays(TUNING.BUILD_DAYS_MIN, TUNING.BUILD_DAYS_MAX);
+    G.factoryJob = { kind: "rocket", rocketId: r.id, daysLeft: buildDays, totalDays: buildDays };
+    log(`Starfactory · building ${r.name} · −${r.steelCost} steel · ${dayCount(buildDays)}`, "good");
     renderChrome();
   }
 
@@ -923,61 +1018,55 @@
     return TUNING.STAGE_DRY_KG - cut;
   }
 
-  // Payload is the lesser of the burn and the design load. It is not a sum of the masses.
-  function payloadToLeo(stageDryKg, engineMassKg, ispS, structLimitKg) {
-    const prop1 = TUNING.STAGE_PROP_KG;
-    const prop2 = TUNING.UPPER_PROP_KG;
-    const upper = TUNING.UPPER_DRY_KG;
-    const isp2 = TUNING.KESTREL_ISP_S;
-    const need = TUNING.LEO_DV_MS;
-    const g0 = 9.80665;
-    const room = Math.floor(structLimitKg - (stageDryKg + engineMassKg + prop1 + upper + prop2));
+  // Shared with the wiki example so the two sums cannot drift.
+  const G0 = 9.80665;
+
+  // One stage. Thrust sets the burn time, and that time is spent against gravity.
+  function payloadToLeo(stageDryKg, engineMassKg, ispS, thrustKn) {
+    const prop = TUNING.STAGE_PROP_KG;
+    const g0 = G0;
+    const dry = stageDryKg + engineMassKg;
+    const thrustN = thrustKn * 1000;
+    if (dry <= 0 || thrustN <= 0 || prop <= 0) return 0;
+    const ve = ispS * g0;
+    const gate = TUNING.LEO_DV_MS + g0 * ((prop * ve) / thrustN);
     let lo = 0;
-    let hi = 8000;
-    let burn = 0;
+    let hi = 20000;
+    let best = 0;
     while (lo <= hi) {
       const p = (lo + hi) >> 1;
-      const m0 = stageDryKg + engineMassKg + prop1 + upper + prop2 + p;
-      const m1 = m0 - prop1;
-      const m3 = upper + p;
-      if (m1 <= 0 || m3 <= 0) { hi = p - 1; continue; }
-      const dv = ispS * g0 * Math.log(m0 / m1) + isp2 * g0 * Math.log((upper + prop2 + p) / m3);
-      if (dv >= need) { burn = p; lo = p + 1; }
+      const mf = dry + p;
+      const dv = ve * Math.log((mf + prop) / mf);
+      if (dv >= gate) { best = p; lo = p + 1; }
       else hi = p - 1;
     }
-    return Math.max(0, Math.min(room, burn));
+    return best;
   }
 
-  // Payload room left inside the fixed liftoff mass, before the burn is checked.
-  function liftoffRoomKg(dryKg) {
-    return Math.floor(TUNING.STRUCT_LIMIT_KG - (dryKg + TUNING.MERLIN_MASS_KG + TUNING.STAGE_PROP_KG + TUNING.UPPER_DRY_KG + TUNING.UPPER_PROP_KG));
-  }
-
-  // The sheet explains the smaller payload gain with the same two limits the formula uses.
+  // The sheet says how much payload the dry-mass cut returns. Same thrust on both sides.
   function payloadWhyLine(v) {
     const cut = TUNING.STAGE_LIGHTEN_KG;
-    const full = payloadToLeo(TUNING.STAGE_DRY_KG, TUNING.MERLIN_MASS_KG, TUNING.MERLIN_ISP_S, TUNING.STRUCT_LIMIT_KG);
-    const lit = payloadToLeo(TUNING.STAGE_DRY_KG - cut, TUNING.MERLIN_MASS_KG, TUNING.MERLIN_ISP_S, TUNING.STRUCT_LIMIT_KG);
-    const room = liftoffRoomKg(TUNING.STAGE_DRY_KG - cut);
-    if (lit >= room) return `Lighten the stage adds ${lit - full} kg of payload, because the liftoff mass sets the limit.`;
+    const thrust = merlinNowKn(v);
+    const full = payloadToLeo(TUNING.STAGE_DRY_KG, TUNING.MERLIN_MASS_KG, TUNING.MERLIN_ISP_S, thrust);
+    const lit = payloadToLeo(TUNING.STAGE_DRY_KG - cut, TUNING.MERLIN_MASS_KG, TUNING.MERLIN_ISP_S, thrust);
+    const gain = lit - full;
     if ((v.structureTier || 1) >= 2) {
-      return `Payload rose by ${lit - full} kg, not ${cut} kg. The liftoff mass has room for ${room} kg, but the burn stops at ${lit} kg.`;
+      return `Payload rose by ${gain} kg when the stage lost ${cut} kg. One stage gives that dry mass back as payload.`;
     }
-    return `Lighten the stage adds ${lit - full} kg of payload, not ${cut} kg. The liftoff mass would have room for ${room} kg, but the burn stops at ${lit} kg.`;
+    return `Lighten the stage adds ${gain} kg of payload when the stage loses ${cut} kg. One stage gives that dry mass back as payload.`;
   }
 
   function payloadKg(v) {
-    return payloadToLeo(stageDryKg(v), TUNING.MERLIN_MASS_KG, TUNING.MERLIN_ISP_S, TUNING.STRUCT_LIMIT_KG);
+    return payloadToLeo(stageDryKg(v), TUNING.MERLIN_MASS_KG, TUNING.MERLIN_ISP_S, merlinNowKn(v));
   }
 
   function merlinFreshKn(v) {
-    const tier = v && v.merlinTier >= 2 ? 2 : 1;
-    return Math.round(TUNING.MERLIN_THRUST_KN * (tier >= 2 ? TUNING.MERLIN_UP_MULT : 1));
+    return v && v.merlinTier >= 2 ? TUNING.MERLIN_1C_KN : TUNING.MERLIN_THRUST_KN;
   }
 
   function merlinNowKn(v) {
-    const fires = v && v.fires ? v.fires : 0;
-    return Math.round(merlinFreshKn(v) * (1 - TUNING.SF_WEAR_PER_FIRE * fires));
+    const fires = v && v.wearFires ? v.wearFires : 0;
+    return Math.max(0, Math.round(merlinFreshKn(v) * (1 - TUNING.SF_WEAR_PER_FIRE * fires)));
   }
 
   function padLimits(pad) {
@@ -994,8 +1083,8 @@
   }
 
   // Numbers in, one word out. Same inputs always return the same word.
-  // fireVerdict(340, 400, 80, 8, 12, 20, false) is "hold".
-  // fireVerdict(340, 400, 80, 8, 24, 20, false) is "weather".
+  // fireVerdict(318, 400, 80, 8, 12, 20, false) is "hold".
+  // fireVerdict(318, 400, 80, 8, 24, 20, false) is "weather".
   function fireVerdict(thrust, padThrust, prop, need, wind, windLimit, storm) {
     if (rangeShut(storm, wind, windLimit)) return "weather";
     if (prop < need) return "propellant";
@@ -1047,6 +1136,7 @@
   }
 
   function staticFire() {
+    if (G.paused) { log("The day is paused.", "warn"); return; }
     const pad = buildingOfType("pad_orbital");
     if (!pad) { log("Need pad", "bad"); return; }
     const v = padHold();
@@ -1064,8 +1154,8 @@
     }
     G.prop -= check.need;
     log(check.ok
-      ? `STATIC FIRE · ${v.name} · thrust holds · −${check.need} prop`
-      : `STATIC FIRE · ${v.name} · ${check.limiter} is short · −${check.need} prop`, check.ok ? "good" : "bad");
+      ? `${v.name} holds the static fire. The fire draws ${check.need} propellant.`
+      : `${v.name} misses the static fire because the ${check.limiter} is short. The fire draws ${check.need} propellant.`, check.ok ? "good" : "bad");
     startEventSF(v, pad, r, check.need, check.ok, check);
     renderChrome();
   }
@@ -1146,12 +1236,13 @@
     const ev = G.event;
     if (!ev) return;
     const v = vehicleById(ev.vehicleId);
-    const r = rocketOf(ev.rocketId);
     if (!v) return;
     G.objectives.static_fire = true;
     v.fires = (v.fires || 0) + 1;
+    v.wearFires = (v.wearFires || 0) + 1;
     const pad = buildingOfType("pad_orbital");
-    const next = sfNext(ev.success, v.condition, r.refurbDaysOk, r.refurbDaysFail, pad ? pad.level : 1);
+    const failDays = spanDays(TUNING.REFURB_FAIL_MIN, TUNING.REFURB_FAIL_MAX);
+    const next = sfNext(ev.success, v.condition, TUNING.REFURB_OK_DAYS, failDays, pad ? pad.level : 1);
     v.status = next.status;
     v.condition = next.condition;
     if (next.scrap) {
@@ -1195,6 +1286,11 @@
   function updateEvent(dt) {
     const ev = G.event;
     if (!ev) return;
+    // The close waits on this clock so Pause can hold the last moment of the fire.
+    if (ev.closeLeft != null) {
+      ev.closeLeft -= dt;
+      if (ev.closeLeft <= 0) { finishEvent(); return; }
+    }
     ev.t += dt; ev.phaseT += dt;
     const phase = ev.phases[ev.phaseIdx];
     const pid = phase ? phase.id : "debrief";
@@ -1210,9 +1306,8 @@
       if (ev.phaseIdx >= ev.phases.length) {
         ev.done = true;
         ev.phaseIdx = ev.phases.length - 1;
+        ev.closeLeft = 0.45;
         elEvent.phase.textContent = ev.phases[ev.phaseIdx].label;
-        const snap = ev;
-        setTimeout(() => { if (G.event === snap) finishEvent(); }, 450);
       } else {
         elEvent.phase.textContent = ev.phases[ev.phaseIdx].label;
         if (ev.phases[ev.phaseIdx].id === "anomaly" || ev.phases[ev.phaseIdx].id === "fail")
@@ -1442,6 +1537,10 @@
     el.prop.textContent = Math.floor(G.prop);
     el.fleet.textContent = liveFleet().length;
     el.day.textContent = String(G.day);
+    const run = document.getElementById("day-run");
+    const pauseBtn = document.getElementById("day-pause");
+    if (run) run.textContent = G.paused ? "Paused" : "Day";
+    if (pauseBtn) pauseBtn.textContent = G.paused ? "Resume" : "Pause";
   }
 
   function renderPalette() {
@@ -1462,57 +1561,295 @@
     });
   }
 
-  function wikiPages() {
-    const merlinNext = Math.round(TUNING.MERLIN_THRUST_KN * TUNING.MERLIN_UP_MULT);
-    return [
-      { id: "factory", name: "Starfactory", title: "Starfactory", lines: [
-        "Builds one vehicle from steel. The finished vehicle stays here until you roll it to Mega Bay.",
-        `Falcon 1 costs ${ROCKET_DEFS.falcon1.steelCost} steel and takes ${dayCount(ROCKET_DEFS.falcon1.buildDays)}. The factory holds one finished vehicle.`,
-        "Falcon 9, Falcon Heavy, and Starship are not built here yet.",
-      ]},
-      { id: "bay", name: "Mega Bay", title: "Mega Bay", lines: [
-        "Houses the fleet. A vehicle comes back here after a fire, and the refurb happens in the bay.",
-        `The bay starts with 1 slot. Another slot costs ${TUNING.BAY_SLOT_COST} steel and adds one vehicle, up to ${TUNING.BAY_MAX}.`,
-        `A clean fire takes ${dayCount(ROCKET_DEFS.falcon1.refurbDaysOk)} of refurb. A miss takes ${dayCount(ROCKET_DEFS.falcon1.refurbDaysFail)}.`,
-      ]},
-      { id: "pad", name: "Orbital Pad", title: "Orbital Pad", lines: [
-        "Holds one vehicle for a static fire.",
-        `The thrust limit is ${TUNING.PAD_THRUST_L1} kN. A rocket above that fails the pad check.`,
-        `Pad level 2 costs ${TUNING.PAD_L2_COST} steel. The trench widens. The thrust limit becomes ${TUNING.PAD_THRUST_L2} kN.`,
-        `The pad allows wind up to ${TUNING.WIND_LIMIT_L1} knots, then ${TUNING.WIND_LIMIT_L2} knots at level 2. The lamp in the header is the sky.`,
-      ]},
-      { id: "falcon", name: "Falcon 1", title: "Falcon 1", lines: [
-        "One Merlin. The numbers on the rocket sheet are this engine.",
-        `Thrust is the push, in kilonewtons. A fresh Merlin makes ${TUNING.MERLIN_THRUST_KN} kN. Raise Merlin thrust costs ${TUNING.MERLIN_UP_COST} steel and ${dayCount(TUNING.MERLIN_UP_DAYS)}. That rocket then makes ${merlinNext} kN. Each fire lowers thrust by ${Math.round(TUNING.SF_WEAR_PER_FIRE * 100)}%.`,
-        `Specific impulse (Isp) is ${TUNING.MERLIN_ISP_S} s. That is how much push one kilogram of propellant gives. Engine mass is ${TUNING.MERLIN_MASS_KG} kg. Restarts: ${TUNING.MERLIN_RESTARTS}.`,
-        `Stage dry mass starts at ${TUNING.STAGE_DRY_KG} kg. That is the first stage with no propellant and no payload. The Merlin is not part of that number. Lighten the stage costs ${TUNING.STAGE_LIGHTEN_COST} steel and takes ${dayCount(TUNING.STAGE_LIGHTEN_DAYS)}. Dry mass on that rocket falls by ${TUNING.STAGE_LIGHTEN_KG} kg.`,
-        `Liftoff mass is ${TUNING.STRUCT_LIMIT_KG} kg. That is the whole Falcon 1 at liftoff, with propellant and payload. It stays fixed because the tanks do not change yet. Payload to low Earth orbit is the lesser of what the burn can lift and what that liftoff mass still has room for. A heavier engine spends payload. The rocket does not fly the orbit yet.`,
-      ]},
-      { id: "fire", name: "Static fire", title: "Static fire", lines: [
-        `The engine must make at least ${TUNING.SF_THRUST_BAR_KN} kN. The fire draws ${ROCKET_DEFS.falcon1.sfProp} propellant.`,
-        "If the thrust is above the thrust limit, the pad fails the check. If the tanks are short, the fire does not start. If the range lamp is closed, the fire does not start.",
-        `A good fire takes ${TUNING.SF_OK_CONDITION} condition. A miss takes ${TUNING.SF_MISS_CONDITION} condition. Condition under ${TUNING.SCRAP_FLOOR} scraps the vehicle.`,
-      ]},
+  function wikiLink(href, label) {
+    return `<a href="${href}" target="_blank" rel="noopener">${esc(label)}</a>`;
+  }
+
+  function wikiNum(n, digits) {
+    const text = (Math.round(n * 10 ** digits) / 10 ** digits).toFixed(digits);
+    return text.replace(/(\.\d*?)0+$/, "$1").replace(/\.$/, "");
+  }
+
+  function wikiSpan(min, max, one, many) {
+    const left = wikiNum(min, 0);
+    const right = wikiNum(max, 0);
+    if (left === right) return left === "1" ? `1 ${one}` : `${left} ${many}`;
+    return `${left} to ${right} ${many}`;
+  }
+
+  function wikiGo(id, label) {
+    return `<button type="button" class="wiki-link" data-wiki="${esc(id)}">${esc(label)}</button>`;
+  }
+
+  function wikiSource(key) {
+    const src = REAL_REFS.sources[key];
+    return wikiLink(src.href, src.label);
+  }
+
+  // A matching real figure leaves the reality note off.
+  function wikiDiffers(gameN, refKey) {
+    const ref = REAL_REFS[refKey];
+    if (!ref || ref.n == null || gameN == null) return true;
+    return Math.abs(Number(gameN) - Number(ref.n)) >= 0.5;
+  }
+
+  function wikiParas(list) {
+    return list.filter(Boolean).map((p) => `<p>${p}</p>`).join("");
+  }
+
+  function wikiFacts(items) {
+    const shown = (items || []).filter(Boolean).slice(0, 4);
+    if (shown.length < 2) return "";
+    return `<aside class="wiki-facts">${shown.map((it) => `<div><b>${esc(it.value)}</b><span>${esc(it.label)}</span></div>`).join("")}</aside>`;
+  }
+
+  function wikiReal(parts) {
+    const shown = (parts || []).filter(Boolean);
+    if (!shown.length) return "";
+    return `<aside class="wiki-real"><h3>In real life</h3>${shown.map((p) => `<p>${p}</p>`).join("")}</aside>`;
+  }
+
+  function wikiUpperOn() { return !!ROCKET_DEFS.falcon1.upperStage; }
+
+  function wikiFalconOn() { return !!ROCKET_DEFS.falcon1.unlocked; }
+
+  function wikiBurn() {
+    const prop = TUNING.STAGE_PROP_KG;
+    const dry = TUNING.STAGE_DRY_KG + TUNING.MERLIN_MASS_KG;
+    const payload = payloadToLeo(TUNING.STAGE_DRY_KG, TUNING.MERLIN_MASS_KG, TUNING.MERLIN_ISP_S, TUNING.MERLIN_THRUST_KN);
+    const lighter = payloadToLeo(TUNING.STAGE_DRY_KG - TUNING.STAGE_LIGHTEN_KG, TUNING.MERLIN_MASS_KG, TUNING.MERLIN_ISP_S, TUNING.MERLIN_THRUST_KN);
+    const ve = TUNING.MERLIN_ISP_S * G0;
+    const thrustN = TUNING.MERLIN_THRUST_KN * 1000;
+    const gate = TUNING.LEO_DV_MS + G0 * ((prop * ve) / thrustN);
+    const mf = dry + payload;
+    const m0 = mf + prop;
+    const dv = ve * Math.log(m0 / mf);
+    return { prop, dry, payload, lighter, gain: lighter - payload, ve, gate, mf, m0, dv };
+  }
+
+  function wikiLaunch() {
+    const rocket = ROCKET_DEFS.falcon1;
+    return {
+      id: "launch",
+      title: "How a launch works",
+      body: wikiParas([
+        `You spend steel at Starfactory. The factory builds a Falcon 1 and holds it until you roll it to Mega Bay.`,
+        `Mega Bay houses the rocket. Roll to the Orbital Pad moves it along the yard road and sets it on the mount.`,
+        `A static fire lights the engine on the pad. It holds when ${wikiGo("thrust", "thrust")}, the pad, ${wikiGo("propellant", "propellant")}, and the wind are inside the limits.`,
+        `After a hold, the first stage goes back to Mega Bay. A refurbishment puts the ${wikiGo("engines", "engine")} back to work.`,
+        `The last step is the flight. The sheet shows the payload to orbit. The rocket does not fly that path yet.`,
+      ]) + wikiFacts([
+        { value: `${rocket.steelCost} steel`, label: "Steel for a Falcon 1" },
+        { value: daySpan(TUNING.BUILD_DAYS_MIN, TUNING.BUILD_DAYS_MAX), label: "Days to build" },
+        { value: `${rocket.sfProp} propellant`, label: "Propellant for a static fire" },
+      ]) + wikiReal([
+        `The real Falcon 1 flew from Omelek Island in Kwajalein. Here, everything happens at Starbase. The ${wikiSource("page")} names that island.`,
+      ]),
+    };
+  }
+
+  function wikiThrust() {
+    const weightKn = TUNING.STRUCT_LIMIT_KG * G0 / 1000;
+    const twr = TUNING.MERLIN_THRUST_KN / weightKn;
+    const thrustDiff = wikiDiffers(TUNING.MERLIN_THRUST_KN, "merlin1aKn");
+    const massDiff = wikiDiffers(TUNING.STRUCT_LIMIT_KG, "liftoffKg");
+    const notes = [];
+    if (thrustDiff || massDiff) {
+      const realBits = [];
+      const gameBits = [];
+      if (thrustDiff) {
+        realBits.push(`${REAL_REFS.merlin1cKn.n} kN at liftoff`);
+        gameBits.push(`this Merlin starts at ${TUNING.MERLIN_THRUST_KN} kN`);
+      }
+      if (massDiff) {
+        realBits.push(`a liftoff mass of ${REAL_REFS.liftoffKg.n} kg`);
+        gameBits.push(`this sheet uses ${TUNING.STRUCT_LIMIT_KG} kg`);
+      }
+      notes.push(`In the ${wikiSource("sheet")}, the figures are ${realBits.join(" and ")}. ${gameBits[0].charAt(0).toUpperCase()}${gameBits[0].slice(1)}${gameBits[1] ? `, and ${gameBits[1]}` : ""}.`);
+    }
+    return {
+      id: "thrust",
+      title: "Thrust",
+      body: wikiParas([
+        `Thrust is the push of the engine. The game measures that push in kilonewtons (kN).`,
+        `The rocket lifts only when thrust is greater than its weight. Weight is gravity pulling on the liftoff mass. That mass is in kilograms (kg).`,
+        `Thrust-to-weight is thrust divided by that weight. Above 1, the engine can lift the rocket. Near 1, the climb is slow.`,
+        `A new Merlin produces ${TUNING.MERLIN_THRUST_KN} kN. The liftoff mass is ${TUNING.STRUCT_LIMIT_KG} kg, and the weight is ${wikiNum(weightKn, 1)} kN. Thrust-to-weight is ${wikiNum(twr, 2)}.`,
+      ]) + wikiFacts([
+        { value: `${TUNING.MERLIN_THRUST_KN} kN`, label: "Merlin thrust" },
+        { value: `${TUNING.STRUCT_LIMIT_KG} kg`, label: "Liftoff mass" },
+        { value: `${wikiNum(weightKn, 1)} kN`, label: "Weight at liftoff" },
+        { value: wikiNum(twr, 2), label: "Thrust-to-weight" },
+      ]) + wikiReal(notes),
+    };
+  }
+
+  function wikiImpulse() {
+    const upper = wikiUpperOn();
+    const merlinVe = TUNING.MERLIN_ISP_S * G0;
+    const facts = [
+      { value: `${TUNING.MERLIN_ISP_S} seconds`, label: "Merlin specific impulse" },
+      { value: `${wikiNum(merlinVe, 0)} meters per second`, label: "Merlin exhaust speed" },
     ];
+    const vacuum = upper
+      ? `The Kestrel is the vacuum engine on the upper stage. Its specific impulse is ${TUNING.KESTREL_ISP_S} seconds, above the Merlin at ${TUNING.MERLIN_ISP_S} seconds.`
+      : `This rocket uses the Merlin at sea level. The upper stage is not in the game, so its vacuum engine is not listed here.`;
+    if (upper) {
+      facts.push({ value: `${TUNING.KESTREL_ISP_S} seconds`, label: "Kestrel specific impulse" });
+      facts.push({ value: `${wikiNum(TUNING.KESTREL_ISP_S * G0, 0)} meters per second`, label: "Kestrel exhaust speed" });
+    }
+    const notes = [];
+    if (wikiDiffers(TUNING.MERLIN_ISP_S, "merlinIspS")) {
+      notes.push(`In the ${wikiSource("guide")}, the Merlin is ${REAL_REFS.merlinIspS.n} seconds in vacuum. This game uses ${TUNING.MERLIN_ISP_S} seconds at sea level.`);
+    }
+    if (upper && wikiDiffers(TUNING.KESTREL_ISP_S, "kestrelIspS")) {
+      notes.push(`That guide lists ${REAL_REFS.kestrelIspS.n} seconds for the Kestrel. This game uses ${TUNING.KESTREL_ISP_S} seconds.`);
+    }
+    return {
+      id: "isp",
+      title: "Specific impulse",
+      body: wikiParas([
+        `Specific impulse (Isp) is how much push each kilogram of propellant gives. The game writes it in seconds.`,
+        `A higher number means the same propellant changes the rocket's speed more. The ${wikiGo("equation", "rocket equation")} uses that number.`,
+        `Multiply the seconds by gravity and you get the exhaust speed. The Merlin figure is the sea-level number.`,
+        `A sea-level engine pushes against the air. A vacuum engine fires where the air is gone, so each kilogram gives more push.`,
+        vacuum,
+      ]) + wikiFacts(facts) + wikiReal(notes),
+    };
+  }
+
+  function wikiEquation() {
+    const burn = wikiBurn();
+    const r = (n) => Math.round(n);
+    // wikiBurn follows the first stage only, even after the upper stage is unlocked.
+    const notes = [
+      `In the ${wikiSource("guide")}, the rocket has two stages. This sum uses the first stage only.`,
+    ];
+    if (wikiDiffers(burn.payload, "payloadKg")) {
+      notes.push(`In the ${wikiSource("sheet")}, payload is ${REAL_REFS.payloadKg.n} kg from two burns. This example shows ${burn.payload} kg.`);
+    }
+    return {
+      id: "equation",
+      title: "The rocket equation",
+      body: wikiParas([
+        `The rocket equation ties the change in speed to the exhaust speed and to how much of the rocket is propellant.`,
+        `Most of this Falcon 1 is propellant. The dry stage plus the Merlin is the smaller share. The rocket gets lighter as it burns.`,
+        `A lighter stage carries more payload. Lighten the stage cuts ${TUNING.STAGE_LIGHTEN_KG} kg, and the payload rises by ${burn.gain} kg.`,
+        `This example uses the Merlin ${wikiGo("thrust", "thrust")} and the Merlin ${wikiGo("isp", "specific impulse")}. Exhaust speed is ${r(burn.ve)} meters per second.`,
+        `The stage starts at ${r(burn.m0)} kg and finishes at ${r(burn.mf)} kg. The burn reaches ${r(burn.dv)} meters per second.`,
+        `The payload is ${burn.payload} kg. That is the load where the burn meets the climb.`,
+      ]) + wikiFacts([
+        { value: `${burn.prop} kg`, label: "Propellant in the sum" },
+        { value: `${burn.dry} kg`, label: "Dry stage plus engine" },
+        { value: `${burn.payload} kg`, label: "Payload from this burn" },
+        { value: `${r(burn.m0)} kg`, label: "Mass at ignition" },
+      ]) + wikiReal(notes),
+    };
+  }
+
+  function wikiPropellant() {
+    const rocket = ROCKET_DEFS.falcon1;
+    return {
+      id: "propellant",
+      title: "Propellant",
+      body: wikiParas([
+        `The Merlin burns RP-1 and liquid oxygen together. RP-1 is a refined kerosene. Liquid oxygen is the oxidizer.`,
+        `The kerosene needs the oxygen to burn. Neither fluid can stand in for the other inside the engine.`,
+        `The game counts both fluids as one propellant stock. You start with a set amount. Each day adds more, up to a cap.`,
+        `A ${wikiGo("engines", "static fire")} draws a set amount from that stock. A short stock does not light the engine. The ${wikiGo("time", "day")} clock keeps filling it.`,
+      ]) + wikiFacts([
+        { value: String(TUNING.START_PROP), label: "Propellant at the start" },
+        { value: `${TUNING.ENV_PROP_PER_DAY} a day`, label: "Propellant added each day" },
+        { value: String(TUNING.PROP_CAP), label: "Propellant cap" },
+        { value: String(rocket.sfProp), label: "Drawn by a static fire" },
+      ]) + wikiReal(TUNING.START_LOX == null ? [
+        `In the ${wikiSource("guide")}, RP-1 and liquid oxygen are two fluids. This game counts them as one stock.`,
+      ] : []),
+    };
+  }
+
+  function wikiEngines() {
+    const lost = wikiNum(TUNING.SF_WEAR_PER_FIRE * 100, 1);
+    return {
+      id: "engines",
+      title: "Engines and wear",
+      body: wikiParas([
+        `A static fire is a burn on the pad. It checks the ${wikiGo("thrust", "thrust")} before a flight.`,
+        `Each fire takes life off the Merlin. That loss is the wear. Thrust falls by a set share of the fresh thrust.`,
+        `A refurbishment in Mega Bay puts that thrust back over several ${wikiGo("time", "days")}. A miss takes longer than a clean fire.`,
+        `Raise Merlin thrust spends ${TUNING.MERLIN_UP_COST} steel and raises this rocket from ${TUNING.MERLIN_THRUST_KN} kN to ${TUNING.MERLIN_1C_KN} kN. It does not build a second engine.`,
+        `The fire holds when thrust stays between ${TUNING.SF_THRUST_BAR_KN} kN and the pad's thrust limit.`,
+      ]) + wikiFacts([
+        { value: `${lost} percent`, label: "Thrust lost each fire" },
+        { value: `${TUNING.MERLIN_THRUST_KN} kN`, label: "Fresh Merlin thrust" },
+        { value: `${TUNING.MERLIN_1C_KN} kN`, label: "Thrust after the upgrade" },
+        { value: dayCount(TUNING.REFURB_OK_DAYS), label: "Clean refurb" },
+      ]) + wikiReal([
+        `In the ${wikiSource("guide")}, ${TUNING.MERLIN_RESTARTS > 0 ? "the Merlin does not restart, and the first stage returns by parachute" : "the first stage returns by parachute"}. This bay puts the thrust back, and Raise Merlin thrust changes the same rocket.`,
+      ]),
+    };
+  }
+
+  function wikiTime() {
+    const seconds = MS_PER_DAY / 1000;
+    const notes = [];
+    if (wikiDiffers(seconds, "dayLengthS")) {
+      notes.push(`A calendar day is ${wikiNum(REAL_REFS.dayLengthS.n / 3600, 0)} hours. A day here lasts ${wikiNum(seconds, 1)} seconds. This wait is not defined in the ${wikiSource("guide")}.`);
+    }
+    return {
+      id: "time",
+      title: "Time at Starbase",
+      body: wikiParas([
+        `One game day lasts ${wikiNum(seconds, 1)} seconds. Builds, refurbs, and upgrades wait in those days.`,
+        `Starfactory builds a Falcon 1 in ${daySpan(TUNING.BUILD_DAYS_MIN, TUNING.BUILD_DAYS_MAX)}.`,
+        `Raise Merlin thrust takes ${daySpan(TUNING.MERLIN_UP_DAYS_MIN, TUNING.MERLIN_UP_DAYS_MAX)}. Lighten the stage takes ${daySpan(TUNING.STAGE_LIGHTEN_DAYS_MIN, TUNING.STAGE_LIGHTEN_DAYS_MAX)}.`,
+        `Mega Bay keeps the rocket for the ${wikiGo("engines", "refurbishment")}. A miss keeps it there for ${daySpan(TUNING.REFURB_FAIL_MIN, TUNING.REFURB_FAIL_MAX)}. A clean fire takes ${dayCount(TUNING.REFURB_OK_DAYS)}.`,
+        `The rollout along the yard road is counted in seconds. That is the short wait on the road between Mega Bay and the Orbital Pad.`,
+      ]) + wikiFacts([
+        { value: `${wikiNum(seconds, 1)} seconds`, label: "One game day" },
+        { value: daySpan(TUNING.BUILD_DAYS_MIN, TUNING.BUILD_DAYS_MAX), label: "Build at Starfactory" },
+        { value: dayCount(TUNING.REFURB_OK_DAYS), label: "Clean refurb" },
+        { value: wikiSpan(TUNING.ROLLOUT_MIN_SEC, TUNING.ROLLOUT_MAX_SEC, "second", "seconds"), label: "Rollout on the road" },
+      ]) + wikiReal(notes),
+    };
+  }
+
+  function wikiArticles() {
+    const falcon = wikiFalconOn();
+    return [
+      falcon ? wikiLaunch() : null,
+      falcon ? wikiThrust() : null,
+      falcon ? wikiImpulse() : null,
+      falcon ? wikiEquation() : null,
+      falcon ? wikiPropellant() : null,
+      falcon ? wikiEngines() : null,
+      wikiTime(),
+    ].filter(Boolean);
   }
 
   function renderWiki() {
     const panel = document.getElementById("wiki-panel");
     const sheet = document.getElementById("wiki-sheet");
     if (!panel || !sheet) return;
-    const pages = wikiPages();
+    const pages = wikiArticles();
     const page = pages.find((p) => p.id === G.wikiPage) || pages[0];
-    const topics = pages.map((p) => `<button type="button" class="wiki-topic${p.id === page.id ? " on" : ""}" data-wiki="${p.id}">${esc(p.name)}</button>`).join("");
-    const body = page.lines.map((line) => `<p>${esc(line)}</p>`).join("");
-    panel.innerHTML = `<div class="top"><div class="left">Wiki</div><button type="button" id="wiki-close">Close</button></div>
-      <div class="wiki-grid"><div>${topics}</div><div class="wiki-body"><h3>${esc(page.title)}</h3>${body}</div></div>`;
+    const nav = pages.map((p) => `<button type="button" class="wiki-topic${page && p.id === page.id ? " on" : ""}" data-wiki="${p.id}">${esc(p.title)}</button>`).join("");
+    const article = page
+      ? `<h2>${esc(page.title)}</h2>${page.body}`
+      : `<p>Nothing on this list is unlocked yet.</p>`;
+    const sig = `${page ? page.id : ""}|${wikiUpperOn()}|${wikiFalconOn()}|${MS_PER_DAY}|${JSON.stringify(TUNING)}|${ROCKET_DEFS.falcon1.steelCost}|${ROCKET_DEFS.falcon1.sfProp}`;
+    if (panel.dataset.sig !== sig) {
+      panel.dataset.sig = sig;
+      panel.innerHTML = `<div class="top"><div class="left">Wiki</div><button type="button" id="wiki-close">Close</button></div>
+        <div class="wiki-split"><div class="wiki-nav">${nav}</div><div class="wiki-read">${article}</div></div>`;
+      const close = panel.querySelector("#wiki-close");
+      if (close) close.onclick = () => { G.wikiSheet = false; renderWiki(); };
+      panel.querySelectorAll("[data-wiki]").forEach((btn) => {
+        btn.onclick = () => { G.wikiPage = btn.getAttribute("data-wiki"); renderWiki(); };
+      });
+    }
     sheet.classList.toggle("open", G.wikiSheet);
     sheet.setAttribute("aria-hidden", G.wikiSheet ? "false" : "true");
-    const close = panel.querySelector("#wiki-close");
-    if (close) close.onclick = () => { G.wikiSheet = false; renderWiki(); };
-    panel.querySelectorAll("[data-wiki]").forEach((btn) => {
-      btn.onclick = () => { G.wikiPage = btn.getAttribute("data-wiki"); renderWiki(); };
-    });
   }
 
   function renderFleetList() {
@@ -1598,7 +1935,7 @@
         const r = rocketOf("falcon1");
         const busy = !!(factoryHold() || G.event || G.rollout);
         html += actCard("build", "", ` data-rocket="falcon1"${busy || G.steel < r.steelCost ? " disabled" : ""}`,
-          "Build Falcon 1", r.steelCost, "steel", `${dayCount(r.buildDays)}. A static fire draws ${r.sfProp} propellant.`);
+          "Build Falcon 1", r.steelCost, "steel", `${daySpan(TUNING.BUILD_DAYS_MIN, TUNING.BUILD_DAYS_MAX)}. A static fire draws ${r.sfProp} propellant.`);
         html += `<p class="wait">Falcon 9, Falcon Heavy, and Starship come later.</p>`;
       }
       if (hold) {
@@ -1741,7 +2078,7 @@
       const job = G.factoryJob;
       if (job.kind === "merlin") {
         const v = vehicleById(job.vehicleId);
-        lines.push(`${v ? v.name : "Rocket"} · Merlin thrust to ${Math.round(TUNING.MERLIN_THRUST_KN * TUNING.MERLIN_UP_MULT)} kN · ${days(job.daysLeft)}`);
+        lines.push(`${v ? v.name : "Rocket"} · Merlin thrust to ${TUNING.MERLIN_1C_KN} kN · ${days(job.daysLeft)}`);
       } else if (job.kind === "structure") {
         const v = vehicleById(job.vehicleId);
         lines.push(`${v ? v.name : "Rocket"} · lightening the stage · ${days(job.daysLeft)}`);
@@ -1794,8 +2131,9 @@
     if (G.factoryJob) { log("The factory is already busy.", "warn"); return; }
     if (G.steel < TUNING.MERLIN_UP_COST) { log(`Need ${TUNING.MERLIN_UP_COST} steel.`, "bad"); return; }
     G.steel -= TUNING.MERLIN_UP_COST;
-    G.factoryJob = { kind: "merlin", vehicleId: v.id, daysLeft: TUNING.MERLIN_UP_DAYS, totalDays: TUNING.MERLIN_UP_DAYS };
-    log(`Merlin thrust on ${v.name} rises in ${dayCount(TUNING.MERLIN_UP_DAYS)}.`, "good");
+    const upDays = spanDays(TUNING.MERLIN_UP_DAYS_MIN, TUNING.MERLIN_UP_DAYS_MAX);
+    G.factoryJob = { kind: "merlin", vehicleId: v.id, daysLeft: upDays, totalDays: upDays };
+    log(`Merlin thrust on ${v.name} rises to ${TUNING.MERLIN_1C_KN} kN in ${dayCount(upDays)}.`, "good");
     renderChrome();
   }
 
@@ -1805,8 +2143,9 @@
     if (G.factoryJob) { log("The factory is already busy.", "warn"); return; }
     if (G.steel < TUNING.STAGE_LIGHTEN_COST) { log(`Need ${TUNING.STAGE_LIGHTEN_COST} steel.`, "bad"); return; }
     G.steel -= TUNING.STAGE_LIGHTEN_COST;
-    G.factoryJob = { kind: "structure", vehicleId: v.id, daysLeft: TUNING.STAGE_LIGHTEN_DAYS, totalDays: TUNING.STAGE_LIGHTEN_DAYS };
-    log(`Stage dry mass on ${v.name} falls in ${dayCount(TUNING.STAGE_LIGHTEN_DAYS)}.`, "good");
+    const cutDays = spanDays(TUNING.STAGE_LIGHTEN_DAYS_MIN, TUNING.STAGE_LIGHTEN_DAYS_MAX);
+    G.factoryJob = { kind: "structure", vehicleId: v.id, daysLeft: cutDays, totalDays: cutDays };
+    log(`Stage dry mass on ${v.name} falls in ${dayCount(cutDays)}.`, "good");
     renderChrome();
   }
 
@@ -1821,18 +2160,17 @@
     }
     const merlinJob = G.factoryJob && G.factoryJob.kind === "merlin" && G.factoryJob.vehicleId === v.id ? G.factoryJob : null;
     const structureJob = G.factoryJob && G.factoryJob.kind === "structure" && G.factoryJob.vehicleId === v.id ? G.factoryJob : null;
-    const nextKn = Math.round(TUNING.MERLIN_THRUST_KN * TUNING.MERLIN_UP_MULT);
     const dry = stageDryKg(v);
     let action = "";
     if (merlinJob) action += `<p class="wait">Merlin thrust · ${dayCount(merlinJob.daysLeft)} left</p>`;
     else if ((v.merlinTier || 1) < 2) {
       action += actCard("up", "btn-merlin", G.steel < TUNING.MERLIN_UP_COST ? " disabled" : "",
-        "Raise Merlin thrust", TUNING.MERLIN_UP_COST, "steel", `${dayCount(TUNING.MERLIN_UP_DAYS)}. Thrust on this rocket rises to ${nextKn} kN.`);
+        "Raise Merlin thrust", TUNING.MERLIN_UP_COST, "steel", `${daySpan(TUNING.MERLIN_UP_DAYS_MIN, TUNING.MERLIN_UP_DAYS_MAX)}. Merlin 1A at ${TUNING.MERLIN_THRUST_KN} kN becomes Merlin 1C at ${TUNING.MERLIN_1C_KN} kN.`);
     }
     if (structureJob) action += `<p class="wait">Stage dry mass · ${dayCount(structureJob.daysLeft)} left</p>`;
     else if ((v.structureTier || 1) < 2) {
       action += actCard("up", "btn-structure", G.steel < TUNING.STAGE_LIGHTEN_COST ? " disabled" : "",
-        "Lighten the stage", TUNING.STAGE_LIGHTEN_COST, "steel", `${dayCount(TUNING.STAGE_LIGHTEN_DAYS)}. Stage dry mass on this rocket falls by ${TUNING.STAGE_LIGHTEN_KG} kg.`);
+        "Lighten the stage", TUNING.STAGE_LIGHTEN_COST, "steel", `${daySpan(TUNING.STAGE_LIGHTEN_DAYS_MIN, TUNING.STAGE_LIGHTEN_DAYS_MAX)}. Stage dry mass on this rocket falls by ${TUNING.STAGE_LIGHTEN_KG} kg.`);
     } else {
       // The used card stays so the player sees the upgrade happened and cannot repeat it.
       action += actCard("up", "btn-structure-done", " disabled", "Stage lightened. One cut per rocket.", null, "",
@@ -1843,14 +2181,14 @@
       <div class="rocket-sheet">
         <div class="side">Thrust<b>${merlinNowKn(v)} kN</b>Isp<b>${TUNING.MERLIN_ISP_S} s</b></div>
         <div class="rocket-body"></div>
-        <div class="side">Engine mass<b>${TUNING.MERLIN_MASS_KG} kg</b>Restarts<b>${TUNING.MERLIN_RESTARTS}</b></div>
+        <div class="side">Engine mass<b>${TUNING.MERLIN_MASS_KG} kg</b>Burns<b>${TUNING.MERLIN_RESTARTS}</b></div>
       </div>
       <div class="facts">
         <div><b>${dry} kg</b><span>Stage dry mass</span></div>
         <div><b>${TUNING.STRUCT_LIMIT_KG} kg</b><span>Liftoff mass</span></div>
-        <div><b>${payloadKg(v)} kg</b><span>Payload to low Earth orbit</span></div>
+        <div><b>${payloadKg(v)} kg</b><span>One-stage payload</span></div>
       </div>
-      <p class="wait">Liftoff mass stays at ${TUNING.STRUCT_LIMIT_KG} kg because the tanks do not change yet.</p>
+      <p class="wait">The first stage burns once. This sum uses that stage only. A Falcon 1 reaches orbit with a second burn.</p>
       <p class="wait">${payloadWhyLine(v)}</p>${action}`;
     sheet.classList.add("open");
     sheet.setAttribute("aria-hidden", "false");
@@ -2832,8 +3170,7 @@
   });
   document.getElementById("day-pause").addEventListener("click", () => {
     G.paused = !G.paused;
-    document.getElementById("day-pause").textContent = G.paused ? "Resume" : "Pause";
-    document.getElementById("day-run").textContent = G.paused ? "Day · paused" : "Day";
+    renderResources();
   });
   document.getElementById("fleet-open").addEventListener("click", () => {
     G.fleetSheet = !G.fleetSheet;
@@ -2872,8 +3209,11 @@
   function frame(now) {
     const dt = Math.min(0.05, (now - last) / 1000);
     last = now;
-    if (!G.event) {
-      // Pause stops only the day clock, so jobs, refurb, and supply wait with it.
+    if (G.event) {
+      // Pause holds the fire. The close timer lives inside updateEvent.
+      if (!G.paused) updateEvent(dt);
+    } else {
+      // Pause stops the day clock, so jobs, refurb, and supply wait with it.
       if (!G.paused) G.dayAcc += dt * 1000;
       while (G.dayAcc >= MS_PER_DAY) { G.dayAcc -= MS_PER_DAY; dayTick(); }
       updateRollout(dt);
@@ -2881,19 +3221,19 @@
         inspAcc += dt;
         if (inspAcc > 0.3) { inspAcc = 0; renderInspector(); renderResources(); renderFleetList(); renderJobNote(); }
       }
-    } else updateEvent(dt);
+    }
     draw();
     requestAnimationFrame(frame);
   }
 
   window.addEventListener("resize", () => { resize(); if (G.event) resizeEventCanvas(); });
-  document.getElementById("ver-label").textContent = VERSION;
+  document.getElementById("ver-label").textContent = TEST ? `${VERSION}. Test start.` : VERSION;
   resize();
   G.cam.x = (MAP_W * CELL) / 2 - W / 2;
   G.cam.y = (MAP_H * CELL) / 2 - H / 2;
   renderChrome();
-  log("Foundation: Factory · Mega Bay · Pad. Resources from environment.", "info");
-  log("Bay houses multiple vehicles & refurbs after static fire. SF can fail.", "info");
+  log("The site starts with a factory, a Mega Bay, and a pad. Steel and propellant come from the yard.", "info");
+  log("The bay can hold more than one vehicle. It refurbs a rocket after a static fire. A static fire can fail.", "info");
   requestAnimationFrame(frame);
 })();
   </script>
