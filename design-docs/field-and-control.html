@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Field and Control</title>
+<style>
+  :root {
+    --paper: #f4ead8;
+    --ink: #24180f;
+    --muted: #6d5c4c;
+    --line: #c9b89a;
+    --gulf: #1b6772;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: #d7c7a6;
+    color: var(--ink);
+    font: 17px/1.45 Georgia, "Iowan Old Style", Palatino, serif;
+  }
+  a { color: var(--gulf); }
+  header.top {
+    padding: 22px 28px 10px;
+    background: var(--paper);
+    border-bottom: 1px solid var(--ink);
+  }
+  h1 { font-size: 28px; margin: 0 0 6px; }
+  .meta { color: var(--muted); margin: 0; }
+  .role {
+    margin: 0 0 14px;
+    padding: 12px 14px;
+    background: #24180f;
+    color: #f4ead8;
+    border-left: 6px solid #c45c26;
+    font: 15px/1.4 system-ui, sans-serif;
+  }
+  .role b { display: block; margin-bottom: 4px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #e7c27a; }
+  .wrap { display: grid; grid-template-columns: 220px 1fr; max-width: 1080px; }
+  nav {
+    position: sticky;
+    top: 0;
+    align-self: start;
+    max-height: 100vh;
+    overflow: auto;
+    padding: 18px 14px 28px 22px;
+    background: #efe2c9;
+    border-right: 1px solid var(--line);
+  }
+  nav a { display: block; margin: 6px 0; text-decoration: none; }
+  nav a:hover { text-decoration: underline; }
+  main { padding: 8px 32px 64px; background: var(--paper); }
+  h2 { font-size: 22px; margin: 28px 0 8px; }
+  h3 { font-size: 18px; margin: 18px 0 6px; }
+  p { margin: 8px 0; max-width: 68ch; }
+  ul, ol { max-width: 70ch; }
+  table { border-collapse: collapse; width: 100%; max-width: 860px; font-size: 15px; margin: 10px 0 16px; }
+  th, td { border-top: 1px solid var(--line); text-align: left; vertical-align: top; padding: 6px 8px 6px 0; }
+  code { font-family: ui-monospace, monospace; font-size: 0.92em; }
+  pre {
+    background: #efe2c9;
+    padding: 10px 12px;
+    overflow: auto;
+    max-width: 860px;
+    font: 13px/1.4 ui-monospace, monospace;
+  }
+  figure { margin: 14px 0 18px; max-width: 860px; }
+  figure img { width: 100%; height: auto; display: block; border: 1px solid var(--ink); }
+  figcaption { color: var(--muted); font-size: 14px; margin-top: 6px; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-width: 860px; }
+  .desk {
+    border: 1px solid var(--ink);
+    background: #fffaf0;
+    padding: 10px;
+    font-size: 14px;
+  }
+  .desk b { display: block; margin-bottom: 6px; }
+  .desk span { display: block; border-top: 1px solid var(--line); padding: 4px 0; }
+  @media (max-width: 800px) { .pair { grid-template-columns: 1fr; } }
+  @media (max-width: 800px) {
+    .wrap { grid-template-columns: 1fr; }
+    nav { position: static; max-height: none; border-right: 0; border-bottom: 1px solid var(--line); }
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <aside class="role">
+    <b>What this page is</b>
+    Field and Control is the research doc. It is fixed. It says what the map and the desks are for. Later changes do not go back into this page.
+    The game you play is <code>index.html</code>, at <code>0.2.1-field</code>. Pull request 4 is merged. It holds the gulf shore, the copper owned line, and the land column. This page is not in that pull request.
+  </aside>
+  <h1>Field and Control</h1>
+  <p class="meta">Author: Tiago. Date: 2026-10-02. Status: Fixed.</p>
+  <p class="meta">This page lives in starbase-builder. It describes the field and the desks for Starbase Record. The research and the rules below are done. Do not edit them when a later pass changes a look.</p>
+  <p class="meta">Later changes go in <a href="field-iterations.html">field-iterations.html</a>, <a href="field-lab.html">field-lab.html</a>, and <a href="site-objects-design.html">site-objects-design.html</a>.</p>
+</header>
+<div class="wrap">
+<nav>
+  <a href="#overview">Overview</a>
+  <a href="#background">Background</a>
+  <a href="#research">Other games</a>
+  <a href="#goals">Goals</a>
+  <a href="#design">Proposed design</a>
+  <a href="#camera">Camera</a>
+  <a href="#frame">Body frame</a>
+  <a href="#sizes">Meter footprints</a>
+  <a href="#bands">Bands</a>
+  <a href="#sees">What you see</a>
+  <a href="#play">Playback</a>
+  <a href="#control">Control</a>
+  <a href="#interface">Interface</a>
+  <a href="#data">Data model</a>
+  <a href="#decisions">Key decisions</a>
+  <a href="#alternatives">Alternatives</a>
+  <a href="#security">Security</a>
+  <a href="#observe">Observability</a>
+  <a href="#rollout">Rollout</a>
+  <a href="#risks">Risks</a>
+  <a href="#prs">PR plan</a>
+  <a href="#open">Open questions</a>
+  <a href="#refs">References</a>
+</nav>
+<main>
+
+<h2 id="overview">Overview</h2>
+<p>The center picture is hard to read. <code>draw()</code> fills one flat color, paints one water blob, and strokes three Texas rectangles. Buildings are boxes.</p>
+<p>A rocket is a circle of radius <code>5 * cam.z</code>. At the default <code>cam.z</code> of 1, that radius is 5 px.</p>
+<p>The flight never appears on <code>#map</code>. <code>openWatch()</code> opens <code>#watch</code>. That overlay has a CSS sky and a plume div.</p>
+<p>This design locks the picture and the desks before any more rules work. Three layers, in order: Field, Control, then Mechanics.</p>
+<p>Mechanics stay out of the first pull requests. The field may show a flight only after <code>evaluate()</code> and <code>applyFlight()</code> have stored the result.</p>
+
+<h2 id="background">Background and motivation</h2>
+<p><code>#layout</code> is a three-column grid. <code>#buy</code> is 250 px. <code>#stage</code> holds canvas <code>#map</code>. <code>#insp</code> is 320 px. A header sits above. <code>#fleet</code> sits below.</p>
+<p>The camera is <code>cam.x</code>, <code>cam.y</code>, and <code>cam.z</code>. The wheel multiplies <code>cam.z</code> by 0.92 or 1.08. The clamp is 0.45–3.2. Drag pans.</p>
+<p><code>deltaY &gt; 0</code> zooms out today, because it multiplies <code>cam.z</code> by 0.92.</p>
+<p>Parts draw only when <code>cam.z &gt; 1.45</code>. They are 16×16 squares that ignore zoom. A name draws when <code>cam.z &gt; 1.7</code> and the pointer is on that building. A selected building also shows a name.</p>
+<p>There is no globe, no real coast, no trajectory, and no orbit line. World units are not meters. <code>DOCK</code> anchors sit around 120–710. The Texas pad is <code>[690, 320]</code>.</p>
+<p><code>buildingCard()</code> calls <code>factoryCard()</code> for every selected building. Factory jobs also appear when nothing is selected. The buy list already sells mains, not parts.</p>
+<p>Acres appear only on the land cards in <code>#buy</code>, inside <code>offerPlot()</code>. The numbers are 455, 241, and 262. They are not painted on the canvas.</p>
+<p><code>#stocks</code> shows steel, RP-1, LOX, CH4, power, and depot tonnes. Keep the depot phrase.</p>
+<p><code>evaluate()</code> stores one <code>alt</code>, one <code>speed</code>, and one <code>dv</code>. It does not store a path. Static fire sets altitude 0 and speed 0. A hop sets speed to altitude times 40. An orbit attempt forces altitude 200 and speed to <code>dv</code>.</p>
+<p><code>res.light</code> is not "engines lit." A success leaves <code>light</code> false. A success walks every phase. A lit failure stops on Climb. A failure with no light stops on Countdown.</p>
+<p><code>applyFlight()</code> stores the result on <code>S.flights</code>. <code>tick()</code> returns while <code>S.watch</code> is set. Save and load strip <code>watch</code>.</p>
+
+<h2 id="research">What similar games do</h2>
+<p>These notes are lessons for the Field and the Control desks. They are not a request to copy another game. The pictures are original studies for this page. They are not screenshots.</p>
+
+<figure>
+  <img src="images/world.jpg" alt="A painted Earth centered on the Gulf, with a few copper dots.">
+  <figcaption>World band. The Gulf reads as a gulf. A site is a dot. Buildings are not drawn.</figcaption>
+</figure>
+
+<h3>Kerbal Space Program</h3>
+<p>The map is a second view of the same flight. It draws the projected path, altitude, speed, apoapsis, periapsis, other vessels, and an encounter with a sphere of influence. Most ship commands do not work on that map. A control opens the navball again and gives the ship back.</p>
+<p>A maneuver node is a click on the orbit line, then six drag handles. The map shows the new path. The navball shows the burn marker, the delta-v, the burn time, and the time to the node. Only the next burn's numbers show. The burn is treated as instant, so the documented start is about half the burn time before the node.</p>
+<p>Take the line and the next burn's numbers. Leave the six handles and the navball. This game already decides the flight before the picture plays.</p>
+<p class="meta">Sources: <a href="https://web.archive.org/web/20220121210923/https://wiki.kerbalspaceprogram.com/wiki/Map_view">Map view</a> and <a href="https://web.archive.org/web/20220120122308/https://wiki.kerbalspaceprogram.com/wiki/Maneuver_node">Maneuver node</a>, Kerbal Space Program Wiki, archived 2022. <a href="https://web.archive.org/web/20200513190259/https://wiki.kerbalspaceprogram.com/wiki/Key_bindings">Key bindings</a>, archived 2020.</p>
+
+<h3>Mars Horizon</h3>
+<p>Launch day is a watched check. The player aborts or continues. Success and failure both return to the solar-system screen, unless a success continues into Mission Control. That screen is separate. Objective stocks sit at the top left. Payload actions spend tokens. Choices lock when the turn ends. Auto-resolve can skip that screen.</p>
+<p>On the main screen the planet stays in the middle. Research, Active Missions, Base, Diplomacy, and Spacepedia are the named regions. Funds and research sit at the top right. The base is its own screen. A 2019 walkthrough is the source for the button names, so a later build may have moved them.</p>
+<p>Take the return to the world picture. Mission may replace the right desk. It should not become a second game that hides the coast.</p>
+<p class="meta">Sources: <a href="https://static1.squarespace.com/static/54104f62e4b0c1ca62ebb56f/t/5d3087b41a8fd400018ec6c0/1563461562483/Mars+Horizon+Moon+Alpha+Walkthrough+2019.pdf">Moon Alpha walkthrough</a>, 2019. <a href="https://cogconnected.com/preview/mars-horizon-preview/">COGconnected preview</a>, 19 Oct 2020. <a href="https://aurochdigital.com/blog/2020/4/8/frequently-asked-questions-mars-horizon-beta">Auroch Digital FAQ</a>, 8 Apr 2020.</p>
+
+<h3>Terra Invicta</h3>
+<p>Earth and the solar system are two camera targets. A control snaps to one or the other. On the globe, zooming in turns icons into models and can fill the view so the starfield hides. Orbit trails can be toggled. Close in, they draw above the surface. Zoomed out, they draw transfer paths.</p>
+<p>Stations sit in named orbits. Only the low interface orbits pay a bonus back to nations. Those are the near-surface class, and they are the ones used to land or bombard. Higher orbits are a different layer. A click on a nation opens its detail beside the globe. The globe stays up.</p>
+<p>Take two snap targets, and a detail pane that does not cover the field. No checked page lists exact zoom distances for borders or markers.</p>
+<p class="meta">Sources: <a href="https://wiki.hoodedhorse.com/Terra_Invicta/Earth">Earth</a> and <a href="https://wiki.hoodedhorse.com/Terra_Invicta/Solar_System">Solar System</a>, Terra Invicta wiki. <a href="https://wiki.hoodedhorse.com/Terra_Invicta/Beginner's_Guide">Beginner's Guide</a>. <a href="https://www.pavonisinteractive.com/phpBB3/viewtopic.php?t=29412">Dev diary 16</a>, Pavonis.</p>
+
+<h3>Dyson Sphere Program</h3>
+<p>A 2021 dev log sets a planet diameter at 400 m so a person can be 3 m tall and a building 2 to 30 m tall. Neighboring planets sit 20 to 80 diameters apart, so the next planet still looks like a planet. The checked pass did not find a zoom distance where buildings disappear. Planet view and the starmap read as separate modes, not one continuous zoom.</p>
+<p>Take the published scale. Our World band is a readable disk. Our Work band is meters you can stand in. Do not claim that scroll alone hides the factory.</p>
+<p class="meta">Source: <a href="https://store.steampowered.com/news/app/1366540/view/3067485653873000239">Setting up the scale of the universe</a>, Dyson Sphere Program dev log, 26 Feb 2021.</p>
+
+<h3>Factorio</h3>
+<p>In 2.0, remote view shows logistic coverage and turret range only when zoomed out, so those overlays stay off the close building picture. From 2.0.48, holding a turret shows its range even when zoomed in. The minimap draws only the chart. Remote view draws the real surface, then the chart on top.</p>
+<p>Take the rule. Part names, ranges, and the orbit line appear at the band that needs them. They do not cover the pad when you are in close.</p>
+<p class="meta">Sources: <a href="https://forums.factorio.com/viewtopic.php?t=126026">Turret range on the map</a>, Factorio Forums, Twinsen. <a href="https://forums.factorio.com/viewtopic.php?t=124865">Minimap details</a>, Factorio Forums.</p>
+
+<h3>Spaceflight Simulator</h3>
+<p>The game has a physics view and a map view. The map shows the orbits of the objects in the world, and it zooms. No checked page says the predicted path is drawn inside the side-on flight camera. The map is the other view.</p>
+<p>This design still draws the track on the field, because the field is the game. That is a choice. It is not a copy of the flight camera in Spaceflight Simulator.</p>
+<p class="meta">Source: <a href="https://spaceflight-simulator.fandom.com/wiki/View">View</a>, Spaceflight Simulator Wiki. The full page did not load during the check, so this rests on the wiki extract.</p>
+
+<h3>What to keep</h3>
+<table>
+  <thead><tr><th>From</th><th>Keep</th><th>Leave</th></tr></thead>
+  <tbody>
+    <tr><td>Kerbal Space Program</td><td>A map draws the path, apoapsis, and periapsis. Only the next burn's numbers show.</td><td>Six maneuver handles and a navball.</td></tr>
+    <tr><td>Mars Horizon</td><td>Launch is watched, then the world picture returns. Mission control is optional.</td><td>A token-spending operations game.</td></tr>
+    <tr><td>Terra Invicta</td><td>Two snap targets. Detail opens beside the map. Only the near orbit talks to the ground.</td><td>A political globe and hab slots.</td></tr>
+    <tr><td>Dyson Sphere Program</td><td>Say the scale. A planet view and a star view can be different pictures.</td><td>A 400 m planet.</td></tr>
+    <tr><td>Factorio</td><td>Overlays show when zoomed out, or when the part is in hand.</td><td>A chart drawn instead of the coast.</td></tr>
+    <tr><td>Spaceflight Simulator</td><td>Orbits live on a map you can zoom.</td><td>A second physics view. Our track stays on the field.</td></tr>
+  </tbody>
+</table>
+
+<div class="pair">
+  <figure>
+    <img src="images/region.jpg" alt="A coastal site with a long hall, a bay, a pad, and one green plot.">
+    <figcaption>Region and Site. Shore, one soft plot, three different buildings.</figcaption>
+  </figure>
+  <figure>
+    <img src="images/pad.jpg" alt="A rocket on a mount, a trench to the east, a tank and pumps to the west.">
+    <figcaption>Work. The pad is the mount, the east trench, and the west tank.</figcaption>
+  </figure>
+</div>
+<div class="pair">
+  <figure>
+    <img src="images/hop.jpg" alt="A short arc leaves the pad and comes back down.">
+    <figcaption>A hop is a short arc. It is not an orbit.</figcaption>
+  </figure>
+  <figure>
+    <img src="images/orbit.jpg" alt="A rocket follows a copper line that closes around the Earth.">
+    <figcaption>An orbit is a closed line around the body.</figcaption>
+  </figure>
+</div>
+
+<h3>Desks, in the same frame</h3>
+<p>The columns do not move. Mission replaces the body of the right desk.</p>
+<div class="pair">
+  <div class="desk">
+    <b>Left desk</b>
+    <span>Sites</span>
+    <span>Land you can buy</span>
+    <span>Mains only</span>
+    <span>Fluids</span>
+  </div>
+  <div class="desk">
+    <b>Right desk, in flight</b>
+    <span>Phase</span>
+    <span>Altitude and speed</span>
+    <span>Downrange</span>
+    <span>The short reason, if the flight will miss</span>
+  </div>
+</div>
+
+<h2 id="goals">Goals and non-goals</h2>
+<h3>Goals</h3>
+<ul>
+  <li>One camera. Scroll zooms. Drag pans. A trackpad pinch is the same wheel listener.</li>
+  <li>Four meter bands that do not overlap, plus a Flight label while <code>S.watch</code> is playing.</li>
+  <li>Land, borders, sites, buildings, rockets, trajectories, and orbits read as a place.</li>
+  <li>Keep the current desks. Make them quieter. Do not add a dashboard.</li>
+  <li>While a vehicle flies, the right desk body becomes Mission. The columns stay put.</li>
+  <li>Remove <code>#watch</code>. The field shows the rocket. After the clock stops, the last track stays.</li>
+</ul>
+<h3>Non-goals</h3>
+<ul>
+  <li>Do not retune fire rules, prices, or unlocks in these pull requests.</li>
+  <li>Do not copy <code>starbase-builder/index.html</code>.</li>
+  <li>Do not add a 3D scene.</li>
+  <li>Art is drawn on the canvas. Generated images stay out of these pull requests.</li>
+  <li>Do not add accounts, servers, or map tiles.</li>
+</ul>
+
+<h2 id="design">Proposed design</h2>
+<p>Work has three layers.</p>
+<ol>
+  <li><b>Field</b> is the world in the center. This is the game the player watches.</li>
+  <li><b>Control</b> is the desks around the field. Left column, right column, header, and fleet strip.</li>
+  <li><b>Mechanics</b> are the rules. Tanks, thrust, contracts, and unlocks stay as they are.</li>
+</ol>
+<p>A flight picture uses the result those rules already stored. Mission is not a fourth layer. It is the right-hand desk while <code>S.watch</code> is set.</p>
+<pre>evaluate / applyFlight
+    |                |
+    v                v
+ S.watch clock    flightView samples
+    |                |
+    +----&gt; #map &lt;----+
+    |
+    +----&gt; Mission inside #insp</pre>
+
+<h2 id="camera">Camera</h2>
+<p><code>cam.x</code> and <code>cam.y</code> are meters. East is <code>+x</code>. North is <code>+y</code>. Screen Y grows downward, so north must flip.</p>
+<pre>function X(x) { return (x - cam.x) * cam.z + w / 2; }
+function Y(y) { return (cam.y - y) * cam.z + h / 2; }</pre>
+<p><code>cam.z</code> is pixels per meter, so meters per pixel are <code>1 / cam.z</code>. Bands do not read <code>cam.z</code>. <code>bandAt</code> uses meters per pixel only.</p>
+<pre>function bandAt(mpp) {
+  if (mpp &gt;= 8000) return "world";
+  if (mpp &gt;= 600) return "region";
+  if (mpp &gt;= 24) return "site";
+  return "work";
+}</pre>
+<p>The cuts are 8,000, 600, and 24. A value lands in one band only. The clamp is 1.25 m/px through 40,000 m/px. Check the clamp in meters per pixel, then set <code>cam.z = 1 / mpp</code>.</p>
+<table>
+  <thead><tr><th>Band</th><th>Meters per pixel</th><th><code>cam.z</code> (approximate, not a cut)</th></tr></thead>
+  <tbody>
+    <tr><td>World</td><td>8,000 to 40,000</td><td>about 0.000025 to 0.000125</td></tr>
+    <tr><td>Region</td><td>600 up to but not including 8,000</td><td>about 0.000125 to 0.001667</td></tr>
+    <tr><td>Site</td><td>24 up to but not including 600</td><td>about 0.001667 to 0.041667</td></tr>
+    <tr><td>Work</td><td>1.25 up to but not including 24</td><td>about 0.041667 to 0.8</td></tr>
+  </tbody>
+</table>
+<p>The wheel and a ctrl-wheel pinch share the existing listener. It stays <code>{passive:false}</code>. Zoom out when <code>deltaY &gt; 0</code>: meters per pixel times 1.25. Zoom in when <code>deltaY &lt; 0</code>: divide by 1.25. That span is about 46 steps.</p>
+<p><b>Flight</b> is a label, not a fifth meter slice. While <code>S.watch</code> is set, the corner says Flight. <code>bandAt</code> still chooses the land. After the clock clears, the corner shows the geographic band again.</p>
+<p>Four chips sit on the field corner. They set meters per pixel to 18,000, 1,600, 100, or 4. The World chip also recenters. The other chips recenter on the active site pin.</p>
+<p>A chip or a wheel tick turns flight follow off. Follow does not turn back on for that playback.</p>
+<p>A site switch recenters on that site pin and sets 100 m/px. A new game does not. <code>fresh()</code> opens on the Texas pin at 4 m/px. That replaces <code>{x:480, y:340, z:1}</code>.</p>
+
+<h2 id="frame">Body frame and migration</h2>
+<p>Each body has its own meter frame. Do not draw the Moon or Mars on the Earth.</p>
+<table>
+  <thead><tr><th>Body</th><th>Picture origin (0, 0)</th><th>Disk radius</th></tr></thead>
+  <tbody>
+    <tr><td>Earth</td><td>Texas pad pin, 25.99°N, 97.16°W</td><td>6,371 km</td></tr>
+    <tr><td>Moon</td><td>The only Moon site</td><td>1,737 km</td></tr>
+    <tr><td>Mars</td><td>The only Mars site</td><td>3,390 km</td></tr>
+  </tbody>
+</table>
+<p>The World chip sets the camera to (0, 0) and 18,000 m/px on the active body. The disk is centered on that camera point. Its screen radius is the body radius divided by meters per pixel.</p>
+<p>A wheel zoom does not recenter. Panning may move the disk. The chip brings it back.</p>
+<p>Florida and Louisiana are dots in the Earth frame. The table is the contract. Do not recompute the dots from a cosine formula. The Gulf stretch is already accepted.</p>
+<table>
+  <thead><tr><th>Site</th><th>Pin</th><th>East meters</th><th>North meters</th></tr></thead>
+  <tbody>
+    <tr><td>Texas pad</td><td>25.99°N, 97.16°W</td><td>0</td><td>0</td></tr>
+    <tr><td>Louisiana</td><td>29.55°N, 89.67°W</td><td>755,000</td><td>396,000</td></tr>
+    <tr><td>Florida</td><td>28.61°N, 80.60°W</td><td>1,669,000</td><td>291,000</td></tr>
+  </tbody>
+</table>
+<p>The Louisiana pin is a game shore. It is not a claim of a real pad. The Gulf stretch is accepted. A later pass may replace the projection. The corner does not mention it.</p>
+<p><code>openSites()</code> still decides which dots exist. Texas is always there. Louisiana waits for the first orbit. Florida waits for a finished Louisiana pad. The Moon waits for a depot above zero. Mars waits for a finished Moon pad.</p>
+<p>Region draws the active site shoreline in local meters around that site origin. Other open sites on the same body are dots at the offsets above. Moon and Mars have no second site.</p>
+<p><code>place()</code> is the only writer of building meters. <code>buyPlot()</code> and <code>buyMain()</code> both call it. It still reads <code>DOCK</code>, then stores meters. The Texas pad anchor is (690, 320). Other sites use their own pad pair.</p>
+<p>East is <code>(oldX - padOldX) * 4</code>. North is <code>(padOldY - oldY) * 4</code>. That rule runs for every new building, including after <code>S.meters</code> is already true. A pad at [690, 320] becomes (0, 0).</p>
+<p>Four meters per old unit makes the old pad rectangle about 120 m across. Plot buildings do not use this conversion. A plot at (0, 0) is not a pad.</p>
+<p>On load, if <code>S.meters</code> is missing, run that same rule once, then set the flag. Do not run it again. New games set the flag immediately and still create buildings only through <code>place()</code>. Saves may store the flag. They must not store <code>flightView</code>.</p>
+
+<h2 id="sizes">Meter footprints</h2>
+<p>These sizes are the picture. They do not change cost, thrust, or part jobs. The pad mount is (0, 0). Other mains use <code>place()</code>. PR 1 draws the converted <code>DOCK</code> box, about 120 m, as a plain rectangle. That is about 30 px at 4 m/px. The 16 m mount is the PR 3 silhouette, not the PR 1 check.</p>
+<table>
+  <thead><tr><th>Object</th><th>Size</th><th>Placement</th></tr></thead>
+  <tbody>
+    <tr><td>Starfactory hall</td><td>180 m by 60 m</td><td>Center from the pad conversion. Crane on the north edge.</td></tr>
+    <tr><td>Stack stand</td><td>30 m by 12 m</td><td>40 m east of the hall center.</td></tr>
+    <tr><td>Mega Bay hall</td><td>140 m by 70 m</td><td>Center from the pad conversion.</td></tr>
+    <tr><td>Berth</td><td>40 m by 24 m</td><td>Inside the hall, east side.</td></tr>
+    <tr><td>Service crane</td><td>36 m by 8 m</td><td>On the north wall.</td></tr>
+    <tr><td>Pad mount</td><td>16 m square</td><td>(0, 0).</td></tr>
+    <tr><td>Flame trench</td><td>40 m by 12 m</td><td>East of the mount. Opens east.</td></tr>
+    <tr><td>Deluge plate</td><td>14 m by 10 m</td><td>South edge of the mount.</td></tr>
+    <tr><td>Deluge pumps</td><td>10 m square</td><td>28 m west and 16 m south.</td></tr>
+    <tr><td>Water tank</td><td>14 m circle</td><td>46 m west of the mount.</td></tr>
+    <tr><td>Oxygen, kerosene, methane</td><td>12 m circles</td><td>West row, 18 m apart, only after the tank farm upgrade.</td></tr>
+    <tr><td>Tower, chopsticks, ship arm</td><td>8 m marks</td><td>North of the mount, only after the tower upgrade.</td></tr>
+    <tr><td>Falcon 1</td><td>22 m by 2 m</td><td>Nose north. On the mount, the stand, or the berth.</td></tr>
+  </tbody>
+</table>
+<p><code>partsFor()</code> still creates the mount, trench, plate, pumps, and water tank. <code>upgradePad()</code> still pushes the tank row and the tower. Do not add those parts in <code>partsFor()</code>.</p>
+<p>Draw and hit-test from this meter table. Keep <code>dx</code> and <code>dy</code> only as the existing part identity. Do not treat them as meters. Live trench <code>dx</code> 36 and tank <code>dx</code> values of −46 and −70 stay in the records. They are not the picture.</p>
+<p>At Site, each main is at least 36 px on its long side, and a rocket is at least 16 px. That floor is screen size. At Work, draw true meters and no floor. A World playback mark is 10 px.</p>
+
+<h2 id="bands">What each band draws</h2>
+<p><b>World.</b> A disk, ocean, and simple continents, centered by the World chip. Dots only for sites <code>openSites()</code> returns. No building sprites. No parcel shapes. No acres. No part names. A playback rocket is a 10 px mark. A static fire has no track. It is still that mark if the player scrolls here.</p>
+<p><b>Region.</b> Shoreline, a site outline, and owned ground as one soft shape per owned plot. Not three stacked rectangles. Acres are not printed on the land. Buildings are small marks. No parked-rocket dots. A flight track may cross this band.</p>
+<p><b>Site.</b> Starfactory, Mega Bay, and the orbital pad read as different objects. A rocket reads as a rocket. Parts are hidden. Names are hidden, except the selected main, one short label.</p>
+<p><b>Work.</b> One main and its parts, in true meters. Other mains dim. A name shows only for the part under the pointer and for the selected part. The unscaled 16×16 squares go away.</p>
+<p><b>Flight.</b> This is the label while <code>S.watch</code> is set. The geographic band still draws the land. The moving rocket, the display track, and the readout sit on top. The readout is altitude, speed, and downrange. Mission uses that same sample.</p>
+
+<h2 id="sees">What the player sees</h2>
+<table>
+  <thead><tr><th>Subject</th><th>World</th><th>Region</th><th>Site</th><th>Work</th><th>While the clock is set</th></tr></thead>
+  <tbody>
+    <tr><td>Build site</td><td>Dot only if Texas is open. No acres.</td><td>One soft shape if that plot is owned.</td><td>Starfactory and the other production mains.</td><td>Parts of the selected main only.</td><td>Same land as the geographic band.</td></tr>
+    <tr><td>Pad site</td><td>No separate dot. It is the Texas site.</td><td>Soft shape for owned launch ground.</td><td>Orbital pad as its own object.</td><td>Mount and pad parts.</td><td>The rocket leaves only when the sample says so.</td></tr>
+    <tr><td>Starfactory</td><td>Hidden.</td><td>A mark inside the build shape.</td><td>Long hall, roof crane, stack stand to the east.</td><td>Hall, crane, and stack stand, with one name.</td><td>Hidden unless the camera is in Work or Site.</td></tr>
+    <tr><td>Mega Bay</td><td>Hidden.</td><td>A mark.</td><td>One berth and a crane. Not the factory shape.</td><td>Hall, berth, and service crane.</td><td>Hidden unless the camera is close.</td></tr>
+    <tr><td>Orbital pad</td><td>Hidden.</td><td>A mark on the shore.</td><td>Mount, east trench, deluge plate, pumps, west water tank.</td><td>Those parts in meters. Tanks only with a farm. Tower parts only with a tower.</td><td>Pad stays put. The rocket moves.</td></tr>
+    <tr><td>Falcon 1 on the ground</td><td>Hidden, unless playback put a 10 px mark here.</td><td>Hidden.</td><td>A 22 m by 2 m rocket, at least 16 px. Not radius <code>5 * cam.z</code>.</td><td>The same rocket in true meters.</td><td>Stays on the mount until downrange leaves 0.</td></tr>
+    <tr><td>Static fire</td><td>10 px mark on the mount. No track.</td><td>No track.</td><td>Flame in the trench. The rocket stays on the mount.</td><td>Follow starts at 4 m/px. No downrange track.</td><td>Downrange stays 0. Altitude and speed stay 0.</td></tr>
+    <tr><td>Hop</td><td>The arc is small. A 10 px mark may show.</td><td>Short mark if the camera is here.</td><td>Follow may ease toward 40 m/px.</td><td>Start and end on the pad when the hop is good.</td><td>The hop table below. No orbit line.</td></tr>
+    <tr><td>Ascent</td><td>Ground track as follow pulls back.</td><td>Coast and a growing track.</td><td>Start on the pad.</td><td>Start on the mount.</td><td>Track from the table. A miss stops early.</td></tr>
+    <tr><td>Orbit</td><td>Orbit line around the disk.</td><td>The line is larger than this view.</td><td>Too close for the line.</td><td>Too close for the line.</td><td>Line only when <code>res.orbit</code> is true.</td></tr>
+  </tbody>
+</table>
+<p>Owned Texas shapes replace the three rectangles in <code>draw()</code>. Acres stay in <code>offerPlot()</code> only.</p>
+<table>
+  <thead><tr><th>Plot</th><th>East and north of the pad</th></tr></thead>
+  <tbody>
+    <tr><td>Build site</td><td>From (−1800, −400) to (200, 800). One shore-side shape.</td></tr>
+    <tr><td>Inland</td><td>From (−2000, −1600) to (−400, −200). One inland shape.</td></tr>
+    <tr><td>Pad site</td><td>From (−200, −500) to (700, 400). One pad shape.</td></tr>
+  </tbody>
+</table>
+
+<h2 id="play">Playback clock and picture</h2>
+<p>Two different objects. <code>tick()</code> knows only the first.</p>
+<table>
+  <thead><tr><th>Object</th><th>Saved</th><th>Meaning</th><th>Cleared</th></tr></thead>
+  <tbody>
+    <tr><td><code>S.watch</code></td><td>No. Save and load already null it.</td><td>The playing clock. It holds the vehicle, the mode, the result, and <code>t</code>.</td><td>Skip, and the frame that reaches <code>tStop</code>.</td></tr>
+    <tr><td><code>flightView</code></td><td>No. Never write it to storage.</td><td>Samples for the field. <code>tick()</code> ignores it.</td><td>The next <code>applyFlight()</code> replaces it.</td></tr>
+  </tbody>
+</table>
+<p><code>tick()</code> still returns immediately while <code>S.watch</code> is set. Skip and the natural end set <code>S.watch</code> to null, so the day clock runs again. They do not clear <code>flightView</code>.</p>
+<p>The field keeps the final sample until the next flight. Mission does not use <code>flightView</code>. When the clock is null, the Now body is the vehicle, the part, or the main again.</p>
+<p>The picture does not call <code>evaluate()</code> again. Altitude and speed move toward the stored values. Downrange is not in the result. Use the table. Wall time drives <code>t</code>. One animation frame loop is enough. No extra game day elapses.</p>
+<table>
+  <thead><tr><th>Mode</th><th>Duration</th><th>Phases, as fractions of t</th></tr></thead>
+  <tbody>
+    <tr><td>Static</td><td>6 s</td><td>Preflight 0–0.30, Countdown 0.30–0.60, Ignition 0.60–1.</td></tr>
+    <tr><td>Hop</td><td>10 s</td><td>Preflight 0–0.15, Countdown 0.15–0.30, Ignition 0.30–0.45, Climb 0.45–0.70, Recovery 0.70–1.</td></tr>
+    <tr><td>Orbit</td><td>18 s</td><td>Preflight 0–0.10, Countdown 0.10–0.20, Ignition 0.20–0.35, Climb 0.35–0.55, Stage 0.55–0.70, Orbit 0.70–0.80, Reentry 0.80–0.90, Recovery 0.90–1.</td></tr>
+  </tbody>
+</table>
+<table>
+  <thead><tr><th>Result flags</th><th>tStop</th><th>Last phase named</th></tr></thead>
+  <tbody>
+    <tr><td><code>res.ok</code></td><td>1</td><td>The last phase of that mode.</td></tr>
+    <tr><td><code>res.orbit</code> and not ok</td><td>1</td><td>Recovery. The miss is the stored reason. The orbit line still draws.</td></tr>
+    <tr><td>Not ok, not orbit, and <code>res.light</code></td><td>End of Climb. Static ends at Ignition.</td><td>Climb, or Ignition for a static fire.</td></tr>
+    <tr><td>Not ok, not orbit, and no light</td><td>End of Countdown.</td><td>Countdown.</td></tr>
+  </tbody>
+</table>
+<p>Static stops at 1 when the fire is ok or <code>res.light</code> is set. It stops at 0.60 when the fire is not ok and the light is off.</p>
+<p>Bearing is east, <code>+x</code>, in the active site frame. Samples every 0.05 of <code>t</code> are enough.</p>
+<table>
+  <thead><tr><th>Mode and flags</th><th>Track</th><th>Downrange</th><th>Altitude and speed</th></tr></thead>
+  <tbody>
+    <tr><td>Static, any flags</td><td>None. Rocket on the mount.</td><td>0</td><td>0 and 0.</td></tr>
+    <tr><td>Hop, no light, not ok</td><td>None.</td><td>0</td><td>0 and 0.</td></tr>
+    <tr><td>Hop, light, not ok</td><td>One way east.</td><td>0.2 km at tStop.</td><td>Rise toward the stored pair.</td></tr>
+    <tr><td>Hop, ok</td><td>Out and back.</td><td>Peak 0.5 km at t 0.55, then 0 at t 1.</td><td>Peak at t 0.55, then 0.</td></tr>
+    <tr><td>Orbit mode, no light, not ok</td><td>None.</td><td>0</td><td>0 and 0.</td></tr>
+    <tr><td>Orbit mode, light, not orbit</td><td>One way east.</td><td>30 km at tStop.</td><td>Rise toward the stored pair.</td></tr>
+    <tr><td><code>res.orbit</code></td><td>One way east, then a circle.</td><td>800 km at t 0.70, then the circle.</td><td>Rise by t 0.70, then hold.</td></tr>
+  </tbody>
+</table>
+<p>The orbit circle has radius body radius plus 200 km, around that body's origin. It shows the stored flag. It is not a new integrator. On the Moon or Mars the same 200 km is still display fiction.</p>
+<p>Follow starts latched. It sets meters per pixel only while the latch is on. Any wheel tick or band chip clears the latch until this clock ends.</p>
+<table>
+  <thead><tr><th>Playback</th><th>Follow while latched</th></tr></thead>
+  <tbody>
+    <tr><td>Static</td><td>4 m/px the whole time.</td></tr>
+    <tr><td>Hop, good</td><td>4 m/px at t 0, 40 m/px at t 0.55, 4 m/px at t 1.</td></tr>
+    <tr><td>Hop, failed lit</td><td>4 m/px, then 40 m/px at tStop.</td></tr>
+    <tr><td>Orbit, stop at Countdown</td><td>Stay at 40 m/px.</td></tr>
+    <tr><td>Orbit, longer</td><td>40 m/px until t 0.35, 2,000 at t 0.55, 18,000 at t 0.70, then hold.</td></tr>
+  </tbody>
+</table>
+<p>If the player scrolls a static fire out to World, draw the 10 px mark and no track. Do not hide the playback.</p>
+<p>Skip sets <code>t</code> to <code>tStop</code>, writes that final sample into <code>flightView</code>, then sets <code>S.watch</code> to null. The field keeps that sample. Mission closes because the clock is gone. The day clock runs on the next tick.</p>
+<pre>applyFlight -&gt; S.watch and flightView
+S.watch -&gt; #map and Mission, same sample
+Skip or tStop -&gt; S.watch is null
+field keeps flightView
+Now body returns
+day clock runs</pre>
+
+<h2 id="control">Control</h2>
+<p>The grid stays <code>250px 1fr 320px</code>. Below 900 px the page may still stack. That media rule stays.</p>
+<h3>Left desk, top to bottom</h3>
+<ol>
+  <li>Site switch. The same buttons as <code>openSites()</code>.</li>
+  <li>Land offers. Texas plots and the other-site claim. Acres stay on these cards.</li>
+  <li>Mains. The current main buttons only. Not every part.</li>
+  <li>Fluids, then send-fluid when a route exists.</li>
+</ol>
+<h3>Right desk</h3>
+<p>Tabs stay Now, Contracts, Record, and Guide.</p>
+<p>Now shows the selected main, the selected part, or the selected vehicle. Factory jobs render only for the Starfactory or Sanchez. They also render when nothing is selected and a factory is on the site.</p>
+<p><code>buildingCard()</code> stops calling <code>factoryCard()</code> for the pad, the bay, and the shops.</p>
+<h3>Mission</h3>
+<p>When the clock is set, Mission replaces the Now body. The tab row stays in this column. The other tabs still open if the player clicks them. Coming back to Now shows Mission until the clock ends.</p>
+<p>Mission shows phase, altitude, speed, downrange, and inclination. It shows a short reason when the stored result is a miss. The reason uses <code>reasonText()</code>. The field readout uses the same altitude, speed, and downrange.</p>
+<p>After Skip, Mission is gone. The Now body returns. The field still shows <code>flightView</code>.</p>
+<h3>Header and fleet</h3>
+<p>Keep day, sky, steel, tanks, power, depot, cadence, pause, sound, and save. Keep <code>#when</code>, <code>#stocks</code>, <code>#cadence</code>, <code>#lamp</code>, <code>#pause</code>, <code>#mute</code>, and <code>#save</code>. Tighten the line so it wraps less. Do not add new instruments.</p>
+<p>One chip per vehicle with status not gone. The chip still selects that vehicle and sets the tab to now.</p>
+
+<h2 id="interface">API and interface changes</h2>
+<p>No network API. The in-page surface changes as follows.</p>
+<table>
+  <thead><tr><th>Surface</th><th>Now</th><th>After</th></tr></thead>
+  <tbody>
+    <tr><td><code>Y</code></td><td><code>(y - cam.y) * cam.z + h / 2</code></td><td><code>(cam.y - y) * cam.z + h / 2</code></td></tr>
+    <tr><td><code>cam.z</code></td><td>0.45–3.2, unnamed units</td><td><code>1 / mpp</code>, clamp checked in m/px</td></tr>
+    <tr><td><code>bandAt</code></td><td>Absent</td><td><code>world</code>, <code>region</code>, <code>site</code>, or <code>work</code></td></tr>
+    <tr><td>Flight label</td><td>Absent on the map</td><td>Only while <code>S.watch</code> is set</td></tr>
+    <tr><td><code>#watch</code></td><td>Overlay from <code>openWatch()</code></td><td>Removed</td></tr>
+    <tr><td>Field readout</td><td>Absent</td><td>Altitude, speed, downrange from the live sample</td></tr>
+    <tr><td><code>factoryCard()</code></td><td>Every building card, and empty Now</td><td>Factory or Sanchez, or empty Now if a factory exists</td></tr>
+    <tr><td>Band chips</td><td>Absent</td><td>Four buttons on <code>#stage</code></td></tr>
+    <tr><td><code>#stocks</code></td><td>Includes depot tonnes</td><td>Still includes depot tonnes</td></tr>
+  </tbody>
+</table>
+<p><code>hit()</code> uses meter sizes. Part hits work only in Work. Main hits work in Site and Work.</p>
+
+<h2 id="data">Data model changes</h2>
+<p>Do not change <code>evaluate()</code>, prices, <code>PAD</code>, <code>CRAFT</code>, or unlock rules.</p>
+<p><code>S.meters</code> is a boolean. Missing means an old slot. Convert those buildings once with the <code>place()</code> rule, then set it. Later <code>place()</code> calls already store meters. <code>S.watch</code> may hold <code>t</code> while playing. It is null on save, on load, on skip, and at <code>tStop</code>.</p>
+<pre>flightView = {
+  mode, tStop, orbit,
+  samples: [{ t, altKm, speedMs, downrangeKm, x, y }]
+}</pre>
+<p>Build it when playback starts. Replace it on the next flight. Do not put it in the save JSON.</p>
+
+<h2 id="decisions">Key decisions</h2>
+<ol>
+  <li><b>Flight is a label, not a fifth meter slice.</b> A hop is up close. An orbit is on the Earth. <code>bandAt</code> returns four names. The corner says Flight only while <code>S.watch</code> is set.</li>
+  <li><b>North is +y, and screen Y flips.</b> The new Y is <code>(cam.y - y) * cam.z + h / 2</code>. The old map does not stay valid under the new clamp.</li>
+  <li><b>Bands cut on meters per pixel only.</b> <code>cam.z</code> is <code>1 / mpp</code>. Printed edges are approximate. They must not pick the band.</li>
+  <li><b>Zoom out is <code>deltaY &gt; 0</code>.</b> Then meters per pixel times 1.25. Pinch uses that same listener. About 46 steps cover the clamp.</li>
+  <li><b>The World chip recenters on the body origin.</b> For Earth that origin is the Texas pad. Moon and Mars use their only site as (0, 0).</li>
+  <li><b><code>S.watch</code> is only the clock.</b> Skip and <code>tStop</code> null it. <code>flightView</code> keeps the last picture. <code>tick()</code> ignores <code>flightView</code>. Mission shows only while the clock exists.</li>
+  <li><b>The track is display fiction.</b> Downrange, bearing, and durations are the tables above. Altitude and speed end at the stored result. The painter does not call <code>evaluate()</code>.</li>
+  <li><b>A successful static fire still has <code>light</code> false.</b> The flame comes from the static mode and <code>res.ok</code> or <code>res.light</code>. Do not change <code>evaluate()</code> here.</li>
+  <li><b>An orbit miss still draws the orbit line.</b> <code>res.orbit</code> with a failed <code>ok</code> plays to t 1. Today's overlay would stop early. The record already stored the orbit. Rules do not change.</li>
+  <li><b>Louisiana uses a game pin.</b> 29.55°N, 89.67°W. The corner does not discuss the projection.</li>
+  <li><b>Acres stay on the left cards.</b> The canvas does not print 455, 241, or 262.</li>
+  <li><b>Site uses a 36 px main floor and a 16 px rocket floor.</b> Work uses true meters. World playback marks are 10 px.</li>
+  <li><b>Factory jobs leave every other building.</b> The bug is <code>factoryCard()</code> at the end of <code>buildingCard()</code>.</li>
+  <li><b>Depot stays on the header.</b> <code>#stocks</code> keeps the depot tonnes.</li>
+  <li><b>One file remains the default.</b> A later pull request may add <code>field.js</code> only if <code>draw()</code> is hard to read. There is no build step.</li>
+  <li><b>No remote imagery.</b> Generated images stay out of these pull requests.</li>
+</ol>
+
+<h2 id="alternatives">Alternatives considered</h2>
+<h3>A separate flight window</h3>
+<p>Keep <code>#watch</code> and only restyle the sky and the plume. The flight stays off the map. Two pictures drift apart. Rejected.</p>
+<h3>A flat map with no World band</h3>
+<p>Zoom from the Texas rectangles to a painted Gulf. An orbital launch has nowhere honest to end. The Moon and Mars become more rectangles. Rejected.</p>
+<h3>A fifth exclusive zoom slice for Flight</h3>
+<p>Put Flight at 400–2,000 m/px and forbid other zooms during playback. A hop arc disappears, and the orbit line does not fit. Rejected.</p>
+<h3>Leave S.watch set so the track can stay</h3>
+<p>The day clock would never advance, because <code>tick()</code> returns while <code>S.watch</code> is set. Rejected. The clock and the picture are split.</p>
+
+<h2 id="security">Security and privacy</h2>
+<p>This is a local file. There are no accounts and no server. Saves stay in <code>localStorage</code> under <code>starbase-record-slot-1</code>, <code>starbase-record-slot-2</code>, and <code>starbase-record-slot-3</code>. Mute stays in <code>starbase-record-mute</code>.</p>
+<p>Do not add map hosts, analytics, or remote fonts. Canvas paths ship inside the page. Do not write <code>flightView</code> into the slot.</p>
+
+<h2 id="observe">Observability</h2>
+<p>No metrics service. The field corner shows the band name, or Flight while the clock runs, and meters per pixel. It does not mention map stretch.</p>
+<p>Mission and the field readout share the live sample. The record tab and <code>#log</code> stay the rules log. <code>selfTest()</code> stays on the fire rules. These picture pull requests do not assert pixel colors.</p>
+
+<h2 id="rollout">Rollout</h2>
+<p>Ship the pull requests below in order. Each one has its own check. There is no feature-flag service. Rollback is reverting <code>index.html</code>.</p>
+<p>Old saves still load. The converter runs when <code>S.meters</code> is missing.</p>
+
+<h2 id="risks">Risks</h2>
+<table>
+  <thead><tr><th>Risk</th><th>Severity</th><th>Mitigation</th></tr></thead>
+  <tbody>
+    <tr><td>The Earth paths look crude.</td><td>Medium</td><td>Few flat shapes. No fake relief. No tiles in these pull requests.</td></tr>
+    <tr><td>Equirectangular scale stretches Florida.</td><td>Low</td><td>Accept it. A later pass may replace the projection. The corner does not mention it.</td></tr>
+    <tr><td>A screen-size floor fights true meters.</td><td>Low</td><td>Use the floor only in Site. Work uses true meters. World marks stay 10 px.</td></tr>
+    <tr><td>Playback math drifts from <code>evaluate()</code>.</td><td>High</td><td>Use the stored altitude, speed, and flags. Downrange comes only from the table.</td></tr>
+    <tr><td>Someone treats <code>res.light</code> as success.</td><td>High</td><td>The table keys <code>ok</code>, <code>orbit</code>, and <code>light</code> apart. Static success has <code>light</code> false.</td></tr>
+    <tr><td><code>index.html</code> becomes hard to read.</td><td>Medium</td><td>Keep drawing in functions. Add <code>field.js</code> only later.</td></tr>
+    <tr><td>Band chips feel like a new dashboard.</td><td>Low</td><td>Four text buttons on the field corner. No new column.</td></tr>
+    <tr><td>Old saves paint buildings in the wrong place.</td><td>Medium</td><td>One-time conversion, then <code>place()</code> writes meters for every new building.</td></tr>
+  </tbody>
+</table>
+
+<h2 id="prs">PR plan</h2>
+<ol>
+  <li><b>Camera and meter offsets.</b> Flip Y. Make <code>place()</code> store meters with the times-4 rule, including buildings created after <code>S.meters</code> is set. Convert old slots once. <code>fresh()</code> opens on the Texas pin at 4 m/px. Add <code>bandAt</code>, the clamp, the 1.25 wheel step, and the four chips. The World chip recenters on (0, 0). Site switch uses 100 m/px. PR 1 rectangles are the converted <code>DOCK</code> box, about 120 m, so Work at 4 m/px shows about 30 px. The 16 m mount waits for PR 3. No rules edits. Check the corner name and that pad box. Do not start a flight. Land this design doc with this pull request: <code>design-docs/field-and-control.html</code>.</li>
+  <li><b>World and Region.</b> Draw the disk on the body origin, continents, shoreline, site dots, and one soft shape per owned plot. Remove the three Texas rectangles. Check that the World chip shows a disk, and that acres stay on the buy cards.</li>
+  <li><b>Site and Work.</b> Draw the meter table. Parts appear only in Work. Tank and tower parts still come from <code>upgradePad()</code>. Delete the 16×16 squares and the arc of radius <code>5 * cam.z</code>. Check that the trench is east of the mount at 4 m/px, and that one part shows a name.</li>
+  <li><b>Control cleanup.</b> Order the left desk. Stop factory jobs on every building. Keep depot in <code>#stocks</code>. Do not change prices, <code>CRAFT</code>, or <code>evaluate()</code>. Check that a pad card has no factory buttons and the header still shows depot tonnes.</li>
+  <li><b>Flight on the field.</b> Remove <code>#watch</code>. Build <code>flightView</code> from the tables. Mission replaces the Now body only while <code>S.watch</code> is set. Skip nulls the clock and leaves the final sample. Check that the overlay is gone, the rocket is on the field, and after Skip the day clock moves again.</li>
+  <li><b>Split only if needed.</b> If <code>draw()</code> is hard to review, move it to <code>field.js</code> beside the page. A script tag is enough. Skip this pull request if the page is still readable.</li>
+</ol>
+
+<h2 id="open">Open questions</h2>
+<p>None. The clock, the display track, the disk center, the <code>DOCK</code> conversion, and the band cuts are specified above.</p>
+
+<h2 id="refs">References</h2>
+<ul>
+  <li><code>/home/tiagomdv0/starbase-record/index.html</code> — <code>draw()</code>, <code>openWatch()</code>, <code>renderBuy()</code>, <code>renderInsp()</code>, <code>buildingCard()</code>, <code>factoryCard()</code>, <code>applyFlight()</code>, <code>evaluate()</code>, <code>openSites()</code>, <code>partsFor()</code>, <code>upgradePad()</code>.</li>
+  <li><code>/home/tiagomdv0/starbase-record/README.md</code> — this game is not <code>starbase-builder</code>.</li>
+  <li><code>reasonText()</code> — miss copy for Mission.</li>
+  <li><code>offerPlot()</code> — acres 455, 241, and 262 stay on the cards.</li>
+  <li><code>tick()</code> — returns while <code>S.watch</code> is set. It must ignore <code>flightView</code>.</li>
+</ul>
+</main>
+</div>
+</body>
+</html>

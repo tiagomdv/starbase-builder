@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Site objects · design — starbase-builder</title>
+  <style>
+    :root {
+      --bg: #1c2118; --panel: #2a2218; --panel2: #221c14; --border: #5a4830;
+      --text: #e8d9b0; --muted: #a89878; --accent: #d4a84b; --link: #e8c56a; --code: #c4e08a;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; line-height: 1.55; }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 1.5rem 1.25rem 4rem; }
+    .doc-hero { background: linear-gradient(180deg, #2a2218, #1c2118); border: 1px solid var(--border); border-radius: 0.85rem; padding: 1.15rem 1.25rem 1.25rem; margin-bottom: 1.25rem; }
+    .doc-hero h1 { font-size: 1.55rem; font-weight: 650; color: #f5edd8; margin: 0.35rem 0 0.4rem; }
+    .doc-hero .lede { margin: 0; font-size: 0.9rem; color: var(--muted); max-width: 56rem; }
+    .role {
+      margin: 0 0 12px;
+      padding: 12px 14px;
+      background: #24180f;
+      color: #f4ead8;
+      border-left: 6px solid #c45c26;
+      font: 15px/1.4 system-ui, sans-serif;
+    }
+    .role b { display: block; margin-bottom: 4px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #e7c27a; }
+    .meta-row { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+    .tag { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 999px; background: #3a2e20; color: #e8c56a; border: 1px solid #6a5638; }
+    .tag.muted { background: #1e1a14; color: var(--muted); border-color: #4a3c28; }
+    .doc-grid { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 1.25rem; align-items: start; }
+    @media (max-width: 860px) { .doc-grid { grid-template-columns: 1fr; } .toc { position: static !important; } }
+    .toc { position: sticky; top: 0.75rem; background: var(--panel); border: 1px solid var(--border); border-radius: 0.65rem; padding: 0.75rem 0.85rem; max-height: calc(100vh - 1.5rem); overflow-y: auto; }
+    .toc .section-label { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); font-weight: 600; margin-bottom: 0.5rem; }
+    .toc ol { margin: 0; padding-left: 1.1rem; font-size: 0.78rem; }
+    .toc a { color: var(--link); text-decoration: none; }
+    h2 { font-size: 1.12rem; color: #f5edd8; margin: 1.6rem 0 0.65rem; padding-bottom: 0.35rem; border-bottom: 1px solid var(--border); scroll-margin-top: 0.75rem; }
+    h3 { font-size: 0.95rem; color: var(--accent); margin: 1.1rem 0 0.4rem; }
+    p, li { font-size: 0.9rem; }
+    p { margin: 0.45rem 0 0.7rem; }
+    ul { margin: 0.35rem 0 0.75rem; padding-left: 1.35rem; }
+    table.doc { width: 100%; border-collapse: collapse; font-size: 0.84rem; margin: 0.45rem 0 0.9rem; }
+    table.doc th, table.doc td { border: 1px solid var(--border); padding: 0.45rem 0.55rem; text-align: left; vertical-align: top; }
+    table.doc th { background: var(--panel2); color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; }
+    table.doc td { background: rgba(42,34,24,0.45); }
+    code { font-family: ui-monospace, Menlo, monospace; color: var(--code); font-size: 0.86em; }
+    figure { margin: 0.6rem 0 1rem; }
+    figure img { width: min(100%, 420px); height: auto; border: 1px solid var(--border); border-radius: 0.45rem; background: #111; display: block; }
+    figcaption { color: var(--muted); font-size: 0.78rem; margin-top: 0.35rem; }
+    strong { color: #f5edd8; }
+    .footer-note { color: var(--muted); font-size: 0.82rem; margin-top: 2rem; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="doc-hero">
+      <div class="meta-row"><span class="tag">Live and planned</span><span class="tag muted">Parts are not in the game yet</span></div>
+      <aside class="role">
+        <b>What this page is</b>
+        Site objects is the record of the buildings. It lists Starfactory, Mega Bay, and the orbital pad, and the parts that should arrive with each one. The game does not build from this list yet. When a part is added, dropped, or locked, update this page in the same pass.
+        The game you play is <code>index.html</code>, at <code>0.2.1-field</code>. Pull request 4 is merged. It holds the gulf shore, the copper owned line, and the land column. This page is not in that pull request.
+      </aside>
+      <h1>Site objects</h1>
+      <p class="lede">This page changes as we lock a part. <a href="field-and-control.html">Field and control</a> is fixed research and stays as written. The map you zoom is <a href="field-lab.html">field-lab.html</a>. Tries are logged in <a href="field-iterations.html">field-iterations.html</a>. A quiet part has no effect on the fire yet.</p>
+    </header>
+    <div class="doc-grid">
+      <nav class="toc">
+        <div class="section-label">On this page</div>
+        <ol>
+          <li><a href="#now">On the map now</a></li>
+          <li><a href="#rule">The rule</a></li>
+          <li><a href="#born">Born with the main</a></li>
+          <li><a href="#works">Infrastructure</a></li>
+          <li><a href="#see">What you see</a></li>
+          <li><a href="#factory">Starfactory</a></li>
+          <li><a href="#bay">Mega Bay</a></li>
+          <li><a href="#pad">Orbital pad</a></li>
+          <li><a href="#later">Later mains</a></li>
+        </ol>
+      </nav>
+      <article>
+        <h2 id="now">On the map now</h2>
+        <p>These objects are in <code>index.html</code> at <code>0.2.1-field</code>. Each one is a single thing. It has no hall, crane, berth, trench, or tank of its own. The parts further down this page are the plan. The game does not create them yet.</p>
+
+        <h3>Land</h3>
+        <p>You buy a parcel before you place a building on it. An owned parcel is a copper line, <code>#8a3e24</code>, with a pale stake at each corner. The parcel still for sale is a dashed copper line.</p>
+        <table class="doc">
+          <thead><tr><th>Parcel</th><th>Cost</th><th>What it holds</th></tr></thead>
+          <tbody>
+            <tr><td>Build site</td><td>90 steel</td><td>Starfactory and Mega Bay, on the seats the parcel already names.</td></tr>
+            <tr><td>Pad site</td><td>50 steel</td><td>The Orbital Pad, on the seat the parcel already names.</td></tr>
+          </tbody>
+        </table>
+
+        <h3>The road</h3>
+        <p>The road is not a thing you buy, and it is not a part of one building. Once two of the three buildings are placed, the map strokes one sand road from the east edge of one to the west edge of the next, bowing north. The pale stroke is 16 m wide. The darker stroke inside it is 9 m wide. A branch that ends at each hall is the later road, in the list below. It is not this stroke.</p>
+
+        <h3>The three buildings</h3>
+        <p>You place one of each. The box is the whole object. Level starts at 1.</p>
+        <table class="doc">
+          <thead><tr><th>Building</th><th>Cost</th><th>Footprint</th><th>What it does</th></tr></thead>
+          <tbody>
+            <tr><td>Starfactory</td><td>40 steel</td><td>4 by 3</td><td>Builds one Falcon 1 and holds it until the bay takes it. One Merlin upgrade raises thrust on every Falcon 1.</td></tr>
+            <tr><td>Mega Bay</td><td>50 steel</td><td>5 by 3</td><td>Houses the first stage and refurbishes it after a fire.</td></tr>
+            <tr><td>Orbital Pad</td><td>40 steel</td><td>3 by 4</td><td>Static fire only. Level 2 costs 40 steel. It widens the trench and raises the mount, accepts 900 kN and 28 knots, and cuts one day off a clean refurb. Level 1 accepts 400 kN and 20 knots.</td></tr>
+          </tbody>
+        </table>
+
+        <h3>The vehicle</h3>
+        <p>Falcon 1 is its own object. It costs 28 steel and takes 3 days. A static fire draws 8 propellant. It is built at the factory, housed in the bay, rolled along the road, and fired on the pad. Falcon 9, Falcon Heavy, and Starship are locked names. They are not on the map. Merlin is a number on the factory card, not a separate object.</p>
+
+        <h2 id="rule">The rule</h2>
+        <p>A main building is one object you buy. A part is also one object. It has its own id, its own place on that main, and its own job. It is not a caption painted near the building.</p>
+        <p>The part stores a seat on its parent: which side, and how far from the parent’s origin. The map draws the part from that seat. Zooming in shows the part. Zooming out shows the parent. The names do not all stay on screen.</p>
+        <p>Selecting a part opens that part. Selecting empty ground on the parent opens the parent. The left column lists the mains. It does not list every part.</p>
+
+        <h2 id="born">Born with the main</h2>
+        <p>When the main is placed, its parts are created with it. You do not buy the deluge plate as a separate plot. You buy the pad. The plate, the pumps, the trench, and the water tank arrive as parts of that pad.</p>
+        <p>A part can be quiet. Quiet means it is real and you can select it, and it does not change the fire yet. The version that needs it turns the job on. Until then the panel says what it will do, in one sentence.</p>
+        <p>A second pad is not a part of the first pad. Massey’s is not a part of the factory. A separate site is a separate main, and it waits for its own row.</p>
+
+        <h2 id="works">Infrastructure</h2>
+        <p>Placing a main also places the works it needs. You do not buy the road, the power plant, or the water tank as their own plots. The game picks every seat. The layout is fixed, so the map can use one picture. The look of each building can be drawn later. This list is the plan. It is not in the game yet. The road in the section above is the one the map draws today.</p>
+        <p>A road is one of those works. It is a branch from the site road to that main, and it ends at the building. It does not stop in the water. The field lab has a test of that road. The test is not this list.</p>
+        <table class="doc">
+          <thead><tr><th>When you place</th><th>The game also places</th></tr></thead>
+          <tbody>
+            <tr><td>Starfactory</td><td>Hall, crane, stack stand, a power plant, and a road to the hall.</td></tr>
+            <tr><td>Mega Bay</td><td>Hall, berth, service crane, and a road to the hall.</td></tr>
+            <tr><td>Orbital pad</td><td>Mount, flame trench, deluge plate, deluge pumps, water tank, and a road to the pad.</td></tr>
+          </tbody>
+        </table>
+        <p>The first main on a site lays the shared road. Each later main adds its own branch. A pad upgrade still adds only its own parts, the tank farm or the tower. It does not lay a second road.</p>
+
+        <h2 id="see">What you see</h2>
+        <ul>
+          <li>Far: the main’s body and its name.</li>
+          <li>Near: the parts, each with a body. The name shows for the part under the pointer, and for the one you selected.</li>
+          <li>The buy column: the main, its price, and its area. Parts stay off that list.</li>
+        </ul>
+        <p>It is not a list of every Starbase name drawn at once. It is not a second copy of the factory floating beside the sprite. The live screen that does that is the mistake this draft replaces.</p>
+
+        <h2 id="factory">Starfactory</h2>
+        <p>You buy one factory. These parts are created with it.</p>
+        <figure>
+          <img src="images/object-factory.jpg?v=2" alt="Top view of the factory hall, the roof crane, and the stack stand." />
+          <figcaption>Factory. Hall, crane, and stack stand.</figcaption>
+        </figure>
+        <table class="doc">
+          <thead><tr><th>Part</th><th>Job now</th><th>Later</th></tr></thead>
+          <tbody>
+            <tr><td>Hall</td><td>The body you see. Holds the build queue.</td><td>Stays the body.</td></tr>
+            <tr><td>Crane</td><td>Quiet. Sits on the roof.</td><td>Moves a section into the stack stand.</td></tr>
+            <tr><td>Stack stand</td><td>The vehicle under construction stands here.</td><td>Stays the stand.</td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="bay">Mega Bay</h2>
+        <p>You buy one bay. A second bay, the high bay, and the Sanchez yard are not parts of this one. They are later mains.</p>
+        <figure>
+          <img src="images/object-bay.jpg?v=2" alt="Top view of the mega bay, the berth, and the service crane." />
+          <figcaption>Bay. Hall, berth, and service crane.</figcaption>
+        </figure>
+        <table class="doc">
+          <thead><tr><th>Part</th><th>Job now</th><th>Later</th></tr></thead>
+          <tbody>
+            <tr><td>Hall</td><td>The body. One berth inside.</td><td>More berths if a later row adds them.</td></tr>
+            <tr><td>Berth</td><td>Holds the vehicle that is home or in refurb.</td><td>Stays the slot.</td></tr>
+            <tr><td>Service crane</td><td>Quiet. Spans the berth.</td><td>Marks the refurb work.</td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="pad">Orbital pad</h2>
+        <p>You buy one pad. It starts as the mount and the water system. Two upgrades add the rest. You can buy either one, or both. They are not levels of the same ladder. Pad 2 is a different main, and it gets the same choices.</p>
+        <h3>As bought</h3>
+        <figure>
+          <img src="images/pad-base.jpg?v=2" alt="Top view of the pad as bought: mount, trench, deluge plate, pumps, and one water tank." />
+          <figcaption>Pad as bought. Mount, trench, deluge plate, pumps, water tank.</figcaption>
+        </figure>
+        <table class="doc">
+          <thead><tr><th>Part</th><th>Where it sits</th><th>Job</th></tr></thead>
+          <tbody>
+            <tr><td>Mount</td><td>Center</td><td>The fire uses this, as the pad already does.</td></tr>
+            <tr><td>Flame trench</td><td>Under the mount, opening east</td><td>Quiet until a closed trench can fail a fire.</td></tr>
+            <tr><td>Deluge plate</td><td>In the trench</td><td>Quiet until a dry plate can fail a heavy fire.</td></tr>
+            <tr><td>Deluge pumps</td><td>Beside the plate</td><td>Quiet. The plate does nothing later if the pumps are down.</td></tr>
+            <tr><td>Water tank</td><td>West of the mount</td><td>Quiet. Holds the deluge water.</td></tr>
+          </tbody>
+        </table>
+        <h3>Upgrade · Tank farm</h3>
+        <figure>
+          <img src="images/pad-tanks.jpg?v=2" alt="Top view of the pad after the tank-farm upgrade, with extra tanks west of the mount." />
+          <figcaption>Tank-farm upgrade. Oxygen, kerosene, and methane tanks added west of the mount.</figcaption>
+        </figure>
+        <p>Adds the propellant tanks west of the mount. Falcon 1 still burns kerosene and oxygen. The methane tank is on the pad for Starship, and it stays idle until that rocket exists.</p>
+        <table class="doc">
+          <thead><tr><th>Part</th><th>Where it sits</th><th>Job</th></tr></thead>
+          <tbody>
+            <tr><td>Oxygen tank</td><td>West of the mount</td><td>Quiet until the tanks row. Then it holds the oxygen.</td></tr>
+            <tr><td>Kerosene tank</td><td>West of the mount</td><td>Quiet until the tanks row. Then it holds the Falcon fuel.</td></tr>
+            <tr><td>Methane tank</td><td>West of the mount</td><td>Quiet until Starship. Then it holds the methane.</td></tr>
+          </tbody>
+        </table>
+        <h3>Upgrade · Starship tower</h3>
+        <figure>
+          <img src="images/pad-tower.jpg?v=2" alt="Top view of the pad after the tower upgrade, with chopsticks and a ship arm." />
+          <figcaption>Starship-tower upgrade. Tower, chopsticks, and ship arm. No tank farm in this picture.</figcaption>
+        </figure>
+        <p>Adds the tower on the north side of the mount. The arms are for Starship. A Falcon 1 does not use them.</p>
+        <table class="doc">
+          <thead><tr><th>Part</th><th>Where it sits</th><th>Job</th></tr></thead>
+          <tbody>
+            <tr><td>Tower</td><td>North of the mount</td><td>Quiet until the catch row.</td></tr>
+            <tr><td>Chopsticks</td><td>On the tower</td><td>Quiet until catch and lift.</td></tr>
+            <tr><td>Ship arm</td><td>On the tower</td><td>Quiet until a ship is held at the tower.</td></tr>
+          </tbody>
+        </table>
+        <p>Zoomed out you see the mount. Zoomed in you see the parts of the upgrades you own. Names show for the part under the pointer. You do not see every name at once.</p>
+
+        <h2 id="later">Later mains</h2>
+        <ul>
+          <li><strong>Pad 2.</strong> Its own mount, tower, and tanks. Same part list as the first pad. Not a part of pad 1.</li>
+          <li><strong>High bay, second mega bay, Sanchez.</strong> Each is its own hall on the build site. Not rooms inside Starfactory.</li>
+          <li><strong>Massey’s.</strong> Its own site inland. Parts: ship cryo stand, booster cryo stand, static-fire stand, methane farm. None of those ride along with the factory.</li>
+        </ul>
+        <p class="footer-note">This page replaces the old split between site objects and building parts. The game file stays as it is until you say to build this.</p>
+      </article>
+    </div>
+  </div>
+</body>
+</html>
