@@ -175,6 +175,10 @@
       cursor: pointer; border: 0; border-left: 2px solid transparent; padding: 8px 12px; font-size: 14px;
     }
     .wiki-topic.on, .wiki-topic:hover { border-left-color: #e10600; background: #161616; }
+    .wiki-group {
+      padding: 12px 12px 2px; font-size: 11px; letter-spacing: 0.14em;
+      text-transform: uppercase; color: #9a9a9a;
+    }
     .wiki-read { flex: 1; overflow-y: auto; padding: 4px 4px 12px 18px; }
     .wiki-read h2 { font-size: 22px; font-weight: 650; margin: 8px 0 12px; }
     .wiki-read p { font-size: 15px; line-height: 1.45; color: #d8d8d8; margin: 0 0 10px; }
@@ -311,7 +315,7 @@
         <div><div class="stat-k">Fleet</div><div id="res-fleet" class="stat-n tabular-nums">0</div></div>
         <div class="day-stat"><div class="stat-k" id="day-run">Day</div><div class="day-row"><div id="day-label" class="stat-n tabular-nums">1</div><button type="button" id="day-pause">Pause</button></div></div>
       </div>
-      <div id="ver-label">0.5.3-polish</div>
+      <div id="ver-label">0.6.0-motion</div>
     </div>
   </header>
 
@@ -388,11 +392,13 @@
 (() => {
   "use strict";
 
-  const VERSION = "0.5.3-polish";
+  const VERSION = "0.6.0-motion";
   const CELL = 32, MAP_W = 40, MAP_H = 30;
   // ?test is a fast open. It changes the day length and the starting steel, and nothing else.
   const TEST = new URLSearchParams(location.search).has("test");
   const MS_PER_DAY = TEST ? 500 : 4000;
+  // The raise and the lower are the picture on the pad. Two seconds, not a fire rule.
+  const LIFT_SEC = 2;
   const ZOOM_MIN = 0.22, ZOOM_MAX = 2.4;
   const PAD_LAT = 25.997, PAD_LON = -97.157;
 
@@ -469,6 +475,14 @@
       page: {
         href: "https://web.archive.org/web/20130430222417/http://www.spacex.com/falcon1.php",
         label: "SpaceX Falcon 1 page",
+      },
+      plant: {
+        href: "https://www.dailynews.com/2008/05/05/rockets-give-hawthorne-a-big-lift/",
+        label: "Daily News, 5 May 2008",
+      },
+      assembly: {
+        href: "https://web.archive.org/web/20110104054341/http://www.spacex.com/F1-005.php",
+        label: "SpaceX Flight 5 update",
       },
     },
     stageDryKg: { n: 1361, text: "3000 pounds (1361 kg)", source: "guide" },
@@ -597,7 +611,8 @@
     buildings: [],
     fleet: [],
     factoryJob: null,
-    rollout: null, // { vehicleId, pts, segLens, totalLen, t, duration, destKind: 'pad'|'bay', destId }
+    // kind roll | raise | lower. A roll clears buildingId. A raise or a lower keeps the pad.
+    rollout: null,
     event: null,
     nextId: 1,
     selectedId: null,
@@ -612,7 +627,6 @@
     lon: -97.178, lat: 26.002, span: 0.12,
     plots: { starfactory: false, mega_bay: false, pad_orbital: false },
     drag: null,
-    flameUntil: 0,
     log: [],
     objectives: {
       place_all: false,
@@ -864,18 +878,14 @@
       return;
     }
     if (G.event || G.rollout) { log("Ops busy", "warn"); return; }
+    const factory = buildingById(v.buildingId) || buildingOfType("starfactory");
+    if (!factory) { log("Need Starfactory", "bad"); return; }
     const used = new Set(vehiclesAt(bay.id).map((x) => x.baySlot));
     let slot = 0;
     while (used.has(slot) && slot < cap) slot++;
-    v.buildingId = bay.id;
-    v.status = "in_bay";
-    v.baySlot = slot;
-    const a = buildingAnchor(bay, slot);
-    v.wx = a.x; v.wy = a.y;
+    const dur = beginRoad(v, factory, bay, "bay", "in_bay", TUNING.ROLLOUT_PX_PER_SEC, slot);
     G.selectedVehicleId = v.id;
-    log(`${v.name} is in Mega Bay, slot ${slot + 1} of ${cap}.`, "good");
-    if (bayCount() >= 2) G.objectives.multi_bay = true;
-    updateObjectives();
+    log(`${v.name} rolls to Mega Bay · ${dur.toFixed(1)}s`, "info");
     renderChrome();
   }
 
@@ -913,6 +923,44 @@
     return clean;
   }
 
+  // The factory trip uses this too. It does not ask for the pad.
+  function beginRoad(v, fromB, toB, destKind, destStatus, speed, slot) {
+    const fromA = { x: v.wx, y: v.wy };
+    const toA = buildingAnchor(toB, slot || 0);
+    const pts = roadPath(fromA, toA, fromB, toB);
+    const metrics = pathMetrics(pts);
+    const duration = clamp(metrics.totalLen / speed, TUNING.ROLLOUT_MIN_SEC, TUNING.ROLLOUT_MAX_SEC);
+    v.buildingId = null;
+    v.status = "rolling";
+    v.baySlot = slot || 0;
+    v.wx = pts[0].x;
+    v.wy = pts[0].y;
+    G.rollout = {
+      kind: "roll",
+      vehicleId: v.id,
+      pts,
+      segLens: metrics.segLens,
+      totalLen: metrics.totalLen,
+      t: 0,
+      duration,
+      destKind,
+      destId: toB.id,
+      destStatus,
+      baySlot: slot || 0,
+    };
+    return duration;
+  }
+
+  function parkVehicle(v, buildingId, slot) {
+    v.buildingId = buildingId;
+    v.baySlot = slot || 0;
+    const b = buildingById(buildingId);
+    if (!b) return;
+    const a = buildingAnchor(b, v.baySlot);
+    v.wx = a.x;
+    v.wy = a.y;
+  }
+
   function startRoll(vehicleId, destKind) {
     const v = vehicleById(vehicleId || G.selectedVehicleId);
     if (!v) { log("Select a vehicle", "warn"); return; }
@@ -921,48 +969,92 @@
     const bay = buildingOfType("mega_bay");
     if (!pad || !bay) { log("Need bay and pad", "bad"); return; }
 
-    let fromB, toB, destStatus, speed;
     if (destKind === "pad") {
       if (v.status !== "in_bay") { log("Only bay-ready vehicles roll to pad", "warn"); return; }
       if (padHold()) { log("Pad occupied — one stack on OLM", "warn"); return; }
-      fromB = bay; toB = pad; destStatus = "on_pad"; speed = TUNING.ROLLOUT_PX_PER_SEC;
-    } else if (destKind === "bay") {
-      if (v.status !== "on_pad" && v.status !== "needs_return") {
-        log("Return to bay from pad after fire", "warn"); return;
-      }
-      if (bayCount() >= bayCapacity(bay) && v.buildingId !== bay.id) {
-        log("Mega Bay is full.", "bad"); return;
-      }
-      fromB = pad; toB = bay; destStatus = "refurb"; speed = TUNING.RETURN_PX_PER_SEC;
-    } else return;
-
-    const fromA = v.buildingId === fromB.id
-      ? { x: v.wx, y: v.wy }
-      : buildingAnchor(fromB, v.baySlot || 0);
-    let slot = v.baySlot || 0;
-    if (destKind === "bay") {
-      const used = new Set(vehiclesAt(bay.id).filter((x) => x.id !== v.id).map((x) => x.baySlot));
-      slot = 0;
-      while (used.has(slot) && slot < bayCapacity(bay)) slot++;
-      v.baySlot = slot;
+      const dur = beginRoad(v, bay, pad, "pad", "on_pad", TUNING.ROLLOUT_PX_PER_SEC, 0);
+      log(`${v.name} rollout to pad · ${dur.toFixed(1)}s`, "info");
+      renderChrome();
+      return;
     }
-    const toA = buildingAnchor(toB, destKind === "bay" ? slot : 0);
-    const pts = roadPath(fromA, toA, fromB, toB);
-    const { segLens, totalLen } = pathMetrics(pts);
-    let duration = totalLen / speed;
-    duration = clamp(duration, TUNING.ROLLOUT_MIN_SEC, TUNING.ROLLOUT_MAX_SEC);
-
-    v.buildingId = null;
+    if (destKind !== "bay") return;
+    if (v.status !== "on_pad" && v.status !== "needs_return") {
+      log("Return to bay from pad after fire", "warn"); return;
+    }
+    if (bayCount() >= bayCapacity(bay) && v.buildingId !== bay.id) {
+      log("Mega Bay is full.", "bad"); return;
+    }
+    const used = new Set(vehiclesAt(bay.id).filter((x) => x.id !== v.id).map((x) => x.baySlot));
+    let slot = 0;
+    while (used.has(slot) && slot < bayCapacity(bay)) slot++;
+    v.baySlot = slot;
+    // The pad keeps the rocket until the lower finishes, then the road clears the building.
     v.status = "rolling";
-    v.wx = pts[0].x; v.wy = pts[0].y;
+    const back = roadPath({ x: v.wx, y: v.wy }, buildingAnchor(bay, slot), pad, bay);
     G.rollout = {
-      vehicleId: v.id, pts, segLens, totalLen, t: 0, duration,
-      destKind, destId: toB.id, destStatus, baySlot: slot,
+      kind: "lower",
+      vehicleId: v.id,
+      t: 0,
+      duration: LIFT_SEC,
+      destKind: "bay",
+      destId: bay.id,
+      destStatus: "refurb",
+      baySlot: slot,
+      flatHeading: pathHeading(back),
     };
-    log(
-      `${v.name} ${destKind === "pad" ? "rollout to pad" : "return to bay"} · ${duration.toFixed(1)}s`,
-      "info"
-    );
+    log(`${v.name} lowers onto the transporter · ${LIFT_SEC.toFixed(1)}s`, "info");
+    renderChrome();
+  }
+
+  function finishRaise(v, r) {
+    parkVehicle(v, r.destId, 0);
+    v.status = "on_pad";
+    G.rollout = null;
+    log(`${v.name} on pad — static fire when ready`, "good");
+    updateObjectives();
+    renderChrome();
+  }
+
+  function finishLower(v, r) {
+    const pad = buildingOfType("pad_orbital");
+    const bay = buildingById(r.destId);
+    if (!pad || !bay) { G.rollout = null; return; }
+    const dur = beginRoad(v, pad, bay, "bay", "refurb", TUNING.RETURN_PX_PER_SEC, r.baySlot || 0);
+    log(`${v.name} return to bay · ${dur.toFixed(1)}s`, "info");
+    renderChrome();
+  }
+
+  function arriveRoll(v, r) {
+    parkVehicle(v, r.destId, r.baySlot || 0);
+    if (r.destStatus === "on_pad") {
+      v.status = "rolling";
+      G.rollout = {
+        kind: "raise",
+        vehicleId: v.id,
+        t: 0,
+        duration: LIFT_SEC,
+        destKind: "pad",
+        destId: r.destId,
+        destStatus: "on_pad",
+        baySlot: 0,
+        flatHeading: segmentHeading(r),
+      };
+      renderChrome();
+      return;
+    }
+    v.status = r.destStatus;
+    if (r.destStatus === "refurb") {
+      // refurb days were written on the pad. They start now, when the rocket is in the bay.
+      if (v.refurbLeft <= 0) v.status = "in_bay";
+      log(`${v.name} in Mega Bay for post-fire refurb · ${dayCount(v.refurbLeft)} left`, "warn");
+    } else if (r.destStatus === "in_bay") {
+      const bay = buildingById(r.destId);
+      const cap = bayCapacity(bay);
+      log(`${v.name} is in Mega Bay, slot ${(r.baySlot || 0) + 1} of ${cap}.`, "good");
+      if (bayCount() >= 2) G.objectives.multi_bay = true;
+    }
+    G.rollout = null;
+    updateObjectives();
     renderChrome();
   }
 
@@ -971,30 +1063,22 @@
     const r = G.rollout;
     const v = vehicleById(r.vehicleId);
     if (!v) { G.rollout = null; return; }
+    if (r.kind === "fire") {
+      updateFire(r, dt);
+      return;
+    }
     r.t += dt;
+    if (r.kind === "raise" || r.kind === "lower") {
+      if (r.t < r.duration) return;
+      if (r.kind === "raise") finishRaise(v, r);
+      else finishLower(v, r);
+      return;
+    }
     const u = clamp(r.t / r.duration, 0, 1);
     const p = pointAlong(r.pts, r.segLens, r.totalLen, u);
-    v.wx = p.x; v.wy = p.y;
-    if (u >= 1) {
-      v.buildingId = r.destId;
-      v.status = r.destStatus;
-      v.baySlot = r.baySlot || 0;
-      const b = buildingById(r.destId);
-      const a = buildingAnchor(b, v.baySlot);
-      v.wx = a.x; v.wy = a.y;
-      if (r.destStatus === "refurb") {
-        // refurb days already set at end of SF
-        if (v.refurbLeft <= 0) {
-          v.status = "in_bay";
-        }
-        log(`${v.name} in Mega Bay for post-fire refurb · ${dayCount(v.refurbLeft)} left`, "warn");
-      } else {
-        log(`${v.name} on pad — static fire when ready`, "good");
-      }
-      G.rollout = null;
-      updateObjectives();
-      renderChrome();
-    }
+    v.wx = p.x;
+    v.wy = p.y;
+    if (u >= 1) arriveRoll(v, r);
   }
 
   function weatherOn(day) {
@@ -1186,11 +1270,12 @@
           { id: "approach", label: "Camera · approach", dur: ph.approach * 0.9 },
           { id: "chill", label: "Engine chill", dur: ph.chill * 0.85 },
           { id: "ignition", label: "Ignition", dur: ph.ignition },
-          { id: "anomaly", label: "ANOMALY · RUD / engine fail", dur: 1.6 },
+          { id: "anomaly", label: check.limiter === "pad" ? "Pad" : "Engine", dur: 1.6 },
           { id: "fail", label: "Range safe · vehicle compromised", dur: 1.4 },
         ];
-    G.event = {
-      kind: "static_fire",
+    // One motion object. The rollout clock advances this burn, and the stage stays closed.
+    G.rollout = {
+      kind: "fire",
       vehicleId: v.id,
       rocketId: r.id,
       sfStyle: r.sfStyle,
@@ -1201,15 +1286,14 @@
       t: 0, phaseIdx: 0, phaseT: 0,
       phases,
       done: false,
-      particles: [],
-      _failShown: false,
+      applied: false,
+      closeLeft: null,
     };
-    G.flameUntil = performance.now() + (success ? 1000 : 1600);
     elEvent.phase.classList.remove("fail");
     // The footer names the real outcome, because the result is known before the animation starts.
     document.getElementById("event-outcome").textContent = success
       ? "Held · return to Mega Bay for refurb"
-      : `Anomaly · the ${check.limiter} was short · return to Mega Bay for refurb or scrap`;
+      : `The ${check.limiter} was short · return to Mega Bay for refurb or scrap`;
     openEvent(
       `Static fire · ${v.name}`,
       phases[0].label,
@@ -1223,9 +1307,9 @@
     elEvent.title.textContent = title;
     elEvent.phase.textContent = phase;
     elEvent.caption.textContent = cap;
-    eventStage.classList.add("open");
-    eventStage.setAttribute("aria-hidden", "false");
-    resizeEventCanvas();
+    // The burn plays on the map. This stage stays closed.
+    eventStage.classList.remove("open");
+    eventStage.setAttribute("aria-hidden", "true");
   }
   function closeEvent() {
     eventStage.classList.remove("open");
@@ -1233,7 +1317,7 @@
   }
 
   function applySfOutcome() {
-    const ev = G.event;
+    const ev = G.rollout && G.rollout.kind === "fire" ? G.rollout : null;
     if (!ev) return;
     const v = vehicleById(ev.vehicleId);
     if (!v) return;
@@ -1257,9 +1341,12 @@
     }
   }
 
-  function finishEvent() {
-    if (!G.event) return;
+  function finishFire() {
+    const r = G.rollout;
+    if (!r || r.kind !== "fire" || r.applied) return;
+    r.applied = true;
     applySfOutcome();
+    G.rollout = null;
     G.event = null;
     closeEvent();
     updateObjectives();
@@ -1267,9 +1354,29 @@
   }
 
   function skipEvent() {
-    if (!G.event) { closeEvent(); return; }
-    G.event.done = true;
-    finishEvent();
+    if (G.rollout && G.rollout.kind === "fire") { finishFire(); return; }
+    closeEvent();
+  }
+
+  function updateFire(r, dt) {
+    if (r.applied) return;
+    if (r.closeLeft != null) {
+      r.closeLeft -= dt;
+      if (r.closeLeft <= 0) finishFire();
+      return;
+    }
+    r.t += dt;
+    r.phaseT += dt;
+    const phase = r.phases[r.phaseIdx];
+    if (!r.done && phase && r.phaseT >= phase.dur) {
+      r.phaseT = 0;
+      r.phaseIdx++;
+      if (r.phaseIdx >= r.phases.length) {
+        r.done = true;
+        r.phaseIdx = r.phases.length - 1;
+        r.closeLeft = 0.45;
+      }
+    }
   }
   elEvent.skip.addEventListener("click", skipEvent);
 
@@ -1283,57 +1390,8 @@
     G._ew = w; G._eh = h;
   }
 
-  function updateEvent(dt) {
-    const ev = G.event;
-    if (!ev) return;
-    // The close waits on this clock so Pause can hold the last moment of the fire.
-    if (ev.closeLeft != null) {
-      ev.closeLeft -= dt;
-      if (ev.closeLeft <= 0) { finishEvent(); return; }
-    }
-    ev.t += dt; ev.phaseT += dt;
-    const phase = ev.phases[ev.phaseIdx];
-    const pid = phase ? phase.id : "debrief";
-
-    if ((pid === "anomaly" || pid === "fail") && !ev._failShown) {
-      ev._failShown = true;
-      elEvent.phase.classList.add("fail");
-    }
-
-    if (!ev.done && phase && ev.phaseT >= phase.dur) {
-      ev.phaseT = 0;
-      ev.phaseIdx++;
-      if (ev.phaseIdx >= ev.phases.length) {
-        ev.done = true;
-        ev.phaseIdx = ev.phases.length - 1;
-        ev.closeLeft = 0.45;
-        elEvent.phase.textContent = ev.phases[ev.phaseIdx].label;
-      } else {
-        elEvent.phase.textContent = ev.phases[ev.phaseIdx].label;
-        if (ev.phases[ev.phaseIdx].id === "anomaly" || ev.phases[ev.phaseIdx].id === "fail")
-          elEvent.phase.classList.add("fail");
-      }
-    }
-
-    const rate = pid === "anomaly" ? 14 : (ev.sfStyle === "merlin_nine" ? 5 : 2);
-    if (pid === "ignition" || pid === "burn" || pid === "anomaly") {
-      for (let i = 0; i < rate; i++) {
-        ev.particles.push({
-          x: (Math.random() - 0.5) * (pid === "anomaly" ? 90 : 50),
-          y: pid === "anomaly" ? -20 - Math.random() * 40 : 0,
-          vx: (Math.random() - 0.5) * (pid === "anomaly" ? 120 : 40),
-          vy: pid === "anomaly" ? -40 - Math.random() * 80 : 50 + Math.random() * 80,
-          life: 0.25 + Math.random() * 0.5,
-          r: 3 + Math.random() * 8,
-          hot: Math.random() > 0.3,
-        });
-      }
-    }
-    for (const p of ev.particles) {
-      p.life -= dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += (pid === "anomaly" ? 20 : 50) * dt;
-    }
-    ev.particles = ev.particles.filter((p) => p.life > 0);
-    drawEvent();
+  function updateEvent() {
+    // The burn advances on the rollout clock. This stage does not keep one.
   }
 
   function drawEvent() {
@@ -1428,7 +1486,7 @@
     ectx.moveTo(x + 18, y + 48);
     ectx.quadraticCurveTo(x + 90, y + 36, x + 190, y + 14);
     ectx.stroke();
-    const pitch = G.event ? Math.max(26, 90 - G.event.t * 14) : 90;
+    const pitch = 90;
     const endLon = PAD_LON + 50 / (111.32 * Math.cos(PAD_LAT * Math.PI / 180));
     ectx.fillStyle = "#f2f2f2";
     ectx.font = "11px ui-monospace, monospace";
@@ -1581,6 +1639,18 @@
     return `<button type="button" class="wiki-link" data-wiki="${esc(id)}">${esc(label)}</button>`;
   }
 
+  // A building name links only after that building is on the map.
+  function wikiPlace(type, label) {
+    if (!buildingOfType(type)) return label;
+    return wikiGo(type, label);
+  }
+
+  // Thrust, propellant, and the engine pages stay hidden until Falcon 1 is on.
+  function wikiPageLink(id, label) {
+    if (id !== "time" && !wikiFalconOn()) return label;
+    return wikiGo(id, label);
+  }
+
   function wikiSource(key) {
     const src = REAL_REFS.sources[key];
     return wikiLink(src.href, src.label);
@@ -1600,7 +1670,7 @@
   function wikiFacts(items) {
     const shown = (items || []).filter(Boolean).slice(0, 4);
     if (shown.length < 2) return "";
-    return `<aside class="wiki-facts">${shown.map((it) => `<div><b>${esc(it.value)}</b><span>${esc(it.label)}</span></div>`).join("")}</aside>`;
+    return `<aside class="wiki-facts">${shown.map((it) => `<div><b>${esc(it.value)}</b><span>${it.labelHtml || esc(it.label)}</span></div>`).join("")}</aside>`;
   }
 
   function wikiReal(parts) {
@@ -1633,10 +1703,10 @@
       id: "launch",
       title: "How a launch works",
       body: wikiParas([
-        `You spend steel at Starfactory. The factory builds a Falcon 1 and holds it until you roll it to Mega Bay.`,
-        `Mega Bay houses the rocket. Roll to the Orbital Pad moves it along the yard road and sets it on the mount.`,
+        `You spend steel at ${wikiPlace("starfactory", "Starfactory")}. The factory builds a Falcon 1 and holds it until you roll it to ${wikiPlace("mega_bay", "Mega Bay")}.`,
+        `${wikiPlace("mega_bay", "Mega Bay")} houses the rocket. Roll to the ${wikiPlace("pad_orbital", "Orbital Pad")} moves it along the yard road and sets it on the mount.`,
         `A static fire lights the engine on the pad. It holds when ${wikiGo("thrust", "thrust")}, the pad, ${wikiGo("propellant", "propellant")}, and the wind are inside the limits.`,
-        `After a hold, the first stage goes back to Mega Bay. A refurbishment puts the ${wikiGo("engines", "engine")} back to work.`,
+        `After a hold, the first stage goes back to ${wikiPlace("mega_bay", "Mega Bay")}. A refurbishment puts the ${wikiGo("engines", "engine")} back to work.`,
         `The last step is the flight. The sheet shows the payload to orbit. The rocket does not fly that path yet.`,
       ]) + wikiFacts([
         { value: `${rocket.steelCost} steel`, label: "Steel for a Falcon 1" },
@@ -1672,9 +1742,11 @@
       title: "Thrust",
       body: wikiParas([
         `Thrust is the push of the engine. The game measures that push in kilonewtons (kN).`,
-        `The rocket lifts only when thrust is greater than its weight. Weight is gravity pulling on the liftoff mass. That mass is in kilograms (kg).`,
-        `Thrust-to-weight is thrust divided by that weight. Above 1, the engine can lift the rocket. Near 1, the climb is slow.`,
-        `A new Merlin produces ${TUNING.MERLIN_THRUST_KN} kN. The liftoff mass is ${TUNING.STRUCT_LIMIT_KG} kg, and the weight is ${wikiNum(weightKn, 1)} kN. Thrust-to-weight is ${wikiNum(twr, 2)}.`,
+        `Liftoff mass is how much rocket sits on the pad. The game writes that amount in kilograms (kg).`,
+        `Weight at liftoff is gravity pulling down on that mass. The game writes that pull in kilonewtons (kN), the same unit as thrust.`,
+        `Thrust has to beat the weight, not the mass. Thrust-to-weight is thrust divided by the weight.`,
+        `Above 1, the engine can lift the rocket. Near 1, the climb is slow.`,
+        `A new Merlin produces ${TUNING.MERLIN_THRUST_KN} kN. The liftoff mass is ${TUNING.STRUCT_LIMIT_KG} kg. The weight at liftoff is ${wikiNum(weightKn, 1)} kN. Thrust-to-weight is ${wikiNum(twr, 2)}.`,
       ]) + wikiFacts([
         { value: `${TUNING.MERLIN_THRUST_KN} kN`, label: "Merlin thrust" },
         { value: `${TUNING.STRUCT_LIMIT_KG} kg`, label: "Liftoff mass" },
@@ -1776,7 +1848,7 @@
       body: wikiParas([
         `A static fire is a burn on the pad. It checks the ${wikiGo("thrust", "thrust")} before a flight.`,
         `Each fire takes life off the Merlin. That loss is the wear. Thrust falls by a set share of the fresh thrust.`,
-        `A refurbishment in Mega Bay puts that thrust back over several ${wikiGo("time", "days")}. A miss takes longer than a clean fire.`,
+        `A refurbishment in ${wikiPlace("mega_bay", "Mega Bay")} puts that thrust back over several ${wikiGo("time", "days")}. A miss takes longer than a clean fire.`,
         `Raise Merlin thrust spends ${TUNING.MERLIN_UP_COST} steel and raises this rocket from ${TUNING.MERLIN_THRUST_KN} kN to ${TUNING.MERLIN_1C_KN} kN. It does not build a second engine.`,
         `The fire holds when thrust stays between ${TUNING.SF_THRUST_BAR_KN} kN and the pad's thrust limit.`,
       ]) + wikiFacts([
@@ -1801,22 +1873,101 @@
       title: "Time at Starbase",
       body: wikiParas([
         `One game day lasts ${wikiNum(seconds, 1)} seconds. Builds, refurbs, and upgrades wait in those days.`,
-        `Starfactory builds a Falcon 1 in ${daySpan(TUNING.BUILD_DAYS_MIN, TUNING.BUILD_DAYS_MAX)}.`,
+        `${wikiPlace("starfactory", "Starfactory")} builds a Falcon 1 in ${daySpan(TUNING.BUILD_DAYS_MIN, TUNING.BUILD_DAYS_MAX)}.`,
         `Raise Merlin thrust takes ${daySpan(TUNING.MERLIN_UP_DAYS_MIN, TUNING.MERLIN_UP_DAYS_MAX)}. Lighten the stage takes ${daySpan(TUNING.STAGE_LIGHTEN_DAYS_MIN, TUNING.STAGE_LIGHTEN_DAYS_MAX)}.`,
-        `Mega Bay keeps the rocket for the ${wikiGo("engines", "refurbishment")}. A miss keeps it there for ${daySpan(TUNING.REFURB_FAIL_MIN, TUNING.REFURB_FAIL_MAX)}. A clean fire takes ${dayCount(TUNING.REFURB_OK_DAYS)}.`,
-        `The rollout along the yard road is counted in seconds. That is the short wait on the road between Mega Bay and the Orbital Pad.`,
+        `${wikiPlace("mega_bay", "Mega Bay")} keeps the rocket for the ${wikiGo("engines", "refurbishment")}. A miss keeps it there for ${daySpan(TUNING.REFURB_FAIL_MIN, TUNING.REFURB_FAIL_MAX)}. A clean fire takes ${dayCount(TUNING.REFURB_OK_DAYS)}.`,
+        `The rollout along the yard road is counted in seconds. That is the short wait on the road between ${wikiPlace("mega_bay", "Mega Bay")} and the ${wikiPlace("pad_orbital", "Orbital Pad")}.`,
       ]) + wikiFacts([
         { value: `${wikiNum(seconds, 1)} seconds`, label: "One game day" },
-        { value: daySpan(TUNING.BUILD_DAYS_MIN, TUNING.BUILD_DAYS_MAX), label: "Build at Starfactory" },
+        { value: daySpan(TUNING.BUILD_DAYS_MIN, TUNING.BUILD_DAYS_MAX), labelHtml: `Build at ${wikiPlace("starfactory", "Starfactory")}` },
         { value: dayCount(TUNING.REFURB_OK_DAYS), label: "Clean refurb" },
         { value: wikiSpan(TUNING.ROLLOUT_MIN_SEC, TUNING.ROLLOUT_MAX_SEC, "second", "seconds"), label: "Rollout on the road" },
       ]) + wikiReal(notes),
     };
   }
 
+  function wikiStarfactory() {
+    const rocket = ROCKET_DEFS.falcon1;
+    return {
+      id: "starfactory",
+      group: "Buildings",
+      title: "Starfactory",
+      body: wikiParas([
+        `Starfactory builds a ${rocket.name} from steel. It holds the finished rocket until you roll it to ${wikiPlace("mega_bay", "Mega Bay")}.`,
+        `Build ${rocket.name} costs ${rocket.steelCost} steel and takes ${daySpan(TUNING.BUILD_DAYS_MIN, TUNING.BUILD_DAYS_MAX)}. Roll to ${wikiPlace("mega_bay", "Mega Bay")} spends no steel and no propellant, and it takes no days.`,
+        `Raise Merlin thrust costs ${TUNING.MERLIN_UP_COST} steel and takes ${daySpan(TUNING.MERLIN_UP_DAYS_MIN, TUNING.MERLIN_UP_DAYS_MAX)}. Lighten the stage costs ${TUNING.STAGE_LIGHTEN_COST} steel and takes ${daySpan(TUNING.STAGE_LIGHTEN_DAYS_MIN, TUNING.STAGE_LIGHTEN_DAYS_MAX)}. Both run here, in the same slot as a build.`,
+        `Starfactory cannot be upgraded.`,
+        `The next building is ${wikiPlace("mega_bay", "Mega Bay")}. ${wikiPageLink("thrust", "Thrust")} and the stage change while this factory is busy.`,
+      ]) + wikiFacts([
+        { value: `${rocket.steelCost} steel`, label: `Steel for a ${rocket.name}` },
+        { value: daySpan(TUNING.BUILD_DAYS_MIN, TUNING.BUILD_DAYS_MAX), label: "Days to build" },
+        { value: `${TUNING.MERLIN_UP_COST} steel`, label: "Raise Merlin thrust" },
+        { value: `${TUNING.STAGE_LIGHTEN_COST} steel`, label: "Lighten the stage" },
+      ]) + wikiReal([
+        `The real Falcon 1 was built at SpaceX's factory in El Segundo and later Hawthorne, California. This game builds it at Starbase.`,
+        `The ${wikiSource("plant")} records the move from El Segundo. The ${wikiSource("guide")} places Falcon 1 production in Hawthorne.`,
+      ]),
+    };
+  }
+
+  function wikiBay() {
+    const roll = wikiSpan(TUNING.ROLLOUT_MIN_SEC, TUNING.ROLLOUT_MAX_SEC, "second", "seconds");
+    return {
+      id: "mega_bay",
+      group: "Buildings",
+      title: "Mega Bay",
+      body: wikiParas([
+        `Mega Bay houses the rockets between ${wikiPlace("starfactory", "Starfactory")} and the ${wikiPlace("pad_orbital", "Orbital Pad")}. A rocket comes back here after a fire.`,
+        `Roll to the ${wikiPlace("pad_orbital", "Orbital Pad")} follows the yard road. The trip takes ${roll}. It spends no steel and no propellant.`,
+        `A refurbishment puts the ${wikiPageLink("engines", "engine")} back to work. A clean fire takes ${dayCount(TUNING.REFURB_OK_DAYS)}. A miss takes ${daySpan(TUNING.REFURB_FAIL_MIN, TUNING.REFURB_FAIL_MAX)}. The refurb spends no steel and no propellant.`,
+        `Another slot costs ${TUNING.BAY_SLOT_COST} steel and takes no days. It adds a place in the bay, up to ${TUNING.BAY_MAX === 1 ? "1 vehicle" : `${TUNING.BAY_MAX} vehicles`}.`,
+        `The next step is a static fire on the ${wikiPlace("pad_orbital", "Orbital Pad")}. That fire checks ${wikiPageLink("thrust", "thrust")}, ${wikiPageLink("propellant", "propellant")}, and the wind.`,
+      ]) + wikiFacts([
+        { value: `${TUNING.BAY_SLOT_COST} steel`, label: "Another slot" },
+        { value: String(TUNING.BAY_MAX), label: "Vehicles the bay can hold" },
+        { value: dayCount(TUNING.REFURB_OK_DAYS), label: "Clean refurb" },
+        { value: roll, label: "Roll to the pad" },
+      ]) + wikiReal([
+        `Real stages were tested at McGregor, Texas, and integrated at the launch site, not in one bay at the pad.`,
+        `The ${wikiSource("guide")} names that test site. The ${wikiSource("assembly")} says the final integration happens at the launch site.`,
+      ]),
+    };
+  }
+
+  function wikiPad() {
+    const rocket = ROCKET_DEFS.falcon1;
+    const roll = wikiSpan(TUNING.ROLLOUT_MIN_SEC, TUNING.ROLLOUT_MAX_SEC, "second", "seconds");
+    // The day cut matches sfNext. The sentence appears only when that cut changes the wait.
+    const clean = TUNING.REFURB_OK_DAYS;
+    const shortens = Math.max(1, clean - 1) < clean;
+    const shorten = shortens
+      ? ` A level 2 pad also shortens a clean refurb in ${wikiPlace("mega_bay", "Mega Bay")}.`
+      : "";
+    return {
+      id: "pad_orbital",
+      group: "Buildings",
+      title: "Orbital Pad",
+      body: wikiParas([
+        `The Orbital Pad holds the rocket for a static fire. The rocket rolls here from ${wikiPlace("mega_bay", "Mega Bay")}.`,
+        `Static fire draws ${rocket.sfProp} propellant. It spends no steel, and it takes no days. The fire holds when ${wikiPageLink("thrust", "thrust")}, the pad, ${wikiPageLink("propellant", "propellant")}, and the wind are inside the limits.`,
+        `Return to ${wikiPlace("mega_bay", "Mega Bay")} rolls the rocket back along the yard road. That trip takes ${roll}. It spends no steel and no propellant.`,
+        `Pad level 2 costs ${TUNING.PAD_L2_COST} steel and takes no days. The thrust limit rises from ${TUNING.PAD_THRUST_L1} kilonewtons (kN) to ${TUNING.PAD_THRUST_L2} kN. The wind limit rises from ${TUNING.WIND_LIMIT_L1} knots to ${TUNING.WIND_LIMIT_L2} knots.${shorten}`,
+        `After the fire, the rocket waits in ${wikiPlace("mega_bay", "Mega Bay")}. ${wikiPageLink("engines", "Engines and wear")} explains the life that burn takes off the Merlin.`,
+      ]) + wikiFacts([
+        { value: `${rocket.sfProp} propellant`, label: "Drawn by a static fire" },
+        { value: `${TUNING.PAD_L2_COST} steel`, label: "Pad level 2" },
+        { value: `${TUNING.PAD_THRUST_L1} kN`, label: "Thrust limit before the upgrade" },
+        { value: `${TUNING.PAD_THRUST_L2} kN`, label: "Thrust limit after the upgrade" },
+      ]) + wikiReal([
+        `The real Falcon 1 flew from Omelek Island in Kwajalein. This pad stands at Starbase.`,
+        `The ${wikiSource("page")} names that island.`,
+      ]),
+    };
+  }
+
   function wikiArticles() {
     const falcon = wikiFalconOn();
-    return [
+    const pages = [
       falcon ? wikiLaunch() : null,
       falcon ? wikiThrust() : null,
       falcon ? wikiImpulse() : null,
@@ -1825,6 +1976,10 @@
       falcon ? wikiEngines() : null,
       wikiTime(),
     ].filter(Boolean);
+    if (buildingOfType("starfactory")) pages.push(wikiStarfactory());
+    if (buildingOfType("mega_bay")) pages.push(wikiBay());
+    if (buildingOfType("pad_orbital")) pages.push(wikiPad());
+    return pages;
   }
 
   function renderWiki() {
@@ -1833,11 +1988,20 @@
     if (!panel || !sheet) return;
     const pages = wikiArticles();
     const page = pages.find((p) => p.id === G.wikiPage) || pages[0];
-    const nav = pages.map((p) => `<button type="button" class="wiki-topic${page && p.id === page.id ? " on" : ""}" data-wiki="${p.id}">${esc(p.title)}</button>`).join("");
+    let nav = "";
+    let group = "";
+    pages.forEach((p) => {
+      if (p.group && p.group !== group) {
+        group = p.group;
+        nav += `<div class="wiki-group">${esc(group)}</div>`;
+      }
+      nav += `<button type="button" class="wiki-topic${page && p.id === page.id ? " on" : ""}" data-wiki="${esc(p.id)}">${esc(p.title)}</button>`;
+    });
     const article = page
       ? `<h2>${esc(page.title)}</h2>${page.body}`
       : `<p>Nothing on this list is unlocked yet.</p>`;
-    const sig = `${page ? page.id : ""}|${wikiUpperOn()}|${wikiFalconOn()}|${MS_PER_DAY}|${JSON.stringify(TUNING)}|${ROCKET_DEFS.falcon1.steelCost}|${ROCKET_DEFS.falcon1.sfProp}`;
+    const placed = ["starfactory", "mega_bay", "pad_orbital"].map((t) => (buildingOfType(t) ? "1" : "0")).join("");
+    const sig = `${page ? page.id : ""}|${wikiUpperOn()}|${wikiFalconOn()}|${placed}|${MS_PER_DAY}|${JSON.stringify(TUNING)}|${ROCKET_DEFS.falcon1.steelCost}|${ROCKET_DEFS.falcon1.sfProp}`;
     if (panel.dataset.sig !== sig) {
       panel.dataset.sig = sig;
       panel.innerHTML = `<div class="top"><div class="left">Wiki</div><button type="button" id="wiki-close">Close</button></div>
@@ -1885,12 +2049,24 @@
   }
 
   function placeLabel(v) {
+    const m = G.rollout && G.rollout.vehicleId === v.id ? G.rollout : null;
+    if (m && m.kind === "raise") return "Raising onto the mount";
+    if (m && m.kind === "lower") return "Lowering onto the transporter";
     if (v.status === "in_bay") return `Bay slot ${(v.baySlot || 0) + 1}`;
     if (v.status === "at_factory") return "At the factory";
     if (v.status === "on_pad" || v.status === "needs_return") return "On the pad";
     if (v.status === "refurb") return `Refurb · ${dayCount(v.refurbLeft)} left`;
     if (v.status === "rolling") return "On the road";
     return v.status;
+  }
+
+  function motionLine(m, v) {
+    const name = v ? v.name : "Vehicle";
+    const left = Math.max(0, m.duration - m.t).toFixed(0);
+    if (m.kind === "raise") return `${name} is raising onto the mount · ${left} s left`;
+    if (m.kind === "lower") return `${name} is lowering onto the transporter · ${left} s left`;
+    const dest = m.destKind === "pad" ? "the Orbital Pad" : "Mega Bay";
+    return `${name} is rolling to ${dest} · ${left} s left`;
   }
 
   function actCard(cls, id, extra, name, price, unit, line) {
@@ -1985,7 +2161,12 @@
       html += `<div class="stat"><div class="k">Thrust limit</div><div class="n">${limits.thrust}</div><div class="s">kN</div></div>`;
       html += `<div class="sec"><div class="k">Fire</div>`;
       const on = padHold();
-      if (on && on.status === "on_pad") {
+      const moving = G.rollout && on && G.rollout.vehicleId === on.id ? G.rollout : null;
+      if (moving && (moving.kind === "raise" || moving.kind === "lower")) {
+        html += `<p class="wait">${esc(motionLine(moving, on))}</p>`;
+      } else if (G.rollout && G.rollout.kind === "fire" && on && G.rollout.vehicleId === on.id) {
+        html += `<p class="wait">The static fire is burning.</p>`;
+      } else if (on && on.status === "on_pad") {
         const r = rocketOf(on.rocketId);
         const check = fireCheck(on, b);
         html += `<div class="facts"><div><b>${esc(on.name)}</b><span>condition ${Math.round(on.condition)} · ${on.fires || 0} fires</span></div><div><b>${check.thrust}</b><span>kN · needs ${TUNING.SF_THRUST_BAR_KN}</span></div></div>`;
@@ -1995,16 +2176,12 @@
       } else if (on && on.status === "needs_return") {
         html += `<div class="facts"><div><b>${esc(on.name)}</b><span>condition ${Math.round(on.condition)} · ${on.fires || 0} fires</span></div></div>`;
         html += actCard("roll", "btn-return", "", "Return to Mega Bay", null, "", "Refurb happens in the bay.");
+      } else if (G.rollout && G.rollout.kind === "roll" && G.rollout.destKind === "pad") {
+        html += `<p class="wait">${esc(motionLine(G.rollout, vehicleById(G.rollout.vehicleId)))}</p>`;
       } else {
         html += `<p class="wait">The pad is empty. Roll a vehicle here from the bay.</p>`;
       }
       html += `</div>`;
-      if (G.rollout) {
-        const rv = vehicleById(G.rollout.vehicleId);
-        const dest = G.rollout.destKind === "pad" ? "the pad" : "Mega Bay";
-        const left = Math.max(0, G.rollout.duration - G.rollout.t).toFixed(0);
-        html += `<div class="sec"><div class="k">Roll</div><p class="wait">${rv ? esc(rv.name) : "Vehicle"} is rolling to ${dest} · ${left} s left</p></div>`;
-      }
       html += `<div class="sec"><div class="k">Upgrade</div>`;
       if (b.level < 2) {
         html += actCard("up", "btn-up", "", "Pad level 2", TUNING.PAD_L2_COST, "steel", `The trench widens. The thrust limit becomes ${TUNING.PAD_THRUST_L2} kN.`);
@@ -2012,6 +2189,10 @@
         html += `<p class="wait">The trench is wide. The thrust limit is ${TUNING.PAD_THRUST_L2} kN.</p>`;
       }
       html += `</div>`;
+    }
+    const padMotion = b.type === "pad_orbital" && G.rollout && (G.rollout.kind === "raise" || G.rollout.kind === "lower" || G.rollout.kind === "fire" || G.rollout.destKind === "pad");
+    if (G.rollout && G.rollout.kind !== "fire" && !padMotion) {
+      html += `<p class="wait">${esc(motionLine(G.rollout, vehicleById(G.rollout.vehicleId)))}</p>`;
     }
     html += `</div>`;
 
@@ -2087,10 +2268,14 @@
       }
     }
     if (G.rollout) {
-      const v = vehicleById(G.rollout.vehicleId);
-      const dest = G.rollout.destKind === "pad" ? "the Orbital Pad" : "Mega Bay";
-      const left = Math.max(0, G.rollout.duration - G.rollout.t);
-      lines.push(`${v ? v.name : "Vehicle"} · rolling to ${dest} · ${left.toFixed(0)} s left`);
+      lines.push(motionLine(G.rollout, vehicleById(G.rollout.vehicleId)));
+    }
+    if (G.rollout && G.rollout.kind === "fire") {
+      const ev = G.rollout;
+      const v = vehicleById(ev.vehicleId);
+      const phase = ev.phases[ev.phaseIdx];
+      const left = phase ? Math.max(0, phase.dur - ev.phaseT) : 0;
+      lines.push(`${v ? v.name : "Rocket"} · static fire · ${left.toFixed(0)} s left`);
     }
     for (const v of liveFleet()) {
       if (v.status === "refurb" && v.refurbLeft > 0) {
@@ -2296,20 +2481,32 @@
 
     for (const b of G.buildings) {
       drawBldg(b.gx, b.gy, defOf(b.type), b.level, b.id === G.selectedId ? "sel" : "n", true);
-      if (b.type === "pad_orbital" && performance.now() < G.flameUntil) drawFlame(b);
     }
 
     // vehicles
     for (const v of liveFleet()) {
-      if (v.status === "rolling" && G.rollout && G.rollout.vehicleId === v.id) {
+      const m = G.rollout && G.rollout.vehicleId === v.id ? G.rollout : null;
+      if (m && m.kind === "roll") {
         ctx.strokeStyle = "rgba(232,200,100,0.4)";
         ctx.lineWidth = 2; ctx.setLineDash([6, 6]);
         ctx.beginPath();
-        G.rollout.pts.forEach((p, i) => (i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)));
+        m.pts.forEach((p, i) => (i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)));
         ctx.stroke(); ctx.setLineDash([]);
-        drawVeh(v.wx, v.wy, v, true);
-      } else if (v.buildingId) {
-        drawVeh(v.wx, v.wy, v, false);
+        drawVeh(v.wx, v.wy, v);
+      } else if (v.buildingId || m) {
+        drawVeh(v.wx, v.wy, v);
+      }
+    }
+    if (G.rollout && G.rollout.kind === "fire") {
+      const ev = G.rollout;
+      const v = vehicleById(ev.vehicleId);
+      if (v) {
+        const phase = ev.phases[ev.phaseIdx];
+        const pid = phase ? phase.id : "";
+        if (pid === "ignition" || pid === "burn" || pid === "shutdown" || pid === "anomaly") {
+          drawFlame(v.wx, v.wy, ev.t, pid);
+        }
+        drawFireWord(v.wx, v.wy, ev);
       }
     }
 
@@ -2920,7 +3117,8 @@
 
   function drawGeoReadout() {
     const heading = 90;
-    const pitch = G.event ? Math.max(26, 90 - G.event.t * 14) : 90;
+    // The burn holds the rocket down, so the map pitch stays at 90.
+    const pitch = 90;
     const dLon = 50 / (111.32 * Math.cos(PAD_LAT * Math.PI / 180));
     const endLon = PAD_LON + dLon;
     ctx.save();
@@ -2973,7 +3171,12 @@
     } else if (onScreen > 36 && def.id === "starfactory") {
       ctx.fillStyle = "#4a6a8a";
       ctx.fillRect(x + w * 0.28, y + h - depth - 22, w * 0.44, 18);
-      if (G.factoryJob) {
+      const job = G.factoryJob;
+      if (job && job.kind === "rocket") {
+        const pct = clamp(1 - job.daysLeft / Math.max(1, job.totalDays), 0.12, 1);
+        const rk = rocketOf(job.rocketId);
+        drawRocketBody(x + w / 2, y + h * 0.42, rk.color || "#c8d0d8", rk.engines || 1, rk.mapScale || 1, 0, pct);
+      } else if (job) {
         ctx.fillStyle = "#d4a84b";
         ctx.fillRect(x + 8, y + 8, w - 16, 5);
       }
@@ -2996,47 +3199,143 @@
     }
   }
 
-  function drawVeh(x, y, v, rolling) {
+  // 0 lies flat. 1 stands on the mount. The raise is the only climb from flat to vertical.
+  const NOSE_UP = -Math.PI / 2;
+  function vehPose(v) {
+    const m = G.rollout && G.rollout.vehicleId === v.id ? G.rollout : null;
+    if (m && m.kind === "raise") return clamp(m.t / m.duration, 0, 1);
+    if (m && m.kind === "lower") return 1 - clamp(m.t / m.duration, 0, 1);
+    if (m && m.kind === "fire") return 1;
+    if (v.status === "on_pad" || v.status === "needs_return") return 1;
+    return 0;
+  }
+  function angleDelta(from, to) {
+    let d = to - from;
+    while (d > Math.PI) d -= Math.PI * 2;
+    while (d < -Math.PI) d += Math.PI * 2;
+    return d;
+  }
+  function pathHeading(pts) {
+    for (let i = 0; i < pts.length - 1; i++) {
+      const dx = pts[i + 1].x - pts[i].x;
+      const dy = pts[i + 1].y - pts[i].y;
+      if (dx * dx + dy * dy > 16) return Math.atan2(dy, dx);
+    }
+    return 0;
+  }
+  function segmentHeading(r) {
+    if (!r.pts || r.pts.length < 2 || !r.segLens) return r.flatHeading || 0;
+    let dist = clamp((r.t || 0) / (r.duration || 1), 0, 1) * (r.totalLen || 0);
+    let i = 0;
+    for (; i < r.segLens.length; i++) {
+      if (dist <= r.segLens[i] || i === r.segLens.length - 1) break;
+      dist -= r.segLens[i];
+    }
+    while (i < r.segLens.length - 1 && r.segLens[i] < 4) i++;
+    const a = r.pts[i], b = r.pts[i + 1];
+    return Math.atan2(b.y - a.y, b.x - a.x);
+  }
+  function vehAngle(v) {
+    const m = G.rollout && G.rollout.vehicleId === v.id ? G.rollout : null;
+    if (m && m.kind === "roll") return segmentHeading(m);
+    if (m && m.kind === "raise") {
+      const pose = clamp(m.t / m.duration, 0, 1);
+      const flat = m.flatHeading || 0;
+      return flat + angleDelta(flat, NOSE_UP) * pose;
+    }
+    if (m && m.kind === "lower") {
+      const pose = clamp(m.t / m.duration, 0, 1);
+      const flat = m.flatHeading == null ? Math.PI : m.flatHeading;
+      return NOSE_UP + angleDelta(NOSE_UP, flat) * pose;
+    }
+    if ((m && m.kind === "fire") || v.status === "on_pad" || v.status === "needs_return") return NOSE_UP;
+    return 0;
+  }
+
+  function drawRocketBody(x, y, color, engines, scale, angle, lengthScale) {
+    const s = scale || 1;
+    const grow = lengthScale == null ? 1 : lengthScale;
+    const len = 32 * s * grow;
+    const thick = (engines === 9 ? 11 : 8) * s;
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(angle);
+    ctx.fillStyle = color;
+    ctx.fillRect(0, -thick / 2, Math.max(4, len), thick);
+    if (grow > 0.35) {
+      ctx.beginPath();
+      ctx.moveTo(len, -thick / 2);
+      ctx.lineTo(len + 8 * s, 0);
+      ctx.lineTo(len, thick / 2);
+      ctx.closePath();
+      ctx.fill();
+    }
+    ctx.fillStyle = "#3a4048";
+    ctx.fillRect(-3 * s, -thick * 0.28, 3 * s, thick * 0.56);
+    ctx.restore();
+  }
+
+  function drawVeh(x, y, v) {
     const r = rocketOf(v.rocketId);
     const s = r.mapScale || 1;
-    const sel = v.id === G.selectedVehicleId;
-    if (rolling) {
+    const pose = vehPose(v);
+    const m = G.rollout && G.rollout.vehicleId === v.id ? G.rollout : null;
+    const onTransporter = (m && m.kind === "roll") || (m && m.kind === "lower") || (m && m.kind === "raise" && pose < 0.9);
+    const len = 32 * s;
+    const thick = (r.engines === 9 ? 11 : 8) * s;
+    const ang = vehAngle(v);
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(ang);
+    if (onTransporter) {
+      ctx.globalAlpha = m && m.kind === "raise" ? Math.max(0, 1 - pose) : 1;
       ctx.fillStyle = "#3a342c";
-      ctx.fillRect(x - 14 * s, y + 6, 28 * s, 10);
+      ctx.fillRect(-4, thick * 0.45, len + 14, 8 * s);
+      ctx.globalAlpha = 1;
     }
     if (v.status === "refurb") {
       ctx.strokeStyle = "#d4a84b";
-      ctx.strokeRect(x - 10 * s, y - 36 * s, 20 * s, 42 * s);
+      ctx.strokeRect(-4, -thick / 2 - 4, len + 14, thick + 8);
     }
-    const h = 32 * s, w = (r.engines === 9 ? 11 : 8) * s;
-    ctx.fillStyle = r.color;
-    ctx.fillRect(x - w / 2, y - h, w, h);
-    ctx.fillStyle = rolling ? "#f5c542" : "#ff8a3d";
-    ctx.fillRect(x - 2, y + 2, 4, 3);
-    if (sel) {
-      ctx.strokeStyle = "#d4a84b"; ctx.lineWidth = 1.5;
-      ctx.strokeRect(x - w / 2 - 2, y - h - 2, w + 4, h + 10);
+    if (v.id === G.selectedVehicleId) {
+      ctx.strokeStyle = "#d4a84b";
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(-5, -thick / 2 - 4, len + 16, thick + 8);
     }
+    ctx.restore();
+    drawRocketBody(x, y, r.color, r.engines, s, ang, 1);
     ctx.font = "bold 9px system-ui";
     ctx.fillStyle = "rgba(255,248,220,0.92)";
-    ctx.fillText(v.name, x - 12, y - h - 4);
+    ctx.fillText(v.name, x - 10, y - (16 + pose * (len - 6)));
   }
 
-  function drawFlame(b) {
-    const def = defOf(b.type);
-    const x = b.gx * CELL + def.footprint.w * CELL * 0.5;
-    const baseY = b.gy * CELL + def.footprint.h * CELL - 12;
-    const t = performance.now() / 40;
-    for (let i = 0; i < 8; i++) {
-      const ox = Math.sin(t + i) * 7;
-      const h = 12 + (i % 3) * 6;
-      ctx.fillStyle = i % 2 ? "rgba(255,140,40,0.85)" : "rgba(255,200,60,0.75)";
+  // The flame leaves the base and runs east. The clock is the fire's own time, so Pause holds it.
+  function drawFlame(x, y, t, pid) {
+    const n = pid === "shutdown" ? 4 : pid === "ignition" ? 7 : 11;
+    const reach = pid === "shutdown" ? 18 : pid === "ignition" ? 28 : pid === "anomaly" ? 52 : 40;
+    for (let i = 0; i < n; i++) {
+      const oy = Math.sin(t * 11 + i * 1.7) * 4;
+      const len = reach * (0.45 + (i % 5) * 0.14);
+      ctx.fillStyle = i % 2 ? "rgba(255,120,30,0.9)" : "rgba(255,210,90,0.8)";
       ctx.beginPath();
-      ctx.moveTo(x + ox - 4, baseY);
-      ctx.lineTo(x + ox, baseY - h);
-      ctx.lineTo(x + ox + 4, baseY);
+      ctx.moveTo(x, y + oy - 3);
+      ctx.lineTo(x + len, y + oy);
+      ctx.lineTo(x, y + oy + 3);
       ctx.fill();
     }
+  }
+
+  function burnStarted(ev) {
+    const phase = ev.phases && ev.phases[ev.phaseIdx];
+    const pid = phase ? phase.id : "";
+    return pid === "ignition" || pid === "burn" || pid === "shutdown" || pid === "anomaly" || pid === "debrief" || pid === "fail";
+  }
+  function drawFireWord(x, y, ev) {
+    if (!burnStarted(ev)) return;
+    const word = ev.success ? "Held" : (ev.limiter === "pad" ? "Pad" : "Engine");
+    ctx.font = "bold 12px system-ui";
+    ctx.fillStyle = ev.success ? "#c8e2a8" : "#e09080";
+    ctx.fillText(word, x - 8, y - 54);
   }
 
   // ── Input ──
@@ -3146,7 +3445,7 @@
 
   window.addEventListener("keydown", (ev) => {
     if (ev.key === "Escape") {
-      if (G.event) { skipEvent(); return; }
+      if (G.rollout && G.rollout.kind === "fire") { skipEvent(); return; }
       if (G.wikiSheet) { G.wikiSheet = false; renderWiki(); return; }
       if (G.fleetSheet) { G.fleetSheet = false; renderFleetList(); return; }
       if (G.goalSheet) { G.goalSheet = false; renderObjectives(); return; }
@@ -3209,24 +3508,23 @@
   function frame(now) {
     const dt = Math.min(0.05, (now - last) / 1000);
     last = now;
-    if (G.event) {
-      // Pause holds the fire. The close timer lives inside updateEvent.
-      if (!G.paused) updateEvent(dt);
-    } else {
-      // Pause stops the day clock, so jobs, refurb, and supply wait with it.
-      if (!G.paused) G.dayAcc += dt * 1000;
-      while (G.dayAcc >= MS_PER_DAY) { G.dayAcc -= MS_PER_DAY; dayTick(); }
-      updateRollout(dt);
-      if (G.rollout || G.factoryJob) {
-        inspAcc += dt;
-        if (inspAcc > 0.3) { inspAcc = 0; renderInspector(); renderResources(); renderFleetList(); renderJobNote(); }
+    if (!G.paused) {
+      // The burn holds the day. The same clock moves the roll, the raise, the lower, and the flame.
+      if (!(G.rollout && G.rollout.kind === "fire")) {
+        G.dayAcc += dt * 1000;
+        while (G.dayAcc >= MS_PER_DAY) { G.dayAcc -= MS_PER_DAY; dayTick(); }
       }
+      updateRollout(dt);
+    }
+    if (!G.paused && (G.rollout || G.factoryJob)) {
+      inspAcc += dt;
+      if (inspAcc > 0.3) { inspAcc = 0; renderInspector(); renderResources(); renderFleetList(); renderJobNote(); }
     }
     draw();
     requestAnimationFrame(frame);
   }
 
-  window.addEventListener("resize", () => { resize(); if (G.event) resizeEventCanvas(); });
+  window.addEventListener("resize", () => { resize(); });
   document.getElementById("ver-label").textContent = TEST ? `${VERSION}. Test start.` : VERSION;
   resize();
   G.cam.x = (MAP_W * CELL) / 2 - W / 2;
