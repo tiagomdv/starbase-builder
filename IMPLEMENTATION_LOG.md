@@ -125,3 +125,29 @@ History of what **shipped**, keyed by **version**.
 - When a build finishes, the log line carries a button that rolls that rocket to Mega Bay. It uses the same roll as the Starfactory card, and it leaves once the rocket has moved.
 - The Goals, Wiki, and Fleet words are larger and brighter.
 - This version adds no new building or rocket and changes no rule. The previous live file is `archive/index-0.5.0-structure.html`.
+
+## `0.5.2-realism` — 2026-10-21
+
+**Version:** `0.5.2-realism`
+
+- Open `index.html?test` and the day is about half a second. Steel starts at 2000. The version label reads `0.5.2-realism · Test start`. There is no test button, and the game still saves nothing. A normal open still starts at 150 steel, and a day is still 4 seconds.
+- A fresh Merlin is a Merlin 1A at 318 kN. Raise Merlin thrust fits a Merlin 1C at 343 kN. The old 381 kN step is gone.
+- Each fire lowers thrust. When the Mega Bay finishes the refurb, that thrust comes back.
+- A build takes 8 to 12 days. A clean refurb takes 2 days. A refurb after a miss takes 4 or 5 days. Raise Merlin thrust and Lighten the stage each take 3 to 5 days. Pad level 2 still cuts one day off a clean refurb.
+- Propellant rises by 3 a day. A static fire still draws 8, so the refill covers about one fire every 2 to 3 days.
+- Payload to low Earth orbit comes from one stage. The sum uses thrust, specific impulse, dry mass, and propellant mass, and it spends the burn against gravity. It does not use the room under the 27572 kg liftoff mass. A fresh Merlin 1A shows 282 kg. Lighten the stage still cuts 80 kg of dry mass, and that cut adds 80 kg of payload. The rocket does not fly.
+- Wiki gains a Numbers page. Each line reads the game value from the same figures the code uses, then names the real figure, a source, and the simplification. One line says real Falcon 1 flights launched from Omelek in the Kwajalein Atoll, and this game builds them at Starbase.
+- No tanks, no RP-1 and oxygen split, and no flight. The previous live file is `archive/index-0.5.1-liftoff.html`.
+
+## `0.5.3-polish` — 2026-10-21
+
+**Version:** `0.5.3-polish`
+
+- Pause sits beside the day count. The button keeps one width, so Resume does not move the counts. The line above the count reads Paused.
+- Press Pause and the day clock stops. A static fire already on the screen stops with it, and a new fire waits until Resume. Builds, refurbs, upgrades, and the propellant refill wait with the clock. A rollout already on the road can finish.
+- Goals, Wiki, and Fleet have an outline, padding, and a hover state.
+- Wiki opens over the game from the Wiki button beside the log. The same button or Escape closes it. The articles sit on the left. The open article sits on the right.
+- Each article is a title, a few short paragraphs, and at most one fact box. The numbers come from `TUNING` and `ROCKET_DEFS`. A word in the text opens another article.
+- Where the game differs from the 2008 Falcon 1 sources, the article ends with a note headed In real life. Kestrel stays off those pages until the upper stage is on. The version label stays `0.5.3-polish`.
+- The rocket sheet says one burn, and it calls the sum a one-stage payload. The user's guide says the Merlin does not restart. The data sheet lists 420 kg from two burns and a liftoff mass of 27670 kg.
+- No game number changed. The previous live file is `archive/index-0.5.2-realism.html`.
