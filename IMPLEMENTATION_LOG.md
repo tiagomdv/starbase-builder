@@ -149,5 +149,16 @@ History of what **shipped**, keyed by **version**.
 - Wiki opens over the game from the Wiki button beside the log. The same button or Escape closes it. The articles sit on the left. The open article sits on the right.
 - Each article is a title, a few short paragraphs, and at most one fact box. The numbers come from `TUNING` and `ROCKET_DEFS`. A word in the text opens another article.
 - Where the game differs from the 2008 Falcon 1 sources, the article ends with a note headed In real life. Kestrel stays off those pages until the upper stage is on. The version label stays `0.5.3-polish`.
+- The Thrust article separates liftoff mass, in kilograms, from weight at liftoff, which is gravity's pull in kilonewtons. Thrust has to beat the weight.
 - The rocket sheet says one burn, and it calls the sum a one-stage payload. The user's guide says the Merlin does not restart. The data sheet lists 420 kg from two burns and a liftoff mass of 27670 kg.
 - No game number changed. The previous live file is `archive/index-0.5.2-realism.html`.
+
+## `0.6.0-motion` — 2026-10-21
+
+**Version:** `0.6.0-motion`
+
+- A Falcon 1 under construction lies in the Starfactory. Roll to Mega Bay drives it flat along the yard road. The bay keeps it flat. That trip needs a Mega Bay with a free slot.
+- Roll to the pad follows the same road. The nose points along the road, so the drive back faces the bay. At the pad the transporter raises the rocket. Static fire appears after the raise.
+- The burn plays on the map. The flame runs east. The rocket stays vertical, and the pitch readout stays at 90°. The static-fire stage stays closed.
+- A hold prints Held when the burn starts. A miss names the engine or the pad. Pause holds the roll, the raise, the lower, and the burn.
+- Refurb days start when the rocket is back in the bay. The fire rule is unchanged. The previous live file is `archive/index-0.5.3-polish.html`.
