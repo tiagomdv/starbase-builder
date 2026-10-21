@@ -2,25 +2,25 @@
 
 This game follows the SpaceX story. You learn how the rockets, the tanks, and the pads work by running them. The detail stays close to real hardware. The first chapter is small on purpose. You finish Falcon 1 in Texas before any later rocket arrives.
 
-Open `index.html` in a browser. There is no build step. Open `index.html?test` for a faster day and more starting steel. That start is not saved.
+Open `index.html` in a browser. There is no build step. Open `index.html?test` for a faster day, more starting steel, and full tanks. That start is not saved.
 
-**Live release:** `0.6.0-motion`.
+**Live release:** `0.7.0-tanks`.
 
 Owned ground is one red dashed line. The water side follows the coast. The back side sits about 8 km inland on the solid beach, and it follows the bay where the water cuts in. The word on that line is limit.
 
 Starfactory, Mega Bay, and the Orbital Pad are separate buys. Each one sits on its own plot. The building is about one tenth of that plot. The Land column counts the plots.
 
-The header is the range console. A lamp reads Range open or Range closed. The wind sits under that line. Steel, propellant, fleet, and day are numerals in the center. The version label sits under those four counts.
+The header is the range console. A lamp reads Range open or Range closed. The wind sits under that line. Steel, RP-1, liquid oxygen, fleet, and day are numerals in the center. The version label sits under those counts.
 
-Pause sits beside the day count. The line above the count reads Paused. The day clock stops, and a static fire stops with it. Builds, refurbs, upgrades, and the propellant refill wait. A rollout already on the road can finish.
+Pause sits beside the day count. The line above the count reads Paused. Pause stops the day clock, and a static fire stops with it. Builds, refurbs, upgrades, and the tank refill wait while paused. The clock also stops while a rocket loads propellant or burns. A roll, a raise, and a lower leave the day running. More than one rocket can roll at the same time, and the factory can build during that roll or during a fire. The pad still holds one.
 
 Goals, Wiki, and Fleet have an outline. Wiki opens over the game. The articles read the live settings. A note says In real life when the game and the Falcon 1 sources differ.
 
-The game has no sound until `10.3.0-sound`. Falcon 1 is the only rocket you can build. A static fire holds when the Merlin thrust, the pad, the propellant, and the wind all clear. The sky repeats from the day number, so you can wait for a calm day.
+The game has no sound until `10.3.0-sound`. Falcon 1 is the only rocket you can build. A static fire holds when the Merlin thrust, the pad, the RP-1, the liquid oxygen, and the wind all clear. The sky repeats from the day number, so you can wait for a calm day.
 
 Specific impulse and engine mass are on the rocket sheet. They do not decide this test yet. The same sheet shows stage dry mass, liftoff mass, and a one-stage payload. A fresh Merlin is a Merlin 1A at 318 kN. Raise Merlin thrust fits a Merlin 1C at 343 kN. That sum is not a flown orbit. Lighten the stage still cuts dry mass on that rocket. A refurb puts the thrust from the fires back.
 
-A build takes 8 to 12 days. A clean refurb takes 2 days. The propellant refill makes you wait between fires. The flight itself is still later. Propellant is still one stock.
+A build takes 8 to 12 days. A clean refurb takes 2 days. RP-1 and liquid oxygen sit in separate tanks, and each day refills them up to the tank. A short tank stops the fire. The flight itself is still later.
 
 The guide below is the rest of the story. The build map is `design-docs/program-roadmap-design.html`.
 
@@ -28,7 +28,7 @@ The guide below is the rest of the story. The build map is `design-docs/program-
 
 Falcon 1 is a small orbital rocket with one Merlin engine on the first stage. That engine burns two fluids. RP-1 is refined kerosene. Liquid oxygen is the oxidizer. The engine needs both. A tank of one fluid cannot stand in for the other.
 
-You buy each fluid at a price the panel shows before you pay. Each fluid sits in its own tank. You can build a larger tank when the small one runs dry. A static fire and a flight each draw a printed amount of RP-1 and a printed amount of liquid oxygen. If either tank is short, the rocket stays on the ground.
+Each fluid sits in its own tank on the Orbital Pad card. One buy doubles that tank. It does not speed the daily refill. A static fire loads a printed amount of RP-1 and a printed amount of liquid oxygen. If either tank is short, the rocket stays on the ground. A flight load is still later.
 
 The Starfactory builds the rocket from steel and holds the finished article until the Mega Bay takes it. The bay houses the fleet and does the refurb after a firing. The pad is where the rocket lights. The pad is not a hangar. After the fire, the rocket goes back to the bay.
 
