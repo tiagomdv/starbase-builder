@@ -162,3 +162,19 @@ History of what **shipped**, keyed by **version**.
 - The burn plays on the map. The flame runs east. The rocket stays vertical, and the pitch readout stays at 90°. The static-fire stage stays closed.
 - A hold prints Held when the burn starts. A miss names the engine or the pad. Pause holds the roll, the raise, the lower, and the burn.
 - Refurb days start when the rocket is back in the bay. The fire rule is unchanged. The previous live file is `archive/index-0.5.3-polish.html`.
+
+## `0.7.0-tanks` — 2026-10-21
+
+**Version:** `0.7.0-tanks`
+
+- The header shows RP-1 and liquid oxygen in kilograms. The old single propellant number is gone.
+- A static fire loads 220 kg of RP-1 and 484 kg of liquid oxygen. That is 2.2 kg of liquid oxygen for each kg of RP-1. The rocket equation still uses 21092 kg for a full stage.
+- Each tank starts at two fires. One buy on the Orbital Pad card doubles that tank for 24 steel. The buy does not speed the daily refill.
+- Before the burn, two bars beside the rocket fill for 2 seconds. The header numbers fall as they fill. Pause stops the fill. A closed range or a short tank does not start it. The log names the short fluid.
+- A pad miss or an engine miss still spends both fluids and still counts. The card shows fires in the last 30 days, and days since the last fire. With no fire yet, the second line says "No fire yet."
+- The day clock stops while a rocket loads propellant or burns. A roll, a raise, and a lower leave the day running, so steel, the tanks, and a factory job keep their pace. A test day is half a second.
+- The two fill bars are drawn in screen pixels, 14 pixels wide, beside the rocket.
+- The Numbers page links the Merlin page, the SmallSat chart, and the user's guide on the 140 kg per second note.
+- The factory can start a rocket while another rocket rolls or burns. The pad still holds one rocket.
+- More than one rocket can roll at the same time. The pad still holds one. A rocket on the way into Mega Bay keeps its slot. A rocket that is out still has a slot waiting, so it can come home.
+- `index.html?test` fills both tanks and starts steel at 2000. The Wiki Propellant page and the Numbers page read these settings. The previous live file is `archive/index-0.6.0-motion.html`.

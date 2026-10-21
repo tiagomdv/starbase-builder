@@ -96,7 +96,7 @@
 
         <h2 id="versions">Version draft</h2>
         <p>The label is <code>N.x.y-codename</code>. The first number is the chapter. Zero is Falcon 1 in Texas. Later chapters are the patches. The middle number is one playable slice. The last number is a small fix on that slice, and we do not spend it in advance. A version ships when you can see the change in the browser. If a row feels wrong after a sitting, we edit this table before we write the code.</p>
-        <p>The live release is <code>0.5.1-liftoff</code>. The rocket sheet shows stage dry mass, the structural limit, and payload to low Earth orbit. Lighten the stage cuts dry mass on that rocket. Map motion comes early at <code>0.6.0-motion</code> and gets a final pass at <code>0.14.0-motion-final</code>. The tanks, cadence, the suborbital flight, orbit, the contract, and recovery follow that first motion. The Falcon 1 rules are done at <code>0.12.0-recovery</code>. <code>0.13.0-picture</code> draws the three buildings. Houses and a test stand come in the yard rows below.</p>
+        <p>The live release is <code>0.7.0-tanks</code>. The header shows RP-1 and liquid oxygen. A short tank stops the fire. Map motion came in at <code>0.6.0-motion</code> and gets a final pass at <code>0.13.0-motion-final</code>. The suborbital flight, orbit, the contract, and recovery follow the tanks. The Falcon 1 rules are done at <code>0.11.0-recovery</code>. <code>0.12.0-picture</code> draws the three buildings. Houses and a test stand come in the yard rows below.</p>
         <table class="doc">
           <thead><tr><th>Phase</th><th>Version</th><th>What you can do when it ships</th></tr></thead>
           <tbody>
@@ -108,15 +108,14 @@
             <tr><td>0 · Falcon 1</td><td>0.5.1-liftoff</td><td>Shipped.</td></tr>
             <tr><td>0 · Falcon 1</td><td>0.5.2-realism</td><td>Real Falcon 1 numbers, a fast test start with <code>index.html?test</code>, and a Numbers page in the Wiki.</td></tr>
             <tr><td>0 · Falcon 1</td><td>0.5.3-polish</td><td>A small UI patch. The Pause button works and sits in a clearer spot. The Wiki pages get headings and short sections instead of a wall of paragraphs. The Goals and Fleet buttons get a visible outline so they read as buttons.</td></tr>
-            <tr><td>0 · Falcon 1</td><td>0.6.0-motion</td><td>The loop plays on the map, like the roll to Mega Bay does now. The build shows in the Starfactory. The rocket rolls from the Starfactory to Mega Bay, then to the Orbital Pad, rises onto the mount, and the static fire burns on the map. The static-fire modal closes. This version only animates steps that already exist. Later versions add their own animations on top of the same system. Falcon 1 arrives as one rocket. Sections stacked in the bay wait for Starship. No new fire rule.</td></tr>
-            <tr><td>0 · Falcon 1</td><td>0.7.0-tanks</td><td>RP-1 and liquid oxygen, each with a price, a tank, and a buy. A short tank stops the rocket. The tanks refill daily. The burn uses about 2.3 kg of oxygen for each kg of RP-1. Both tank buys sit on the Orbital Pad card. Refueling plays on the pad, with no new modal.</td></tr>
-            <tr><td>0 · Falcon 1</td><td>0.8.0-cadence</td><td>Fires in the last 30 days, and days since the last fire.</td></tr>
-            <tr><td>0 · Falcon 1</td><td>0.9.0-hop</td><td>The first suborbital flight. The same rocket leaves the stand. Altitude and speed come from thrust, mass, and the load. The flight also shows mass falling as propellant burns, thrust against weight, and wind load at max-Q, when the air pushes hardest.</td></tr>
-            <tr><td>0 · Falcon 1</td><td>0.10.0-orbit</td><td>An upper-stage burn leaves an orbit card. A miss names the short part.</td></tr>
-            <tr><td>0 · Falcon 1</td><td>0.11.0-contract</td><td>One commercial contract. Pay arrives when the orbit card matches.</td></tr>
-            <tr><td>0 · Falcon 1</td><td>0.12.0-recovery</td><td>Recover or fly expendable. Payload capacity and bay days both change. This closes the Falcon 1 rules.</td></tr>
-            <tr><td>0 · Falcon 1</td><td>0.13.0-picture</td><td>Starfactory, Mega Bay, and the Orbital Pad get a readable picture on the map. Same seats. Same buys. No new rule.</td></tr>
-            <tr><td>0 · Falcon 1</td><td>0.14.0-motion-final</td><td>A final pass on every animation once the buildings are drawn. Speeds, timing, and look all match. It covers the roll, the raise, the fire, refueling, flight, and landing.</td></tr>
+            <tr><td>0 · Falcon 1</td><td>0.6.0-motion</td><td>Shipped. The loop plays on the map. The rocket rolls flat, rises onto the mount, and the static fire burns on the map. The static-fire modal stays closed.</td></tr>
+            <tr><td>0 · Falcon 1</td><td>0.7.0-tanks</td><td>Shipped. RP-1 and liquid oxygen, each with a tank and one buy on the Orbital Pad card. The mix is 2.2 kg of liquid oxygen per kg of RP-1. A short tank stops the fire. The tanks refill daily. Refueling plays on the pad. The card shows fires in the last 30 days and days since the last fire.</td></tr>
+            <tr><td>0 · Falcon 1</td><td>0.8.0-hop</td><td>The first suborbital flight. The same rocket leaves the stand. Altitude and speed come from thrust, mass, and the load. The flight also shows mass falling as propellant burns, thrust against weight, and wind load at max-Q, when the air pushes hardest.</td></tr>
+            <tr><td>0 · Falcon 1</td><td>0.9.0-orbit</td><td>An upper-stage burn leaves an orbit card. A miss names the short part.</td></tr>
+            <tr><td>0 · Falcon 1</td><td>0.10.0-contract</td><td>One commercial contract. Pay arrives when the orbit card matches.</td></tr>
+            <tr><td>0 · Falcon 1</td><td>0.11.0-recovery</td><td>Recover or fly expendable. Payload capacity and bay days both change. This closes the Falcon 1 rules.</td></tr>
+            <tr><td>0 · Falcon 1</td><td>0.12.0-picture</td><td>Starfactory, Mega Bay, and the Orbital Pad get a readable picture on the map. Same seats. Same buys. No new rule.</td></tr>
+            <tr><td>0 · Falcon 1</td><td>0.13.0-motion-final</td><td>A final pass on every animation once the buildings are drawn. Speeds, timing, and look all match. It covers the roll, the raise, the fire, refueling, flight, and landing.</td></tr>
             <tr><td>1 · Falcon fleet</td><td>1.0.0-falcon9</td><td>Nine Merlins, more of both fluids, a pad that must already be strong.</td></tr>
             <tr><td>1 · Falcon fleet</td><td>1.1.0-pad-b</td><td>A second pad on the Texas site. Same pad, second queue.</td></tr>
             <tr><td>1 · Falcon fleet</td><td>1.2.0-heavy</td><td>Falcon Heavy is three first stages on the pad with the higher thrust limit.</td></tr>
@@ -139,14 +138,14 @@
             <tr><td>8 · Outer sites</td><td>8.1.0-mars</td><td>A Mars site after the Moon site. The wait is longer. The same supply rule. Starbase in Texas stays the factory.</td></tr>
             <tr><td>9 · Florida</td><td>9.0.0-florida</td><td>A third Starbase, same buildings and same fluids as Louisiana, empty at first. Texas or Louisiana can send a rocket there in a counted number of days. Only after Louisiana is fun.</td></tr>
             <tr><td>10 · Picture and record</td><td>10.0.0-shape</td><td>When a building or an engine gains a level, its shape on the map changes. A construction state shows foundations, steel, then a finished building.</td></tr>
-            <tr><td>10 · Picture and record</td><td>10.1.0-plume</td><td>Plumes and a clearer coast. The three halls already have a picture from <code>0.13.0-picture</code>. This row is the later generated set: buildings, then vehicles, then plumes. The game stays one <code>index.html</code> while that still works. Do not hold a mechanic for the art.</td></tr>
+            <tr><td>10 · Picture and record</td><td>10.1.0-plume</td><td>Plumes and a clearer coast. The three halls already have a picture from <code>0.12.0-picture</code>. This row is the later generated set: buildings, then vehicles, then plumes. The game stays one <code>index.html</code> while that still works. Do not hold a mechanic for the art.</td></tr>
             <tr><td>10 · Picture and record</td><td>10.2.0-lessons</td><td>The lesson page gains pictures. Each part sits inside the thing it belongs to. Merlin sits inside Falcon 1. Thrust and specific impulse sit inside Merlin. A card stays short enough to open from a button in the game. No new game rule.</td></tr>
             <tr><td>10 · Picture and record</td><td>10.3.0-sound</td><td>Sound comes back. A build, a countdown, a fire, and a landing each get a tone. Mute stays in the browser. The live game is quiet until this row.</td></tr>
             <tr><td>10 · Picture and record</td><td>10.4.0-saves</td><td>Save slots, a table of past flights, and a harder or easier start.</td></tr>
           </tbody>
         </table>
 
-        <p>One slice at a time, in the order of that table. Play it. Change the row if the sitting feels wrong. The Falcon 1 rules are done at <code>0.12.0-recovery</code>, when you can play from an empty pad through a recovered first stage and a paid orbit without needing another rocket. The three halls stay plain until <code>0.13.0-picture</code>. Map motion comes early at <code>0.6.0-motion</code> and gets a final pass at <code>0.14.0-motion-final</code>. The static fire stays in the modal until <code>0.6.0-motion</code>.</p>
+        <p>One slice at a time, in the order of that table. Play it. Change the row if the sitting feels wrong. The Falcon 1 rules are done at <code>0.11.0-recovery</code>, when you can play from an empty pad through a recovered first stage and a paid orbit without needing another rocket. The three halls stay plain until <code>0.12.0-picture</code>. Map motion comes early at <code>0.6.0-motion</code> and gets a final pass at <code>0.13.0-motion-final</code>. The static fire stays in the modal until <code>0.6.0-motion</code>.</p>
 
         <h2 id="patches">Patches</h2>
         <ol>
@@ -160,7 +159,7 @@
         </ol>
 
         <h2 id="later">Later phases</h2>
-        <p>Phases 0 through 5 are the draft you already had. Phases 6 through 10 are the future-feature notes, now versioned, and they stay below <code>5.0.0-compute</code>. Map motion comes early at <code>0.6.0-motion</code>, inside Falcon 1, and gets a final pass at <code>0.14.0-motion-final</code>. Building pictures are <code>0.13.0-picture</code>, after the Falcon 1 rules close at <code>0.12.0-recovery</code>. A newer idea is a new row under phase 10, or a new phase 11, until you move it.</p>
+        <p>Phases 0 through 5 are the draft you already had. Phases 6 through 10 are the future-feature notes, now versioned, and they stay below <code>5.0.0-compute</code>. Map motion comes early at <code>0.6.0-motion</code>, inside Falcon 1, and gets a final pass at <code>0.13.0-motion-final</code>. Building pictures are <code>0.12.0-picture</code>, after the Falcon 1 rules close at <code>0.11.0-recovery</code>. A newer idea is a new row under phase 10, or a new phase 11, until you move it.</p>
         <p>An older local prototype at <code>~/starship-dev/index.html</code> already played a longer loop. The ladder, the landing choice, and the flight you watch come from that loop. Its dark dashboard stays out. Its coin flip at liftoff stays out.</p>
         <ol>
           <li><strong>6 · Yard.</strong> Land beside the pad, a workforce count, houses for the shift, then one-time payments for the first suborbital flight, the first orbit, the first landing, and a long run of recoveries.</li>
