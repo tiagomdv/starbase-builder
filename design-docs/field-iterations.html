@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Field iterations</title>
+<style>
+  :root {
+    --paper: #f4ead8;
+    --ink: #24180f;
+    --muted: #6d5c4c;
+    --line: #c9b89a;
+    --gulf: #1b6772;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: #d7c7a6;
+    color: var(--ink);
+    font: 17px/1.45 Georgia, "Iowan Old Style", Palatino, serif;
+  }
+  a { color: var(--gulf); }
+  header.top {
+    padding: 22px 28px 10px;
+    background: var(--paper);
+    border-bottom: 1px solid var(--ink);
+  }
+  h1 { font-size: 28px; margin: 0 0 6px; }
+  .meta { color: var(--muted); margin: 0; }
+  .role {
+    margin: 0 0 14px;
+    padding: 12px 14px;
+    background: #24180f;
+    color: #f4ead8;
+    border-left: 6px solid #c45c26;
+    font: 15px/1.4 system-ui, sans-serif;
+  }
+  .role b { display: block; margin-bottom: 4px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #e7c27a; }
+  .wrap { display: grid; grid-template-columns: 220px 1fr; max-width: 1080px; }
+  nav {
+    position: sticky;
+    top: 0;
+    align-self: start;
+    max-height: 100vh;
+    overflow: auto;
+    padding: 18px 14px 28px 22px;
+    background: #efe2c9;
+    border-right: 1px solid var(--line);
+  }
+  nav a { display: block; margin: 6px 0; text-decoration: none; }
+  nav a:hover { text-decoration: underline; }
+  main { padding: 8px 32px 64px; background: var(--paper); }
+  h2 { font-size: 22px; margin: 28px 0 8px; }
+  h3 { font-size: 18px; margin: 18px 0 6px; }
+  p { margin: 8px 0; max-width: 68ch; }
+  ul, ol { max-width: 70ch; }
+  .cut {
+    border: 1px solid var(--ink);
+    background: #fffaf0;
+    padding: 12px 14px 4px;
+    margin: 12px 0 18px;
+    max-width: 860px;
+  }
+  code { font-family: ui-monospace, monospace; font-size: 0.92em; }
+  table { border-collapse: collapse; width: 100%; max-width: 860px; font-size: 15px; margin: 10px 0 16px; }
+  th, td { border-top: 1px solid var(--line); text-align: left; vertical-align: top; padding: 6px 8px 6px 0; }
+  @media (max-width: 800px) {
+    .wrap { grid-template-columns: 1fr; }
+    nav { position: static; max-height: none; border-right: 0; border-bottom: 1px solid var(--line); }
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <aside class="role">
+    <b>What this page is</b>
+    Field iterations is the log of the map tries, pass by pass. It records what changed. It is not a second game.
+    The game you play is <code>index.html</code>, at <code>0.2.1-field</code>. Pull request 4 is merged. It holds the gulf shore, the copper owned line, and the land column. This page is not in that pull request.
+  </aside>
+  <h1>Field iterations</h1>
+  <p class="meta">Author: Tiago. Started: 2026-10-02. Status: Iterating.</p>
+  <p class="meta"><a href="field-and-control.html">field-and-control.html</a> is fixed. Research there is done. This page, the field lab, and the site-objects page are the ones that change as we try a look and lock it.</p>
+</header>
+<div class="wrap">
+<nav>
+  <a href="#how">How a try works</a>
+  <a href="#pages">Which page</a>
+  <a href="#pass1">Pass 1 · the main</a>
+  <a href="#field">Field cut</a>
+  <a href="#lab">Field lab</a>
+  <a href="#pass2">Pass 2 · the map</a>
+  <a href="#control">Control cut</a>
+  <a href="#next">Next</a>
+</nav>
+<main>
+
+<h2 id="how">How a try works</h2>
+<p>Write each pass on this page, and leave it here. A later pass does not rewrite an earlier one. When you pick a cut, add one line under that pass. An unused cut stays.</p>
+<p>Do not judge the picture from a drawing inside this page. Open a real page, change that page, and look at it. This file records what the page is trying to do.</p>
+<p>The field trial is <a href="field-lab.html"><code>design-docs/field-lab.html</code></a>. It sits with the other design pages. It is not <code>starbase-builder/index.html</code>. It is not Starbase Record. Desks, prices, saves, and fire rules stay out of the lab.</p>
+<p>Starbase Record is paused at <code>arquivo/starbase-paused/starbase-record</code>. The coast game stays the live builder page. A feel pass does not edit either index.</p>
+<p>When you accept a field look, say so. Then the accepted drawing merges into Starbase Record’s <code>index.html</code>. That merge gets a version and a pull request. Not before.</p>
+<p>A control try gets its own page later. This lab is the map subject of the field. It is not the object catalog.</p>
+
+<h2 id="pages">Which page</h2>
+<p>One subject can have its own design page when it has its own picture or its own list. A new page does not replace the fixed research.</p>
+<table>
+  <thead><tr><th>Page</th><th>Changes?</th><th>Holds</th></tr></thead>
+  <tbody>
+    <tr><td><a href="field-and-control.html">field-and-control.html</a></td><td>No. Fixed.</td><td>The finished research. Bands, meters, flight, and what Mission shows.</td></tr>
+    <tr><td>field-iterations.html</td><td>Yes.</td><td>Each look we try, and the line when you accept one.</td></tr>
+    <tr><td><a href="field-lab.html">field-lab.html</a></td><td>Yes.</td><td>The map you open. A globe, and one flat coast.</td></tr>
+    <tr><td><a href="site-objects-design.html">site-objects-design.html</a></td><td>Yes.</td><td>Objects on that map. The buy rule, and the parts of each main, with their pictures.</td></tr>
+  </tbody>
+</table>
+<p>A brainstorm changes the lab, the object page, or both, and adds a pass on this page. It does not rewrite the fixed research. If a locked choice disagrees with that research, write the choice here. Leave the research page as it was.</p>
+<p>The field has two subjects now.</p>
+<ul>
+  <li><b>Map.</b> The coast, the disk, the owned shape, and how zoom changes that land. Change it in the field lab, then note the pass here.</li>
+  <li><b>Objects.</b> Starfactory, Mega Bay, the pad, and the parts that appear up close. Change the list and the pictures on the site-objects page. The lab may draw them only to see scale. It does not keep a second part list.</li>
+</ul>
+<p>Flight is a third subject, and it is not open. The hop arc, the orbit line, and the flame in the trench belong there. They wait until the map and the objects are readable. The control layer stays one subject until you leave the field. Splitting the desks earlier adds pages before there is a control lab.</p>
+
+<h2 id="pass1">Pass 1 · the main</h2>
+<p>Opened 2026-10-02. No cut is chosen yet. The first picture to open is the field lab.</p>
+<p>The shipping grid stays <code>250px 1fr 320px</code>. The columns do not slide. Mission still replaces only the Now body. The field still draws World, Region, Site, and Work from meters per pixel. Those rules live on the rules page. The lab only tries the look.</p>
+
+<h2 id="field">Field cut</h2>
+<div class="cut">
+<h3>What the picture should feel like</h3>
+<p>The field is a place you watch. Color does the first read. Type stays in one corner. A building is a shape before it is a name.</p>
+<ul>
+  <li>Ocean is gulf teal. Land is warm paper. A site dot is copper. The track is the same copper, one line.</li>
+  <li>World is a disk and dots. Region is shore and one soft owned shape. Site is three different buildings. Work is meters, with other mains dimmed.</li>
+  <li>A hop is a short arc that comes back. An orbit is a closed line around the disk. A static fire stays on the mount, with flame in the east trench.</li>
+  <li>Names appear for the selected main, and in Work for the part under the pointer. The rest of the field stays quiet.</li>
+  <li>The corner shows the band, or Flight while the clock runs, and meters per pixel. During a flight it also shows altitude, speed, and downrange. Those three match Mission.</li>
+  <li>Follow eases the camera. A band chip may jump. A wheel tick does not.</li>
+</ul>
+<p>Leave out a navball, a second map, parcel outlines, acre numbers on the land, and a label on every part.</p>
+</div>
+
+<h2 id="lab">Field lab</h2>
+<p>Opened 2026-10-02 as the first drawing of the field cut. Scroll zooms. Drag pans. The four chips jump to 18,000, 1,600, 100, and 4 meters per pixel. World recenters on the Texas pin. The bands use the same cuts as the rules page: 8,000, 600, and 24.</p>
+<p>Texas is a solid copper dot. Louisiana and Florida are faint, because the game still hides them until they open. The factory, the bay, and the pad use stand-in seats so the bands can be seen. Real seats stay on the rules page until the merge.</p>
+<p>Site lets you select a main. Work draws the mount, the east trench, the plate, the pumps, and the west water tank. Flight, the hop arc, and the orbit line are not in this drawing yet.</p>
+
+<h2 id="pass2">Pass 2 · the map</h2>
+<p>2026-10-02. The first lab drawing was opened at the four chips. World was one oval on a disk. Region and Site were empty water, because the shore was about 3 km wide. The three mains were the same rectangle, stacked on the Texas dot. Work was a tan page and a pad a few pixels wide.</p>
+<p>World, Region, and Site chips stay 18,000, 1,600, and 100 meters per pixel. Every chip recenters on the Texas pin. Those three views share one coast: a Gulf-sized land mass, a Florida shape, Cuba, and a shore that runs past the pad and bends toward Louisiana. The pad sits just inland of that shore. Texas is a solid copper dot. Louisiana and Florida stay faint.</p>
+<p>The factory, the bay, and the pad use stand-in seats several kilometers apart, so the 36 px site floor does not pile them into one speck. Each has its own silhouette. A road joins them at Site. The owned ground is one soft shape. At Work the parts stay true meters: a mount, an east trench that narrows, a plate, pumps, and a round water tank. The other mains dim. The Work chip in this lab is 1.25 meters per pixel, not the 4 on the research page. At 4, a 16 m mount is 4 px and does not read as a pad. Real seats still wait on the fixed research page.</p>
+<p>World is the same globe as the coast game. It uses <code>geo-land.js</code>, the real country outlines, blue ocean, and green land. Drag turns the globe. The World chip turns it back to the Texas pin. Region, Site, and Work stay flat maps.</p>
+<p>Pass 3, the same day. The flat map no longer uses the handmade shore. Region draws the Americas outline from <code>geo-land.js</code>. Site and Work draw the Boca Chica shore from that same file. Water is deep blue with lighter shallows. Land is sand, with scrub and dune patches clipped to the real coast. The patches come from the noise-map idea on Red Blob Games: a color for a height, laid inside a real outline, not a new polygon. A short east-west road sits on the pad's latitude once you are inside Site. The four chips still jump zoom. They no longer swap the land style between Region, Site, and Work.</p>
+<p>The lab is two pictures. World is the globe, and drag turns it. Region, Site, and Work are one flat map at three stops. The chips are bookmarks. They are not four scenes. This disagrees with treating the four bands as four drawings. The research page still lists four bands, and it stays as written.</p>
+<p>Pass 4, the same day. The Boca shore was only about 30 by 50 km, so inside Site it shrank to a small block before Region began. Site and Work now fill land out to the whole Gulf shore, using that gulf line from <code>geo-land.js</code>, with the Boca points spliced in at the pad. The far edge of the fill sits off screen through the Site band. Region still switches to the Americas outline. The owned edge around the three mains stays. Ground you could buy, past that edge, is not drawn yet.</p>
+<p>Pass 5, the same day. Land is sand first. Dune streaks and a little scrub sit on it. Green is sparse. Owned ground is no longer a green wash. A survey map uses a heavy solid line for a boundary and a marker at each corner, and the land under it stays visible. The lab uses a copper line with a light casing, and a pin at each corner once you are inside Site. The line is irregular, not a box. Buyable ground outside it is still not drawn.</p>
+<p>Pass 6, the same day. Country borders and names show on World and Region only. The outlines are the Natural Earth 1:110 million countries, kept in <code>countries.js</code>. Small countries stay as lines. A name is drawn only when the country is large enough to read. Site and Work do not draw them.</p>
+<p>Pass 7, the same day. The owned line on Site stays. A scale bar sits above the corner readout on the flat map. It is a ruled segment, and the label is a round length such as 10 km or 500 m, chosen so the bar stays about the same width on screen. The globe has no scale bar.</p>
+<p>Pass 8, the same day. Zoomed-out Site kept each building at a fixed pixel size, so the three mains piled up and read as marks floating over the coast. They now draw at their real meter size, with a soft shadow on the ground under each one. They shrink with the map instead of staying large.</p>
+<p>Pass 9, the same day. The old roads were straight strokes. One of them ran east of the pad and ended in the water. They are gone. The new road is one inland path with a branch to each main. Each branch ends at a building edge. The centerline is smoothed, the way a road curve is drawn from short segments in Red Blob Games' curved-paths note. The shoulder is 16 m wide and the surface is 9 m wide, both in meters, so the road shrinks with the land. It does not cross the pad and it does not enter the gulf.</p>
+<p>Pass 10, the same day. A future rule, not built yet. Placing a main also places its infrastructure. The game chooses the seats, so the picture can stay fixed. The building art can wait. The list lives in <a href="site-objects-design.html#works">site-objects-design.html</a>. A pad brings the deluge, the water tank, and a road. A factory brings a power plant and a road. A bay brings a road. The lab road is only a test of the look.</p>
+
+<h2 id="control">Control cut</h2>
+<div class="cut">
+<h3>What the desks should feel like</h3>
+<p>The desks are a quiet frame around the field. One subject at a time. Large type for the number you act on. Small type for the rest. There is no control lab yet.</p>
+<ul>
+  <li>Header is one line. Day and sky come first. Stocks are numerals, not a second panel. Pause, sound, and save stay small at the end.</li>
+  <li>Left desk is four groups, in this order: sites, land, mains, fluids. A main button is the building name and its cost. Parts are not listed.</li>
+  <li>Right desk tabs stay Now, Contracts, Record, and Guide. Now names one thing: the selected main, part, or vehicle. Under that name, a short stack. Factory jobs appear only for a factory.</li>
+  <li>While the clock runs, Now’s body becomes Mission. Phase is a sentence. Altitude and speed are the large pair. Downrange sits under them. A miss adds one short reason. The tabs stay.</li>
+  <li>After Skip, Mission leaves. The Now body returns. The field keeps the last track.</li>
+  <li>The fleet strip is one chip per vehicle that is still here. The selected chip is a line, not a filled block.</li>
+</ul>
+<p>Leave out new instruments, a moving column, and factory buttons on the pad or the bay.</p>
+</div>
+
+<h2 id="next">Next</h2>
+<p>The next map pass changes <a href="field-lab.html">field-lab.html</a> and adds a section here. The next object pass changes <a href="site-objects-design.html">site-objects-design.html</a> and adds a section here. Sound stays a later pass. A control page waits until you leave the field.</p>
+
+</main>
+</div>
+</body>
+</html>

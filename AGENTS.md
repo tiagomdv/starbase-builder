@@ -98,6 +98,14 @@ Out-of-scope ideas → offer to append to `FUTURE_FEATURES.md`. Keep the current
 
 **Core principle:** Sites accumulate. Earth Starbase remains critical even after outer bases unlock.
 
+## Object record
+
+`design-docs/site-objects-design.html` is the list of what a building is. It names Starfactory, Mega Bay, and the Orbital Pad, and the parts that arrive with each one. Later sites go on that same page.
+
+When a part is added, dropped, renamed, or locked, update that page in the same pass. Keep one part on one line: its name, where it sits, and its job. Do not open a second object list. Do not write the change into `design-docs/field-iterations.html` or `design-docs/field-and-control.html`. Those pages are closed with the field version.
+
+`FUTURE_FEATURES.md` says when a part turns on. It does not replace the list.
+
 ## Documentation Responsibilities
 
 After the human approves work, help update:
@@ -105,6 +113,7 @@ After the human approves work, help update:
 - `FUTURE_FEATURES.md` (remove shipped items; append new open ideas)
 - `IMPLEMENTATION_LOG.md` (**one section per `VERSION`** — see Log Files Philosophy)
 - `README.md` when understanding of the project changes
+- `design-docs/site-objects-design.html` when a building part is added, dropped, renamed, or locked
 - `archive/MANIFEST.md` when archiving
 
 ## Log Files Philosophy

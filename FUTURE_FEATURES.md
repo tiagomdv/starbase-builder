@@ -32,11 +32,13 @@ Leave the map free of a caption for every part. Leave the launch track off until
 
 The owned line shipped in `0.4.0-borderline`. It follows the coast, about 8 km inland on the solid beach, and it follows the bay where the water cuts in. Each building is a separate buy on a fixed plot, and the building is about one tenth of that plot. The Land column counts plots. The picture is `design-docs/0.4.0-borderline-design.html`.
 
-## Pictures, then motion
+## Motion, then pictures
 
-`0.12.0-picture` replaces the plain halls. Starfactory, Mega Bay, and the Orbital Pad each get a picture you can read on the map. The seats stay. The buys stay. No new rule.
+`0.6.0-motion` plays the loop you already have, on the map. The static-fire modal closes. A build shows in the Starfactory. The finished Falcon 1 rolls from the Starfactory along the yard road to Mega Bay. It rolls from the bay to the Orbital Pad on that same road. At the pad it rises onto the mount. The static fire burns on the mount, and the flame stays on the map. This version only animates steps that already exist. Later versions add their own animations on top of the same system.
 
-`0.13.0-motion` plays the loop you already have, on the map. The static-fire modal closes. A build shows in the Starfactory. The finished Falcon 1 rolls along the yard road to Mega Bay. It rolls from the bay to the Orbital Pad on that same road. At the pad it rises onto the mount. The static fire burns on the mount, and the flame stays on the map.
+`0.13.0-picture` replaces the plain halls. Starfactory, Mega Bay, and the Orbital Pad each get a picture you can read on the map. The seats stay. The buys stay. No new rule.
+
+`0.14.0-motion-final` is a final pass on every animation once the buildings are drawn. Speeds, timing, and look all match. It covers the roll, the raise, the fire, refueling, flight, and landing.
 
 This chapter builds one Falcon 1. The factory finishes that rocket. The bay holds it and refurbishes it. The bay does not stack sections yet. Sections come from the factory and get mounted in the bay when Starship arrives. The tower that lifts a stack is the later pad upgrade, not this raise.
 
