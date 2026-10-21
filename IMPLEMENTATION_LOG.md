@@ -109,3 +109,19 @@ History of what **shipped**, keyed by **version**.
 - Payload is the lesser of what the burn can lift and what that load still has room for. A fresh Falcon 1 shows 420 kg. It is not the sum of the masses. The rocket does not fly the orbit yet.
 - Lighten the stage costs 32 steel and takes 1 day in the Starfactory. Dry mass on that rocket falls by 80 kg, and payload rises to 486 kg. The burn is what stops the second number. The design load stops the first.
 - No tanks. No suborbital flight. No new fire rule. The previous live file is `archive/index-0.4.0-borderline.html`.
+
+## `0.5.1-liftoff` — 2026-10-21
+
+**Version:** `0.5.1-liftoff`
+
+- The rocket sheet calls 27572 kg the liftoff mass, because that number is the whole Falcon 1 at liftoff. A short line under it says the number stays fixed because the tanks do not change yet. The Falcon 1 wiki page uses the same words.
+- The static fire footer names the real result. A held fire says the rocket held and goes back to Mega Bay for refurb. A failed fire names the short part and says the rocket goes back for refurb or scrap.
+- Every count of days reads "1 day" for one and "days" for more. This covers the log, the Starfactory card, the bay slots, the rocket sheet, the job line, and the wiki.
+- The factory start and progress lines in the log use the same wording as the job line: Starfactory, building, the rocket, and the day count.
+- The static fire caption names what decides the test: thrust, pad, propellant, and wind.
+- The rocket sheet explains why payload rises by 66 kg when the stage loses 80 kg. Before the cut, the liftoff mass stops payload at 420 kg. After the cut, the liftoff mass has room for 500 kg, but the burn stops payload at 486 kg.
+- Lighten the stage stays on the rocket sheet after use. It shows as a disabled card that reads "Stage lightened. One cut per rocket."
+- A small Pause button sits next to the day count in the header. It stops the day clock and reads Resume while paused, and the label above the count reads "Day · paused". Pause changes no rule. Jobs, refurb, and supply wait with the clock. A rollout still finishes while paused.
+- When a build finishes, the log line carries a button that rolls that rocket to Mega Bay. It uses the same roll as the Starfactory card, and it leaves once the rocket has moved.
+- The Goals, Wiki, and Fleet words are larger and brighter.
+- This version adds no new building or rocket and changes no rule. The previous live file is `archive/index-0.5.0-structure.html`.
