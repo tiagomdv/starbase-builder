@@ -192,3 +192,13 @@ History of what **shipped**, keyed by **version**.
 - The climb tips only 5 degrees from vertical, and a ready rocket that returns to Mega Bay parks in a bay slot instead of a 0-day post-fire refurb.
 - Wiki gains a Flight page. Launch, Engines, Time, Pad, and Numbers describe the inspection, the ready rocket, firing seconds, the frozen clock, and the launch farm.
 - `index.html?test` places the three buildings, a ready Falcon 1 on the mount, both tank buys, tanks filled for one launch, and a calm day. The previous live file is `archive/index-0.7.0-tanks.html`.
+
+## `0.8.1-fix` — 2026-10-22
+
+**Version:** `0.8.1-fix`
+
+- Days keep moving while a rocket loads propellant, burns, or flies. The factory, the bay, and rolls keep their pace during a fire or a launch.
+- The farm skips the daily RP-1 and liquid oxygen refill while a rocket loads or burns. A flight can last several days, so the farm keeps refilling then.
+- Weather only gates a launch at liftoff. A closed range during a flight that already left does not stop the climb. Pause still stops the day and the burn.
+- The pad still holds one rocket. Tank buys still wait while fluids move.
+- The previous live file is `archive/index-0.8.0-flight.html`.

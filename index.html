@@ -330,7 +330,7 @@
         <div><div class="stat-k">Fleet</div><div id="res-fleet" class="stat-n tabular-nums">0</div></div>
         <div class="day-stat"><div class="stat-k" id="day-run">Day</div><div class="day-row"><div id="day-label" class="stat-n tabular-nums">1</div><button type="button" id="day-pause">Pause</button></div></div>
       </div>
-      <div id="ver-label">0.8.0-flight</div>
+      <div id="ver-label">0.8.1-fix</div>
     </div>
   </header>
 
@@ -408,14 +408,14 @@
 (() => {
   "use strict";
 
-  const VERSION = "0.8.0-flight";
+  const VERSION = "0.8.1-fix";
   const CELL = 32, MAP_W = 40, MAP_H = 30;
   // ?test is a fast open. It shortens the day, starts steel at 2000, places the three buildings, and puts a ready Falcon 1 on the mount with both tank buys on, tanks filled for one launch, and a calm day.
   const TEST = new URLSearchParams(location.search).has("test");
   const MS_PER_DAY = TEST ? 500 : 4000;
   // The raise and the lower are the picture on the pad. Two seconds, not a fire rule.
   const LIFT_SEC = 2;
-  // The pad load is the same length. The day clock stays still for those two seconds.
+  // The pad load is the same length. Days keep moving during those two seconds.
   const FILL_SEC = 2;
   const ZOOM_MIN = 0.22, ZOOM_MAX = 2.4;
   const PAD_LAT = 25.997, PAD_LON = -97.157;
@@ -846,6 +846,10 @@
   function fluidsMoving() {
     return G.rollouts.some((r) => r.kind === "fill" || r.kind === "fire" || r.kind === "fly");
   }
+  // A fill or a fire must not get extra farm fuel. A flight can last several days, so the farm keeps refilling then.
+  function farmHeld() {
+    return G.rollouts.some((r) => r.kind === "fill" || r.kind === "fire");
+  }
   function launchFarmReady() {
     return G.rp1Level >= 2 && G.loxLevel >= 2;
   }
@@ -939,8 +943,10 @@
   function dayTick() {
     G.day++;
     G.steel += TUNING.ENV_STEEL_PER_DAY;
-    G.rp1 = Math.min(rp1Cap(), G.rp1 + TUNING.RP1_PER_DAY);
-    G.lox = Math.min(loxCap(), G.lox + TUNING.LOX_PER_DAY);
+    if (!farmHeld()) {
+      G.rp1 = Math.min(rp1Cap(), G.rp1 + TUNING.RP1_PER_DAY);
+      G.lox = Math.min(loxCap(), G.lox + TUNING.LOX_PER_DAY);
+    }
 
     if (G.factoryJob) {
       G.factoryJob.daysLeft--;
@@ -1282,6 +1288,7 @@
   }
 
   function weatherOn(day) {
+    if (TEST && G.skyLock) return G.skyLock;
     if (TEST) return { sky: "Clear", wind: 8, storm: false };
     const table = [
       { sky: "Clear", wind: 8, storm: false },
@@ -1706,6 +1713,7 @@
   }
 
   function startFly(v, pad, check) {
+    // The range check already ran when Launch was pressed. A later closed lamp does not stop this climb.
     const thrustN = merlinNowKn(v) * 1000;
     const ve = TUNING.MERLIN_ISP_S * FLIGHT_G;
     v.status = "flying";
@@ -2196,7 +2204,7 @@
         `Dynamic pressure is the air pushing on the rocket. It is half the air density times speed squared. It is not the pad wind in knots.`,
         `Max-Q is the moment that push is highest. The panel keeps the peak value and the time.`,
         `The rocket flies straight up for ${TUNING.PITCH_START_S} seconds, then tips toward downrange. The tip stops at ${90 - TUNING.PITCH_MAX_DEG_FROM_VERTICAL} degrees above the horizon. Pitch only aims the thrust.`,
-        `The ${wikiGo("time", "day clock")} stops during the flight, so the weather does not move. Pause stops the climb and the readouts.`,
+        `Days keep moving during the flight. The range lamp can close, and the rocket that already left keeps flying. Pause stops the climb and the readouts.`,
         `When the Merlin runs dry, the log names the top height, the top speed, and max-Q. The first stage is lost at sea. There is no landing.`,
         `A default Falcon 1 cuts off at 89.2 km and 1932 m/s. Max-Q is 21.4 kPa at 84 seconds.`,
       ]) + wikiFacts([
@@ -2435,7 +2443,7 @@
         `${wikiPlace("starfactory", "Starfactory")} builds a Falcon 1 in ${daySpan(TUNING.BUILD_DAYS_MIN, TUNING.BUILD_DAYS_MAX)}.`,
         `Raise Merlin thrust takes ${daySpan(TUNING.MERLIN_UP_DAYS_MIN, TUNING.MERLIN_UP_DAYS_MAX)}. Lighten the stage takes ${daySpan(TUNING.STAGE_LIGHTEN_DAYS_MIN, TUNING.STAGE_LIGHTEN_DAYS_MAX)}.`,
         `After a clean fire the rocket stays on the mount for ${dayCount(TUNING.INSPECT_DAYS)} of inspection. A miss keeps it in ${wikiPlace("mega_bay", "Mega Bay")} for ${daySpan(TUNING.REFURB_FAIL_MIN, TUNING.REFURB_FAIL_MAX)}.`,
-        `The day clock stops while the tanks load, the engine burns, or the rocket ${wikiGo("flight", "flies")}, so the weather does not move. A roll, a raise, and a lower leave the day running.`,
+        `Days keep moving while the tanks load, the engine burns, or the rocket ${wikiGo("flight", "flies")}. The farm skips the daily RP-1 and liquid oxygen refill while a rocket loads or burns. Pause stops the day and the burn. A roll, a raise, and a lower leave the day running.`,
         `The rollout along the yard road is counted in seconds. That is the short wait on the road between ${wikiPlace("mega_bay", "Mega Bay")} and the ${wikiPlace("pad_orbital", "Orbital Pad")}.`,
       ]) + wikiFacts([
         { value: `${wikiNum(seconds, 1)} seconds`, label: "One game day" },
@@ -4241,12 +4249,9 @@
     const dt = Math.min(0.05, (now - last) / 1000);
     last = now;
     if (!G.paused) {
-      // A roll, a raise, and a lower leave the day running. The clock stops while the tanks load, the engine burns, or the rocket flies.
-      const holding = G.rollouts.some((r) => r.kind === "fill" || r.kind === "fire" || r.kind === "fly");
-      if (!holding) {
-        G.dayAcc += dt * 1000;
-        while (G.dayAcc >= MS_PER_DAY) { G.dayAcc -= MS_PER_DAY; dayTick(); }
-      }
+      // Days keep moving during a fill, a fire, and a flight. Pause still holds both clocks.
+      G.dayAcc += dt * 1000;
+      while (G.dayAcc >= MS_PER_DAY) { G.dayAcc -= MS_PER_DAY; dayTick(); }
       updateRollout(dt);
     }
     if (!G.paused && (G.rollouts.length || G.factoryJob)) {
@@ -4301,6 +4306,57 @@
   G.cam.x = (MAP_W * CELL) / 2 - W / 2;
   G.cam.y = (MAP_H * CELL) / 2 - H / 2;
   applyTestStart();
+  if (TEST) {
+    window.__sb = {
+      selectBuilding(type) {
+        const b = buildingOfType(type);
+        if (!b) return;
+        G.selectedId = b.id;
+        renderChrome();
+      },
+      startBuild() { startBuildRocket("falcon1"); },
+      startRoll(name, dest) {
+        const v = G.fleet.find((item) => item.name === name);
+        if (!v) return;
+        G.selectedVehicleId = v.id;
+        startRoll(v.id, dest);
+      },
+      stage(name) {
+        const v = G.fleet.find((item) => item.name === name);
+        if (v) stageToBay(v.id);
+      },
+      staticFire,
+      startLaunch,
+      upgradeBay,
+      snap() {
+        return {
+          day: G.day,
+          paused: G.paused,
+          rp1: G.rp1,
+          lox: G.lox,
+          steel: G.steel,
+          factoryDays: G.factoryJob ? G.factoryJob.daysLeft : null,
+          motions: G.rollouts.map((r) => ({
+            kind: r.kind,
+            t: r.t,
+            simT: r.simT || 0,
+            maxH: r.maxH || 0,
+            maxSpeed: r.maxSpeed || 0,
+            maxQ: r.maxQ || 0,
+            maxQTime: r.maxQTime || 0,
+          })),
+          fleet: G.fleet.map((v) => ({ id: v.id, name: v.name, status: v.status })),
+          rangeClosed: rangeClosed(),
+          padBusy: padBusy(),
+          log: G.log.map((row) => row.msg).slice(0, 8),
+        };
+      },
+      lockSky(sky) {
+        G.skyLock = sky;
+        renderChrome();
+      },
+    };
+  }
   renderChrome();
   if (TEST) {
     log("Test start. A ready Falcon 1 sits on the mount. The tanks hold one launch. The day is calm.", "info");

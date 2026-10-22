@@ -4,7 +4,7 @@ This game follows the SpaceX story. You learn how the rockets, the tanks, and th
 
 Open `index.html` in a browser. There is no build step. Open `index.html?test` for a faster day, the three buildings, a ready Falcon 1 on the mount, and tanks filled for one launch. That start is not saved.
 
-**Live release:** `0.8.0-flight`.
+**Live release:** `0.8.1-fix`.
 
 Owned ground is one red dashed line. The water side follows the coast. The back side sits about 8 km inland on the solid beach, and it follows the bay where the water cuts in. The word on that line is limit.
 
@@ -12,7 +12,7 @@ Starfactory, Mega Bay, and the Orbital Pad are separate buys. Each one sits on i
 
 The header is the range console. A lamp reads Range open or Range closed. The wind sits under that line. Steel, RP-1, liquid oxygen, fleet, and day are numerals in the center. The version label sits under those counts.
 
-Pause sits beside the day count. The line above the count reads Paused. Pause stops the day clock, and a static fire or a flight stops with it. Builds, refurbs, upgrades, and the tank refill wait while paused. The clock also stops while a rocket loads propellant, burns, or flies. A roll, a raise, and a lower leave the day running. More than one rocket can roll at the same time, and the factory can build during that roll or during a fire. The pad still holds one.
+Pause sits beside the day count. The line above the count reads Paused. Pause stops the day clock, and a static fire or a flight stops with it. Builds, refurbs, upgrades, and the tank refill wait while paused. Days keep moving while a rocket loads propellant, burns, or flies. The farm skips the daily RP-1 and liquid oxygen refill while a rocket loads or burns. A roll, a raise, and a lower leave the day running. More than one rocket can roll at the same time, and the factory can build during that roll, a fire, or a flight. The pad still holds one. Weather only gates a launch at liftoff. A closed range during a flight that already left does not stop the climb.
 
 Goals, Wiki, and Fleet have an outline. Wiki opens over the game. The articles read the live settings. A note says In real life when the game and the Falcon 1 sources differ.
 
