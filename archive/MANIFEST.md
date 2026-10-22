@@ -12,3 +12,4 @@
 | index-0.5.2-realism.html | 0.5.2-realism | Playable site before Pause sits by the day count, the header buttons read as buttons, and the Wiki is split into short sections. |
 | index-0.5.3-polish.html | 0.5.3-polish | Playable site before the rocket rolls flat on the yard road, stands on the pad, and the static fire plays on the map. |
 | index-0.6.0-motion.html | 0.6.0-motion | Playable site before RP-1 and liquid oxygen replace the single propellant stock. |
+| index-0.7.0-tanks.html | 0.7.0-tanks | Playable site before the first Falcon 1 launch. |
