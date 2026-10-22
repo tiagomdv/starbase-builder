@@ -6,7 +6,7 @@ Phases 0 through 5 are the earlier draft, through `5.0.0-compute`. Phases 6 thro
 
 When a row ships or is dropped, remove it from the table and note the ship in `IMPLEMENTATION_LOG.md`.
 
-**Last shipped:** `0.8.0-flight`. After a clean fire and an inspection, the Falcon 1 flies. Only the first stage burns. Five live numbers track the climb, and the first stage is lost at sea. See `IMPLEMENTATION_LOG.md`. The next row is `0.9.0-orbit`.
+**Last shipped:** `0.8.0-flight`. After a clean fire and an inspection, the Falcon 1 flies. Only the first stage burns. Five live numbers track the climb, and the first stage is lost at sea. See `IMPLEMENTATION_LOG.md`. The next row is `0.9.0-economy`.
 
 ## UI and UX
 
@@ -36,11 +36,15 @@ The owned line shipped in `0.4.0-borderline`. It follows the coast, about 8 km i
 
 `0.6.0-motion` plays the loop you already have, on the map. The static-fire modal closes. A build shows in the Starfactory. The finished Falcon 1 rolls from the Starfactory along the yard road to Mega Bay. It rolls from the bay to the Orbital Pad on that same road. At the pad it rises onto the mount. The static fire burns on the mount, and the flame stays on the map. This version only animates steps that already exist. Later versions add their own animations on top of the same system.
 
-`0.8.0-flight` shipped the first Falcon 1 launch. `0.9.0-orbit`, `0.10.0-contract`, and `0.11.0-recovery` follow in that order.
+`0.8.0-flight` shipped the first Falcon 1 launch. `0.9.0-economy`, `0.10.0-tracking`, `0.11.0-orbit`, `0.12.0-contract`, and `0.13.0-recovery` follow in that order.
 
-`0.12.0-picture` replaces the plain halls. Starfactory, Mega Bay, and the Orbital Pad each get a picture you can read on the map. The seats stay. The buys stay. No new rule.
+`0.9.0-economy` makes money a playable resource. The game should feel hard, so progress feels rewarding. Everything costs money, from steel and propellant to engines, buildings and rockets, and the budget is always tight, so each choice matters. Ways to spend less are earned. Recovering a stage later is one example, not the point.
 
-`0.13.0-motion-final` is a final pass on every animation once the buildings are drawn. Speeds, timing, and look all match. It covers the roll, the raise, the fire, refueling, flight, and landing.
+`0.10.0-tracking` lets you follow flights on the map. When you zoom out, each rocket shows its path and a box that grows and shrinks around it, with live numbers like altitude, speed and flight phase. Later, with many launches and some automation, you can watch them all fly at once.
+
+`0.14.0-picture` replaces the plain halls. Starfactory, Mega Bay, and the Orbital Pad each get a picture you can read on the map. The seats stay. The buys stay. No new rule.
+
+`0.15.0-motion-final` is a final pass on every animation once the buildings are drawn. Speeds, timing, and look all match. It covers the roll, the raise, the fire, refueling, flight, and landing.
 
 This chapter builds one Falcon 1. The factory finishes that rocket. The bay holds it and refurbishes it. The bay does not stack sections yet. Sections come from the factory and get mounted in the bay when Starship arrives. The tower that lifts a stack is the later pad upgrade, not this raise. The hop is `3.1.0-hop`. One Raptor on a short test vehicle lifts off, hovers, and lands on a nearby pad. This is like Starhopper at Boca Chica in 2019. That vehicle flew 150 meters in August of that year. The catch is `3.2.0-catch`.
 
