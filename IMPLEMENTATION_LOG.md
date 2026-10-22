@@ -178,3 +178,17 @@ History of what **shipped**, keyed by **version**.
 - The factory can start a rocket while another rocket rolls or burns. The pad still holds one rocket.
 - More than one rocket can roll at the same time. The pad still holds one. A rocket on the way into Mega Bay keeps its slot. A rocket that is out still has a slot waiting, so it can come home.
 - `index.html?test` fills both tanks and starts steel at 2000. The Wiki Propellant page and the Numbers page read these settings. The previous live file is `archive/index-0.6.0-motion.html`.
+
+## `0.8.0-flight` — 2026-10-22
+
+**Version:** `0.8.0-flight`
+
+- After a clean static fire the rocket stays on the mount for 1 day of inspection. Then it is ready. A ready rocket offers Launch and Return to Mega Bay. A miss still goes back to the bay for refurb.
+- Each Merlin counts firing seconds. A static fire adds 5 seconds. A launch adds the full burn. Thrust stays at the fresh Merlin figure. A refurb is needed after a miss, or when the total passes 180 seconds.
+- The tank buys are the launch farm. They raise the tanks to 6592 kg of RP-1 and 14502 kg of liquid oxygen. Each day adds 1100 kg of RP-1 and 2417 kg of liquid oxygen, so a launch fills in about 6 days.
+- Launch needs a ready rocket, the launch farm, a calm day, and a full flight load. The same fill bars load 6591 kg of RP-1 and 14501 kg of liquid oxygen, then the engine lights.
+- The flight uses thrust, falling mass, gravity, and air drag. Five live numbers on the map show altitude, speed, mass, thrust against weight, and dynamic pressure. The panel keeps max-Q and its time. The day clock stops during the flight. Pause stops the climb and the readouts.
+- When the Merlin runs dry, the log names the top height, the top speed, and max-Q. The first stage is lost at sea. There is no landing.
+- The climb tips only 5 degrees from vertical, and a ready rocket that returns to Mega Bay parks in a bay slot instead of a 0-day post-fire refurb.
+- Wiki gains a Flight page. Launch, Engines, Time, Pad, and Numbers describe the inspection, the ready rocket, firing seconds, the frozen clock, and the launch farm.
+- `index.html?test` places the three buildings, a ready Falcon 1 on the mount, both tank buys, tanks filled for one launch, and a calm day. The previous live file is `archive/index-0.7.0-tanks.html`.

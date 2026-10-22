@@ -6,7 +6,7 @@ Phases 0 through 5 are the earlier draft, through `5.0.0-compute`. Phases 6 thro
 
 When a row ships or is dropped, remove it from the table and note the ship in `IMPLEMENTATION_LOG.md`.
 
-**Last shipped:** `0.7.0-tanks`. The header shows RP-1 and liquid oxygen. A short tank stops the fire, and the Orbital Pad card shows fires in the last 30 days and days since the last fire. See `IMPLEMENTATION_LOG.md`.
+**Last shipped:** `0.8.0-flight`. After a clean fire and an inspection, the Falcon 1 flies. Only the first stage burns. Five live numbers track the climb, and the first stage is lost at sea. See `IMPLEMENTATION_LOG.md`. The next row is `0.9.0-orbit`.
 
 ## UI and UX
 
@@ -20,7 +20,7 @@ The three mains for the first pass:
 
 - **Starfactory.** Hall, roof crane, stack stand.
 - **Mega Bay.** Hall, one berth, service crane. A second bay, the high bay, and the Sanchez yard are later mains, not rooms inside this one.
-- **Orbital pad.** As bought: mount, flame trench, deluge plate, deluge pumps, one water tank. Two upgrades, bought separately. The tank farm adds an oxygen tank, a kerosene tank, and a methane tank. The Starship tower adds the tower, the chopsticks, and the ship arm. A Falcon 1 does not use the methane tank or the arms. Pad 2 is a later main and gets the same choices.
+- **Orbital pad.** As bought: mount, flame trench, deluge plate, deluge pumps, one water tank. Two upgrades, bought separately. The tank farm adds an oxygen tank, a kerosene tank, and a methane tank. The Starship tower adds the tower, the chopsticks, and the ship arm. That upgrade ships at `3.2.0-catch`. The hop at `3.1.0-hop` lands on a nearby pad. A Falcon 1 does not use the methane tank or the arms. Pad 2 is a later main and gets the same choices.
 
 A quiet part can be selected. It does not change the fire until the version that needs it.
 
@@ -36,11 +36,13 @@ The owned line shipped in `0.4.0-borderline`. It follows the coast, about 8 km i
 
 `0.6.0-motion` plays the loop you already have, on the map. The static-fire modal closes. A build shows in the Starfactory. The finished Falcon 1 rolls from the Starfactory along the yard road to Mega Bay. It rolls from the bay to the Orbital Pad on that same road. At the pad it rises onto the mount. The static fire burns on the mount, and the flame stays on the map. This version only animates steps that already exist. Later versions add their own animations on top of the same system.
 
+`0.8.0-flight` shipped the first Falcon 1 launch. `0.9.0-orbit`, `0.10.0-contract`, and `0.11.0-recovery` follow in that order.
+
 `0.12.0-picture` replaces the plain halls. Starfactory, Mega Bay, and the Orbital Pad each get a picture you can read on the map. The seats stay. The buys stay. No new rule.
 
 `0.13.0-motion-final` is a final pass on every animation once the buildings are drawn. Speeds, timing, and look all match. It covers the roll, the raise, the fire, refueling, flight, and landing.
 
-This chapter builds one Falcon 1. The factory finishes that rocket. The bay holds it and refurbishes it. The bay does not stack sections yet. Sections come from the factory and get mounted in the bay when Starship arrives. The tower that lifts a stack is the later pad upgrade, not this raise.
+This chapter builds one Falcon 1. The factory finishes that rocket. The bay holds it and refurbishes it. The bay does not stack sections yet. Sections come from the factory and get mounted in the bay when Starship arrives. The tower that lifts a stack is the later pad upgrade, not this raise. The hop is `3.1.0-hop`. One Raptor on a short test vehicle lifts off, hovers, and lands on a nearby pad. This is like Starhopper at Boca Chica in 2019. That vehicle flew 150 meters in August of that year. The catch is `3.2.0-catch`.
 
 No new fire rule. The numbers that pass or fail the fire stay the ones you already have.
 
