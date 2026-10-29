@@ -73,7 +73,8 @@
       background: #0e0e0e; border: 1px solid #f2f2f2; color: #f2f2f2;
       padding: 10px 10px 12px; margin-bottom: 8px;
     }
-    .plot-card:hover { background: #161616; }
+    .plot-card:hover:not(:disabled) { background: #161616; }
+    .plot-card:disabled { opacity: 0.4; cursor: not-allowed; }
     .plot-card .name { font-size: 15px; font-weight: 650; }
     .plot-card .price { font-size: 28px; line-height: 1; font-weight: 650; margin-top: 6px; }
     .plot-card .unit { font-size: 11px; color: #9a9a9a; letter-spacing: 0.08em; text-transform: uppercase; }
@@ -324,13 +325,14 @@
     </div>
     <div class="bar-mid">
       <div class="bar-stats">
-        <div><div class="stat-k">Steel</div><div id="res-steel" class="stat-n tabular-nums">150</div></div>
-        <div><div class="stat-k">RP-1</div><div id="res-rp1" class="stat-n tabular-nums">440</div></div>
-        <div><div class="stat-k">LOX</div><div id="res-lox" class="stat-n tabular-nums">968</div></div>
+        <div><div class="stat-k">Money</div><div id="res-money" class="stat-n tabular-nums">150</div></div>
+        <div><div class="stat-k">Steel</div><div id="res-steel" class="stat-n tabular-nums">0</div></div>
+        <div><div class="stat-k">RP-1</div><div id="res-rp1" class="stat-n tabular-nums">0</div></div>
+        <div><div class="stat-k">LOX</div><div id="res-lox" class="stat-n tabular-nums">0</div></div>
         <div><div class="stat-k">Fleet</div><div id="res-fleet" class="stat-n tabular-nums">0</div></div>
         <div class="day-stat"><div class="stat-k" id="day-run">Day</div><div class="day-row"><div id="day-label" class="stat-n tabular-nums">1</div><button type="button" id="day-pause">Pause</button></div></div>
       </div>
-      <div id="ver-label">0.8.1-fix</div>
+      <div id="ver-label">0.9.0-economy</div>
     </div>
   </header>
 
@@ -408,9 +410,9 @@
 (() => {
   "use strict";
 
-  const VERSION = "0.8.1-fix";
+  const VERSION = "0.9.0-economy";
   const CELL = 32, MAP_W = 40, MAP_H = 30;
-  // ?test is a fast open. It shortens the day, starts steel at 2000, places the three buildings, and puts a ready Falcon 1 on the mount with both tank buys on, tanks filled for one launch, and a calm day.
+  // ?test is a normal open with a short day. The purse, the tanks, and the yard start the same.
   const TEST = new URLSearchParams(location.search).has("test");
   const MS_PER_DAY = TEST ? 500 : 4000;
   // The raise and the lower are the picture on the pad. Two seconds, not a fire rule.
@@ -423,6 +425,25 @@
   const TUNING = {
     START_STEEL: 150,
     ENV_STEEL_PER_DAY: 6,
+    START_MONEY: 150,
+    STEEL_PACK: 10,
+    STEEL_PACK_COST: 10,
+    // One press fills that tank. Propellant stays cheap next to the steel.
+    FLUID_FILL_COST: 6,
+    GOAL_PAY: {
+      place_all: 40,
+      build_rocket: 20,
+      multi_bay: 70,
+      static_fire: 60,
+      refurb: 40,
+      pad_l2: 50,
+      launch: 80,
+    },
+    // A clean first stage reaches these. A short tank or a closed range falls short.
+    LAUNCH_OK_KM: 89.2,
+    LAUNCH_OK_MS: 1932,
+    // The first Falcon 1 shut down about this many seconds after it left.
+    LAUNCH_ABORT_S: 29,
     // Merlin 1C mix. Kilograms of liquid oxygen for each kilogram of RP-1.
     LOX_PER_RP1: 2.2,
     // A 5 second hold, not the flight load. 220 kg of RP-1 and 2.2 times that in liquid oxygen.
@@ -436,7 +457,7 @@
     RP1_CAP: 440,
     START_LOX: 968,
     LOX_CAP: 968,
-    // About 6 days to fill a launch after the farm is bought.
+    // The day no longer adds these. The pad sells a static-fire load.
     RP1_PER_DAY: 1100,
     LOX_PER_DAY: 2417,
     // One kilogram over a flight load, so the farm can hold a launch.
@@ -695,12 +716,12 @@
   const G = {
     day: 1, dayAcc: 0, paused: false,
     merlinTier: 1,
-    steel: TEST ? 2000 : TUNING.START_STEEL,
-    // One buy on each tank. The test start fills both tanks to that first cap.
-    rp1Level: TEST ? 2 : 1,
-    loxLevel: TEST ? 2 : 1,
-    rp1: TEST ? TUNING.FLIGHT_RP1_KG : TUNING.START_RP1,
-    lox: TEST ? TUNING.FLIGHT_LOX_KG : TUNING.START_LOX,
+    money: TUNING.START_MONEY,
+    steel: 0,
+    rp1Level: 1,
+    loxLevel: 1,
+    rp1: 0,
+    lox: 0,
     fireDays: [],
     buildings: [],
     fleet: [],
@@ -729,12 +750,14 @@
       static_fire: false,
       refurb: false,
       pad_l2: false,
+      launch: false,
     },
   };
 
   const canvas = document.getElementById("map");
   const ctx = canvas.getContext("2d");
   const el = {
+    money: document.getElementById("res-money"),
     steel: document.getElementById("res-steel"),
     rp1: document.getElementById("res-rp1"),
     lox: document.getElementById("res-lox"),
@@ -846,7 +869,7 @@
   function fluidsMoving() {
     return G.rollouts.some((r) => r.kind === "fill" || r.kind === "fire" || r.kind === "fly");
   }
-  // A fill or a fire must not get extra farm fuel. A flight can last several days, so the farm keeps refilling then.
+  // Left in place. The day no longer refills the tanks, so this check no longer gates a refill.
   function farmHeld() {
     return G.rollouts.some((r) => r.kind === "fill" || r.kind === "fire");
   }
@@ -940,13 +963,45 @@
     return G.loxLevel >= 2 ? TUNING.LOX_CAP_L2 : TUNING.LOX_CAP;
   }
 
+  function payMoney(cost) {
+    if (G.money < cost) return false;
+    G.money -= cost;
+    return true;
+  }
+
+  function buySteel() {
+    if (!payMoney(TUNING.STEEL_PACK_COST)) { log(`Need ${TUNING.STEEL_PACK_COST} money.`, "bad"); return; }
+    G.steel += TUNING.STEEL_PACK;
+    log(`Bought ${TUNING.STEEL_PACK} steel.`, "good");
+    renderChrome();
+  }
+
+  function buyRp1() {
+    if (G.rp1 >= rp1Cap()) { log("The RP-1 tank is full.", "bad"); return; }
+    if (!payMoney(TUNING.FLUID_FILL_COST)) { log(`Need ${TUNING.FLUID_FILL_COST} money.`, "bad"); return; }
+    G.rp1 = rp1Cap();
+    log(`The RP-1 tank is filled to ${rp1Cap()} kg.`, "good");
+    renderChrome();
+  }
+
+  function buyLox() {
+    if (G.lox >= loxCap()) { log("The liquid oxygen tank is full.", "bad"); return; }
+    if (!payMoney(TUNING.FLUID_FILL_COST)) { log(`Need ${TUNING.FLUID_FILL_COST} money.`, "bad"); return; }
+    G.lox = loxCap();
+    log(`The liquid oxygen tank is filled to ${loxCap()} kg.`, "good");
+    renderChrome();
+  }
+
+  function fundGoal(key) {
+    if (G.objectives[key]) return;
+    G.objectives[key] = true;
+    const pay = TUNING.GOAL_PAY[key];
+    G.money += pay;
+    log(`Investors add ${pay} money.`, "good");
+  }
+
   function dayTick() {
     G.day++;
-    G.steel += TUNING.ENV_STEEL_PER_DAY;
-    if (!farmHeld()) {
-      G.rp1 = Math.min(rp1Cap(), G.rp1 + TUNING.RP1_PER_DAY);
-      G.lox = Math.min(loxCap(), G.lox + TUNING.LOX_PER_DAY);
-    }
 
     if (G.factoryJob) {
       G.factoryJob.daysLeft--;
@@ -972,7 +1027,7 @@
           v.condition = Math.min(100, v.condition + 25);
           v.firedS = 0;
           log(`${v.name} refurb complete in Mega Bay. Thrust is ${merlinNowKn(v)} kN.`, "good");
-          G.objectives.refurb = true;
+          fundGoal("refurb");
         }
       }
     }
@@ -1020,6 +1075,7 @@
       structureTier: 1,
       fires: 0,
       firedS: 0,
+      needsDetank: false,
       refurbLeft: 0,
       inspectLeft: 0,
       baySlot: 0,
@@ -1028,7 +1084,6 @@
     G.fleet.push(v);
     G.selectedVehicleId = v.id;
     log(`${v.name} complete at Starfactory.`, "good", { roll: v.id });
-    G.objectives.build_rocket = true;
     updateObjectives();
     renderChrome();
   }
@@ -1041,7 +1096,7 @@
     if (G.factoryJob) { log("Factory already building", "warn"); return; }
     if (factoryHold()) { log("Move finished vehicle to Mega Bay first (factory hold is 1)", "warn"); return; }
     if (G.event) { log("Ops busy", "warn"); return; }
-    if (G.steel < r.steelCost) { log(`Need ${r.steelCost} steel`, "bad"); return; }
+    if (G.steel < r.steelCost) { log(`Need ${r.steelCost} steel.`, "bad"); return; }
     G.steel -= r.steelCost;
     const buildDays = spanDays(TUNING.BUILD_DAYS_MIN, TUNING.BUILD_DAYS_MAX);
     G.factoryJob = { kind: "rocket", rocketId: r.id, daysLeft: buildDays, totalDays: buildDays };
@@ -1246,7 +1301,6 @@
       const bay = buildingById(r.destId);
       const cap = bayCapacity(bay);
       log(`${v.name} is in Mega Bay, slot ${(r.baySlot || 0) + 1} of ${cap}.`, "good");
-      if (bayCount() >= 2) G.objectives.multi_bay = true;
     }
     clearMotion(v.id);
     updateObjectives();
@@ -1289,7 +1343,6 @@
 
   function weatherOn(day) {
     if (TEST && G.skyLock) return G.skyLock;
-    if (TEST) return { sky: "Clear", wind: 8, storm: false };
     const table = [
       { sky: "Clear", wind: 8, storm: false },
       { sky: "Clear", wind: 12, storm: false },
@@ -1373,17 +1426,27 @@
     return !!(storm || wind > windLimit);
   }
 
-  // Numbers in, one word out. Same inputs always return the same word.
-  // The range is first, then RP-1, then liquid oxygen, then the pad, then the engine.
-  // fireVerdict(318, 400, 440, 968, 220, 484, 12, 20, false) is "hold".
-  // fireVerdict(318, 400, 100, 968, 220, 484, 12, 20, false) is "rp1".
-  function fireVerdict(thrust, padThrust, rp1, lox, needRp1, needLox, wind, windLimit, storm) {
-    if (rangeShut(storm, wind, windLimit)) return "weather";
-    if (rp1 < needRp1) return "rp1";
-    if (lox < needLox) return "lox";
-    if (thrust > padThrust) return "pad";
-    if (thrust < TUNING.SF_THRUST_BAR_KN) return "engine";
-    return "hold";
+  // Every short part, in the order a pad would see them.
+  function fireShorts(thrust, padThrust, rp1, lox, needRp1, needLox, wind, windLimit, storm) {
+    const shorts = [];
+    if (rangeShut(storm, wind, windLimit)) shorts.push("weather");
+    if (rp1 < needRp1) shorts.push("rp1");
+    if (lox < needLox) shorts.push("lox");
+    if (thrust > padThrust) shorts.push("pad");
+    if (thrust < TUNING.SF_THRUST_BAR_KN) shorts.push("engine");
+    return shorts;
+  }
+
+  // A scrub cannot light a burn. Weather and a short tank are scrubs. The engine and the pad are burns.
+  function isScrub(check) {
+    const shorts = check && check.shorts ? check.shorts : [];
+    return shorts.some((word) => word === "weather" || word === "rp1" || word === "lox");
+  }
+
+  function reasonText(check) {
+    const shorts = check && check.shorts && check.shorts.length ? check.shorts : (check && check.limiter ? [check.limiter] : []);
+    if (!shorts.length) return "Thrust holds";
+    return shorts.map(shortReason).join(". ");
   }
 
   // Condition and the next pad or bay wait after a fire. The caller writes the vehicle.
@@ -1427,10 +1490,12 @@
     const thrust = merlinNowKn(v);
     const needRp1 = TUNING.SF_RP1_KG;
     const needLox = TUNING.SF_LOX_KG;
-    const word = fireVerdict(thrust, limits.thrust, G.rp1, G.lox, needRp1, needLox, sky.wind, limits.wind, sky.storm);
+    const shorts = fireShorts(thrust, limits.thrust, G.rp1, G.lox, needRp1, needLox, sky.wind, limits.wind, sky.storm);
+    const word = shorts[0] || "hold";
     return {
       ok: word === "hold",
       limiter: word === "hold" ? null : word,
+      shorts,
       thrust, needRp1, needLox, sky, limits,
     };
   }
@@ -1452,10 +1517,12 @@
     if (!launchFarmReady()) {
       return { ok: false, limiter: "farm", thrust, sky, limits };
     }
-    const word = fireVerdict(thrust, limits.thrust, G.rp1, G.lox, TUNING.FLIGHT_RP1_KG, TUNING.FLIGHT_LOX_KG, sky.wind, limits.wind, sky.storm);
+    const shorts = fireShorts(thrust, limits.thrust, G.rp1, G.lox, TUNING.FLIGHT_RP1_KG, TUNING.FLIGHT_LOX_KG, sky.wind, limits.wind, sky.storm);
+    const word = shorts[0] || "hold";
     return {
       ok: word === "hold",
       limiter: word === "hold" ? null : word,
+      shorts,
       thrust, sky, limits,
       needRp1: TUNING.FLIGHT_RP1_KG,
       needLox: TUNING.FLIGHT_LOX_KG,
@@ -1471,24 +1538,40 @@
     return "The first stage burns until the Merlin runs dry.";
   }
 
+  function shortReason(word) {
+    if (word === "weather") return "The range is closed";
+    if (word === "rp1") return "RP-1 is short";
+    if (word === "lox") return "Liquid oxygen is short";
+    if (word === "pad") return "The pad is short";
+    return "The engine is short";
+  }
+
+  function finishScrub(v, check, kind) {
+    const loaded = G.rp1 > 0 || G.lox > 0;
+    v.needsDetank = loaded;
+    const tail = loaded ? " Open the rocket and empty the tanks." : " The rocket is not damaged.";
+    log(`${v.name} aborts the ${kind}. ${reasonText(check)}.${tail}`, "bad");
+  }
+
+  function emptyTanks(vehicleId) {
+    const v = vehicleById(vehicleId);
+    if (!v || !v.needsDetank) return;
+    G.rp1 = 0;
+    G.lox = 0;
+    v.needsDetank = false;
+    log(`${v.name} tanks are empty.`, "info");
+    renderChrome();
+  }
+
   function staticFire() {
     if (G.paused) { log("The day is paused.", "warn"); return; }
     const pad = buildingOfType("pad_orbital");
     if (!pad) { log("Need pad", "bad"); return; }
     const v = padHold();
     if (!v || v.status !== "on_pad") { log("Need a vehicle on the pad", "bad"); return; }
+    if (v.needsDetank) { log("Empty the tanks on the rocket sheet.", "warn"); return; }
     if (G.event || motionFor(v.id) || padBusy()) { log("Busy", "warn"); return; }
     const check = fireCheck(v, pad);
-    if (check.limiter === "weather") {
-      log("Range is closed. Wait for a calmer day.", "bad");
-      renderChrome();
-      return;
-    }
-    if (check.limiter === "rp1" || check.limiter === "lox") {
-      log(shortFluidLine(check.limiter, "fire"), "bad");
-      renderChrome();
-      return;
-    }
     startFill(v, pad, check, "fire");
     renderChrome();
   }
@@ -1499,20 +1582,11 @@
     if (!pad) { log("Need pad", "bad"); return; }
     const v = padHold();
     if (!v || v.status !== "ready") { log("Launch needs a clean static fire first", "warn"); return; }
+    if (v.needsDetank) { log("Empty the tanks on the rocket sheet.", "warn"); return; }
     if (G.event || motionFor(v.id) || padBusy()) { log("Busy", "warn"); return; }
     const check = launchCheck(v, pad);
     if (check.limiter === "farm") {
       log("Launch needs the launch farm.", "warn");
-      renderChrome();
-      return;
-    }
-    if (check.limiter === "weather") {
-      log("Range is closed. Wait for a calmer day.", "bad");
-      renderChrome();
-      return;
-    }
-    if (check.limiter === "rp1" || check.limiter === "lox") {
-      log(shortFluidLine(check.limiter, "launch"), "bad");
       renderChrome();
       return;
     }
@@ -1535,33 +1609,50 @@
       startLox: G.lox,
       needRp1,
       needLox,
+      takeRp1: check && isScrub(check) ? 0 : Math.min(G.rp1, needRp1),
+      takeLox: check && isScrub(check) ? 0 : Math.min(G.lox, needLox),
       check,
       purpose: launch ? "launch" : "fire",
     });
-    log(`${v.name} loads ${needRp1} kg of RP-1 and ${needLox} kg of liquid oxygen.`, "info");
+    if (check && !check.ok) log(`${v.name} tries the ${launch ? "launch" : "static fire"}. ${reasonText(check)}.`, "bad");
+    else log(`${v.name} loads ${needRp1} kg of RP-1 and ${needLox} kg of liquid oxygen.`, "info");
   }
 
   function updateFill(r, dt) {
     r.t += dt;
     const u = clamp(r.t / r.duration, 0, 1);
-    G.rp1 = r.startRp1 - r.needRp1 * u;
-    G.lox = r.startLox - r.needLox * u;
+    const takeRp1 = r.takeRp1 != null ? r.takeRp1 : r.needRp1;
+    const takeLox = r.takeLox != null ? r.takeLox : r.needLox;
+    G.rp1 = r.startRp1 - takeRp1 * u;
+    G.lox = r.startLox - takeLox * u;
     renderResources();
     if (u < 1) return;
-    G.rp1 = r.startRp1 - r.needRp1;
-    G.lox = r.startLox - r.needLox;
+    G.rp1 = r.startRp1 - takeRp1;
+    G.lox = r.startLox - takeLox;
     const v = vehicleById(r.vehicleId);
     const pad = buildingById(r.destId) || buildingOfType("pad_orbital");
     const check = r.check;
     if (!v || !pad || !check) { clearMotion(r.vehicleId); renderChrome(); return; }
     if (r.purpose === "launch") {
+      if (isScrub(check)) {
+        finishScrub(v, check, "launch");
+        clearMotion(v.id);
+        renderChrome();
+        return;
+      }
       startFly(v, pad, check);
+      renderChrome();
+      return;
+    }
+    if (isScrub(check)) {
+      finishScrub(v, check, "static fire");
+      clearMotion(v.id);
       renderChrome();
       return;
     }
     log(check.ok
       ? `${v.name} holds the static fire.`
-      : `${v.name} misses the static fire because the ${check.limiter} is short.`, check.ok ? "good" : "bad");
+      : `${v.name} misses the static fire. ${reasonText(check)}.`, check.ok ? "good" : "bad");
     startEventSF(v, pad, rocketOf(v.rocketId), check.ok, check);
     renderChrome();
   }
@@ -1614,13 +1705,13 @@
     // The footer names the real outcome, because the result is known before the animation starts.
     document.getElementById("event-outcome").textContent = success
       ? "Held. Inspection starts on the mount."
-      : `The ${check.limiter} was short · return to Mega Bay for refurb or scrap`;
+      : `${shortReason(check.limiter)}. Return to Mega Bay for refurb or scrap`;
     openEvent(
       `Static fire · ${v.name}`,
       phases[0].label,
       success
         ? `${r.name} · thrust ${check.thrust} kN holds · ${check.sky.sky}`
-        : `${r.name} · the ${check.limiter} is short`
+        : `${r.name} · ${shortReason(check.limiter)}`
     );
   }
 
@@ -1642,7 +1733,7 @@
     if (!ev) return;
     const v = vehicleById(ev.vehicleId);
     if (!v) return;
-    G.objectives.static_fire = true;
+    fundGoal("static_fire");
     countFireDay();
     v.fires = (v.fires || 0) + 1;
     v.firedS = (v.firedS || 0) + 5;
@@ -1661,7 +1752,7 @@
     } else if (ev.success) {
       log(`${v.name} held. Return it to the Mega Bay for ${dayCount(v.refurbLeft)} of refurb. ${firedLine(v)}`, "good");
     } else {
-      log(`${v.name} failed because the ${ev.limiter} was short. Condition ${v.condition}. Refurb ${dayCount(v.refurbLeft)}. Scrap floor is ${TUNING.SCRAP_FLOOR}.`, "bad");
+      log(`${v.name} failed. ${shortReason(ev.limiter)}. Condition ${v.condition}. Refurb ${dayCount(v.refurbLeft)}. Scrap floor is ${TUNING.SCRAP_FLOOR}.`, "bad");
     }
   }
 
@@ -1712,8 +1803,18 @@
     return Math.max(90 - TUNING.PITCH_MAX_DEG_FROM_VERTICAL, 90 - tipped);
   }
 
+  function loadedPropKg(takeRp1, takeLox) {
+    const paired = Math.min(Math.max(0, takeRp1), Math.max(0, takeLox) / TUNING.LOX_PER_RP1);
+    return paired * (1 + TUNING.LOX_PER_RP1);
+  }
+
   function startFly(v, pad, check) {
-    // The range check already ran when Launch was pressed. A later closed lamp does not stop this climb.
+    // A closed range after liftoff does not stop a climb that already left.
+    const fill = motionFor(v.id);
+    const takeRp1 = fill && fill.takeRp1 != null ? fill.takeRp1 : TUNING.FLIGHT_RP1_KG;
+    const takeLox = fill && fill.takeLox != null ? fill.takeLox : TUNING.FLIGHT_LOX_KG;
+    const shortFuel = takeRp1 + 0.5 < TUNING.FLIGHT_RP1_KG || takeLox + 0.5 < TUNING.FLIGHT_LOX_KG;
+    const early = check && !check.ok && check.limiter !== "rp1" && check.limiter !== "lox";
     const thrustN = merlinNowKn(v) * 1000;
     const ve = TUNING.MERLIN_ISP_S * FLIGHT_G;
     v.status = "flying";
@@ -1732,7 +1833,7 @@
       vx: 0,
       vy: 0,
       mass: TUNING.STRUCT_LIMIT_KG,
-      prop: TUNING.STAGE_PROP_KG,
+      prop: shortFuel || early ? loadedPropKg(takeRp1, takeLox) : TUNING.STAGE_PROP_KG,
       thrustN,
       ve,
       pitchDeg: 90,
@@ -1743,8 +1844,10 @@
       maxQTime: 0,
       maxH: 0,
       maxSpeed: 0,
+      abortAt: early ? TUNING.LAUNCH_ABORT_S : null,
+      failWord: early || shortFuel ? check.limiter : null,
     });
-    log(`${v.name} lifts off.`, "good");
+    log(early || shortFuel ? `${v.name} lifts off. ${shortReason(check.limiter)}.` : `${v.name} lifts off.`, early || shortFuel ? "bad" : "good");
     renderFlightPanel();
   }
 
@@ -1795,6 +1898,10 @@
     let left = dt * TUNING.FLIGHT_TIME_SCALE;
     const step = 0.02;
     while (left > 0 && r.prop > 0) {
+      if (r.abortAt != null && r.simT >= r.abortAt) {
+        r.prop = 0;
+        break;
+      }
       const ds = Math.min(step, left, r.prop > 0 ? 1 : 0);
       if (ds <= 0) break;
       stepFlight(r, ds);
@@ -1823,7 +1930,16 @@
     const spd = wikiNum(r.maxSpeed, 0);
     const qkPa = wikiNum(r.maxQ / 1000, 1);
     const qt = wikiNum(r.maxQTime, 0);
-    log(`${name} cutoff. Top height ${hKm} km. Top speed ${spd} m/s. Max-Q ${qkPa} kPa at ${qt} s. The first stage is lost at sea.`, "warn");
+    const reached = r.maxH / 1000 >= TUNING.LAUNCH_OK_KM && r.maxSpeed >= TUNING.LAUNCH_OK_MS && !r.failWord;
+    const why = r.failWord ? shortReason(r.failWord) : "The burn fell short";
+    if (reached) {
+      log(`${name} reaches ${hKm} km and ${spd} m/s. The first stage is lost at sea.`, "good");
+      fundGoal("launch");
+    } else if (r.maxH < 100) {
+      log(`${name} does not lift off. ${why}. The first stage is lost.`, "bad");
+    } else {
+      log(`${name} falls short of ${TUNING.LAUNCH_OK_KM} km and ${TUNING.LAUNCH_OK_MS} m/s. ${why}. Top height ${hKm} km. Top speed ${spd} m/s. The first stage is lost at sea.`, "bad");
+    }
     renderFlightPanel();
     renderChrome();
   }
@@ -2032,7 +2148,7 @@
     const pad = buildingById(G.selectedId);
     if (!pad || pad.type !== "pad_orbital") return;
     if (pad.level >= 2) { log("Pad already L2", "info"); return; }
-    if (G.steel < TUNING.PAD_L2_COST) { log(`Need ${TUNING.PAD_L2_COST} steel`, "bad"); return; }
+    if (G.steel < TUNING.PAD_L2_COST) { log(`Need ${TUNING.PAD_L2_COST} steel.`, "bad"); return; }
     G.steel -= TUNING.PAD_L2_COST;
     pad.level = 2;
     log("Pad level 2. The trench is wider.", "good");
@@ -2053,16 +2169,18 @@
   }
 
   function updateObjectives() {
-    G.objectives.place_all = BUILD_ORDER.every((t) => countType(t) >= 1);
-    if (liveFleet().length) G.objectives.build_rocket = true;
-    if (bayCount() >= 2) G.objectives.multi_bay = true;
+    if (BUILD_ORDER.every((t) => countType(t) >= 1)) fundGoal("place_all");
+    if (liveFleet().length) fundGoal("build_rocket");
+    if (bayCount() >= 2) fundGoal("multi_bay");
     const pad = buildingOfType("pad_orbital");
-    G.objectives.pad_l2 = !!(pad && pad.level >= 2);
+    if (pad && pad.level >= 2) fundGoal("pad_l2");
+    renderResources();
     renderObjectives();
   }
 
   // ── Chrome ──
   function renderResources() {
+    el.money.textContent = Math.floor(G.money);
     el.steel.textContent = Math.floor(G.steel);
     el.rp1.textContent = Math.floor(G.rp1);
     el.lox.textContent = Math.floor(G.lox);
@@ -2086,7 +2204,15 @@
       </button>`;
     }).join("");
     const ownedLabel = ownedCount === 1 ? "1 plot" : `${ownedCount} plots`;
-    el.palette.innerHTML = `<div class="plot-owned">Owned<b>${ownedLabel}</b></div>` + offers;
+    const steelOff = G.money < TUNING.STEEL_PACK_COST ? " disabled" : "";
+    el.palette.innerHTML = `<button type="button" class="plot-card" id="btn-steel"${steelOff}>
+        <div class="name">Buy steel</div>
+        <div class="price">${TUNING.STEEL_PACK_COST}</div>
+        <div class="unit">money</div>
+        <div class="line">Adds ${TUNING.STEEL_PACK} steel.</div>
+      </button><div class="plot-owned">Owned<b>${ownedLabel}</b></div>` + offers;
+    const steelBtn = el.palette.querySelector("#btn-steel");
+    if (steelBtn) steelBtn.addEventListener("click", buySteel);
     el.palette.querySelectorAll("[data-plot]").forEach((btn) => {
       btn.addEventListener("click", () => buyPlot(btn.getAttribute("data-plot")));
     });
@@ -2206,7 +2332,7 @@
         `The rocket flies straight up for ${TUNING.PITCH_START_S} seconds, then tips toward downrange. The tip stops at ${90 - TUNING.PITCH_MAX_DEG_FROM_VERTICAL} degrees above the horizon. Pitch only aims the thrust.`,
         `Days keep moving during the flight. The range lamp can close, and the rocket that already left keeps flying. Pause stops the climb and the readouts.`,
         `When the Merlin runs dry, the log names the top height, the top speed, and max-Q. The first stage is lost at sea. There is no landing.`,
-        `A default Falcon 1 cuts off at 89.2 km and 1932 m/s. Max-Q is 21.4 kPa at 84 seconds.`,
+        `A clean launch reaches ${TUNING.LAUNCH_OK_KM} km and ${TUNING.LAUNCH_OK_MS} m/s. A short tank or a closed range falls short of that. Max-Q on a clean flight is 21.4 kPa at 84 seconds.`,
       ]) + wikiFacts([
         { value: `${TUNING.FLIGHT_RP1_KG} kg`, label: "RP-1 for a launch" },
         { value: `${TUNING.FLIGHT_LOX_KG} kg`, label: "Liquid oxygen for a launch" },
@@ -2331,8 +2457,8 @@
       body: wikiParas([
         `The Merlin burns two fluids. RP-1 is refined kerosene. Liquid oxygen is the oxidizer. The engine needs both.`,
         `A static fire loads ${TUNING.SF_RP1_KG} kg of RP-1 and ${TUNING.SF_LOX_KG} kg of liquid oxygen. That is ${wikiNum(TUNING.LOX_PER_RP1, 2)} kg of liquid oxygen for each kg of RP-1.`,
-        `The RP-1 tank holds ${TUNING.RP1_CAP} kg. The liquid oxygen tank holds ${TUNING.LOX_CAP} kg. The launch farm buys raise those tanks to ${TUNING.RP1_CAP_L2} kg and ${TUNING.LOX_CAP_L2} kg. The buys do not speed the daily refill.`,
-        `Each day adds ${TUNING.RP1_PER_DAY} kg of RP-1 and ${TUNING.LOX_PER_DAY} kg of liquid oxygen, up to the tank. With the farm, the tanks fill for a launch in about 6 days.`,
+        `The RP-1 tank holds ${TUNING.RP1_CAP} kg. The liquid oxygen tank holds ${TUNING.LOX_CAP} kg. The launch farm buys raise those tanks to ${TUNING.RP1_CAP_L2} kg and ${TUNING.LOX_CAP_L2} kg.`,
+        `The pad fills the RP-1 tank or the liquid oxygen tank for ${TUNING.FLUID_FILL_COST} money. One press fills that tank.`,
         `A launch loads ${TUNING.FLIGHT_RP1_KG} kg of RP-1 and ${TUNING.FLIGHT_LOX_KG} kg of liquid oxygen. That is the ${wikiGo("equation", "rocket equation")} load, ${TUNING.STAGE_PROP_KG} kg, split by the mix. A static fire does not load that flight amount.`,
       ]) + wikiFacts([
         { value: `${TUNING.SF_RP1_KG} kg`, label: "RP-1 for a static fire" },
@@ -2340,8 +2466,7 @@
         { value: wikiNum(TUNING.LOX_PER_RP1, 2), label: "Liquid oxygen per kg of RP-1" },
         { value: `${TUNING.RP1_CAP} kg`, label: "RP-1 tank" },
         { value: `${TUNING.LOX_CAP} kg`, label: "Liquid oxygen tank" },
-        { value: `${TUNING.RP1_PER_DAY} kg`, label: "RP-1 added each day" },
-        { value: `${TUNING.LOX_PER_DAY} kg`, label: "Liquid oxygen added each day" },
+        { value: `${TUNING.FLUID_FILL_COST} money`, label: "Price to fill one tank" },
         { value: `${TUNING.FLIGHT_RP1_KG} kg`, label: "RP-1 for a launch" },
         { value: `${TUNING.FLIGHT_LOX_KG} kg`, label: "Liquid oxygen for a launch" },
         { value: `${TUNING.RP1_CAP_L2} kg`, label: "RP-1 tank after the launch farm" },
@@ -2375,7 +2500,7 @@
         `These numbers come straight from the game's settings.`,
         `RP-1 and liquid oxygen are separate stocks. The mix is ${wikiNum(TUNING.LOX_PER_RP1, 2)} kg of liquid oxygen for each kg of RP-1.`,
         `A static fire loads ${TUNING.SF_RP1_KG} kg of RP-1 and ${TUNING.SF_LOX_KG} kg of liquid oxygen. A launch loads ${TUNING.FLIGHT_RP1_KG} kg of RP-1 and ${TUNING.FLIGHT_LOX_KG} kg of liquid oxygen.`,
-        `The launch farm buys raise the tanks from ${TUNING.RP1_CAP} kg and ${TUNING.LOX_CAP} kg to ${TUNING.RP1_CAP_L2} kg and ${TUNING.LOX_CAP_L2} kg. Each day adds ${TUNING.RP1_PER_DAY} kg of RP-1 and ${TUNING.LOX_PER_DAY} kg of liquid oxygen.`,
+        `The launch farm buys raise the tanks from ${TUNING.RP1_CAP} kg and ${TUNING.LOX_CAP} kg to ${TUNING.RP1_CAP_L2} kg and ${TUNING.LOX_CAP_L2} kg. The pad fills one tank for ${TUNING.FLUID_FILL_COST} money.`,
         `Liftoff mass is ${TUNING.STRUCT_LIMIT_KG} kg. Drag uses a coefficient of ${wikiNum(TUNING.DRAG_CD, 2)} and a front area of ${wikiNum(TUNING.FRONT_AREA_M2, 2)} square meters.`,
         `Air density starts at ${wikiNum(TUNING.RHO0_KG_M3, 3)} kg per cubic meter and thins over ${TUNING.SCALE_HEIGHT_M} m. The rocket stays vertical for ${TUNING.PITCH_START_S} seconds, then tips at ${wikiNum(TUNING.PITCH_RATE_DEG_S, 2)} degrees per second, and stops ${TUNING.PITCH_MAX_DEG_FROM_VERTICAL} degrees from vertical.`,
         `The flight plays at ${TUNING.FLIGHT_TIME_SCALE} times real time. Inspection takes ${dayCount(TUNING.INSPECT_DAYS)}. The Merlin needs a bay refurb after ${TUNING.MERLIN_FIRE_LIMIT_S} seconds of firing.`,
@@ -2389,8 +2514,7 @@
         { value: `${TUNING.LOX_CAP} kg`, label: "Liquid oxygen tank" },
         { value: `${TUNING.RP1_CAP_L2} kg`, label: "RP-1 tank after the launch farm" },
         { value: `${TUNING.LOX_CAP_L2} kg`, label: "Liquid oxygen tank after the launch farm" },
-        { value: `${TUNING.RP1_PER_DAY} kg`, label: "RP-1 added each day" },
-        { value: `${TUNING.LOX_PER_DAY} kg`, label: "Liquid oxygen added each day" },
+        { value: `${TUNING.FLUID_FILL_COST} money`, label: "Price to fill one tank" },
         { value: `${TUNING.STAGE_PROP_KG} kg`, label: "Propellant in the rocket equation" },
         { value: `${TUNING.STRUCT_LIMIT_KG} kg`, label: "Liftoff mass" },
         { value: wikiNum(TUNING.DRAG_CD, 2), label: "Drag coefficient" },
@@ -2443,7 +2567,7 @@
         `${wikiPlace("starfactory", "Starfactory")} builds a Falcon 1 in ${daySpan(TUNING.BUILD_DAYS_MIN, TUNING.BUILD_DAYS_MAX)}.`,
         `Raise Merlin thrust takes ${daySpan(TUNING.MERLIN_UP_DAYS_MIN, TUNING.MERLIN_UP_DAYS_MAX)}. Lighten the stage takes ${daySpan(TUNING.STAGE_LIGHTEN_DAYS_MIN, TUNING.STAGE_LIGHTEN_DAYS_MAX)}.`,
         `After a clean fire the rocket stays on the mount for ${dayCount(TUNING.INSPECT_DAYS)} of inspection. A miss keeps it in ${wikiPlace("mega_bay", "Mega Bay")} for ${daySpan(TUNING.REFURB_FAIL_MIN, TUNING.REFURB_FAIL_MAX)}.`,
-        `Days keep moving while the tanks load, the engine burns, or the rocket ${wikiGo("flight", "flies")}. The farm skips the daily RP-1 and liquid oxygen refill while a rocket loads or burns. Pause stops the day and the burn. A roll, a raise, and a lower leave the day running.`,
+        `Days keep moving while the tanks load, the engine burns, or the rocket ${wikiGo("flight", "flies")}. The purse does not grow on the day. Investors pay when a goal is finished. Pause stops the day and the burn. A roll, a raise, and a lower leave the day running.`,
         `The rollout along the yard road is counted in seconds. That is the short wait on the road between ${wikiPlace("mega_bay", "Mega Bay")} and the ${wikiPlace("pad_orbital", "Orbital Pad")}.`,
       ]) + wikiFacts([
         { value: `${wikiNum(seconds, 1)} seconds`, label: "One game day" },
@@ -2516,6 +2640,7 @@
       title: "Orbital Pad",
       body: wikiParas([
         `The Orbital Pad holds the rocket for a static fire and a ${wikiPageLink("flight", "launch")}. The rocket rolls here from ${wikiPlace("mega_bay", "Mega Bay")}.`,
+        `The pad fills the RP-1 tank or the liquid oxygen tank for ${TUNING.FLUID_FILL_COST} money. One press fills that tank.`,
         `Static fire loads ${TUNING.SF_RP1_KG} kg of RP-1 and ${TUNING.SF_LOX_KG} kg of liquid oxygen. A short tank does not start that load. A pad miss or an engine miss still spends both fluids.`,
         `After a clean fire the rocket stays on the mount for ${dayCount(TUNING.INSPECT_DAYS)} of inspection. Then it is ready. A ready rocket offers Launch and Return to Mega Bay.`,
         `Launch needs the launch farm. Those two tank buys raise the tanks to ${TUNING.RP1_CAP_L2} kg of RP-1 and ${TUNING.LOX_CAP_L2} kg of liquid oxygen. A launch loads ${TUNING.FLIGHT_RP1_KG} kg of RP-1 and ${TUNING.FLIGHT_LOX_KG} kg of liquid oxygen.`,
@@ -2598,7 +2723,7 @@
         const sel = v.id === G.selectedVehicleId ? " sel" : "";
         return `<button type="button" class="fleet-row${sel}" data-vid="${v.id}">
           <div class="name">${esc(v.name)}</div>
-          <div class="meta">${esc(placeLabel(v))} · condition ${Math.round(v.condition)}</div>
+          <div class="meta">${esc(placeLabel(v))} · condition ${Math.round(v.condition)}${v.needsDetank ? " · empty the tanks" : ""}</div>
         </button>`;
       }).join("")
       : `<p class="fleet-empty">No vehicles yet. Build one at Starfactory.</p>`;
@@ -2694,7 +2819,7 @@
       } else {
         const r = rocketOf("falcon1");
         const busy = !!(factoryHold() || G.event);
-        html += actCard("build", "", ` data-rocket="falcon1"${busy || G.steel < r.steelCost ? " disabled" : ""}`,
+        html += actCard("build", "", ` data-rocket="falcon1"${busy ? " disabled" : ""}`,
           "Build Falcon 1", r.steelCost, "steel", `${daySpan(TUNING.BUILD_DAYS_MIN, TUNING.BUILD_DAYS_MAX)}. A static fire loads ${TUNING.SF_RP1_KG} kg of RP-1 and ${TUNING.SF_LOX_KG} kg of liquid oxygen.`);
         html += `<p class="wait">Falcon 9, Falcon Heavy, and Starship come later.</p>`;
       }
@@ -2773,11 +2898,8 @@
         const check = fireCheck(on, b);
         html += `<div class="facts"><div><b>${esc(on.name)}</b><span>${esc(firedLine(on))}</span></div><div><b>${check.thrust}</b><span>kN · needs ${TUNING.SF_THRUST_BAR_KN}</span></div></div>`;
         html += `<p class="wait">Condition under ${TUNING.SCRAP_FLOOR} scraps the vehicle. A miss takes ${TUNING.SF_MISS_CONDITION} condition.</p>`;
-        const fireLine = check.ok ? "Thrust holds."
-          : check.limiter === "weather" ? "The range is closed."
-          : check.limiter === "rp1" ? "RP-1 is short."
-          : check.limiter === "lox" ? "Liquid oxygen is short."
-          : "A check is short.";
+        const fireLine = check.ok ? "Thrust holds." : `${reasonText(check)}.`;
+        if (on.needsDetank) html += `<p class="wait">Open the rocket and empty the tanks.</p>`;
         html += actCard("fire", "btn-sf", "", check.ok ? "Static fire" : "Try static fire", TUNING.SF_RP1_KG, "kg RP-1", fireLine, TUNING.SF_LOX_KG, "kg LOX");
       } else if (on && on.status === "inspect") {
         html += `<div class="facts"><div><b>${esc(on.name)}</b><span>${esc(firedLine(on))}</span></div></div>`;
@@ -2785,7 +2907,10 @@
       } else if (on && on.status === "ready") {
         const check = launchCheck(on, b);
         html += `<div class="facts"><div><b>${esc(on.name)}</b><span>${esc(firedLine(on))}</span></div><div><b>${check.thrust}</b><span>kN</span></div></div>`;
-        html += actCard("fire", "btn-launch", "", "Launch", TUNING.FLIGHT_RP1_KG, "kg RP-1", launchNeedLine(check.limiter), TUNING.FLIGHT_LOX_KG, "kg LOX");
+        if (on.needsDetank) html += `<p class="wait">Open the rocket and empty the tanks.</p>`;
+        const tryLaunch = check.limiter === "weather" || check.limiter === "rp1" || check.limiter === "lox" || check.limiter === "pad" || check.limiter === "engine";
+        const launchLine = check.ok ? launchNeedLine(null) : `${reasonText(check)}.`;
+        html += actCard("fire", "btn-launch", "", tryLaunch ? "Try launch" : "Launch", TUNING.FLIGHT_RP1_KG, "kg RP-1", launchLine, TUNING.FLIGHT_LOX_KG, "kg LOX");
         html += actCard("roll", "btn-return", "", "Return to Mega Bay", null, "", "The rocket leaves the mount.");
       } else if (on && on.status === "needs_return") {
         html += `<div class="facts"><div><b>${esc(on.name)}</b><span>${esc(firedLine(on))}</span></div></div>`;
@@ -2799,19 +2924,25 @@
       html += `<div class="sec"><div class="k">Cadence</div>`;
       cadenceLines().forEach((line) => { html += `<p class="wait">${esc(line)}</p>`; });
       html += `</div>`;
+      html += `<div class="sec"><div class="k">Propellant</div>`;
+      html += actCard("up", "btn-buy-rp1", "", "Buy RP-1", TUNING.FLUID_FILL_COST, "money",
+        `Fills the tank, ${rp1Cap()} kg.`);
+      html += actCard("up", "btn-buy-lox", "", "Buy liquid oxygen", TUNING.FLUID_FILL_COST, "money",
+        `Fills the tank, ${loxCap()} kg.`);
+      html += `</div>`;
       html += `<div class="sec"><div class="k">Launch farm</div>`;
       const tankBusy = !!(G.event || fluidsMoving());
       if (G.rp1Level < 2) {
         html += actCard("up", "btn-rp1", tankBusy || G.steel < TUNING.RP1_TANK_COST ? " disabled" : "",
           "RP-1 tank", TUNING.RP1_TANK_COST, "steel",
-          `The launch farm grows this tank from ${TUNING.RP1_CAP} kg to ${TUNING.RP1_CAP_L2} kg. The daily refill stays ${TUNING.RP1_PER_DAY} kg.`);
+          `The launch farm grows this tank from ${TUNING.RP1_CAP} kg to ${TUNING.RP1_CAP_L2} kg. The pad fills it for ${TUNING.FLUID_FILL_COST} money.`);
       } else {
         html += `<p class="wait">The RP-1 tank holds ${TUNING.RP1_CAP_L2} kg.</p>`;
       }
       if (G.loxLevel < 2) {
         html += actCard("up", "btn-lox", tankBusy || G.steel < TUNING.LOX_TANK_COST ? " disabled" : "",
           "Liquid oxygen tank", TUNING.LOX_TANK_COST, "steel",
-          `The launch farm grows this tank from ${TUNING.LOX_CAP} kg to ${TUNING.LOX_CAP_L2} kg. The daily refill stays ${TUNING.LOX_PER_DAY} kg.`);
+          `The launch farm grows this tank from ${TUNING.LOX_CAP} kg to ${TUNING.LOX_CAP_L2} kg. The pad fills it for ${TUNING.FLUID_FILL_COST} money.`);
       } else {
         html += `<p class="wait">The liquid oxygen tank holds ${TUNING.LOX_CAP_L2} kg.</p>`;
       }
@@ -2862,6 +2993,10 @@
     if (rp1Buy) rp1Buy.onclick = buyRp1Tank;
     const loxBuy = box.querySelector("#btn-lox");
     if (loxBuy) loxBuy.onclick = buyLoxTank;
+    const rp1Load = box.querySelector("#btn-buy-rp1");
+    if (rp1Load) rp1Load.onclick = buyRp1;
+    const loxLoad = box.querySelector("#btn-buy-lox");
+    if (loxLoad) loxLoad.onclick = buyLox;
   }
 
   function cadenceLines() {
@@ -2899,6 +3034,7 @@
       ["build_rocket", "Build a rocket at Starfactory"],
       ["multi_bay", "House 2 vehicles in Mega Bay"],
       ["static_fire", "Finish a static fire"],
+      ["launch", "Launch a Falcon 1"],
       ["refurb", "Finish a refurb in the bay"],
       ["pad_l2", "Raise the pad to level 2"],
     ];
@@ -2911,8 +3047,8 @@
       const done = G.objectives[k];
       const now = next && next[0] === k;
       const cls = done ? "done" : now ? "now" : "";
-      const mark = done ? "Done" : now ? "Next" : "";
-      return `<div class="goal-row ${cls}"><div class="idx">${String(i + 1).padStart(2, "0")}</div><div><div class="name">${esc(label)}</div>${mark ? `<div class="line">${mark}</div>` : ""}</div></div>`;
+      const mark = done ? "Done" : `Investors pay ${TUNING.GOAL_PAY[k]}`;
+      return `<div class="goal-row ${cls}"><div class="idx">${String(i + 1).padStart(2, "0")}</div><div><div class="name">${esc(label)}</div><div class="line">${mark}</div></div></div>`;
     }).join("");
     panel.innerHTML = `<div class="top"><div class="left">${open}<span>${open ? "still open" : "all done"}</span></div>
       <button type="button" id="goal-close">Close</button></div>${rows}`;
@@ -3026,6 +3162,10 @@
     const structureJob = G.factoryJob && G.factoryJob.kind === "structure" && G.factoryJob.vehicleId === v.id ? G.factoryJob : null;
     const dry = stageDryKg(v);
     let action = "";
+    if (v.needsDetank) {
+      action += actCard("up", "btn-empty", "", "Empty the tanks", Math.floor(G.rp1), "kg RP-1",
+        "The scrubbed load leaves the tanks.", Math.floor(G.lox), "kg LOX");
+    }
     if (merlinJob) action += `<p class="wait">Merlin thrust · ${dayCount(merlinJob.daysLeft)} left</p>`;
     else if ((v.merlinTier || 1) < 2) {
       action += actCard("up", "btn-merlin", G.steel < TUNING.MERLIN_UP_COST ? " disabled" : "",
@@ -3057,6 +3197,8 @@
     sheet.classList.add("open");
     sheet.setAttribute("aria-hidden", "false");
     panel.querySelector("#rocket-close").onclick = () => { G.rocketSheet = null; renderRocketSheet(); };
+    const empty = panel.querySelector("#btn-empty");
+    if (empty) empty.onclick = () => emptyTanks(v.id);
     const mer = panel.querySelector("#btn-merlin");
     if (mer) mer.onclick = () => startMerlinUpgrade(v.id);
     const structure = panel.querySelector("#btn-structure");
@@ -4263,49 +4405,11 @@
     requestAnimationFrame(frame);
   }
 
-  function applyTestStart() {
-    if (!TEST) return;
-    for (const id of ["starfactory", "mega_bay", "pad_orbital"]) {
-      const plot = PLOTS[id];
-      G.plots[id] = true;
-      for (const b of plot.buildings) {
-        G.buildings.push({ id: G.nextId++, type: b.type, gx: b.gx, gy: b.gy, level: 1 });
-      }
-    }
-    const pad = buildingOfType("pad_orbital");
-    const a = buildingAnchor(pad);
-    const v = {
-      id: G.nextId++,
-      name: "F1-1",
-      rocketId: "falcon1",
-      buildingId: pad.id,
-      status: "ready",
-      condition: Math.max(0, 100 - TUNING.SF_OK_CONDITION),
-      merlinTier: 1,
-      structureTier: 1,
-      fires: 1,
-      firedS: 5,
-      refurbLeft: 0,
-      inspectLeft: 0,
-      baySlot: 0,
-      wx: a.x,
-      wy: a.y,
-    };
-    G.fleet.push(v);
-    G.selectedVehicleId = v.id;
-    G.selectedId = pad.id;
-    G.fireDays.push(G.day);
-    G.objectives.place_all = true;
-    G.objectives.build_rocket = true;
-    G.objectives.static_fire = true;
-  }
-
   window.addEventListener("resize", () => { resize(); });
   document.getElementById("ver-label").textContent = TEST ? `${VERSION}. Test start.` : VERSION;
   resize();
   G.cam.x = (MAP_W * CELL) / 2 - W / 2;
   G.cam.y = (MAP_H * CELL) / 2 - H / 2;
-  applyTestStart();
   if (TEST) {
     window.__sb = {
       selectBuilding(type) {
@@ -4334,6 +4438,7 @@
           paused: G.paused,
           rp1: G.rp1,
           lox: G.lox,
+          money: G.money,
           steel: G.steel,
           factoryDays: G.factoryJob ? G.factoryJob.daysLeft : null,
           motions: G.rollouts.map((r) => ({
@@ -4358,13 +4463,10 @@
     };
   }
   renderChrome();
-  if (TEST) {
-    log("Test start. A ready Falcon 1 sits on the mount. The tanks hold one launch. The day is calm.", "info");
-  } else {
-    log("The site starts with a factory, a Mega Bay, and a pad. Steel, RP-1, and liquid oxygen come from the yard.", "info");
-    log("The bay can hold more than one vehicle. It refurbs a rocket after a miss. A static fire can fail.", "info");
-    log("Two rockets can roll at the same time. The pad still holds one.", "info");
-  }
+  log("The purse starts at 150 money. The day adds none. Investors pay when a goal is finished.", "info");
+  log("The bay can hold more than one vehicle. It refurbs a rocket after a miss. A static fire can fail.", "info");
+  log("Two rockets can roll at the same time. The pad still holds one.", "info");
+  if (TEST) log("A day here lasts half a second.", "info");
   requestAnimationFrame(frame);
 })();
   </script>

@@ -202,3 +202,15 @@ History of what **shipped**, keyed by **version**.
 - Weather only gates a launch at liftoff. A closed range during a flight that already left does not stop the climb. Pause still stops the day and the burn.
 - The pad still holds one rocket. Tank buys still wait while fluids move.
 - The previous live file is `archive/index-0.8.0-flight.html`.
+
+## `0.9.0-economy` — 2026-10-29
+
+**Version:** `0.9.0-economy`
+
+- Money is the first count in the header. A normal open starts at 150 money, 0 steel, 0 kg of RP-1, and 0 kg of liquid oxygen. The day adds no money, no steel, and no fluid. Investors add money once, when a goal is finished. The Goals sheet shows the amount. The pays are 40, 20, 70, 60, 40, and 50, in goal order.
+- Buy steel sits above the plot cards. It costs 10 money and adds 10 steel. The button is off when money is under 10. Starfactory, Mega Bay, the Orbital Pad, the Falcon 1, Raise Merlin thrust, Lighten the stage, Another slot, Pad level 2, and both tank-capacity buys still spend steel only.
+- The Orbital Pad card has Buy RP-1 and Buy liquid oxygen above the tank-capacity buys. Each costs 6 money and fills that tank in one press. A full tank does not sell. A launch tank is two presses, one for each fluid.
+- A short purse logs `Need N money.` A short steel stock logs `Need N steel.` A roll, a static fire, and a launch still spend no money.
+- A closed range or a short tank aborts the static fire and the launch. The log names every short part. The rocket sheet then shows Empty the tanks. That button dumps the RP-1 and the liquid oxygen. The rocket keeps its condition and stays where it is. Another fire waits until the tanks are empty. An engine or a pad that is short can still miss, cut condition, and send the rocket to the bay.
+- A clean flight reaches 89.2 km and 1932 m/s, and that pays the Launch a Falcon 1 goal, 80 money. The rocket still needs the launch farm and a clean static fire. The first stage is lost only after a flight that leaves the pad.
+- `index.html?test` is the same open with a day of half a second. Money starts at 150. Steel, RP-1, and liquid oxygen start at 0. The yard is empty. The previous live file is `archive/index-0.8.1-fix.html`.
