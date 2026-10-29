@@ -6,7 +6,7 @@ Phases 0 through 5 are the earlier draft, through `5.0.0-compute`. Phases 6 thro
 
 When a row ships or is dropped, remove it from the table and note the ship in `IMPLEMENTATION_LOG.md`.
 
-**Last shipped:** `0.8.0-flight`. After a clean fire and an inspection, the Falcon 1 flies. Only the first stage burns. Five live numbers track the climb, and the first stage is lost at sea. See `IMPLEMENTATION_LOG.md`. The next row is `0.9.0-economy`.
+**Last shipped:** `0.9.0-economy`. Money is the first count in the header. The purse is fixed. Investors pay when a goal is finished. Steel and propellant are bought with that money. Buildings and the rocket still spend steel. See `IMPLEMENTATION_LOG.md`. The next row is `0.10.0-parts`.
 
 ## UI and UX
 
@@ -36,19 +36,35 @@ The owned line shipped in `0.4.0-borderline`. It follows the coast, about 8 km i
 
 `0.6.0-motion` plays the loop you already have, on the map. The static-fire modal closes. A build shows in the Starfactory. The finished Falcon 1 rolls from the Starfactory along the yard road to Mega Bay. It rolls from the bay to the Orbital Pad on that same road. At the pad it rises onto the mount. The static fire burns on the mount, and the flame stays on the map. This version only animates steps that already exist. Later versions add their own animations on top of the same system.
 
-`0.8.0-flight` shipped the first Falcon 1 launch. `0.9.0-economy`, `0.10.0-tracking`, `0.11.0-orbit`, `0.12.0-contract`, and `0.13.0-recovery` follow in that order.
+`0.8.0-flight` shipped the first Falcon 1 launch. `0.9.0-economy` shipped the purse. `0.10.0-parts`, `0.11.0-contract`, `0.12.0-recovery`, and `0.13.0-orbit` follow in that order. `0.14.0-tracking`, `0.15.0-picture`, and `0.16.0-motion-final` come after that.
 
-`0.9.0-economy` makes money a playable resource. The game should feel hard, so progress feels rewarding. Everything costs money, from steel and propellant to engines, buildings and rockets, and the budget is always tight, so each choice matters. Ways to spend less are earned. Recovering a stage later is one example, not the point.
+`0.10.0-parts` is next. The rocket sheet lists three parts. The Merlin loses life as it fires. Its refurb costs the most steel and takes 2 days. Pad level 2 still cuts one day. The fuel fitting can pass a static fire and still be short at launch. Its refurb is an inspection, and it takes 1 day. The stage loses life on a hard flight. Its refurb is the bay work. The bay refurbs one part at a time. The number on the sheet is the worst part, with that part's name beside it. A miss names that part. Nine engines wait for `1.0.0-falcon9`.
 
-`0.10.0-tracking` lets you follow flights on the map. When you zoom out, each rocket shows its path and a box that grows and shrinks around it, with live numbers like altitude, speed and flight phase. Later, with many launches and some automation, you can watch them all fly at once.
+`0.14.0-tracking` lets you follow flights on the map. When you zoom out, each rocket shows its path and a box that grows and shrinks around it, with live numbers like altitude, speed and flight phase. Later, with many launches and some automation, you can watch them all fly at once.
 
-`0.14.0-picture` replaces the plain halls. Starfactory, Mega Bay, and the Orbital Pad each get a picture you can read on the map. The seats stay. The buys stay. No new rule.
+`0.15.0-picture` replaces the plain halls. Starfactory, Mega Bay, and the Orbital Pad each get a picture you can read on the map. The seats stay. The buys stay. No new rule.
 
-`0.15.0-motion-final` is a final pass on every animation once the buildings are drawn. Speeds, timing, and look all match. It covers the roll, the raise, the fire, refueling, flight, and landing.
+`0.16.0-motion-final` is a final pass on every animation once the buildings are drawn. Speeds, timing, and look all match. It covers the roll, the raise, the fire, refueling, flight, and landing.
 
 This chapter builds one Falcon 1. The factory finishes that rocket. The bay holds it and refurbishes it. The bay does not stack sections yet. Sections come from the factory and get mounted in the bay when Starship arrives. The tower that lifts a stack is the later pad upgrade, not this raise. The hop is `3.1.0-hop`. One Raptor on a short test vehicle lifts off, hovers, and lands on a nearby pad. This is like Starhopper at Boca Chica in 2019. That vehicle flew 150 meters in August of that year. The catch is `3.2.0-catch`.
 
 No new fire rule. The numbers that pass or fail the fire stay the ones you already have.
+
+## Test campaign
+
+A launch before `0.11.0-contract` spends the purse and pays nothing. That flight is the test. Fire the Orbital Pad until the card shows a run of clean static fires. Then launch.
+
+The pad card already shows fires in the last 30 days, and days since the last fire. A launch does not join that list yet. Each launch joins the same record as the fires.
+
+Reliability is that record. It is not a meter you buy. A clean static fire proves the mount and the Merlin. A launch proves the flight. Raise Merlin thrust, Lighten the stage, and Pad level 2 change those results. If every launch logs the same line, the tests teach nothing.
+
+`0.11.0-contract` reads the record before it offers the sale. One customer. The sale names how many launches and how many clean results it wants. The button stays off until the record says so. Pay arrives when a launch meets the sale.
+
+`0.12.0-recovery` is the first way to spend less. A customer who asks you to bring the stage home waits for `7.0.0-ladder`.
+
+`0.13.0-orbit` writes an orbit card, or names the short part. This closes the Falcon 1 rules.
+
+A flight load is a large spend. Until the contract, a day adds 6 money. A run of unpaid launches can stall the yard. `6.1.0-rounds` pays once for the first flight and the first orbit. When `0.11.0-contract` is planned, that first paid launch should cover the next vehicle.
 
 Later rows on `design-docs/program-roadmap-design.html` add rules on that same coast line. `6.0.0-yard` adds pad buffer, the first houses, and the highway closure. `6.2.0-stand` is an inland test stand on a parcel of about 930 acres. `6.3.0-farm` lets tank-pad acres set propellant and deluge capacity. `6.4.0-mitigation` is wetland you cannot build on, required before the second pad. `6.5.0-town` adds a clinic and a school after the beds exist. None of those rules ship with the line.
 

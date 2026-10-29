@@ -15,6 +15,16 @@ Name buttons, buildings, and files as they appear on screen: Starfactory, Mega B
 
 In the game, a label says what the player can do or what just happened. "Static fire" and "Falcon 9 needs pad level 2" are enough. Do not write "simply," "just," "easily," or "obviously." Do not use slogans, exclamation marks, or a joke in place of the fact. A failure names the part that was short.
 
+## Realism
+
+Keep the hardware honest. If a real pad would only abort, the game aborts. It does not invent damage, a refurb, or a lost stage.
+
+A closed range or a short tank cannot light a real burn. The attempt may run. The log names every short part, not only the first check. The player then opens the rocket sheet and empties the tanks. The game does not dump them by itself. The rocket keeps its condition and stays where it is.
+
+A burn that does light can fail. A short engine or a short pad may cut condition and send the rocket to Mega Bay. A launch that leaves the pad can be lost at sea. A scrub cannot.
+
+Do not add a hidden chance, a percent, or a punishment the hardware would not do. A number the player sees has to be a tank, a thrust, a wind, a day, or a life.
+
 In chat and in docs, explain a change by what the player sees: the number on the panel, the rocket on the pad, the days the bay is busy. Comments in code are one sentence about why, in the same English.
 
 Do not write dash-label fragments, tables of definitions, or consulting language when a few sentences will do. A table is for a real comparison, such as two rockets side by side. Design docs stay HTML and stay readable in the same voice.
