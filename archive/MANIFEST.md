@@ -15,3 +15,4 @@
 | index-0.7.0-tanks.html | 0.7.0-tanks | Playable site before the first Falcon 1 launch. |
 | index-0.8.0-flight.html | 0.8.0-flight | Playable site before the day clock keeps moving during a fill, a fire, and a flight. |
 | index-0.8.1-fix.html | 0.8.1-fix | Playable site before money buys steel and propellant. |
+| index-0.9.0-economy.html | 0.9.0-economy | Playable site before the Merlin, the fuel fitting, and the stage each keep a life. |
