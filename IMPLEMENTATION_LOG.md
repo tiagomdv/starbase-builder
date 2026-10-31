@@ -227,3 +227,14 @@ History of what **shipped**, keyed by **version**.
 - The Mega Bay runs one part. In the bay, each band on the rocket is that part's refurb. The lowest part has the red mark. A second press waits. Return to Mega Bay parks the rocket. The first finished part pays the refurb goal of 40 money once.
 - Buy 10 and Buy 50 sit above the plot cards. The rate is 1 money per steel, so the packs cost 10 and 50. Buy 50 is off when money is under 50. Buy 10 is off when money is under 10. The plot cards stay the larger buy.
 - The 34 second cutoff is the DARPA board line in Space Daily on 21 July 2006. The 169 seconds are the Flight 3 timeline already in the wiki. The 5 second hold is the 2008 user's guide. The previous live file is `archive/index-0.9.0-economy.html`.
+
+## `0.11.0-screen` — 2026-10-31
+
+**Version:** `0.11.0-screen`
+
+- The top bar has three parts. The range lamp, the sky, and the wind sit on the left. Money, Steel, RP-1, LOX, and Fleet sit in the middle as one gold inline row, with the version under them. Day and a small Pause chip sit on the far right. The bar has no buy buttons. Steel buys stay on Land. RP-1 and LOX loads stay pad actions.
+- Land is the left column. Buy 10 and Buy 50 sit at the top. Each owned building has a card, such as Starfactory · owned. A press on the card selects that building. The free plot cards come last and still cost steel. A day tick keeps the Land scroll where it was.
+- The Inspector is the right column. It shows a description, then the data, then compact slots with name, percent, and place. The Mega Bay lists its slots. The pad lists its mount. Upgrade sits in the scroll. It holds Another slot on the Mega Bay, Pad level 2 on the pad, and the two launch farm tanks. The do-now actions are pinned under the scroll. They are Build Falcon 1, Roll, Static fire, Launch, Return, Load RP-1, Load liquid oxygen, and Open rocket.
+- The rocket parts have new names. Structure is the old stage life. Fuel lines is the old fuel fitting. Engine (Merlin) is the Merlin. The rules, the costs, and the keys did not change. Raise Merlin thrust and Lighten the stage stay Starfactory jobs and start from the rocket sheet.
+- The rocket drawing reads top to bottom. The structure holds the liquid oxygen tank over the RP-1 tank. Red fuel lines run from both tanks to the turbopump in the thrust section. The Merlin bell sits under it. Each part fills with its percent. The big number is the lowest part.
+- The previous live file is `archive/index-0.10.0-parts.html`.

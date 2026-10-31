@@ -24,9 +24,12 @@
       border-bottom: 1px solid #222;
       color: #f2f2f2;
       font-family: ui-monospace, Menlo, monospace;
+      min-height: 84px;
+      padding: 10px 12px;
+      box-sizing: border-box;
     }
-    #sky-label { font-size: 22px; line-height: 1; font-weight: 650; }
-    #wind-label { font-size: 15px; color: #c8c8c8; margin-top: 4px; }
+    #sky-label { font-size: 20px; line-height: 1; font-weight: 650; }
+    #wind-label { font-size: 13px; color: #c8c8c8; margin-top: 4px; }
     .stat-k { font-size: 12px; color: #9a9a9a; }
     .day-stat { display: flex; flex-direction: column; align-items: flex-start; }
     .day-row { display: flex; align-items: center; gap: 8px; }
@@ -37,15 +40,16 @@
       font: inherit; font-size: 12px; line-height: 1.25; padding: 4px 8px;
     }
     #day-pause:hover, #day-pause:focus { background: #161616; border-color: #666; outline: none; }
-    .stat-n { font-size: 32px; line-height: 0.9; font-weight: 650; }
+    /* Locked design-docs/0.11.0-screen-design.html mock .n / .bs */
+    .stat-n { font-size: 40px; line-height: 0.9; font-weight: 650; }
     .resource-bar {
       display: grid;
       grid-template-columns: 1fr auto 1fr;
       align-items: end;
     }
-    .bar-left { display: flex; align-items: flex-end; gap: 14px; }
-    .bar-mid { display: flex; flex-direction: column; align-items: center; gap: 6px; }
-    .bar-stats { display: flex; align-items: flex-end; gap: 16px; }
+    .bar-left { display: flex; align-items: flex-end; gap: 12px; }
+    .bar-mid { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+    .bar-stats { display: flex; align-items: flex-end; gap: 18px; }
     .act .pair { display: flex; gap: 14px; margin-top: 6px; }
     .act .pair .price { margin-top: 0; }
     #ver-label { font-size: 11px; line-height: 1; color: #9a9a9a; }
@@ -175,7 +179,7 @@
     .plate.look .hit { pointer-events: none; }
     .calls {
       height: min(460px, 54vh); min-height: 320px;
-      display: grid; grid-template-rows: 1.55fr 0.7fr 1.05fr; align-items: center;
+      display: grid; grid-template-rows: 2.4fr 0.95fr 1.15fr; align-items: center;
     }
     .call {
       position: relative; display: block; width: 100%; text-align: left;
@@ -389,11 +393,91 @@
       padding: 0.55rem 1rem 0.75rem; border-top: 1px solid var(--border);
       background: #050505; font-size: 0.78rem; color: var(--muted);
     }
+    /* 0.11.0-screen: Land left, Inspector right, Day right. Hairline frames, mono numbers, no soft card grid. */
+    .bar-left { justify-self: start; }
+    .bar-mid { justify-self: center; }
+    .bar-right { display: flex; width: 100%; justify-content: flex-end; align-items: flex-end; justify-self: stretch; }
+    .sh {
+      color: #c4a15a; font: 600 11px ui-monospace, Menlo, monospace; letter-spacing: 0.14em; text-transform: uppercase;
+      border-bottom: 1px solid #333; margin: 0 0 8px; padding-bottom: 4px;
+    }
+    .sh.sub { margin-top: 14px; }
+    #land { width: 13.5rem; }
+    #readout { width: 17.5rem; }
+    #land-scroll, #insp-scroll { flex: 1; min-height: 0; overflow-y: auto; padding: 10px; }
+    #inspector { font-size: 12px; }
+    #inspector .note { color: #c8c8c8; font-size: 12px; }
+    .own-card {
+      display: block; width: 100%; text-align: left; cursor: pointer; margin-bottom: 6px;
+      background: #0e0e0e; border: 1px solid #555; color: #f2f2f2; padding: 7px 9px;
+    }
+    .own-card:hover { border-color: #f2f2f2; }
+    .own-card.sel { border-color: #e10600; box-shadow: inset 3px 0 #e10600; }
+    .own-card .name { font-size: 13px; font-weight: 650; }
+    .own-card .line { font-size: 11px; color: #9a9a9a; margin-top: 2px; }
+    .plot-card { border-style: dashed; }
+    .bldg .desc { border-bottom: 1px solid #333; padding-bottom: 8px; }
+    .bldg .row { display: flex; justify-content: space-between; align-items: baseline; padding: 3px 0; font-size: 12px; color: #c8c8c8; }
+    .bldg .row b { font: 650 15px ui-monospace, Menlo, monospace; color: #f2f2f2; }
+    .slot {
+      display: grid; grid-template-columns: 1fr 44px 78px; gap: 6px; align-items: baseline; width: 100%; text-align: left;
+      background: #0e0e0e; border: 1px solid #555; color: #f2f2f2; padding: 5px 7px; margin-top: 5px; font-size: 12px; cursor: pointer;
+    }
+    .slot .pc { font-family: ui-monospace, Menlo, monospace; font-weight: 650; text-align: right; }
+    .slot .pc.low { color: #e10600; }
+    .slot .pc.mid { color: #c4a15a; }
+    .slot .pl { color: #c4a15a; font-size: 11px; text-align: right; }
+    .slot.sel { border-color: #f2f2f2; box-shadow: inset 3px 0 #e10600; }
+    .slot.empty { color: #666; border-style: dashed; cursor: default; }
+    #insp-acts { flex: none; border-top: 1px solid #f2f2f2; background: #0a0a0a; padding: 3px 10px 8px; }
+    #insp-acts:empty { display: none; }
+    #insp-acts .act { margin-top: 4px; padding: 5px 7px; }
+    #insp-acts .act .name { font-size: 13px; }
+    #insp-acts .act .price { font-size: 14px; margin-top: 1px; }
+    #insp-acts .act .unit { font-size: 10px; }
+    #insp-acts .act .line { margin-top: 2px; font-size: 11px; color: #9a9a9a; }
+    #insp-acts .act .pair .price { font-size: 14px; }
+    #insp-acts .act.open { border-color: #444; padding: 4px 7px; }
+    #insp-acts .act.quiet { border-color: #444; background: #0a0a0a; }
+    #insp-acts .act.roll { border-color: #444; background: #0a0a0a; }
+    #insp-acts .duo { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: 4px; }
+    #insp-acts .duo .act { margin-top: 0; padding: 4px 6px; }
+    #insp-acts .duo .act .price { font-size: 13px; }
+    #insp-acts .duo .act .line { margin-top: 1px; font-size: 10px; }
+    /* Locked mock: compact Upgrade rows, not gold actCards */
+    .upg { border-top: 1px solid #444; margin-top: 10px; padding-top: 6px; }
+    .upg .sh { margin-top: 0; }
+    .upg .u {
+      display: flex; justify-content: space-between; align-items: center;
+      border: 1px solid #555; padding: 4px 6px; margin-top: 5px; font-size: 12px; color: #f2f2f2;
+    }
+    .upg .u span { color: #c8c8c8; }
+    .upg .u .u-btn {
+      border: 1px solid #f2f2f2; background: #0a0a0a; color: #f2f2f2;
+      font: inherit; font-size: 12px; padding: 2px 7px; margin-left: 4px; cursor: pointer; flex: none;
+    }
+    .upg .u .u-btn:hover:not(:disabled) { background: #161616; }
+    .upg .u .u-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+      .ship .tag.sm { font-size: 9px; letter-spacing: 0.08em; }
+    /* Top bar follows the locked topbar-mock.html: range left, inline gold counters centered, Day and a small Pause chip right. */
+    .resource-bar { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; min-height: 56px; padding: 6px 12px; border-bottom: 1px solid #fff; font-size: 13px; }
+    .resource-bar .bar-left { align-items: center; gap: 10px; }
+    .resource-bar .range-lamp { width: 12px; height: 12px; margin-bottom: 0; }
+    .resource-bar #sky-label { font-size: 15px; line-height: 1.1; }
+    .resource-bar #wind-label { font-size: 11px; margin-top: 2px; }
+    .resource-bar .bar-mid { gap: 2px; }
+    .resource-bar .bar-stats { align-items: center; gap: 14px; }
+    .resource-bar .ctr { color: #c8c8c8; white-space: nowrap; }
+    .resource-bar .ctr b { color: #c4a15a; font-size: 15px; font-weight: 650; margin-left: 4px; }
+    .resource-bar .bar-right { align-items: center; gap: 8px; }
+    .resource-bar #ver-label { font-size: 10px; color: #666; }
+    #day-pause { min-width: 0; border: 1px solid #fff; background: #0a0a0a; color: #fff; padding: 2px 7px; font-size: 12px; line-height: 1.25; margin: 0; }
+    #day-pause:hover, #day-pause:focus { background: #1a1a1a; border-color: #fff; }
   </style>
 </head>
 <body class="flex flex-col h-full">
 
-  <header class="resource-bar px-3 py-3 shrink-0 z-20">
+  <header class="resource-bar shrink-0 z-20">
     <div class="bar-left">
       <span id="range-lamp" class="range-lamp" title="Green when the sky is inside the pad limit."></span>
       <div>
@@ -403,22 +487,25 @@
     </div>
     <div class="bar-mid">
       <div class="bar-stats">
-        <div><div class="stat-k">Money</div><div id="res-money" class="stat-n tabular-nums">150</div></div>
-        <div><div class="stat-k">Steel</div><div id="res-steel" class="stat-n tabular-nums">0</div></div>
-        <div><div class="stat-k">RP-1</div><div id="res-rp1" class="stat-n tabular-nums">0</div></div>
-        <div><div class="stat-k">LOX</div><div id="res-lox" class="stat-n tabular-nums">0</div></div>
-        <div><div class="stat-k">Fleet</div><div id="res-fleet" class="stat-n tabular-nums">0</div></div>
-        <div class="day-stat"><div class="stat-k" id="day-run">Day</div><div class="day-row"><div id="day-label" class="stat-n tabular-nums">1</div><button type="button" id="day-pause">Pause</button></div></div>
+        <span class="ctr">Money <b id="res-money" class="tabular-nums">150</b></span>
+        <span class="ctr">Steel <b id="res-steel" class="tabular-nums">0</b></span>
+        <span class="ctr">RP-1 <b id="res-rp1" class="tabular-nums">0</b></span>
+        <span class="ctr">LOX <b id="res-lox" class="tabular-nums">0</b></span>
+        <span class="ctr">Fleet <b id="res-fleet" class="tabular-nums">0</b></span>
       </div>
-      <div id="ver-label">0.10.0-parts</div>
+      <div id="ver-label">0.11.0-screen</div>
+    </div>
+    <div class="bar-right">
+      <span class="ctr"><span id="day-run">Day</span> <b id="day-label" class="tabular-nums">1</b></span>
+      <button type="button" id="day-pause">Pause</button>
     </div>
   </header>
 
   <div class="flex flex-1 min-h-0">
-    <aside class="w-44 ui-panel flex flex-col shrink-0 border-y-0 border-l-0">
-      <div class="p-2.5 border-b border-amber-900/40">
-        <div class="text-[10px] uppercase tracking-wider text-amber-600 mb-2">Land</div>
-        <div class="grid grid-cols-1 gap-1.5" id="build-palette"></div>
+    <aside id="land" class="ui-panel flex flex-col shrink-0 border-y-0 border-l-0 min-h-0">
+      <div id="land-scroll">
+        <div class="sh">Land</div>
+        <div id="build-palette"></div>
       </div>
       <button type="button" id="next-goal">Goals</button>
     </aside>
@@ -442,11 +529,12 @@
       <div id="map-scale"><span class="bar" id="map-scale-bar"></span><span id="map-scale-label"></span></div>
     </div>
 
-    <aside id="readout" class="w-64 ui-panel flex flex-col shrink-0 border-y-0 border-r-0 min-h-0">
-      <div class="p-2.5 flex-1 overflow-y-auto min-h-0">
-        <div class="text-[10px] uppercase tracking-wider text-amber-600 mb-1">Inspector</div>
-        <div id="inspector" class="text-xs text-amber-100/85 space-y-2"></div>
+    <aside id="readout" class="ui-panel flex flex-col shrink-0 border-y-0 border-r-0 min-h-0">
+      <div id="insp-scroll">
+        <div class="sh">Inspector</div>
+        <div id="inspector"></div>
       </div>
+      <div id="insp-acts"></div>
       <button type="button" id="fleet-open">Fleet</button>
     </aside>
   </div>
@@ -488,7 +576,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "0.10.0-parts";
+  const VERSION = "0.11.0-screen";
   const CELL = 32, MAP_W = 40, MAP_H = 30;
   // ?test is a normal open with a short day. The purse, the tanks, and the yard start the same.
   const TEST = new URLSearchParams(location.search).has("test");
@@ -973,9 +1061,9 @@
     return `Merlin ${left} of ${TUNING.MERLIN_FIRE_LIMIT_S} seconds.`;
   }
   function partName(key) {
-    if (key === "merlin") return "Merlin";
-    if (key === "fitting") return "Fuel fitting";
-    return "Stage";
+    if (key === "merlin") return "Engine (Merlin)";
+    if (key === "fitting") return "Fuel lines";
+    return "Structure";
   }
   function partLifeValue(v, key) {
     if (!v) return 0;
@@ -1602,7 +1690,7 @@
     return { scrap: false, status: "needs_return", inspectLeft: 0 };
   }
 
-  // A lit fire spends the 5 second hold on the Merlin. The fuel fitting stays put.
+  // A lit fire spends the 5 second hold on the Merlin. The fuel lines stay put.
   function afterFireLives(v, success, limiter) {
     let merlin = Math.max(0, (v.merlinLifeS || 0) - 5);
     let stage = v.stageLife || 0;
@@ -1669,7 +1757,7 @@
   function fittingCardLine(v) {
     if (!v || (v.fittingLifeS || 0) >= TUNING.FITTING_BURN_S) return "";
     const have = Math.max(0, Math.round(v.fittingLifeS || 0));
-    return `The fuel fitting has ${have} seconds. Launch needs ${TUNING.FITTING_BURN_S} seconds.`;
+    return `The fuel lines have ${have} seconds. Launch needs ${TUNING.FITTING_BURN_S} seconds.`;
   }
 
   function launchCardLine(v, check) {
@@ -1687,7 +1775,7 @@
     if (word === "rp1") return "RP-1 is short";
     if (word === "lox") return "Liquid oxygen is short";
     if (word === "pad") return "The pad is short";
-    if (word === "fitting") return "The fuel fitting is short";
+    if (word === "fitting") return "The fuel lines are short";
     if (word === "engine") return "The Merlin is short";
     return "The Merlin is short";
   }
@@ -1898,13 +1986,13 @@
     v.refurbPart = null;
     if (next.scrap) {
       v.buildingId = null;
-      log(`${v.name} is scrap. ${shortReason(ev.limiter)}. Stage life is under ${TUNING.SCRAP_FLOOR}.`, "bad");
+      log(`${v.name} is scrap. ${shortReason(ev.limiter)}. Structure is under ${TUNING.SCRAP_FLOOR}.`, "bad");
     } else if (ev.success && next.status === "inspect") {
       log(`${v.name} held. Inspection starts on the mount. ${firedLine(v)}`, "good");
     } else if (ev.success) {
       log(`${v.name} held. The Merlin is worn. Return it to Mega Bay. ${firedLine(v)}`, "good");
     } else {
-      log(`${v.name} failed. ${shortReason(ev.limiter)}. Stage life ${Math.round(v.stageLife)}.`, "bad");
+      log(`${v.name} failed. ${shortReason(ev.limiter)}. Structure ${Math.round(v.stageLife)}.`, "bad");
     }
   }
 
@@ -2349,8 +2437,22 @@
     if (pauseBtn) pauseBtn.textContent = G.paused ? "Resume" : "Pause";
   }
 
+  function ownedLine(b) {
+    if (b.type === "starfactory") {
+      if (G.factoryJob) return `Busy · ${dayCount(G.factoryJob.daysLeft)} left`;
+      return factoryHold() ? "Holds a finished rocket" : "Builds Falcon 1";
+    }
+    if (b.type === "mega_bay") {
+      const cap = bayCapacity(b);
+      return `${bayLoad(b)} of ${cap} ${cap === 1 ? "slot" : "slots"} used`;
+    }
+    if (b.type === "pad_orbital") return `Pad level ${b.level || 1}`;
+    return "";
+  }
+
   function renderPalette() {
-    const ownedCount = Object.keys(PLOTS).filter((id) => G.plots[id]).length;
+    const land = document.getElementById("land-scroll");
+    const keep = land ? land.scrollTop : 0;
     const offers = Object.keys(PLOTS).filter((id) => !G.plots[id]).map((id) => {
       const plot = PLOTS[id];
       return `<button type="button" class="plot-card" data-plot="${id}">
@@ -2360,7 +2462,14 @@
         <div class="line">${esc(plot.line)}</div>
       </button>`;
     }).join("");
-    const ownedLabel = ownedCount === 1 ? "1 plot" : `${ownedCount} plots`;
+    const typeOrder = { starfactory: 0, mega_bay: 1, pad_orbital: 2 };
+    const owned = G.buildings.slice().sort((a, b) => (typeOrder[a.type] ?? 9) - (typeOrder[b.type] ?? 9)).map((b) => {
+      const sel = b.id === G.selectedId ? " sel" : "";
+      return `<button type="button" class="own-card${sel}" data-own="${b.id}">
+        <div class="name">${esc(defOf(b.type).name)}</div>
+        <div class="line">${esc(ownedLine(b))}</div>
+      </button>`;
+    }).join("");
     const packs = [
       [TUNING.STEEL_PACK, TUNING.STEEL_PACK_COST],
       [TUNING.STEEL_LOT, TUNING.STEEL_LOT_COST],
@@ -2373,13 +2482,21 @@
         <div class="unit">money</div>
       </button>`;
     }).join("");
-    el.palette.innerHTML = `<div class="steel-row">${steelRow}</div><p class="steel-rate">1 money buys 1 steel.</p><div class="plot-owned">Owned<b>${ownedLabel}</b></div>` + offers;
+    // Land order is locked: steel buys, then owned buildings, then free plots last.
+    el.palette.innerHTML = `<div class="steel-row">${steelRow}</div><p class="steel-rate">1 money buys 1 steel.</p>`
+      + `<div class="land-owned"><div class="sh sub">Buildings</div>${owned || `<p class="steel-rate">No building yet. Buy a plot below.</p>`}</div>`
+      + `<div class="land-free">${offers ? `<div class="sh sub">Free plots</div>${offers}` : ""}</div>`;
     el.palette.querySelectorAll(".steel-buy").forEach((btn) => {
       btn.addEventListener("click", () => buySteel(Number(btn.dataset.steel), Number(btn.dataset.cost)));
     });
     el.palette.querySelectorAll("[data-plot]").forEach((btn) => {
       btn.addEventListener("click", () => buyPlot(btn.getAttribute("data-plot")));
     });
+    el.palette.querySelectorAll("[data-own]").forEach((btn) => {
+      btn.addEventListener("click", () => { G.selectedId = +btn.getAttribute("data-own"); renderChrome(); });
+    });
+    // A day tick redraws the list. The list keeps its place.
+    if (land) land.scrollTop = keep;
   }
 
   function wikiLink(href, label) {
@@ -2667,7 +2784,7 @@
         `The launch farm buys raise the tanks from ${TUNING.RP1_CAP} kg and ${TUNING.LOX_CAP} kg to ${TUNING.RP1_CAP_L2} kg and ${TUNING.LOX_CAP_L2} kg. The pad fills one tank for ${TUNING.FLUID_FILL_COST} money.`,
         `Liftoff mass is ${TUNING.STRUCT_LIMIT_KG} kg. Drag uses a coefficient of ${wikiNum(TUNING.DRAG_CD, 2)} and a front area of ${wikiNum(TUNING.FRONT_AREA_M2, 2)} square meters.`,
         `Air density starts at ${wikiNum(TUNING.RHO0_KG_M3, 3)} kg per cubic meter and thins over ${TUNING.SCALE_HEIGHT_M} m. The rocket stays vertical for ${TUNING.PITCH_START_S} seconds, then tips at ${wikiNum(TUNING.PITCH_RATE_DEG_S, 2)} degrees per second, and stops ${TUNING.PITCH_MAX_DEG_FROM_VERTICAL} degrees from vertical.`,
-        `The flight plays at ${TUNING.FLIGHT_TIME_SCALE} times real time. Inspection takes ${dayCount(TUNING.INSPECT_DAYS)}. The Merlin starts with ${TUNING.MERLIN_FIRE_LIMIT_S} seconds left. A lit static fire spends 5. The fuel fitting starts at ${TUNING.FITTING_LIFE_S} seconds. Launch needs ${TUNING.FITTING_BURN_S}.`,
+        `The flight plays at ${TUNING.FLIGHT_TIME_SCALE} times real time. Inspection takes ${dayCount(TUNING.INSPECT_DAYS)}. The Merlin starts with ${TUNING.MERLIN_FIRE_LIMIT_S} seconds left. A lit static fire spends 5. The fuel lines start at ${TUNING.FITTING_LIFE_S} seconds. Launch needs ${TUNING.FITTING_BURN_S}.`,
       ]) + wikiFacts([
         { value: wikiNum(TUNING.LOX_PER_RP1, 2), label: "Liquid oxygen per kg of RP-1" },
         { value: `${TUNING.SF_RP1_KG} kg`, label: "RP-1 for a static fire" },
@@ -2701,9 +2818,9 @@
       title: "Engines and life",
       body: wikiParas([
         `A static fire is a burn on the pad. It checks the ${wikiGo("thrust", "thrust")} before a flight.`,
-        `The rocket sheet paints the Merlin, the fuel fitting, and the stage on the rocket. Each band shows that part as a percent. The big number is the lowest part. The Merlin band also shows the seconds still left, out of ${TUNING.MERLIN_FIRE_LIMIT_S}. A lit static fire spends 5 seconds. A launch spends the seconds that burn runs. Life stops at 0.`,
-        `The fuel fitting starts at ${TUNING.FITTING_LIFE_S} seconds. A static fire does not spend it. Launch needs ${TUNING.FITTING_BURN_S} seconds. Inspect the fuel fitting in ${wikiPlace("mega_bay", "Mega Bay")} sets it to that number.`,
-        `That inspection takes ${dayCount(TUNING.INSPECT_DAYS)} and no steel. A short fitting still lights. Thrust ends at ${TUNING.FITTING_ABORT_S} seconds, and the first stage is lost.`,
+        `The rocket sheet paints Structure, Fuel lines, and Engine (Merlin) on the rocket, top to bottom. Each part shows a percent. The big number is the lowest part. The engine part also shows the seconds still left, out of ${TUNING.MERLIN_FIRE_LIMIT_S}. A lit static fire spends 5 seconds. A launch spends the seconds that burn runs. Life stops at 0.`,
+        `The fuel lines carry RP-1 and liquid oxygen from the tanks to the engine. They start at ${TUNING.FITTING_LIFE_S} seconds. A static fire does not spend them. Launch needs ${TUNING.FITTING_BURN_S} seconds. Inspect the fuel lines in ${wikiPlace("mega_bay", "Mega Bay")} sets it to that number.`,
+        `That inspection takes ${dayCount(TUNING.INSPECT_DAYS)} and no steel. Short fuel lines still light. Thrust ends at ${TUNING.FITTING_ABORT_S} seconds, and the first stage is lost.`,
         `The stage starts at 100. A lit miss takes ${TUNING.SF_MISS_CONDITION} off that life. Under ${TUNING.SCRAP_FLOOR} the rocket is scrap. A flight does not change it.`,
         `Refurb the Merlin costs ${TUNING.MERLIN_REFURB_COST} steel and takes ${dayCount(TUNING.REFURB_OK_DAYS)}. Pad level 2 cuts one day from that job only. Refurb the stage takes ${daySpan(TUNING.REFURB_FAIL_MIN, TUNING.REFURB_FAIL_MAX)} and no steel.`,
         `The bay runs one part at a time. Raise Merlin thrust spends ${TUNING.MERLIN_UP_COST} steel and raises this rocket from ${TUNING.MERLIN_THRUST_KN} kN to ${TUNING.MERLIN_1C_KN} kN. It does not build a second engine.`,
@@ -2711,14 +2828,14 @@
       ]) + wikiFacts([
         { value: `${TUNING.MERLIN_FIRE_LIMIT_S} s`, label: "Merlin seconds at build" },
         { value: "5 s", label: "Seconds a static fire spends" },
-        { value: `${TUNING.FITTING_LIFE_S} s`, label: "Fuel fitting at build" },
+        { value: `${TUNING.FITTING_LIFE_S} s`, label: "Fuel lines at build" },
         { value: `${TUNING.FITTING_BURN_S} s`, label: "Seconds a launch needs" },
         { value: `${TUNING.MERLIN_REFURB_COST} steel`, label: "Refurb the Merlin" },
         { value: `${TUNING.MERLIN_THRUST_KN} kN`, label: "Fresh Merlin thrust" },
       ]) + wikiReal([
-        `No user's guide page prints a life for the fuel fitting. ${TUNING.FITTING_LIFE_S} seconds sits above the 5 second hold and below the ${TUNING.FITTING_BURN_S} second burn.`,
+        `No user's guide page prints a life for the fuel lines. ${TUNING.FITTING_LIFE_S} seconds sits above the 5 second hold and below the ${TUNING.FITTING_BURN_S} second burn.`,
         `In the ${wikiSource("guide")}, the Merlin does not restart, and the first stage returns by parachute. This bay restores the Merlin to ${TUNING.MERLIN_FIRE_LIMIT_S} seconds.`,
-        `The DARPA board later put the end of thrust at ${TUNING.FITTING_ABORT_S} seconds. A short fuel fitting in this game ends there.`,
+        `The DARPA board later put the end of thrust at ${TUNING.FITTING_ABORT_S} seconds. Short fuel lines in this game end it there.`,
       ]),
     };
   }
@@ -2736,7 +2853,7 @@
         `One game day lasts ${wikiNum(seconds, 1)} seconds. Builds, refurbs, and upgrades wait in those days.`,
         `${wikiPlace("starfactory", "Starfactory")} builds a Falcon 1 in ${daySpan(TUNING.BUILD_DAYS_MIN, TUNING.BUILD_DAYS_MAX)}.`,
         `Raise Merlin thrust takes ${daySpan(TUNING.MERLIN_UP_DAYS_MIN, TUNING.MERLIN_UP_DAYS_MAX)}. Lighten the stage takes ${daySpan(TUNING.STAGE_LIGHTEN_DAYS_MIN, TUNING.STAGE_LIGHTEN_DAYS_MAX)}.`,
-        `After a clean fire the rocket stays on the mount for ${dayCount(TUNING.INSPECT_DAYS)} of inspection. Refurb the Merlin takes ${dayCount(TUNING.REFURB_OK_DAYS)}. Inspect the fuel fitting takes ${dayCount(TUNING.INSPECT_DAYS)}. Refurb the stage takes ${daySpan(TUNING.REFURB_FAIL_MIN, TUNING.REFURB_FAIL_MAX)}.`,
+        `After a clean fire the rocket stays on the mount for ${dayCount(TUNING.INSPECT_DAYS)} of inspection. Refurb the engine takes ${dayCount(TUNING.REFURB_OK_DAYS)}. Inspect the fuel lines takes ${dayCount(TUNING.INSPECT_DAYS)}. Refurb the structure takes ${daySpan(TUNING.REFURB_FAIL_MIN, TUNING.REFURB_FAIL_MAX)}.`,
         `Days keep moving while the tanks load, the engine burns, or the rocket ${wikiGo("flight", "flies")}. The purse does not grow on the day. Investors pay when a goal is finished. Pause stops the day and the burn. A roll, a raise, and a lower leave the day running.`,
         `The rollout along the yard road is counted in seconds. That is the short wait on the road between ${wikiPlace("mega_bay", "Mega Bay")} and the ${wikiPlace("pad_orbital", "Orbital Pad")}.`,
       ]) + wikiFacts([
@@ -2781,7 +2898,7 @@
       body: wikiParas([
         `Mega Bay houses the rockets between ${wikiPlace("starfactory", "Starfactory")} and the ${wikiPlace("pad_orbital", "Orbital Pad")}. Open the rocket here to refurb one part.`,
         `Roll to the ${wikiPlace("pad_orbital", "Orbital Pad")} follows the yard road. The trip takes ${roll}. It spends no steel and no propellant.`,
-        `Refurb the Merlin costs ${TUNING.MERLIN_REFURB_COST} steel and takes ${dayCount(TUNING.REFURB_OK_DAYS)}. Inspect the fuel fitting takes ${dayCount(TUNING.INSPECT_DAYS)} and no steel. Refurb the stage takes ${daySpan(TUNING.REFURB_FAIL_MIN, TUNING.REFURB_FAIL_MAX)} and no steel. The bay runs one of those jobs.`,
+        `Refurb the engine costs ${TUNING.MERLIN_REFURB_COST} steel and takes ${dayCount(TUNING.REFURB_OK_DAYS)}. Inspect the fuel lines takes ${dayCount(TUNING.INSPECT_DAYS)} and no steel. Refurb the structure takes ${daySpan(TUNING.REFURB_FAIL_MIN, TUNING.REFURB_FAIL_MAX)} and no steel. The bay runs one of those jobs.`,
         `Another slot costs ${TUNING.BAY_SLOT_COST} steel and takes no days. It adds a place in the bay, up to ${TUNING.BAY_MAX === 1 ? "1 vehicle" : `${TUNING.BAY_MAX} vehicles`}.`,
         `The next step is a static fire on the ${wikiPlace("pad_orbital", "Orbital Pad")}. That fire checks ${wikiPageLink("thrust", "thrust")}, ${wikiPageLink("propellant", "propellant")}, and the wind.`,
       ]) + wikiFacts([
@@ -2814,7 +2931,7 @@
         `Static fire loads ${TUNING.SF_RP1_KG} kg of RP-1 and ${TUNING.SF_LOX_KG} kg of liquid oxygen. A short tank does not start that load. A pad miss or an engine miss still spends both fluids.`,
         `After a clean fire the rocket stays on the mount for ${dayCount(TUNING.INSPECT_DAYS)} of inspection. Then it is ready. A ready rocket offers Launch and Return to Mega Bay.`,
         `Launch needs the launch farm. Those two tank buys raise the tanks to ${TUNING.RP1_CAP_L2} kg of RP-1 and ${TUNING.LOX_CAP_L2} kg of liquid oxygen. A launch loads ${TUNING.FLIGHT_RP1_KG} kg of RP-1 and ${TUNING.FLIGHT_LOX_KG} kg of liquid oxygen.`,
-        `A miss still returns to ${wikiPlace("mega_bay", "Mega Bay")}. ${wikiPageLink("engines", "Engines and life")} names the Merlin seconds that burn takes off. Stage life under ${TUNING.SCRAP_FLOOR} scraps the rocket.`,
+        `A miss still returns to ${wikiPlace("mega_bay", "Mega Bay")}. ${wikiPageLink("engines", "Engines and life")} names the Merlin seconds that burn takes off. Structure under ${TUNING.SCRAP_FLOOR} scraps the rocket.`,
         `Pad level 2 costs ${TUNING.PAD_L2_COST} steel and takes no days. The thrust limit rises from ${TUNING.PAD_THRUST_L1} kilonewtons (kN) to ${TUNING.PAD_THRUST_L2} kN. The wind limit rises from ${TUNING.WIND_LIMIT_L1} knots to ${TUNING.WIND_LIMIT_L2} knots.${shorten}`,
       ]) + wikiFacts([
         { value: `${TUNING.SF_RP1_KG} kg`, label: "RP-1 for a static fire" },
@@ -2957,14 +3074,43 @@
     </button>`;
   }
 
+  function slotRow(v, extra) {
+    const pct = rocketPct(v);
+    const tone = lifeTone(pct);
+    const sel = v.id === G.selectedVehicleId ? " sel" : "";
+    return `<button type="button" class="slot${sel}" data-slot="${v.id}"${extra || ""}>
+      <span>${esc(v.name)}</span><span class="pc${tone ? ` ${tone}` : ""}">${pct}%</span><span class="pl">${esc(placeLabel(v))}</span>
+    </button>`;
+  }
+
+  function inspRow(k, n) {
+    return `<div class="row"><span>${k}</span><b>${n}</b></div>`;
+  }
+
+  // Compact Upgrade row (locked mock .u) — label · cost + Build, not a gold actCard.
+  function upgradeRow(id, label, cost, disabled) {
+    const dis = disabled ? " disabled" : "";
+    return `<div class="u"><span>${esc(label)} · ${cost} steel</span><button type="button" class="u-btn" id="${id}"${dis}>Build</button></div>`;
+  }
+
+  // Description, data, and Upgrade scroll. Do-now actions sit pinned under them.
   function renderInspector() {
     const box = el.inspector;
+    const actsBox = document.getElementById("insp-acts");
+    const scrollBox = document.getElementById("insp-scroll");
+    const keep = scrollBox ? scrollBox.scrollTop : 0;
+    let acts = "";
+    const finish = (html) => {
+      box.innerHTML = html;
+      if (actsBox) actsBox.innerHTML = acts;
+      if (scrollBox) scrollBox.scrollTop = keep;
+    };
     if (G.placeType) {
       const d = defOf(G.placeType);
-      box.innerHTML = `<div class="text-amber-200 font-semibold">Placing: ${esc(d.name)}</div>
-        <p class="text-amber-200/60">${esc(d.blurb)}</p>
-        <button type="button" class="ui-btn rounded px-2 py-1 text-[11px]" id="btn-x">Cancel</button>`;
-      box.querySelector("#btn-x").onclick = () => {
+      finish(`<div class="bldg"><div class="desc"><div class="title">Placing ${esc(d.name)}</div><p class="blurb">${esc(d.blurb)}</p></div></div>`);
+      if (actsBox) actsBox.innerHTML = actCard("quiet", "btn-x", "", "Cancel", null, "", "");
+      const x = document.getElementById("btn-x");
+      if (x) x.onclick = () => {
         G.placeType = null; canvas.classList.remove("placing"); renderPalette(); renderInspector();
       };
       return;
@@ -2972,95 +3118,94 @@
 
     const b = buildingById(G.selectedId);
     if (!b) {
-      box.innerHTML = `<p class="text-amber-200/55">Select Starfactory, Mega Bay, or the Orbital Pad.</p>`;
+      finish(`<p class="note">Select Starfactory, Mega Bay, or the Orbital Pad on Land or on the map.</p>`);
       return;
     }
     const d = defOf(b.type);
-    let html = `<div class="bldg"><div class="title">${esc(d.name)}</div><p class="blurb">${esc(d.blurb)}</p>`;
+    let html = `<div class="bldg"><div class="desc"><div class="title">${esc(d.name)}</div><p class="blurb">${esc(d.blurb)}</p></div>`;
+    let upgrade = "";
+    const openCard = (v) => actCard("open quiet", "btn-open", ` data-open="${v.id}"`, `Open ${esc(v.name)}`, null, "", "");
 
     if (b.type === "starfactory") {
       const hold = factoryHold();
-      html += `<div class="stat"><div class="k">Holding</div><div class="n">${hold ? 1 : 0}</div><div class="s">of 1 finished vehicle</div></div>`;
+      html += `<div class="sh sub">Data</div>`;
+      html += inspRow("Holding", `${hold ? 1 : 0} of 1`);
       if (G.factoryJob) {
         const pct = 1 - G.factoryJob.daysLeft / G.factoryJob.totalDays;
-        const label = G.factoryJob.kind === "merlin" ? "Merlin thrust" : rocketOf(G.factoryJob.rocketId).name;
+        const label = G.factoryJob.kind === "merlin" ? "Merlin thrust" : G.factoryJob.kind === "structure" ? "Stage dry mass" : rocketOf(G.factoryJob.rocketId).name;
         html += `<p class="wait">${esc(label)} · ${dayCount(G.factoryJob.daysLeft)} left</p>
           <div class="bar-track"><i style="width:${Math.round(pct * 100)}%"></i></div>`;
       } else {
         const r = rocketOf("falcon1");
         const busy = !!(factoryHold() || G.event);
-        html += actCard("build", "", ` data-rocket="falcon1"${busy ? " disabled" : ""}`,
+        acts += actCard("build", "", ` data-rocket="falcon1"${busy ? " disabled" : ""}`,
           "Build Falcon 1", r.steelCost, "steel", `${daySpan(TUNING.BUILD_DAYS_MIN, TUNING.BUILD_DAYS_MAX)}. A static fire loads ${TUNING.SF_RP1_KG} kg of RP-1 and ${TUNING.SF_LOX_KG} kg of liquid oxygen.`);
         html += `<p class="wait">Falcon 9, Falcon Heavy, and Starship come later.</p>`;
       }
       if (hold) {
-        html += `<p class="wait">${esc(hold.name)} is ready.</p>`;
+        html += slotRow(hold);
         const bay = buildingOfType("mega_bay");
         if (bay && !bayHasRoom(bay)) {
           const held = returnClaim(bay) > 0 && bayLoad(bay) < bayCapacity(bay);
           html += `<p class="wait">${held ? "Leave a bay slot open. A rocket outside the bay still has to come home." : "Mega Bay is full."}</p>`;
         } else {
-          html += actCard("roll", "btn-stage", "", "Roll to Mega Bay", null, "", "The vehicle leaves the factory.");
+          acts += actCard("roll", "btn-stage", "", "Roll to Mega Bay", null, "", "The vehicle leaves the factory.");
         }
+        acts += openCard(hold);
       }
+      html += `<p class="wait">Raise Merlin thrust and Lighten the stage run here. Open a rocket to start one.</p>`;
     }
 
     if (b.type === "mega_bay") {
       const n = bayLoad(b);
       const cap = bayCapacity(b);
-      html += `<div class="stat"><div class="k">Housed</div><div class="n">${n}</div><div class="s">of ${cap} ${cap === 1 ? "vehicle" : "vehicles"}</div></div>`;
+      html += `<div class="sh sub">Data</div>`;
+      html += inspRow("Housed", `${n} of ${cap}`);
       const here = vehiclesAt(b.id);
       for (let slot = 0; slot < cap; slot++) {
         const v = here.find((item) => (item.baySlot || 0) === slot);
         const coming = G.rollouts.find((r) => r.destKind === "bay" && r.destId === b.id && (r.baySlot || 0) === slot);
         if (!v && coming) {
           const iv = vehicleById(coming.vehicleId);
-          html += `<div class="bay-slot"><div class="top"><span class="name">${esc(iv ? iv.name : "Vehicle")}</span><span class="where">On the road</span></div><div class="n">—</div></div>`;
+          html += `<div class="slot empty"><span>${esc(iv ? iv.name : "Vehicle")}</span><span class="pc">—</span><span class="pl">On the road</span></div>`;
           continue;
         }
         if (!v) {
-          html += `<div class="bay-slot empty"><div class="top"><span class="name">Bay ${slot + 1}</span></div><div class="n">—</div></div>`;
+          html += `<div class="slot empty"><span>Bay slot ${slot + 1}</span><span class="pc">—</span><span class="pl">Empty</span></div>`;
           continue;
         }
-        const refurb = v.status === "refurb" && v.refurbPart;
-        const sel = v.id === G.selectedVehicleId ? " sel" : "";
-        const key = refurb ? v.refurbPart : worstPart(v);
-        const n = refurb ? v.refurbLeft : `${lifePct(v, key)}%`;
-        const unit = refurb ? (v.refurbLeft === 1 ? "day left" : "days left") : partName(key);
-        const meter = rocketPct(v);
-        html += `<button type="button" class="bay-slot${sel}" data-bay="${v.id}">
-          <div class="top"><span class="name">${esc(v.name)}</span><span class="where">${refurb ? "Refurb" : "In the bay"}</span></div>
-          <div class="n">${n}</div>
-          <div class="where">${esc(unit)}</div>
-          <div class="meter"><i style="width:${meter}%"></i></div>
-        </button>`;
+        html += slotRow(v, ` data-bay="${v.id}"`);
       }
       const v = selectedVehicle();
-      if (v && v.status === "in_bay") {
+      if (v && v.status === "in_bay" && v.buildingId === b.id) {
         if (padHold() || padBusy()) {
           html += `<p class="wait">The pad holds one rocket.</p>`;
         } else {
-          html += actCard("roll", "btn-topad", "", `Roll ${esc(v.name)} to the pad`, null, "", "The vehicle leaves the bay.");
+          acts += actCard("roll", "btn-topad", "", `Roll ${esc(v.name)} to the pad`, null, "", "The vehicle leaves the bay.");
         }
-      } else if (v && v.status === "refurb") {
+        acts += openCard(v);
+      } else if (v && v.status === "refurb" && v.buildingId === b.id) {
         html += `<p class="wait">${esc(v.name)} · ${esc(partName(v.refurbPart))} · ${dayCount(v.refurbLeft)} left</p>`;
+        acts += openCard(v);
       } else {
         html += `<p class="wait">Select a vehicle in the bay to roll it out.</p>`;
       }
-      html += `<div class="sec"><div class="k">Upgrade</div>`;
       if (cap < TUNING.BAY_MAX) {
-        html += actCard("up", "btn-bay", "", "Another slot", TUNING.BAY_SLOT_COST, "steel", `The bay then holds ${cap + 1} vehicles.`);
+        upgrade += upgradeRow("btn-bay", "Add bay slot", TUNING.BAY_SLOT_COST, G.steel < TUNING.BAY_SLOT_COST);
       } else {
-        html += `<p class="wait">The bay holds ${TUNING.BAY_MAX} vehicles.</p>`;
+        upgrade += `<p class="wait">The bay holds ${TUNING.BAY_MAX} vehicles.</p>`;
       }
-      html += `</div>`;
     }
 
     if (b.type === "pad_orbital") {
       const limits = padLimits(b);
-      html += `<div class="stat"><div class="k">Thrust limit</div><div class="n">${limits.thrust}</div><div class="s">kN</div></div>`;
-      html += `<div class="sec"><div class="k">Fire</div>`;
       const on = padHold();
+      // Short Data only: level, tanks, Mount. No Merlin essay on the pad.
+      html += `<div class="sh sub">Data</div>`;
+      html += inspRow("Pad level", b.level || 1);
+      html += inspRow("Thrust limit", `${limits.thrust} kN`);
+      html += inspRow("RP-1 / LOX", `${Math.floor(G.rp1)} / ${Math.floor(G.lox)} kg`);
+      html += on ? slotRow(on) : `<div class="slot empty"><span>Mount</span><span class="pc">—</span><span class="pl">Empty</span></div>`;
       const moving = on ? motionFor(on.id) : null;
       const inbound = G.rollouts.find((r) => r.kind === "roll" && r.destKind === "pad");
       if (moving && (moving.kind === "raise" || moving.kind === "lower" || moving.kind === "fill")) {
@@ -3071,63 +3216,55 @@
         html += `<p class="wait">${esc(on.name)} is in flight.</p>`;
       } else if (on && on.status === "on_pad") {
         const check = fireCheck(on, b);
-        html += `<div class="facts"><div><b>${esc(on.name)}</b><span>${esc(firedLine(on))}</span></div><div><b>${check.thrust}</b><span>kN · needs ${TUNING.SF_THRUST_BAR_KN}</span></div></div>`;
-        html += `<p class="wait">Stage life under ${TUNING.SCRAP_FLOOR} scraps the rocket. A lit miss takes ${TUNING.SF_MISS_CONDITION} off the stage.</p>`;
         const fireLine = check.ok ? "Thrust holds." : `${reasonText(check)}.`;
         if (on.needsDetank) html += `<p class="wait">Open the rocket and empty the tanks.</p>`;
-        html += actCard("fire", "btn-sf", "", check.ok ? "Static fire" : "Try static fire", TUNING.SF_RP1_KG, "kg RP-1", fireLine, TUNING.SF_LOX_KG, "kg LOX");
+        if (check.ok) {
+          acts += actCard("fire", "btn-sf", "", "Static fire", TUNING.SF_RP1_KG, "kg RP-1", fireLine, TUNING.SF_LOX_KG, "kg LOX");
+        } else {
+          acts += actCard("quiet", "btn-sf", " disabled", "Try static fire", null, "", fireLine);
+        }
       } else if (on && on.status === "inspect") {
-        html += `<div class="facts"><div><b>${esc(on.name)}</b><span>${esc(firedLine(on))}</span></div></div>`;
         html += `<p class="wait">Inspection, ${dayCount(on.inspectLeft)} left.</p>`;
       } else if (on && on.status === "ready") {
         const check = launchCheck(on, b);
-        html += `<div class="facts"><div><b>${esc(on.name)}</b><span>${esc(firedLine(on))}</span></div><div><b>${check.thrust}</b><span>kN</span></div></div>`;
         if (on.needsDetank) html += `<p class="wait">Open the rocket and empty the tanks.</p>`;
-        const tryLaunch = check.limiter === "weather" || check.limiter === "rp1" || check.limiter === "lox" || check.limiter === "pad" || check.limiter === "engine" || check.limiter === "fitting";
-        html += actCard("fire", "btn-launch", "", tryLaunch ? "Try launch" : "Launch", TUNING.FLIGHT_RP1_KG, "kg RP-1", launchCardLine(on, check), TUNING.FLIGHT_LOX_KG, "kg LOX");
-        html += actCard("roll", "btn-return", "", "Return to Mega Bay", null, "", "The rocket leaves the mount.");
+        if (check.ok) {
+          acts += actCard("fire", "btn-launch", "", "Launch", TUNING.FLIGHT_RP1_KG, "kg RP-1", launchCardLine(on, check), TUNING.FLIGHT_LOX_KG, "kg LOX");
+        } else {
+          const softTry = check.limiter === "weather" || check.limiter === "rp1" || check.limiter === "lox" || check.limiter === "pad" || check.limiter === "engine" || check.limiter === "fitting";
+          acts += actCard("quiet", "btn-launch", " disabled", softTry ? "Try launch" : "Launch", null, "", launchCardLine(on, check));
+        }
+        acts += actCard("quiet roll", "btn-return", "", "Return to Mega Bay", null, "", "The rocket leaves the mount.");
       } else if (on && on.status === "needs_return") {
-        html += `<div class="facts"><div><b>${esc(on.name)}</b><span>${esc(firedLine(on))}</span></div></div>`;
-        html += actCard("roll", "btn-return", "", "Return to Mega Bay", null, "", "The rocket parks in the bay.");
+        acts += actCard("quiet roll", "btn-return", "", "Return to Mega Bay", null, "", "The rocket parks in the bay.");
       } else if (inbound) {
         html += `<p class="wait">${esc(motionLine(inbound, vehicleById(inbound.vehicleId)))}</p>`;
       } else {
         html += `<p class="wait">The pad is empty. Roll a vehicle here from the bay.</p>`;
       }
-      html += `</div>`;
-      html += `<div class="sec"><div class="k">Cadence</div>`;
       cadenceLines().forEach((line) => { html += `<p class="wait">${esc(line)}</p>`; });
-      html += `</div>`;
-      html += `<div class="sec"><div class="k">Propellant</div>`;
-      html += actCard("up", "btn-buy-rp1", "", "Buy RP-1", TUNING.FLUID_FILL_COST, "money",
-        `Fills the tank, ${rp1Cap()} kg.`);
-      html += actCard("up", "btn-buy-lox", "", "Buy liquid oxygen", TUNING.FLUID_FILL_COST, "money",
-        `Fills the tank, ${loxCap()} kg.`);
-      html += `</div>`;
-      html += `<div class="sec"><div class="k">Launch farm</div>`;
+      {
+        const rp1Full = G.rp1 >= rp1Cap();
+        const loxFull = G.lox >= loxCap();
+        acts += `<div class="duo">${actCard("quiet", "btn-buy-rp1", rp1Full ? " disabled" : "", "Load RP-1", rp1Full ? null : TUNING.FLUID_FILL_COST, rp1Full ? "" : "money", rp1Full ? "Tank is full." : `Fills to ${rp1Cap()} kg.`)}${actCard("quiet", "btn-buy-lox", loxFull ? " disabled" : "", "Load LOX", loxFull ? null : TUNING.FLUID_FILL_COST, loxFull ? "" : "money", loxFull ? "Tank is full." : `Fills to ${loxCap()} kg.`)}</div>`;
+      }
+      if (on) acts += openCard(on);
       const tankBusy = !!(G.event || fluidsMoving());
-      if (G.rp1Level < 2) {
-        html += actCard("up", "btn-rp1", tankBusy || G.steel < TUNING.RP1_TANK_COST ? " disabled" : "",
-          "RP-1 tank", TUNING.RP1_TANK_COST, "steel",
-          `The launch farm grows this tank from ${TUNING.RP1_CAP} kg to ${TUNING.RP1_CAP_L2} kg. The pad fills it for ${TUNING.FLUID_FILL_COST} money.`);
+      if (b.level < 2) {
+        upgrade += upgradeRow("btn-up", "Pad level 2", TUNING.PAD_L2_COST, G.steel < TUNING.PAD_L2_COST);
       } else {
-        html += `<p class="wait">The RP-1 tank holds ${TUNING.RP1_CAP_L2} kg.</p>`;
+        upgrade += `<p class="wait">The trench is wide. The thrust limit is ${TUNING.PAD_THRUST_L2} kN.</p>`;
+      }
+      if (G.rp1Level < 2) {
+        upgrade += upgradeRow("btn-rp1", "RP-1 tank", TUNING.RP1_TANK_COST, tankBusy || G.steel < TUNING.RP1_TANK_COST);
+      } else {
+        upgrade += `<p class="wait">The RP-1 tank holds ${TUNING.RP1_CAP_L2} kg.</p>`;
       }
       if (G.loxLevel < 2) {
-        html += actCard("up", "btn-lox", tankBusy || G.steel < TUNING.LOX_TANK_COST ? " disabled" : "",
-          "Liquid oxygen tank", TUNING.LOX_TANK_COST, "steel",
-          `The launch farm grows this tank from ${TUNING.LOX_CAP} kg to ${TUNING.LOX_CAP_L2} kg. The pad fills it for ${TUNING.FLUID_FILL_COST} money.`);
+        upgrade += upgradeRow("btn-lox", "LOX tank", TUNING.LOX_TANK_COST, tankBusy || G.steel < TUNING.LOX_TANK_COST);
       } else {
-        html += `<p class="wait">The liquid oxygen tank holds ${TUNING.LOX_CAP_L2} kg.</p>`;
+        upgrade += `<p class="wait">The LOX tank holds ${TUNING.LOX_CAP_L2} kg.</p>`;
       }
-      html += `</div>`;
-      html += `<div class="sec"><div class="k">Upgrade</div>`;
-      if (b.level < 2) {
-        html += actCard("up", "btn-up", "", "Pad level 2", TUNING.PAD_L2_COST, "steel", `The trench widens. The thrust limit becomes ${TUNING.PAD_THRUST_L2} kN.`);
-      } else {
-        html += `<p class="wait">The trench is wide. The thrust limit is ${TUNING.PAD_THRUST_L2} kN.</p>`;
-      }
-      html += `</div>`;
     }
     for (const m of G.rollouts) {
       if (m.kind === "fire" || m.kind === "fly") continue;
@@ -3136,41 +3273,40 @@
       if (onPadCard || onBayCard) continue;
       html += `<p class="wait">${esc(motionLine(m, vehicleById(m.vehicleId)))}</p>`;
     }
+    if (upgrade) html += `<div class="upg"><div class="sh">Upgrade</div>${upgrade}</div>`;
     html += `</div>`;
 
-    box.innerHTML = html;
-    box.querySelectorAll("[data-rocket]").forEach((btn) => {
+    finish(html);
+    const root = document.getElementById("readout");
+    root.querySelectorAll("[data-rocket]").forEach((btn) => {
       btn.onclick = () => startBuildRocket(btn.getAttribute("data-rocket"));
     });
-    const st = box.querySelector("#btn-stage");
-    if (st) st.onclick = () => stageToBay(factoryHold() && factoryHold().id);
-    box.querySelectorAll("[data-bay]").forEach((btn) => {
+    const on = (id, fn) => { const n = root.querySelector(id); if (n) n.onclick = fn; };
+    on("#btn-stage", () => stageToBay(factoryHold() && factoryHold().id));
+    root.querySelectorAll("[data-slot]").forEach((btn) => {
       btn.onclick = () => {
-        G.selectedVehicleId = +btn.getAttribute("data-bay");
+        G.selectedVehicleId = +btn.getAttribute("data-slot");
         G.rocketSheet = G.selectedVehicleId;
         renderChrome();
       };
     });
-    const tp = box.querySelector("#btn-topad");
-    if (tp) tp.onclick = () => startRoll(G.selectedVehicleId, "pad");
-    const sf = box.querySelector("#btn-sf");
-    if (sf) sf.onclick = staticFire;
-    const launchBtn = box.querySelector("#btn-launch");
-    if (launchBtn) launchBtn.onclick = startLaunch;
-    const ret = box.querySelector("#btn-return");
-    if (ret) ret.onclick = () => startRoll(padHold() && padHold().id, "bay");
-    const up = box.querySelector("#btn-up");
-    if (up) up.onclick = upgradePad;
-    const bayUp = box.querySelector("#btn-bay");
-    if (bayUp) bayUp.onclick = upgradeBay;
-    const rp1Buy = box.querySelector("#btn-rp1");
-    if (rp1Buy) rp1Buy.onclick = buyRp1Tank;
-    const loxBuy = box.querySelector("#btn-lox");
-    if (loxBuy) loxBuy.onclick = buyLoxTank;
-    const rp1Load = box.querySelector("#btn-buy-rp1");
-    if (rp1Load) rp1Load.onclick = buyRp1;
-    const loxLoad = box.querySelector("#btn-buy-lox");
-    if (loxLoad) loxLoad.onclick = buyLox;
+    root.querySelectorAll("[data-open]").forEach((btn) => {
+      btn.onclick = () => {
+        G.selectedVehicleId = +btn.getAttribute("data-open");
+        G.rocketSheet = G.selectedVehicleId;
+        renderChrome();
+      };
+    });
+    on("#btn-topad", () => startRoll(G.selectedVehicleId, "pad"));
+    on("#btn-sf", staticFire);
+    on("#btn-launch", startLaunch);
+    on("#btn-return", () => startRoll(padHold() && padHold().id, "bay"));
+    on("#btn-up", upgradePad);
+    on("#btn-bay", upgradeBay);
+    on("#btn-rp1", buyRp1Tank);
+    on("#btn-lox", buyLoxTank);
+    on("#btn-buy-rp1", buyRp1);
+    on("#btn-buy-lox", buyLox);
   }
 
   function cadenceLines() {
@@ -3347,9 +3483,9 @@
 
   function partJobLine(v, key) {
     if (v.refurbPart === key) return `${partName(key)} · ${dayCount(v.refurbLeft)} left`;
-    if (key === "merlin") return `Refurb the Merlin · ${dayCount(merlinRefurbDays())} · ${TUNING.MERLIN_REFURB_COST} steel`;
-    if (key === "fitting") return `Inspect the fuel fitting · ${dayCount(TUNING.INSPECT_DAYS)} · no steel`;
-    return `Refurb the stage · ${daySpan(TUNING.REFURB_FAIL_MIN, TUNING.REFURB_FAIL_MAX)} · no steel`;
+    if (key === "merlin") return `Refurb the engine · ${dayCount(merlinRefurbDays())} · ${TUNING.MERLIN_REFURB_COST} steel`;
+    if (key === "fitting") return `Inspect the fuel lines · ${dayCount(TUNING.INSPECT_DAYS)} · no steel`;
+    return `Refurb the structure · ${daySpan(TUNING.REFURB_FAIL_MIN, TUNING.REFURB_FAIL_MAX)} · no steel`;
   }
 
   function lifeFill(pct) {
@@ -3369,49 +3505,57 @@
     return { y: (y1 - h).toFixed(1), h: h.toFixed(1) };
   }
 
+  // Cutaway, top to bottom: Structure holds the liquid oxygen tank over the RP-1 tank.
+  // Fuel lines run from both tanks through the turbopump. The Merlin bell sits under them.
   function rocketCutaway(v) {
     const stage = lifePct(v, "stage");
     const fitting = lifePct(v, "fitting");
     const merlin = lifePct(v, "merlin");
-    const stageBox = lifeBox(14, 286, stage);
-    const fitBox = lifeBox(286, 308, fitting);
-    const merlinBox = lifeBox(308, 408, merlin);
+    const stageBox = lifeBox(14, 262, stage);
+    const fitBox = lifeBox(262, 316, fitting);
+    const merlinBox = lifeBox(316, 408, merlin);
     const tone = (pct) => lifeTone(pct);
     const stroke = (key) => {
       const hot = v.refurbPart === key || (!v.refurbPart && key === worstPart(v) && rocketPct(v) < 100);
       return hot ? "#e10600" : "#f2f2f2";
     };
+    const hull = "80,14 104,92 104,262 56,262 56,92";
+    const thrust = "56,262 104,262 100,316 60,316";
+    const bell = "70,316 90,316 116,408 44,408";
     return `<svg class="ship" viewBox="0 0 160 420" role="img" aria-label="${esc(v.name)}">
       <defs>
         <linearGradient id="hull-shade" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0" stop-color="#8a8a8a"/>
-          <stop offset="0.38" stop-color="#f7f7f7"/>
-          <stop offset="0.7" stop-color="#cfcfcf"/>
-          <stop offset="1" stop-color="#6e6e6e"/>
+          <stop offset="0" stop-color="#8a8a8a"/><stop offset="0.38" stop-color="#f7f7f7"/>
+          <stop offset="0.7" stop-color="#cfcfcf"/><stop offset="1" stop-color="#6e6e6e"/>
         </linearGradient>
-        <clipPath id="clip-stage"><polygon points="80,14 104,92 104,286 56,286 56,92"/></clipPath>
-        <clipPath id="clip-fitting"><rect x="50" y="286" width="60" height="22"/></clipPath>
-        <clipPath id="clip-merlin"><polygon points="66,308 94,308 116,408 44,408"/></clipPath>
+        <clipPath id="clip-stage"><polygon points="${hull}"/></clipPath>
+        <clipPath id="clip-fitting"><polygon points="${thrust}"/></clipPath>
+        <clipPath id="clip-merlin"><polygon points="${bell}"/></clipPath>
       </defs>
-      <polygon points="80,14 104,92 104,286 56,286 56,92" fill="#141414"/>
-      <rect x="50" y="286" width="60" height="22" fill="#120e0c"/>
-      <polygon points="66,308 94,308 116,408 44,408" fill="#120e0c"/>
-      <g clip-path="url(#clip-stage)"><rect class="life ${tone(stage)}" x="56" y="${stageBox.y}" width="48" height="${stageBox.h}" fill="${lifeFill(stage)}"/></g>
-      <g clip-path="url(#clip-fitting)"><rect class="life ${tone(fitting)}" x="50" y="${fitBox.y}" width="60" height="${fitBox.h}" fill="${lifeFill(fitting)}"/></g>
+      <polygon points="${hull}" fill="#141414"/>
+      <polygon points="${thrust}" fill="#0c0c0c"/>
+      <polygon points="${bell}" fill="#120e0c"/>
+      <g clip-path="url(#clip-stage)"><rect class="life ${tone(stage)}" x="56" y="${stageBox.y}" width="48" height="${stageBox.h}" fill="${lifeFill(stage)}" fill-opacity="0.55"/></g>
+      <g clip-path="url(#clip-fitting)"><rect class="life ${tone(fitting)}" x="56" y="${fitBox.y}" width="48" height="${fitBox.h}" fill="${lifeFill(fitting)}" fill-opacity="0.35"/></g>
       <g clip-path="url(#clip-merlin)"><rect class="life ${tone(merlin)}" x="44" y="${merlinBox.y}" width="72" height="${merlinBox.h}" fill="${lifeFill(merlin)}"/></g>
-      <polygon points="56,214 24,300 56,286" fill="url(#hull-shade)" stroke="#0a0a0a" stroke-width="1"/>
-      <polygon points="104,214 136,300 104,286" fill="url(#hull-shade)" stroke="#0a0a0a" stroke-width="1"/>
-      <polygon points="80,14 104,92 104,286 56,286 56,92" fill="none" stroke="${stroke("stage")}" stroke-width="1.6"/>
-      <rect x="50" y="286" width="60" height="22" fill="none" stroke="${stroke("fitting")}" stroke-width="1.6"/>
-      <polygon points="66,308 94,308 116,408 44,408" fill="none" stroke="${stroke("merlin")}" stroke-width="1.6"/>
-      <path d="M62 150 H98 M62 196 H98 M62 242 H98" fill="none" stroke="#f2f2f2" stroke-opacity="0.28"/>
+      <polygon points="56,200 24,276 56,262" fill="url(#hull-shade)" stroke="#0a0a0a" stroke-width="1"/>
+      <polygon points="104,200 136,276 104,262" fill="url(#hull-shade)" stroke="#0a0a0a" stroke-width="1"/>
+      <rect x="61" y="100" width="38" height="66" rx="9" fill="none" stroke="#f2f2f2" stroke-opacity="0.55"/>
+      <text class="tag sm" text-anchor="middle" x="80" y="137" fill="#f2f2f2" fill-opacity="0.7">LOX</text>
+      <rect x="61" y="176" width="38" height="72" rx="9" fill="none" stroke="#f2f2f2" stroke-opacity="0.55"/>
+      <polygon points="${hull}" fill="none" stroke="${stroke("stage")}" stroke-width="1.6"/>
       <path d="M74 30 L66 88" fill="none" stroke="#ffffff" stroke-opacity="0.4"/>
-      <rect x="110" y="289" width="12" height="16" fill="#1a1a1a" stroke="${stroke("fitting")}" stroke-width="1"/>
-      <text class="tag" text-anchor="middle" x="80" y="200" fill="${inkOn(stage, 196, 14, 286)}">${stage}%</text>
-      <text class="tag" text-anchor="middle" x="80" y="302" fill="${inkOn(fitting, 300, 286, 308)}">${fitting}%</text>
-      <text class="tag" text-anchor="middle" x="80" y="366" fill="${inkOn(merlin, 360, 308, 408)}">${merlin}%</text>
-      <rect class="hit" data-part="stage" x="20" y="12" width="120" height="264" fill="transparent"/>
-      <rect class="hit" data-part="fitting" x="18" y="276" width="122" height="40" fill="transparent"/>
+      <path d="M68 166 C66 220 64 250 72 286 M80 248 V286" fill="none" stroke="#e10600" stroke-width="2.4" stroke-linecap="round"/>
+      <circle cx="76" cy="292" r="7" fill="#0a0a0a" stroke="${stroke("fitting")}" stroke-width="1.4"/>
+      <path d="M76 299 V316" stroke="#e10600" stroke-width="2.4"/>
+      <polygon points="${thrust}" fill="none" stroke="${stroke("fitting")}" stroke-width="1.6"/>
+      <polygon points="${bell}" fill="none" stroke="${stroke("merlin")}" stroke-width="1.6"/>
+      <path d="M60 352 H100 M54 382 H106" fill="none" stroke="#f2f2f2" stroke-opacity="0.22"/>
+      <text class="tag" text-anchor="middle" x="80" y="214" fill="${inkOn(stage, 210, 14, 262)}">${stage}%</text>
+      <text class="tag" text-anchor="middle" x="94" y="296" fill="#f2f2f2">${fitting}%</text>
+      <text class="tag" text-anchor="middle" x="80" y="372" fill="${inkOn(merlin, 368, 316, 408)}">${merlin}%</text>
+      <rect class="hit" data-part="stage" x="20" y="12" width="120" height="250" fill="transparent"/>
+      <rect class="hit" data-part="fitting" x="18" y="262" width="122" height="54" fill="transparent"/>
       <rect class="hit" data-part="merlin" x="18" y="316" width="124" height="96" fill="transparent"/>
     </svg>`;
   }
@@ -3749,6 +3893,11 @@
     return projectFlat(lon, lat);
   }
   function landRings() {
+    // Soft-guard: missing geo-land.js must not blank the page.
+    if (typeof GEO_RINGS === "undefined" || !GEO_RINGS) {
+      console.warn("GEO_RINGS missing — land outline skipped.");
+      return [];
+    }
     if (metersPerPx() >= 600 && GEO_RINGS.americas) return GEO_RINGS.americas;
     if (GEO_RINGS.gulfLand) return [GEO_RINGS.gulfLand];
     if (GEO_RINGS.boca) return [GEO_RINGS.boca];
@@ -4194,6 +4343,12 @@
 
   let landMask = null;
   function buildLandMask() {
+    // Soft-guard: no world rings means empty mask, not a thrown boot.
+    if (typeof GEO_RINGS === "undefined" || !GEO_RINGS || !GEO_RINGS.world) {
+      console.warn("GEO_RINGS.world missing — globe land mask skipped.");
+      landMask = { data: new Uint8ClampedArray(720 * 360 * 4), mw: 720, mh: 360 };
+      return;
+    }
     const mw = 720, mh = 360;
     const c = document.createElement("canvas");
     c.width = mw; c.height = mh;
@@ -4596,6 +4751,7 @@
     }
     G.selectedId = null;
     renderInspector();
+    renderPalette();
     G.drag = { sx: p.x, sy: p.y, lon: G.lon, lat: G.lat };
     canvas.classList.add("panning");
   });
@@ -4781,7 +4937,7 @@
   }
   renderChrome();
   log("The purse starts at 150 money. The day adds none. Investors pay when a goal is finished.", "info");
-  log("The bay refurbs one part at a time. Open the rocket and pick the Merlin, the fuel fitting, or the stage.", "info");
+  log("The bay refurbs one part at a time. Open the rocket and pick Structure, Fuel lines, or Engine (Merlin).", "info");
   log("Two rockets can roll at the same time. The pad still holds one.", "info");
   if (TEST) log("A day here lasts half a second.", "info");
   requestAnimationFrame(frame);
