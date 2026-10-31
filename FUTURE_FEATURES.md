@@ -6,11 +6,11 @@ Phases 0 through 5 are the earlier draft, through `5.0.0-compute`. Phases 6 thro
 
 When a row ships or is dropped, remove it from the table and note the ship in `IMPLEMENTATION_LOG.md`.
 
-**Last shipped:** `0.10.0-parts`. The rocket sheet lists the Merlin, the fuel fitting, and the stage. Each part has a life and a refurb. The bay runs one part at a time. See `IMPLEMENTATION_LOG.md`. The next row is `0.11.0-screen`.
+**Last shipped:** `0.11.0-screen`. Land lists the steel buys, the owned buildings, and the free plots. The Inspector reads description, data, slots, and Upgrade, with the actions pinned under them. The rocket sheet reads Structure, Fuel lines, and Engine (Merlin). See `IMPLEMENTATION_LOG.md`. The next row is `0.12.0-contract`.
 
 ## UI and UX
 
-`0.11.0-screen` is the next row. It is one pass on the Land column, the right column, and the rocket window. The steel buys, the plot cards, the building card, the fleet, and the rocket drawing all belong in that pass. A day must not send the scroll back to the top. No new fire rule, no new purse rule, and no new part rule. `0.16.0-picture` still only draws the three halls on the map.
+`0.11.0-screen` shipped the layout pass on Land, the Inspector, and the rocket sheet. No fire, purse, or part rule moved. A staging failure belongs in the backlog near `0.14.0-orbit`.
 
 The notes below are not that row. Detail belongs to objects.
 
@@ -38,7 +38,7 @@ The owned line shipped in `0.4.0-borderline`. It follows the coast, about 8 km i
 
 `0.6.0-motion` plays the loop you already have, on the map. The static-fire modal closes. A build shows in the Starfactory. The finished Falcon 1 rolls from the Starfactory along the yard road to Mega Bay. It rolls from the bay to the Orbital Pad on that same road. At the pad it rises onto the mount. The static fire burns on the mount, and the flame stays on the map. This version only animates steps that already exist. Later versions add their own animations on top of the same system.
 
-`0.8.0-flight` shipped the first Falcon 1 launch. `0.9.0-economy` shipped the purse. `0.10.0-parts` shipped the Merlin, the fuel fitting, and the stage. `0.11.0-screen` is next. Then come `0.12.0-contract`, `0.13.0-recovery`, and `0.14.0-orbit`. `0.15.0-tracking`, `0.16.0-picture`, and `0.17.0-motion-final` come after that.
+`0.8.0-flight` shipped the first Falcon 1 launch. `0.9.0-economy` shipped the purse. `0.10.0-parts` shipped the Merlin, the fuel fitting, and the stage. `0.11.0-screen` shipped the screen layout. `0.12.0-contract` is next. Then come `0.13.0-recovery` and `0.14.0-orbit`. `0.15.0-tracking`, `0.16.0-picture`, and `0.17.0-motion-final` come after that.
 
 `0.15.0-tracking` lets you follow flights on the map. When you zoom out, each rocket shows its path and a box that grows and shrinks around it, with live numbers like altitude, speed and flight phase. Later, with many launches and some automation, you can watch them all fly at once.
 

@@ -4,7 +4,7 @@ This game follows the SpaceX story. You learn how the rockets, the tanks, and th
 
 Open `index.html` in a browser. There is no build step. Open `index.html?test` for the same start with a day of half a second. That start is not saved.
 
-**Live release:** `0.10.0-parts`.
+**Live release:** `0.11.0-screen`.
 
 Owned ground is one red dashed line. The water side follows the coast. The back side sits about 8 km inland on the solid beach, and it follows the bay where the water cuts in. The word on that line is limit.
 
