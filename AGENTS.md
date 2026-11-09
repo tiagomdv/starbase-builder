@@ -59,7 +59,7 @@ Do not over-engineer early visuals.
 
 ## Versioning Ritual
 
-**Scheme:** `N.x.y-codename` where **major N = phase number** (`0.x` = Phase 0 · Foundations, `1.x` = Phase 1 · Flight, …).
+**Scheme:** `N.x.y-codename` where **major N = phase number** (`0.x` = Phase 0 · Starship development at Starbase, `1.x` = Phase 1 · Recovery and catch, …). The phase list below matches `design-docs/program-roadmap-design.html`.
 
 **Before any PR that meaningfully changes the live app (`index.html`):**
 
@@ -94,17 +94,21 @@ Out-of-scope ideas → offer to append to `FUTURE_FEATURES.md`. Keep the current
 
 **Product vision (locked):** A **simple, quick-to-finish** game that is **realistic and fun** — players enjoy the **processes and dynamics** of the space industry (build → house/stage → pad ops → fire/fail/refurb → cadence). Not a sprawling empire sim; depth from honest mechanics and visual cues.
 
-**Thematic arc:** Foundations → Flight → Scale → Power → Cis-lunar → Mars  
-(Each phase stays compact; the arc expands *where* you operate, not into endless grind.)
+**Thematic arc:** Starship to orbit at Starbase → recovery and catch → a branch the player chooses (Starlink, Moon and Mars, or the Falcon story at the real Falcon sites) → compute, yard, longer flights, picture and record, fleet desk.  
+(Each phase stays compact; the arc expands *where* you operate, not into endless grind.) The roadmap was restructured on 2026-11-09. The shipped slices `0.1.0` through `0.11.0` were built on a Falcon 1 stand-in on the Texas site. From `0.12.0-raptor` the vehicle is a Starship development article.
 
 | Phase | Name | Focus |
 |-------|------|-------|
-| 0 | Foundations | Starbase ground, basic buildings, resources, vehicle design, first launches |
-| 1 | Flight | Higher flight rate, recovery, Orbit view, light contracts |
-| 2 | Scale | Land, workforce, housing, light city growth |
-| 3 | Power | Contracts, world-economy links |
-| 4 | Cis-lunar | Moon base + Earth↔Moon logistics |
-| 5 | Mars | Mars base + interplanetary logistics |
+| 0 | Starbase | Starship development in Texas: Raptor and methane, prototype tests, defects, hop, high hop, stack and tower, suborbital test, orbit. Then tracking, pictures, and the final motion pass |
+| 1 | Recovery and catch | Bring the booster home, the tower catch, refurb with defect checks, factory rate |
+| 2 | Starlink | Your own satellites. Branch choice, any order after phase 1 |
+| 3 | Moon and Mars | Orbit depot, then a Moon site, then a Mars site. Branch choice, needs the catch |
+| 4 | Falcon history | California factory, Falcon 1 at Kwajalein, Falcon 9 at SLC-40, Vandenberg, 39A, Heavy, customers. Branch choice |
+| 5 | Compute | xAI data center competes for steel and power |
+| 6 | Yard | Land, workforce, houses, one-time payments, test stand, tank farm, wetland, town |
+| 7 | Longer flights | Contract ladder, heatshield and flight computer, the full flight watch |
+| 8 | Picture and record | Shapes, plumes, lesson pictures, sound, saves |
+| 9 | Fleet desk | One desk to manage many rockets and sites live |
 
 **Core principle:** Sites accumulate. Earth Starbase remains critical even after outer bases unlock.
 

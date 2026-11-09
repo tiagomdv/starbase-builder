@@ -5,6 +5,19 @@ History of what **shipped**, keyed by **version**.
 
 ---
 
+## 2026-11-09 — roadmap restructure (docs only, no version bump)
+
+**Version:** stays `0.11.0-screen` · docs only
+
+- Tiago approved a new roadmap on 2026-11-09. Phase 0 is now Starship development at Starbase in Texas, up to orbit. Starbase is the real Starship site. Falcon never started there.
+- The shipped slices `0.1.0` through `0.11.0` keep their names. They were built on a Falcon 1 stand-in. The yard, map, Land, Inspector, purse, tanks, motion, and part sheet carry over.
+- The new phase 0 rows are `0.12.0-raptor`, `0.13.0-proof`, `0.14.0-defects`, `0.15.0-hop`, `0.16.0-high-hop`, `0.17.0-stack`, `0.18.0-suborbital`, and `0.19.0-orbit`. Then come `0.20.0-tracking`, `0.21.0-picture`, and `0.22.0-motion-final`. The first paying contract arrives at `0.18.0-suborbital`.
+- Phase 1 is recovery and catch. Phases 2, 3, and 4 are a branch the player chooses: Starlink, the Moon and Mars, or the Falcon story. Phases 5 through 9 are compute, the yard, longer flights, picture and record, and the fleet desk.
+- The Falcon story uses the real site order: California factory, Falcon 1 at Kwajalein, Falcon 9 at SLC-40, Vandenberg, then 39A. The invented Louisiana and Florida Starbases are dropped.
+- Updated `design-docs/program-roadmap-design.html`, `FUTURE_FEATURES.md`, `AGENTS.md` (phase list only), `README.md`, `design-docs/learning-guide.html`, and `design-docs/site-objects-design.html`. Shipped design pages got one short note. No game code changed. `index.html` and `VERSION` did not change.
+
+---
+
 ## `0.0.1-bootstrap` — 2026-08-06
 
 **Version:** `0.0.1-bootstrap` · docs only
