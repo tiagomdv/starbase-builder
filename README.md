@@ -1,10 +1,10 @@
 # starbase-builder
 
-This game follows the SpaceX story. You learn how the rockets, the tanks, and the pads work by running them. The detail stays close to real hardware. The first chapter is small on purpose. You finish Falcon 1 in Texas before any later rocket arrives.
+This game follows the SpaceX story. You learn how the rockets, the tanks, and the pads work by running them. The detail stays close to real hardware. The first chapter is small on purpose. You develop Starship at Starbase in Texas and fly it to orbit before anything else opens. Starbase is where Starship was really developed. After that you choose a branch: Starlink, the Moon and Mars, or the Falcon story at the real Falcon sites.
 
 Open `index.html` in a browser. There is no build step. Open `index.html?test` for the same start with a day of half a second. That start is not saved.
 
-**Live release:** `0.11.0-screen`.
+**Live release:** `0.11.0-screen`. The next row is `0.12.0-raptor`. Today's rocket is a Falcon 1 stand-in. From `0.12.0-raptor` it becomes a Starship development article.
 
 Owned ground is one red dashed line. The water side follows the coast. The back side sits about 8 km inland on the solid beach, and it follows the bay where the water cuts in. The word on that line is limit.
 
@@ -16,7 +16,7 @@ Pause sits beside the day count. The line above the count reads Paused. Pause st
 
 Goals, Wiki, and Fleet have an outline. Wiki opens over the game. The articles read the live settings. A note says In real life when the game and the Falcon 1 sources differ.
 
-The game has no sound until `10.3.0-sound`. Falcon 1 is the only rocket you can build. A static fire holds when the Merlin thrust, the pad, the RP-1, the liquid oxygen, and the wind all clear. The sky repeats from the day number, so you can wait for a calm day.
+The game has no sound until `8.3.0-sound`. Falcon 1 is the only rocket you can build. A static fire holds when the Merlin thrust, the pad, the RP-1, the liquid oxygen, and the wind all clear. The sky repeats from the day number, so you can wait for a calm day.
 
 Specific impulse and engine mass are on the rocket sheet. They do not decide this test yet. The same sheet shows stage dry mass, liftoff mass, and a one-stage payload. A fresh Merlin is a Merlin 1A at 318 kN. Raise Merlin thrust fits a Merlin 1C at 343 kN. That sum is not a flown orbit. Lighten the stage still cuts dry mass on that rocket. The rocket sheet is one drawing. The tank, the fuel fitting, and the engine each carry that part's percent, and the big number is the lowest part. The line under the name matches that number. Thrust stays at the fresh figure.
 
@@ -24,7 +24,7 @@ A build takes 8 to 12 days. A clean fire stays on the mount for 1 day of inspect
 
 The guide below is the rest of the story. The build map is `design-docs/program-roadmap-design.html`.
 
-## Falcon 1 in Texas
+## Today's rocket: a Falcon 1 stand-in
 
 Falcon 1 is a small orbital rocket with one Merlin engine on the first stage. That engine burns two fluids. RP-1 is refined kerosene. Liquid oxygen is the oxidizer. The engine needs both. A tank of one fluid cannot stand in for the other.
 
@@ -36,27 +36,25 @@ The engine lab shows thrust, specific impulse, engine mass, and how many times t
 
 A firing follows those numbers. The log names the short part. That part can be the Merlin, the fuel fitting, the stage, the pad, or a tank. The Merlin shows the seconds it has left. A lit static fire spends 5. A static fire does not spend the fuel fitting. The screen counts fires and launches in the last 30 days.
 
-A suborbital flight is the same rocket leaving the stand. Altitude and speed come from the thrust, the mass, and the propellant you loaded. An orbit attempt adds the upper-stage burn. A success leaves an orbit card with altitude, inclination, and the payload mass. One small commercial contract pays when that card matches the orbit you sold. You can fly the first stage expendable and lift more, or recover it and spend days in the bay putting it back together.
-
-Falcon 9, Falcon Heavy, and Starship stay locked until this chapter is fun to play through.
+The yard, the map, Land, the Inspector, the purse, the tanks, the motion, and the part sheet all carry over to Starship. Merlin becomes Raptor. RP-1 becomes methane. The oxygen tanks stay.
 
 ## What comes later
 
-Each of these is a patch. It is not in the finished Falcon 1 game.
+The build map is `design-docs/program-roadmap-design.html`. It was restructured on 2026-11-09.
 
-**Falcon 9.** Nine Merlins on one first stage. It drinks more RP-1 and more liquid oxygen. It needs a pad whose thrust limit is already high enough. Suborbital flight, orbit, and contracts use the same path as Falcon 1.
+**Phase 0, Starship to orbit.** Raptor and methane replace Merlin and RP-1. A cryo proof and a tanking run come before the static fire. A prototype can leave the factory with a defect that the tests find. Then a hop, a high hop with a flip and a landing, a booster and a ship stacked at the tower, and a suborbital flight test where staging can fail. The first paying contract arrives with that test. Orbit closes the chapter.
 
-**A second pad, then Falcon Heavy.** The second pad is the same kind of pad on a second footprint in Texas. Falcon Heavy is three Falcon first stages flown as one rocket. It needs the higher thrust limit, more of both fluids, and a longer wait before that pad can take the next rocket.
+**Recovery and catch.** Bring the booster home, catch it with the tower, check it for defects, and refurbish it. Then the factory builds faster.
 
-**Customers.** NASA cargo to the station, crew, flights for other countries, and military payloads each open after you have already flown that class of mission. A card names the orbit, the mass, the pad days, and the pay.
+**Choose a branch.** After that you pick where to go next, in any order.
 
 **Starlink.** You may keep a launch for your own satellites. Each bird has mass, power, radio, and a design life. Building them uses the same steel, tanks, and pads as a customer flight.
 
-**Starship.** Raptor burns methalox. That is liquid methane plus the liquid oxygen you already store. This patch adds a methane tank and a methane price. It also adds the tower, the catch, and a depot in orbit. A Moon landing and a Mars window are contracts that draw propellant from that depot.
+**The Moon and Mars.** A depot in orbit holds propellant. A Moon site comes first, then a Mars site. Texas still builds the rockets.
 
-**Louisiana.** A second Starbase, empty at first, with the same buildings and the same fluids. Texas can send a rocket there. The trip takes a counted number of days. This is a site upgrade. It is not required to finish Falcon 1.
+**The Falcon story.** It starts where SpaceX really started. The rockets are built in California. Falcon 1 flies from Kwajalein. Falcon 9 opens at Cape Canaveral SLC-40, then Vandenberg, then 39A, with Falcon Heavy and crew. RP-1 comes back here.
 
-**xAI.** When Starlink is up and the pads are busy, a data center can compete with the rockets for steel and power. The panel shows the power used and whether a new cluster delayed a booster.
+**xAI.** When the pads are busy, a data center can compete with the rockets for steel and power. The panel shows the power used and whether a new cluster delayed a booster.
 
 ## Where the rest of the notes live
 
