@@ -10,7 +10,7 @@ Open `index.html` in a browser. There is no build step. Open `index.html?test` f
 
 ## How to play
 
-Buy steel and plots on Land. Build a rocket at Starfactory. Roll it to Mega Bay, then roll it to the Orbital Pad. Load RP-1 and LOX, run a static fire, then launch. Parts wear out: Structure, Fuel lines, and Engine (Merlin). Goals, Wiki, and Fleet sit on the screen. The Wiki reads the live numbers, and a note says In real life when the game and the sources differ.
+Buy steel and plots on Land. Build a rocket at Starfactory. Roll it to Mega Bay, then roll it to the Orbital Pad. Load methane and LOX, run a static fire, then send the rocket home. The hop comes later. Parts wear out: Structure, Fuel lines, and Engine (Raptor). Goals, Wiki, and Fleet sit on the screen. The Wiki reads the live numbers, and a note says In real life when the game and the sources differ.
 
 ## What's real
 
@@ -18,7 +18,7 @@ The sites, the engines, and the propellants follow real SpaceX hardware. The gam
 
 ## Status
 
-Live release: `0.11.0-screen`. Next row: `0.12.0-raptor`. Today's rocket is a Falcon 1 stand-in on the Texas coast. From `0.12.0-raptor` it becomes a Starship development article. Merlin becomes Raptor. RP-1 becomes methane. The oxygen tanks stay.
+Live release: `0.12.0-raptor`. Next row: `0.13.0-proof`. Today's rocket is a Starship development article with one Raptor, on methane and liquid oxygen. The hop comes later.
 
 ## Where it's headed
 

@@ -251,3 +251,17 @@ History of what **shipped**, keyed by **version**.
 - The rocket parts have new names. Structure is the old stage life. Fuel lines is the old fuel fitting. Engine (Merlin) is the Merlin. The rules, the costs, and the keys did not change. Raise Merlin thrust and Lighten the stage stay Starfactory jobs and start from the rocket sheet.
 - The rocket drawing reads top to bottom. The structure holds the liquid oxygen tank over the RP-1 tank. Red fuel lines run from both tanks to the turbopump in the thrust section. The Merlin bell sits under it. Each part fills with its percent. The big number is the lowest part.
 - The previous live file is `archive/index-0.10.0-parts.html`.
+
+## `0.12.0-raptor` — 2026-11-09
+
+**Version:** `0.12.0-raptor`
+
+- The factory builds a test article for 28 steel. The launch card stays hidden. On a ready rocket the pad says "The hop comes later." and keeps Return to Mega Bay.
+- The header counts Money, Steel, CH4, LOX, and Fleet. A static fire loads 609 kg of methane and 2193 kg of liquid oxygen. The mix is 3.6. The methane tank holds 1218 kg and the oxygen tank holds 4386 kg. The methane tank buy costs 24 steel and raises the cap to 4029 kg. The oxygen tank buy still raises that cap to 14502 kg. One press fills a tank for 6 money. Both tanks start empty.
+- The sheet starts at Raptor 1, 1814 kN, 330 seconds, and 2080 kg. Raise Raptor thrust costs 36 steel and takes 3 to 5 days. It makes this rocket Raptor 2 at 2256 kN, 327 seconds, and 1630 kg. Burns was 1 and is now 3, a game number. Engine life stays 180 seconds. A lit fire spends 5 seconds. Refurb the engine costs 24 steel and takes 2 days, or 1 day at pad level 2.
+- Pad level 1 holds 2000 kN. Pad level 2 holds 2600 kN. The engine floor is 1500 kN. Those three are game numbers. Raptor 2 on pad level 1 shows a pad short and the fire button stays off. A short methane tank scrubs the fire. Nothing lights, no fluid is spent, and nothing is damaged.
+- Finish a static fire still pays 60 on the first lit fire. Hold a clean static fire pays 80 on the first fire that holds clean.
+- The payload cell says "A test article carries no payload." The drawing shows the methane tank under the liquid oxygen tank, and a Raptor bell. The map fill bars label that tank CH4, in green `#3dbe8a`.
+- The Wiki explains liquid methane once. Liquid methane is the same gas as natural gas, kept at minus 162 C. The real-life notes use Starhopper, SN5, and SN6.
+- `index.html?test` builds the test article from startBuild. snap returns ch4 and engineLifeS. The purse, steel 0, both tanks empty, and an empty yard stay the same. The label reads `0.12.0-raptor. Test start.`
+- The previous live file is `archive/index-0.11.0-screen.html`.
