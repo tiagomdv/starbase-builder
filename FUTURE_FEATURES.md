@@ -6,7 +6,7 @@ Phase 0 is Starship development at Starbase in Texas, up to orbit. Phase 1 is re
 
 When a row ships or is dropped, remove it from the table and note the ship in `IMPLEMENTATION_LOG.md`.
 
-**Last shipped:** `0.11.0-screen`. Land lists the steel buys, the owned buildings, and the free plots. The Inspector reads description, data, slots, and Upgrade, with the actions pinned under them. The rocket sheet reads Structure, Fuel lines, and Engine (Merlin). See `IMPLEMENTATION_LOG.md`. The next row is `0.12.0-raptor`.
+**Last shipped:** `0.12.0-raptor`. The factory builds a test article with one Raptor. The header shows methane and liquid oxygen. The rocket sheet reads Structure, Fuel lines, and Engine (Raptor). See `IMPLEMENTATION_LOG.md`. The next row is `0.13.0-proof`.
 
 ## Roadmap restructure (2026-11-09)
 
@@ -22,7 +22,7 @@ The invented Louisiana and Florida Starbases are dropped. The real Falcon sites 
 
 After phase 1 the player chooses a branch. Phases 2, 3, and 4 can be played in any order. The Moon and Mars branch needs the catch from `1.1.0-catch`.
 
-Two design checks stay open. The defect row, `0.14.0-defects`, and the staging row, `0.18.0-suborbital`, must stay decided by the hardware. A defect is a real part number that a test can show. A staging failure names the short part. Neither one is a hidden chance. The methane mix is not decided yet. It is also not decided whether the RP-1 tank becomes the methane tank or a new tank sits beside it.
+Two design checks stay open. The defect row, `0.14.0-defects`, and the staging row, `0.18.0-suborbital`, must stay decided by the hardware. A defect is a real part number that a test can show. A staging failure names the short part. Neither one is a hidden chance. The mix is 3.6 kg of liquid oxygen for each kg of methane, and methane has its own tank. The kerosene tank waits for the Falcon story.
 
 The game parallels came from Starbase Research. Buzz Aldrin's Race Into Space and the KSP TestFlight mod show tests that earn reliability part by part. KSP RP-1 splits research time from factory time. Anno 1800 opens a second site while the first keeps earning.
 
@@ -56,7 +56,7 @@ The owned line shipped in `0.4.0-borderline`. It follows the coast, about 8 km i
 
 `0.6.0-motion` plays the loop you already have, on the map. The static-fire modal closes. A build shows in the Starfactory. The finished rocket rolls from the Starfactory along the yard road to Mega Bay. It rolls from the bay to the Orbital Pad on that same road. At the pad it rises onto the mount. The static fire burns on the mount, and the flame stays on the map. Later versions add their own animations on top of the same system.
 
-`0.8.0-flight` shipped the first launch. `0.9.0-economy` shipped the purse. `0.10.0-parts` shipped the Merlin, the fuel fitting, and the stage. `0.11.0-screen` shipped the screen layout. `0.12.0-raptor` is next. Then come `0.13.0-proof`, `0.14.0-defects`, `0.15.0-hop`, `0.16.0-high-hop`, `0.17.0-stack`, `0.18.0-suborbital`, and `0.19.0-orbit`. `0.20.0-tracking`, `0.21.0-picture`, and `0.22.0-motion-final` come after orbit, still in phase 0.
+`0.8.0-flight` shipped the first launch. `0.9.0-economy` shipped the purse. `0.10.0-parts` shipped the Merlin, the fuel fitting, and the stage. `0.11.0-screen` shipped the screen layout. `0.12.0-raptor` shipped. The next row is `0.13.0-proof`. Then come `0.14.0-defects`, `0.15.0-hop`, `0.16.0-high-hop`, `0.17.0-stack`, `0.18.0-suborbital`, and `0.19.0-orbit`. `0.20.0-tracking`, `0.21.0-picture`, and `0.22.0-motion-final` come after orbit, still in phase 0.
 
 `0.20.0-tracking` lets you follow flights on the map. When you zoom out, each rocket shows its path and a box that grows and shrinks around it, with live numbers like altitude, speed and flight phase. Later, with many launches and some automation, you can watch them all fly at once.
 
@@ -66,7 +66,7 @@ The owned line shipped in `0.4.0-borderline`. It follows the coast, about 8 km i
 
 The Starfactory builds one development article at a time. The bay holds it and refurbishes it. The bay does not stack sections yet. The tower stacks the ship on the booster at `0.17.0-stack`. The hop is `0.15.0-hop`. One Raptor on a short test vehicle lifts off, hovers, and lands on a nearby pad. This is like Starhopper at Boca Chica in 2019. That vehicle flew 150 meters in August of that year. The high hop at `0.16.0-high-hop` adds a flip and a landing, like the SN flights. The catch is `1.1.0-catch`.
 
-No new fire rule. The numbers that pass or fail the fire stay the ones you already have.
+The fire still passes or fails on thrust, the pad, the tanks, and the wind. `0.12.0-raptor` changed the numbers. Raptor 1 is 1814 kN. Pad level 1 holds 2000 kN. The engine floor is 1500 kN. A fire loads 609 kg of methane and 2193 kg of liquid oxygen.
 
 ## Test campaign
 

@@ -99,14 +99,14 @@
         <table class="doc">
           <thead><tr><th>Building</th><th>Cost</th><th>Footprint</th><th>What it does</th></tr></thead>
           <tbody>
-            <tr><td>Starfactory</td><td>40 steel</td><td>4 by 3</td><td>Builds one Falcon 1 and holds it until the bay takes it. One Merlin upgrade raises thrust on every Falcon 1.</td></tr>
+            <tr><td>Starfactory</td><td>40 steel</td><td>4 by 3</td><td>Builds one test article and holds it until the bay takes it. Raise Raptor thrust on that article takes it from Raptor 1 to Raptor 2.</td></tr>
             <tr><td>Mega Bay</td><td>50 steel</td><td>5 by 3</td><td>Houses the first stage and refurbishes it after a fire.</td></tr>
-            <tr><td>Orbital Pad</td><td>40 steel</td><td>3 by 4</td><td>Static fire only. Level 2 costs 40 steel. It widens the trench and raises the mount, accepts 900 kN and 28 knots, and cuts one day off a clean refurb. Level 1 accepts 400 kN and 20 knots.</td></tr>
+            <tr><td>Orbital Pad</td><td>40 steel</td><td>3 by 4</td><td>Static fire only. Level 2 costs 40 steel. It widens the trench and raises the mount, accepts 2600 kN and 28 knots, and cuts one day off a clean refurb. Level 1 accepts 2000 kN and 20 knots.</td></tr>
           </tbody>
         </table>
 
         <h3>The vehicle</h3>
-        <p>Falcon 1 is its own object. It costs 28 steel and takes 3 days. A static fire draws 8 propellant. It is built at the factory, housed in the bay, rolled along the road, and fired on the pad. Falcon 9, Falcon Heavy, and Starship are locked names. They are not on the map. This Falcon 1 is a stand-in. From <code>0.12.0-raptor</code> it becomes a Starship development article, and the parts keep the same three names. Merlin is a number on the factory card, not a separate object. The rocket sheet lists Structure, Fuel lines, and Engine (Merlin), top to bottom. Each one has a life and its own refurb. The sheet paints each part on the rocket as a percent. The big number is the lowest part. A static fire does not spend the fuel lines. Launch needs 169 seconds on that part. A hard flight does not cut stage life until <code>1.0.0-recovery</code>.</p>
+        <p>The test article is its own object. It costs 28 steel. It is built at the factory, housed in the bay, rolled along the road, and fired on the pad. The hop comes later. Falcon 9, Falcon Heavy, and Starship stay locked names. They are not on the map. The rocket sheet lists Structure, Fuel lines, and Engine (Raptor), top to bottom. Each one has a life and its own refurb. The sheet paints each part on the rocket as a percent. The big number is the lowest part. A static fire does not spend the fuel lines. A hard flight does not cut stage life until <code>1.0.0-recovery</code>.</p>
 
         <h2 id="rule">The rule</h2>
         <p>A main building is one object you buy. A part is also one object. It has its own id, its own place on that main, and its own job. It is not a caption painted near the building.</p>
@@ -191,13 +191,13 @@
           <img src="images/pad-tanks.jpg?v=2" alt="Top view of the pad after the tank-farm upgrade, with extra tanks west of the mount." />
           <figcaption>Tank-farm upgrade. Oxygen, kerosene, and methane tanks added west of the mount.</figcaption>
         </figure>
-        <p>Adds the propellant tanks west of the mount. Falcon 1 still burns kerosene and oxygen. The methane tank is on the pad for Starship, and it goes to work at <code>0.12.0-raptor</code>.</p>
+        <p>Adds the propellant tanks west of the mount. The test article burns methane and liquid oxygen. Those tanks are at work. The kerosene tank waits for the Falcon story.</p>
         <table class="doc">
           <thead><tr><th>Part</th><th>Where it sits</th><th>Job</th></tr></thead>
           <tbody>
-            <tr><td>Oxygen tank</td><td>West of the mount</td><td>Quiet until the tanks row. Then it holds the oxygen.</td></tr>
-            <tr><td>Kerosene tank</td><td>West of the mount</td><td>Quiet until the tanks row. Then it holds the Falcon fuel.</td></tr>
-            <tr><td>Methane tank</td><td>West of the mount</td><td>Quiet until Starship. Then it holds the methane.</td></tr>
+            <tr><td>Oxygen tank</td><td>West of the mount</td><td>Holds liquid oxygen for the test article. Load LOX fills it.</td></tr>
+            <tr><td>Kerosene tank</td><td>West of the mount</td><td>Waits for the Falcon story. Nothing on screen buys it.</td></tr>
+            <tr><td>Methane tank</td><td>West of the mount</td><td>Holds methane for the test article. Load methane fills it.</td></tr>
           </tbody>
         </table>
         <h3>Upgrade · Starship tower</h3>
@@ -205,7 +205,7 @@
           <img src="images/pad-tower.jpg?v=2" alt="Top view of the pad after the tower upgrade, with chopsticks and a ship arm." />
           <figcaption>Starship-tower upgrade. Tower, chopsticks, and ship arm. No tank farm in this picture.</figcaption>
         </figure>
-        <p>Adds the tower on the north side of the mount. The arms are for Starship. A Falcon 1 does not use them.</p>
+        <p>Adds the tower on the north side of the mount. The test article does not use it. The tower waits for <code>0.17.0-stack</code>.</p>
         <table class="doc">
           <thead><tr><th>Part</th><th>Where it sits</th><th>Job</th></tr></thead>
           <tbody>
