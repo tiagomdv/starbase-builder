@@ -265,3 +265,15 @@ History of what **shipped**, keyed by **version**.
 - The Wiki explains liquid methane once. Liquid methane is the same gas as natural gas, kept at minus 162 C. The real-life notes use Starhopper, SN5, and SN6.
 - `index.html?test` builds the test article from startBuild. snap returns ch4 and engineLifeS. The purse, steel 0, both tanks empty, and an empty yard stay the same. The label reads `0.12.0-raptor. Test start.`
 - The previous live file is `archive/index-0.11.0-screen.html`.
+
+## `0.13.0-proof` — 2026-11-09
+
+**Version:** `0.13.0-proof`
+
+- A rocket on the pad offers Cryo proof, then Tanking, then Static fire. Cryo proof costs 20 money and takes 1 day. The card says liquid nitrogen to 4.9 bar. It passes when Structure is 70 or more. A fresh article has 100, so it passes. A fail names Structure, spends the money and the day, and damages nothing. The rocket goes back to the bay.
+- Tanking needs 609 kg of methane and 2193 kg of liquid oxygen. A short tank scrubs the run. Nothing loads, no day passes, and no fluid is spent. A full run takes 1 day, loses 61 kg of methane and 219 kg of liquid oxygen, and passes when Fuel lines are 5 seconds or more. A fresh article has 40 seconds.
+- Static fire still loads 609 kg of methane and 2193 kg of liquid oxygen. The first lit fire still pays 60. The first clean fire still pays 80. It refuses until both tests are done, and it spends nothing on that refusal. A clean fire keeps the tests. A lit miss clears them. Raptor 2 on pad level 1 drops Structure to 60, so the next proof fails until the bay refurbs Structure.
+- The day after a clean fire reads Data review. The bay job still reads Inspect the fuel lines.
+- The pad record keeps the fire lines and adds the tests from the last 30 days. It names only the kinds that happened.
+- `index.html?test` exposes cryoProof and tankingRun. snap returns proofDone, tankingDone, testLeft, and testDays. The purse, steel 0, both tanks empty, and an empty yard stay the same. A day still lasts half a second. The label reads `0.13.0-proof. Test start.`
+- The previous live file is `archive/index-0.12.0-raptor.html`.

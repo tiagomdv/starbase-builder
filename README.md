@@ -10,7 +10,7 @@ Open `index.html` in a browser. There is no build step. Open `index.html?test` f
 
 ## How to play
 
-Buy steel and plots on Land. Build a rocket at Starfactory. Roll it to Mega Bay, then roll it to the Orbital Pad. Load methane and LOX, run a static fire, then send the rocket home. The hop comes later. Parts wear out: Structure, Fuel lines, and Engine (Raptor). Goals, Wiki, and Fleet sit on the screen. The Wiki reads the live numbers, and a note says In real life when the game and the sources differ.
+Buy steel and plots on Land. Build a rocket at Starfactory. Roll it to Mega Bay, then roll it to the Orbital Pad. Run a cryo proof, load methane and LOX, run a tanking run, then a static fire, then send the rocket home. The hop comes later. Parts wear out: Structure, Fuel lines, and Engine (Raptor). Goals, Wiki, and Fleet sit on the screen. The Wiki reads the live numbers, and a note says In real life when the game and the sources differ.
 
 ## What's real
 
@@ -18,7 +18,7 @@ The sites, the engines, and the propellants follow real SpaceX hardware. The gam
 
 ## Status
 
-Live release: `0.12.0-raptor`. Next row: `0.13.0-proof`. Today's rocket is a Starship development article with one Raptor, on methane and liquid oxygen. The hop comes later.
+Live release: `0.13.0-proof`. Next row: `0.14.0-defects`. Today's rocket is a Starship development article with one Raptor, on methane and liquid oxygen. A cryo proof and a tanking run come before the static fire. The hop comes later.
 
 ## Where it's headed
 
