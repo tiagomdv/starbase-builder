@@ -493,7 +493,7 @@
         <span class="ctr">LOX <b id="res-lox" class="tabular-nums">0</b></span>
         <span class="ctr">Fleet <b id="res-fleet" class="tabular-nums">0</b></span>
       </div>
-      <div id="ver-label">0.12.0-raptor</div>
+      <div id="ver-label">0.13.0-proof</div>
     </div>
     <div class="bar-right">
       <span class="ctr"><span id="day-run">Day</span> <b id="day-label" class="tabular-nums">1</b></span>
@@ -568,7 +568,7 @@
     <div class="event-body"><canvas id="event-canvas" width="900" height="500"></canvas></div>
     <div class="event-foot">
       <span id="event-caption">Static fire. Thrust, the pad, methane, liquid oxygen, and wind decide it.</span>
-      <span id="event-outcome">Held. Inspection starts on the mount.</span>
+      <span id="event-outcome">Held. Data review starts on the mount.</span>
     </div>
   </div>
 
@@ -576,7 +576,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "0.12.0-raptor";
+  const VERSION = "0.13.0-proof";
   const CELL = 32, MAP_W = 40, MAP_H = 30;
   // ?test is a normal open with a short day. The purse, the tanks, and the yard start the same.
   const TEST = new URLSearchParams(location.search).has("test");
@@ -632,6 +632,18 @@
     // A 5 second Raptor 1 hold. Raptor 2 uses the same load. That fixed load is a game number.
     SF_CH4_KG: 609,
     SF_LOX_KG: 2193,
+    // The cryo proof buys liquid nitrogen. It is not a stock. 4.9 bar is the SN4 label, not a check.
+    PROOF_BAR: 4.9,
+    PROOF_COST: 20,
+    PROOF_DAYS: 1,
+    // A fresh article has Structure 100. This floor is a game number.
+    PROOF_STRUCT_MIN: 70,
+    TANKING_DAYS: 1,
+    // About 10 percent of the static fire load, rounded. Game numbers.
+    TANKING_CH4_LOSS_KG: 61,
+    TANKING_LOX_LOSS_KG: 219,
+    // A fresh article has 40 seconds on the fuel lines. This floor is a game number.
+    TANKING_LINES_MIN: 5,
     // Two fires in each live tank. The tanks start empty.
     CH4_CAP: 1218,
     LOX_CAP: 4386,
@@ -838,6 +850,26 @@
         href: "https://en.wikipedia.org/wiki/List_of_Starship_vehicles",
         label: "List of Starship vehicles",
       },
+      sn5: {
+        href: "https://www.nasaspaceflight.com/2020/06/starship-sn5-test-campaign/",
+        label: "NASASpaceflight, SN5 test campaign",
+      },
+      sn4: {
+        href: "https://www.nasaspaceflight.com/2020/04/starship-sn4-set-for-test/",
+        label: "NASASpaceflight, SN4 set for test",
+      },
+      sn4hw: {
+        href: "https://www.nextspaceflight.com/starship/hardware/4/",
+        label: "Next Spaceflight, Starship SN4",
+      },
+      sn7: {
+        href: "https://www.teslarati.com/spacex-starship-tank-blown-up-new-alloy/",
+        label: "Teslarati, SN7 tank test",
+      },
+      nitrogen: {
+        href: "https://en.wikipedia.org/wiki/Liquid_nitrogen",
+        label: "Liquid nitrogen",
+      },
     },
     raptor1Kn: { n: 1814, text: "1814 kN at sea level", source: "raptor" },
     raptor1IspS: { n: 330, text: "about 330 seconds at sea level", source: "raptor" },
@@ -848,6 +880,12 @@
     mix: { n: 3.6, text: "3.6 kg of liquid oxygen for each kg of methane", source: "plume" },
     ch4Density: { n: 422.8, text: "422.8 kg per cubic meter at minus 162 C", source: "methane" },
     hopM: { n: 150, text: "a 150 m hop", source: "vehicles" },
+    proofBar: { n: 4.9, text: "4.9 bar on SN4 in late April 2020", source: "sn4" },
+    proofBar2: { n: 7.5, text: "7.5 bar on 10 May 2020", source: "sn4hw" },
+    sn7Bar: { n: 7.6, text: "7.6 bar on liquid nitrogen on 15 June 2020", source: "sn7" },
+    ln2BoilC: { n: -196, text: "minus 196 C", source: "nitrogen" },
+    ln2Density: { n: 807, text: "about 807 kg per cubic meter", source: "nitrogen" },
+    sn5Proof: { n: null, text: "SN5 passed its cryo proof at the end of June 2020", source: "sn5" },
   };
 
   /**
@@ -943,15 +981,15 @@
       zoneHint: "launch",
       maxLevel: 2,
       upgradeVisual: { 2: "Widen flame trench and raise the mount" },
-      blurb: "Holds one vehicle for a static fire. The hop comes later.",
+      blurb: "Holds one vehicle for a cryo proof, then a tanking run, then a static fire. The hop comes later.",
     },
   };
 
   const BUILD_ORDER = ["starfactory", "mega_bay", "pad_orbital"];
 
   // ── State ──
-  // vehicle: { id, name, rocketId, buildingId|null, status, engineLifeS, fittingLifeS, stageLife, refurbPart, refurbLeft, inspectLeft, wx, wy, baySlot }
-  // status: at_factory | in_bay | rolling | on_pad | inspect | ready | flying | needs_return | refurb | destroyed
+  // vehicle: { id, name, rocketId, buildingId|null, status, engineLifeS, fittingLifeS, stageLife, refurbPart, refurbLeft, inspectLeft, proofDone, tankingDone, testLeft, wx, wy, baySlot }
+  // status: at_factory | in_bay | rolling | on_pad | proof | tanking | inspect | ready | flying | needs_return | refurb | destroyed
   const G = {
     day: 1, dayAcc: 0, paused: false,
     money: TUNING.START_MONEY,
@@ -964,6 +1002,7 @@
     ch4: 0,
     lox: 0,
     fireDays: [],
+    testDays: [],
     buildings: [],
     fleet: [],
     factoryJob: null,
@@ -1096,7 +1135,7 @@
       if (m && m.destKind === "bay" && m.destId === bay.id) continue;
       if (v.status === "at_factory") continue;
       if (m && (m.destKind === "pad" || m.kind === "raise" || m.kind === "fill" || m.kind === "fire" || m.kind === "fly")) n++;
-      else if (v.status === "on_pad" || v.status === "inspect" || v.status === "ready" || v.status === "flying" || v.status === "needs_return") n++;
+      else if (v.status === "on_pad" || v.status === "proof" || v.status === "tanking" || v.status === "inspect" || v.status === "ready" || v.status === "flying" || v.status === "needs_return") n++;
     }
     return n;
   }
@@ -1328,12 +1367,44 @@
           log(`${v.name} is ready on the mount.`, "good");
         }
       }
+      if ((v.status === "proof" || v.status === "tanking") && v.testLeft > 0) {
+        v.testLeft--;
+        if (v.testLeft <= 0) finishPadTest(v);
+      }
       if (v.refurbPart && v.refurbLeft > 0) {
         v.refurbLeft--;
         if (v.refurbLeft <= 0) finishPartRefurb(v);
       }
     }
     renderChrome();
+  }
+
+  // A proof or a tanking run ends on the mount. It never sets ready, and it does not touch inspectLeft.
+  function finishPadTest(v) {
+    v.testLeft = 0;
+    if (v.status === "proof") {
+      const have = Math.round(v.stageLife || 0);
+      if (have >= TUNING.PROOF_STRUCT_MIN) {
+        v.proofDone = true;
+        v.status = "on_pad";
+        log(`${v.name} holds the cryo proof at ${TUNING.PROOF_BAR} bar.`, "good");
+      } else {
+        v.status = "needs_return";
+        log(`${v.name} fails the cryo proof. Structure is short. It needs ${TUNING.PROOF_STRUCT_MIN} and has ${have}.`, "bad");
+      }
+      G.testDays.push({ day: G.day, kind: "proof" });
+      return;
+    }
+    const lines = Math.round(v.fittingLifeS || 0);
+    if (lines >= TUNING.TANKING_LINES_MIN) {
+      v.tankingDone = true;
+      v.status = "on_pad";
+      log(`The fuel lines on ${v.name} hold. ${TUNING.TANKING_CH4_LOSS_KG} kg of methane and ${TUNING.TANKING_LOX_LOSS_KG} kg of liquid oxygen boiled off.`, "good");
+    } else {
+      v.status = "needs_return";
+      log(`${v.name} fails the tanking run. The fuel lines are short. They need ${TUNING.TANKING_LINES_MIN} seconds and have ${lines}.`, "bad");
+    }
+    G.testDays.push({ day: G.day, kind: "tanking" });
   }
 
   function finishPartRefurb(v) {
@@ -1388,6 +1459,9 @@
       structureTier: 1,
       fires: 0,
       needsDetank: false,
+      proofDone: false,
+      tankingDone: false,
+      testLeft: 0,
       engineLifeS: TUNING.ENGINE_FIRE_LIMIT_S,
       fittingLifeS: TUNING.FITTING_LIFE_S,
       stageLife: 100,
@@ -1570,7 +1644,7 @@
     parkVehicle(v, r.destId, 0);
     v.status = "on_pad";
     clearMotion(v.id);
-    log(`${v.name} on pad — static fire when ready`, "good");
+    log(`${v.name} on pad. Cryo proof, then tanking, then a static fire.`, "good");
     updateObjectives();
     renderChrome();
   }
@@ -1866,6 +1940,49 @@
     renderChrome();
   }
 
+  function tankingShorts() {
+    const bits = [];
+    if (G.ch4 < TUNING.SF_CH4_KG) bits.push(`Methane is short. This run needs ${TUNING.SF_CH4_KG} kg.`);
+    if (G.lox < TUNING.SF_LOX_KG) bits.push(`Liquid oxygen is short. This run needs ${TUNING.SF_LOX_KG} kg.`);
+    return bits;
+  }
+
+  function cryoProof() {
+    if (G.paused) { log("The day is paused.", "warn"); return; }
+    const pad = buildingOfType("pad_orbital");
+    if (!pad) { log("Need pad", "bad"); return; }
+    const v = padHold();
+    if (!v || v.status !== "on_pad") { log("Need a vehicle on the pad", "bad"); return; }
+    if (v.needsDetank) { log("Empty the tanks on the rocket sheet.", "warn"); return; }
+    if (G.event || motionFor(v.id) || padBusy()) { log("Busy", "warn"); return; }
+    if (v.proofDone) { log(`${v.name} already holds the cryo proof.`, "warn"); return; }
+    if (!payMoney(TUNING.PROOF_COST)) { log(`Need ${TUNING.PROOF_COST} money.`, "bad"); return; }
+    v.status = "proof";
+    v.testLeft = TUNING.PROOF_DAYS;
+    log(`${v.name} starts the cryo proof.`, "info");
+    renderChrome();
+  }
+
+  function tankingRun() {
+    if (G.paused) { log("The day is paused.", "warn"); return; }
+    const pad = buildingOfType("pad_orbital");
+    if (!pad) { log("Need pad", "bad"); return; }
+    const v = padHold();
+    if (!v || v.status !== "on_pad") { log("Need a vehicle on the pad", "bad"); return; }
+    if (v.needsDetank) { log("Empty the tanks on the rocket sheet.", "warn"); return; }
+    if (G.event || motionFor(v.id) || padBusy()) { log("Busy", "warn"); return; }
+    if (!v.proofDone) { log("Run the cryo proof first.", "warn"); return; }
+    if (v.tankingDone) { log(`${v.name} already finished the tanking run.`, "warn"); return; }
+    const shorts = tankingShorts();
+    if (shorts.length) { log(`${v.name} scrubs the tanking run. ${shorts.join(" ")}`, "bad"); return; }
+    G.ch4 -= TUNING.TANKING_CH4_LOSS_KG;
+    G.lox -= TUNING.TANKING_LOX_LOSS_KG;
+    v.status = "tanking";
+    v.testLeft = TUNING.TANKING_DAYS;
+    log(`${v.name} starts the tanking run.`, "info");
+    renderChrome();
+  }
+
   function staticFire() {
     if (G.paused) { log("The day is paused.", "warn"); return; }
     const pad = buildingOfType("pad_orbital");
@@ -1874,6 +1991,8 @@
     if (!v || v.status !== "on_pad") { log("Need a vehicle on the pad", "bad"); return; }
     if (v.needsDetank) { log("Empty the tanks on the rocket sheet.", "warn"); return; }
     if (G.event || motionFor(v.id) || padBusy()) { log("Busy", "warn"); return; }
+    if (!v.proofDone) { log("Run the cryo proof first.", "warn"); return; }
+    if (!v.tankingDone) { log("Run the tanking test first.", "warn"); return; }
     const check = fireCheck(v, pad);
     startFill(v, pad, check, "fire");
     renderChrome();
@@ -2019,7 +2138,7 @@
       : success && next.status === "needs_return"
         ? "Held. The engine is worn. Return to Mega Bay."
         : success
-          ? "Held. Inspection starts on the mount."
+          ? "Held. Data review starts on the mount."
           : `${shortReason(check.limiter)}. Return to Mega Bay.`;
     openEvent(
       `Static fire · ${v.name}`,
@@ -2060,11 +2179,16 @@
     v.inspectLeft = next.inspectLeft || 0;
     v.refurbLeft = 0;
     v.refurbPart = null;
+    // A lit miss clears the tests. A clean fire keeps them, even when the engine is worn.
+    if (!ev.success) {
+      v.proofDone = false;
+      v.tankingDone = false;
+    }
     if (next.scrap) {
       v.buildingId = null;
       log(`${v.name} is scrap. ${shortReason(ev.limiter)}. Structure is under ${TUNING.SCRAP_FLOOR}.`, "bad");
     } else if (ev.success && next.status === "inspect") {
-      log(`${v.name} held. Inspection starts on the mount. ${firedLine(v)}`, "good");
+      log(`${v.name} held. Data review starts on the mount. ${firedLine(v)}`, "good");
     } else if (ev.success) {
       log(`${v.name} held. The engine is worn. Return it to Mega Bay. ${firedLine(v)}`, "good");
     } else {
@@ -2647,17 +2771,33 @@
       body: wikiParas([
         `You spend steel at ${wikiPlace("starfactory", "Starfactory")}. The factory builds a ${rocket.name} and holds it until you roll it to ${wikiPlace("mega_bay", "Mega Bay")}.`,
         `${wikiPlace("mega_bay", "Mega Bay")} houses the rocket. Roll to the ${wikiPlace("pad_orbital", "Orbital Pad")} moves it along the yard road and sets it on the mount.`,
-        `A static fire lights the engine on the pad. It holds when ${wikiGo("thrust", "thrust")}, the pad, ${wikiGo("propellant", "methane")}, ${wikiGo("propellant", "liquid oxygen")}, and the wind are inside the limits.`,
-        `After a clean fire the rocket stays on the mount for ${dayCount(TUNING.INSPECT_DAYS)} of inspection. Then it is ready. A ready rocket returns to the bay. The hop comes later.`,
-        `A miss sends the rocket back to ${wikiPlace("mega_bay", "Mega Bay")}. The sheet names the short part. You start one refurb. The bay runs one part at a time.`,
+        `The first test is a cryo proof. Liquid nitrogen is the cold liquid used for the proof. It does not burn. The test buys it. The game keeps no nitrogen tank.`,
+        `The proof takes the tanks to ${TUNING.PROOF_BAR} bar. That figure is a label, not a check. The proof passes when Structure is ${TUNING.PROOF_STRUCT_MIN} or more. A fresh article has 100. The ${TUNING.PROOF_COST} money, the ${dayCount(TUNING.PROOF_DAYS)}, and the floor of ${TUNING.PROOF_STRUCT_MIN} are game numbers.`,
+        `A tanking run comes next. It loads ${TUNING.SF_CH4_KG} kg of methane and ${TUNING.SF_LOX_KG} kg of liquid oxygen. That is the static fire load. A short tank scrubs the run. Nothing loads, no day passes, and no fluid is spent.`,
+        `The run takes ${dayCount(TUNING.TANKING_DAYS)}. ${TUNING.TANKING_CH4_LOSS_KG} kg of methane and ${TUNING.TANKING_LOX_LOSS_KG} kg of liquid oxygen boil off. The rest drains back to the pad tanks. The boil-off is a game number. The run passes when Fuel lines are ${TUNING.TANKING_LINES_MIN} seconds or more. A fresh article has ${TUNING.FITTING_LIFE_S}. That floor is a game number.`,
+        `A static fire lights the engine on the pad. It holds when ${wikiGo("thrust", "thrust")}, the pad, ${wikiGo("propellant", "methane")}, ${wikiGo("propellant", "liquid oxygen")}, and the wind are inside the limits. The two tests come first.`,
+        `After a clean fire the rocket stays on the mount for ${dayCount(TUNING.INSPECT_DAYS)} of data review. Then it is ready. A ready rocket returns to the bay. The hop comes later.`,
+        `A miss sends the rocket back to ${wikiPlace("mega_bay", "Mega Bay")}. The sheet names the short part. You start one refurb. The bay runs one part at a time. A failed proof or a failed tanking run also sends the rocket back. Nothing on the rocket is damaged.`,
         `When the check fails, Try static fire stays off and names every short part. A short tank does not light.`,
       ]) + wikiFacts([
         { value: `${rocket.steelCost} steel`, label: "Steel for a test article" },
         { value: daySpan(TUNING.BUILD_DAYS_MIN, TUNING.BUILD_DAYS_MAX), label: "Days to build" },
+        { value: `${TUNING.PROOF_COST} money`, label: "Cryo proof cost, a game number" },
+        { value: `${TUNING.PROOF_BAR} bar`, label: "Proof pressure, the SN4 figure" },
+        { value: String(TUNING.PROOF_STRUCT_MIN), label: "Structure floor, a game number" },
+        { value: `${TUNING.TANKING_CH4_LOSS_KG} kg`, label: "Methane boil-off, a game number" },
+        { value: `${TUNING.TANKING_LOX_LOSS_KG} kg`, label: "Oxygen boil-off, a game number" },
+        { value: dayCount(TUNING.PROOF_DAYS), label: "Cryo proof, a game number" },
+        { value: dayCount(TUNING.TANKING_DAYS), label: "Tanking run, a game number" },
+        { value: `${TUNING.TANKING_LINES_MIN} s`, label: "Fuel lines floor, a game number" },
         { value: `${TUNING.SF_CH4_KG} kg`, label: "Methane for a static fire" },
         { value: `${TUNING.SF_LOX_KG} kg`, label: "Liquid oxygen for a static fire" },
       ]) + wikiReal([
-        `Starhopper had one Raptor and hopped ${RAPTOR_REFS.hopM.n} m in August 2019. SN5 and SN6 each hopped ${RAPTOR_REFS.hopM.n} m on one Raptor in 2020. The ${wikiSource("vehicles")} lists those flights. This version stops at the static fire.`,
+        `SN4 was the first full-scale prototype to pass a cryo proof, at ${RAPTOR_REFS.proofBar.n} bar in late April 2020. Mk1, SN1, and SN3 had failed. SN3 failed from a test setup mistake, not a weld. The ${wikiSource("sn4")} is that account. Musk called ${RAPTOR_REFS.proofBar.n} bar a softball, but enough to fly.`,
+        `SN4 passed a second proof at ${RAPTOR_REFS.proofBar2.n} bar on 10 May 2020. The ${wikiSource("sn4hw")} records that test.`,
+        `The SN7 test tank reached ${RAPTOR_REFS.sn7Bar.n} bar on liquid nitrogen on 15 June 2020. It sprang a leak and was repaired. The 304L steel was chosen so a tank leaks before it bursts. The second test on 23 June came apart. The ${wikiSource("sn7")} is that account.`,
+        `Liquid nitrogen boils at ${RAPTOR_REFS.ln2BoilC.text}. It is ${RAPTOR_REFS.ln2Density.text}. The ${wikiSource("nitrogen")} lists both. The proof buys that liquid. The game does not keep a nitrogen stock.`,
+        `SN5 passed its cryo proof at the end of June 2020. It static-fired on 30 July and hopped on 4 August. The ${wikiSource("sn5")} and the ${wikiSource("vehicles")} cover that run.`,
       ]),
     };
   }
@@ -2780,6 +2920,8 @@
         `These numbers come straight from the game's settings.`,
         `Methane and liquid oxygen are separate stocks. The mix is ${wikiNum(TUNING.LOX_PER_CH4, 1)} kg of liquid oxygen for each kg of methane.`,
         `A static fire loads ${TUNING.SF_CH4_KG} kg of methane and ${TUNING.SF_LOX_KG} kg of liquid oxygen. Raptor 2 uses that same load. The fixed load is a game number.`,
+        `A cryo proof costs ${TUNING.PROOF_COST} money and takes ${dayCount(TUNING.PROOF_DAYS)}. The card says ${TUNING.PROOF_BAR} bar. That figure is the SN4 label, not a check. The proof passes when Structure is ${TUNING.PROOF_STRUCT_MIN} or more. The cost, the day, and the floor are game numbers.`,
+        `A tanking run takes ${dayCount(TUNING.TANKING_DAYS)}. It loses ${TUNING.TANKING_CH4_LOSS_KG} kg of methane and ${TUNING.TANKING_LOX_LOSS_KG} kg of liquid oxygen. It passes when Fuel lines are ${TUNING.TANKING_LINES_MIN} seconds or more. The day, the boil-off, and the floor are game numbers.`,
         `The methane tank starts at ${TUNING.CH4_CAP} kg and the buy raises it to ${TUNING.CH4_CAP_L2} kg. The oxygen tank starts at ${TUNING.LOX_CAP} kg and the buy raises it to ${TUNING.LOX_CAP_L2} kg. One press fills a tank for ${TUNING.FLUID_FILL_COST} money.`,
         `Pad level 1 holds ${TUNING.PAD_THRUST_L1} kN. Pad level 2 holds ${TUNING.PAD_THRUST_L2} kN. The engine floor is ${TUNING.SF_THRUST_BAR_KN} kN. Those three are game numbers.`,
         `Burns is ${TUNING.ENGINE_RESTARTS}. Engine life starts at ${TUNING.ENGINE_FIRE_LIMIT_S} seconds. A lit static fire spends 5. Burns and the engine life are game numbers.`,
@@ -2788,6 +2930,14 @@
         { value: wikiNum(TUNING.LOX_PER_CH4, 1), label: "Liquid oxygen per kg of methane" },
         { value: `${TUNING.SF_CH4_KG} kg`, label: "Methane for a static fire" },
         { value: `${TUNING.SF_LOX_KG} kg`, label: "Liquid oxygen for a static fire" },
+        { value: `${TUNING.PROOF_COST} money`, label: "Cryo proof cost, a game number" },
+        { value: `${TUNING.PROOF_BAR} bar`, label: "Proof pressure, the SN4 figure" },
+        { value: String(TUNING.PROOF_STRUCT_MIN), label: "Structure floor, a game number" },
+        { value: `${TUNING.TANKING_CH4_LOSS_KG} kg`, label: "Methane boil-off, a game number" },
+        { value: `${TUNING.TANKING_LOX_LOSS_KG} kg`, label: "Oxygen boil-off, a game number" },
+        { value: dayCount(TUNING.PROOF_DAYS), label: "Cryo proof, a game number" },
+        { value: dayCount(TUNING.TANKING_DAYS), label: "Tanking run, a game number" },
+        { value: `${TUNING.TANKING_LINES_MIN} s`, label: "Fuel lines floor, a game number" },
         { value: `${TUNING.CH4_CAP} kg`, label: "Methane tank" },
         { value: `${TUNING.LOX_CAP} kg`, label: "Liquid oxygen tank" },
         { value: `${TUNING.ENGINE_THRUST_KN} kN`, label: "Raptor 1 thrust" },
@@ -2837,13 +2987,13 @@
         `One game day lasts ${wikiNum(seconds, 1)} seconds. Builds, refurbs, and upgrades wait in those days.`,
         `${wikiPlace("starfactory", "Starfactory")} builds a test article in ${daySpan(TUNING.BUILD_DAYS_MIN, TUNING.BUILD_DAYS_MAX)}.`,
         `Raise Raptor thrust takes ${daySpan(TUNING.ENGINE_UP_DAYS_MIN, TUNING.ENGINE_UP_DAYS_MAX)}. Lighten the stage takes ${daySpan(TUNING.STAGE_LIGHTEN_DAYS_MIN, TUNING.STAGE_LIGHTEN_DAYS_MAX)}.`,
-        `After a clean fire the rocket stays on the mount for ${dayCount(TUNING.INSPECT_DAYS)} of inspection. Refurb the engine takes ${dayCount(TUNING.REFURB_OK_DAYS)}. Inspect the fuel lines takes ${dayCount(TUNING.INSPECT_DAYS)}. Refurb the structure takes ${daySpan(TUNING.REFURB_FAIL_MIN, TUNING.REFURB_FAIL_MAX)}.`,
+        `After a clean fire the rocket stays on the mount for ${dayCount(TUNING.INSPECT_DAYS)} of data review. Refurb the engine takes ${dayCount(TUNING.REFURB_OK_DAYS)}. Inspect the fuel lines takes ${dayCount(TUNING.INSPECT_DAYS)}. Refurb the structure takes ${daySpan(TUNING.REFURB_FAIL_MIN, TUNING.REFURB_FAIL_MAX)}.`,
         `Days keep moving while the tanks load or the engine burns. The purse does not grow on the day. Investors pay when a goal is finished. Pause stops the day and the burn. A roll, a raise, and a lower leave the day running.`,
         `The rollout along the yard road is counted in seconds. That is the short wait on the road between ${wikiPlace("mega_bay", "Mega Bay")} and the ${wikiPlace("pad_orbital", "Orbital Pad")}.`,
       ]) + wikiFacts([
         { value: `${wikiNum(seconds, 1)} seconds`, label: "One game day" },
         { value: daySpan(TUNING.BUILD_DAYS_MIN, TUNING.BUILD_DAYS_MAX), labelHtml: `Build at ${wikiPlace("starfactory", "Starfactory")}` },
-        { value: dayCount(TUNING.INSPECT_DAYS), label: "Inspection on the mount" },
+        { value: dayCount(TUNING.INSPECT_DAYS), label: "Data review on the mount" },
         { value: wikiSpan(TUNING.ROLLOUT_MIN_SEC, TUNING.ROLLOUT_MAX_SEC, "second", "seconds"), label: "Rollout on the road" },
       ]) + wikiReal([
         `A calendar day is 24 hours. A day here lasts ${wikiNum(seconds, 1)} seconds so a session stays short.`,
@@ -2885,7 +3035,7 @@
         `Roll to the ${wikiPlace("pad_orbital", "Orbital Pad")} follows the yard road. The trip takes ${roll}. It spends no steel and no propellant.`,
         `Refurb the engine costs ${TUNING.ENGINE_REFURB_COST} steel and takes ${dayCount(TUNING.REFURB_OK_DAYS)}. Inspect the fuel lines takes ${dayCount(TUNING.INSPECT_DAYS)} and no steel. Refurb the structure takes ${daySpan(TUNING.REFURB_FAIL_MIN, TUNING.REFURB_FAIL_MAX)} and no steel. The bay runs one of those jobs.`,
         `Another slot costs ${TUNING.BAY_SLOT_COST} steel and takes no days. It adds a place in the bay, up to ${TUNING.BAY_MAX === 1 ? "1 vehicle" : `${TUNING.BAY_MAX} vehicles`}.`,
-        `The next step is a static fire on the ${wikiPlace("pad_orbital", "Orbital Pad")}. That fire checks ${wikiPageLink("thrust", "thrust")}, ${wikiPageLink("propellant", "propellant")}, and the wind.`,
+        `The next step is a cryo proof, then a tanking run, then a static fire on the ${wikiPlace("pad_orbital", "Orbital Pad")}. That fire checks ${wikiPageLink("thrust", "thrust")}, ${wikiPageLink("propellant", "propellant")}, and the wind.`,
       ]) + wikiFacts([
         { value: `${TUNING.BAY_SLOT_COST} steel`, label: "Another slot" },
         { value: String(TUNING.BAY_MAX), label: "Vehicles the bay can hold" },
@@ -2908,22 +3058,33 @@
       group: "Buildings",
       title: "Orbital Pad",
       body: wikiParas([
-        `The Orbital Pad holds the rocket for a static fire. The hop comes later. The rocket rolls here from ${wikiPlace("mega_bay", "Mega Bay")}.`,
+        `The Orbital Pad holds the rocket for a cryo proof, a tanking run, and a static fire. The hop comes later. The rocket rolls here from ${wikiPlace("mega_bay", "Mega Bay")}.`,
+        `The cryo proof comes first. It buys liquid nitrogen and takes the tanks to ${TUNING.PROOF_BAR} bar. That figure is a label. The proof costs ${TUNING.PROOF_COST} money and takes ${dayCount(TUNING.PROOF_DAYS)}. It passes when Structure is ${TUNING.PROOF_STRUCT_MIN} or more. The cost, the day, and the floor are game numbers.`,
+        `The tanking run comes next. It needs ${TUNING.SF_CH4_KG} kg of methane and ${TUNING.SF_LOX_KG} kg of liquid oxygen. A short tank scrubs the run. Nothing loads and no day passes. The run takes ${dayCount(TUNING.TANKING_DAYS)}. ${TUNING.TANKING_CH4_LOSS_KG} kg of methane and ${TUNING.TANKING_LOX_LOSS_KG} kg of liquid oxygen boil off. The rest drains back. The run passes when Fuel lines are ${TUNING.TANKING_LINES_MIN} seconds or more. The boil-off and that floor are game numbers.`,
         `The pad fills the methane tank or the liquid oxygen tank for ${TUNING.FLUID_FILL_COST} money. One press fills that tank.`,
-        `Static fire loads ${TUNING.SF_CH4_KG} kg of methane and ${TUNING.SF_LOX_KG} kg of liquid oxygen. When the check fails, Try static fire stays off and names every short part. A short methane tank or a short oxygen tank does not light, takes no fluid, and changes no life.`,
-        `After a clean fire the rocket stays on the mount for ${dayCount(TUNING.INSPECT_DAYS)} of inspection. Then it is ready. A ready rocket offers Return to Mega Bay. The hop comes later.`,
+        `Static fire loads ${TUNING.SF_CH4_KG} kg of methane and ${TUNING.SF_LOX_KG} kg of liquid oxygen. It waits until both tests are done. When the check fails, Try static fire stays off and names every short part. A short methane tank or a short oxygen tank does not light, takes no fluid, and changes no life.`,
+        `After a clean fire the rocket stays on the mount for ${dayCount(TUNING.INSPECT_DAYS)} of data review. Then it is ready. A ready rocket offers Return to Mega Bay. The hop comes later.`,
         `The methane tank buy and the oxygen tank buy raise the caps to ${TUNING.CH4_CAP_L2} kg and ${TUNING.LOX_CAP_L2} kg.`,
-        `A miss still returns to ${wikiPlace("mega_bay", "Mega Bay")}. ${wikiPageLink("engines", "Engines and life")} names the Raptor seconds a lit fire takes off. Structure under ${TUNING.SCRAP_FLOOR} scraps the rocket.`,
+        `A miss still returns to ${wikiPlace("mega_bay", "Mega Bay")}. ${wikiPageLink("engines", "Engines and life")} names the Raptor seconds a lit fire takes off. Structure under ${TUNING.SCRAP_FLOOR} scraps the rocket. A lit miss clears the cryo proof and the tanking run. A clean fire keeps them.`,
         `Pad level 2 costs ${TUNING.PAD_L2_COST} steel and takes no days. The thrust limit rises from ${TUNING.PAD_THRUST_L1} kilonewtons (kN) to ${TUNING.PAD_THRUST_L2} kN. The wind limit rises from ${TUNING.WIND_LIMIT_L1} knots to ${TUNING.WIND_LIMIT_L2} knots. The thrust limits are game numbers.${shorten}`,
       ]) + wikiFacts([
+        { value: `${TUNING.PROOF_COST} money`, label: "Cryo proof cost, a game number" },
+        { value: `${TUNING.PROOF_BAR} bar`, label: "Proof pressure, the SN4 figure" },
+        { value: String(TUNING.PROOF_STRUCT_MIN), label: "Structure floor, a game number" },
+        { value: `${TUNING.TANKING_CH4_LOSS_KG} kg`, label: "Methane boil-off, a game number" },
+        { value: `${TUNING.TANKING_LOX_LOSS_KG} kg`, label: "Oxygen boil-off, a game number" },
+        { value: dayCount(TUNING.PROOF_DAYS), label: "Cryo proof, a game number" },
+        { value: dayCount(TUNING.TANKING_DAYS), label: "Tanking run, a game number" },
         { value: `${TUNING.SF_CH4_KG} kg`, label: "Methane for a static fire" },
         { value: `${TUNING.SF_LOX_KG} kg`, label: "Liquid oxygen for a static fire" },
-        { value: dayCount(TUNING.INSPECT_DAYS), label: "Inspection on the mount" },
+        { value: dayCount(TUNING.INSPECT_DAYS), label: "Data review on the mount" },
         { value: `${TUNING.PAD_L2_COST} steel`, label: "Pad level 2" },
         { value: `${TUNING.PAD_THRUST_L1} kN`, label: "Thrust limit before the upgrade" },
         { value: `${TUNING.PAD_THRUST_L2} kN`, label: "Thrust limit after the upgrade" },
       ]) + wikiReal([
-        `Starhopper, SN5, and SN6 static-fired one Raptor at Boca Chica, then hopped ${RAPTOR_REFS.hopM.n} m. This pad stands at Starbase. The hop comes later. The ${wikiSource("vehicles")} lists those vehicles.`,
+        `SN4 passed a cryo proof at ${RAPTOR_REFS.proofBar.n} bar in late April 2020, then a second proof at ${RAPTOR_REFS.proofBar2.n} bar on 10 May 2020. The ${wikiSource("sn4")} and the ${wikiSource("sn4hw")} record those tests.`,
+        `The SN7 test tank reached ${RAPTOR_REFS.sn7Bar.n} bar on liquid nitrogen, then sprang a leak. The second test came apart. The ${wikiSource("sn7")} is that account.`,
+        `SN5 passed its cryo proof, static-fired on 30 July 2020, and hopped on 4 August. The ${wikiSource("sn5")} and the ${wikiSource("vehicles")} cover that run. This pad stands at Starbase. The hop comes later.`,
       ]),
     };
   }
@@ -3021,7 +3182,9 @@
     if (m && m.kind === "fly") return "In flight";
     if (v.status === "in_bay") return `Bay slot ${(v.baySlot || 0) + 1}`;
     if (v.status === "at_factory") return "At the factory";
-    if (v.status === "inspect") return `Inspection · ${dayCount(v.inspectLeft)} left`;
+    if (v.status === "proof") return `Cryo proof · ${dayCount(v.testLeft)} left`;
+    if (v.status === "tanking") return `Tanking · ${dayCount(v.testLeft)} left`;
+    if (v.status === "inspect") return `Data review · ${dayCount(v.inspectLeft)} left`;
     if (v.status === "ready") return "Ready on the mount";
     if (v.status === "flying") return "In flight";
     if (v.status === "on_pad" || v.status === "needs_return") return "On the pad";
@@ -3196,16 +3359,37 @@
       } else if (moving && moving.kind === "fly") {
         html += `<p class="wait">${esc(on.name)} is in flight.</p>`;
       } else if (on && on.status === "on_pad") {
-        const check = fireCheck(on, b);
-        const fireLine = check.ok ? "Thrust holds." : `${reasonText(check)}.`;
+        if (!on.proofDone) html += `<p class="wait">Cryo proof, then tanking, then a static fire.</p>`;
+        else if (!on.tankingDone) html += `<p class="wait">Cryo proof done. Tanking next.</p>`;
+        else html += `<p class="wait">Cryo proof and tanking are done. Static fire next.</p>`;
         if (on.needsDetank) html += `<p class="wait">Open the rocket and empty the tanks.</p>`;
-        if (check.ok) {
-          acts += actCard("fire", "btn-sf", "", "Static fire", TUNING.SF_CH4_KG, "kg CH4", fireLine, TUNING.SF_LOX_KG, "kg LOX");
+        if (!on.proofDone) {
+          const proofLine = G.money < TUNING.PROOF_COST
+            ? `Liquid nitrogen to ${TUNING.PROOF_BAR} bar. Need ${TUNING.PROOF_COST} money.`
+            : `Liquid nitrogen to ${TUNING.PROOF_BAR} bar.`;
+          const proofOff = G.money < TUNING.PROOF_COST ? " disabled" : "";
+          acts += actCard(proofOff ? "quiet" : "", "btn-proof", proofOff, "Cryo proof", TUNING.PROOF_COST, "money", proofLine);
+        } else if (!on.tankingDone) {
+          const shorts = tankingShorts();
+          if (shorts.length) {
+            acts += actCard("quiet", "btn-tank", " disabled", "Try tanking", null, "", shorts.join(" "));
+          } else {
+            acts += actCard("", "btn-tank", "", "Tanking", TUNING.SF_CH4_KG, "kg CH4", `${TUNING.TANKING_CH4_LOSS_KG} kg of methane and ${TUNING.TANKING_LOX_LOSS_KG} kg of liquid oxygen boil off.`, TUNING.SF_LOX_KG, "kg LOX");
+          }
         } else {
-          acts += actCard("quiet", "btn-sf", " disabled", "Try static fire", null, "", fireLine);
+          const check = fireCheck(on, b);
+          const fireLine = check.ok ? "Thrust holds." : `${reasonText(check)}.`;
+          if (check.ok) {
+            acts += actCard("fire", "btn-sf", "", "Static fire", TUNING.SF_CH4_KG, "kg CH4", fireLine, TUNING.SF_LOX_KG, "kg LOX");
+          } else {
+            acts += actCard("quiet", "btn-sf", " disabled", "Try static fire", null, "", fireLine);
+          }
         }
+      } else if (on && (on.status === "proof" || on.status === "tanking")) {
+        const name = on.status === "proof" ? "Cryo proof" : "Tanking";
+        html += `<p class="wait">${name}, ${dayCount(on.testLeft)} left.</p>`;
       } else if (on && on.status === "inspect") {
-        html += `<p class="wait">Inspection, ${dayCount(on.inspectLeft)} left.</p>`;
+        html += `<p class="wait">Data review, ${dayCount(on.inspectLeft)} left.</p>`;
       } else if (on && on.status === "ready") {
         if (on.needsDetank) html += `<p class="wait">Open the rocket and empty the tanks.</p>`;
         html += `<p class="wait">The hop comes later.</p>`;
@@ -3273,6 +3457,8 @@
       };
     });
     on("#btn-topad", () => startRoll(G.selectedVehicleId, "pad"));
+    on("#btn-proof", cryoProof);
+    on("#btn-tank", tankingRun);
     on("#btn-sf", staticFire);
     on("#btn-launch", startLaunch);
     on("#btn-return", () => startRoll(padHold() && padHold().id, "bay"));
@@ -3287,10 +3473,24 @@
   function cadenceLines() {
     const n = G.fireDays.filter((d) => G.day - d < 30).length;
     const fires = n === 1 ? "1 fire in the last 30 days." : `${n} fires in the last 30 days.`;
-    if (!G.fireDays.length) return [fires, "No fire yet."];
-    const ago = G.day - G.fireDays[G.fireDays.length - 1];
-    const since = ago === 1 ? "1 day since the last fire." : `${ago} days since the last fire.`;
-    return [fires, since];
+    const lines = [];
+    if (!G.fireDays.length) lines.push(fires, "No fire yet.");
+    else {
+      const ago = G.day - G.fireDays[G.fireDays.length - 1];
+      const since = ago === 1 ? "1 day since the last fire." : `${ago} days since the last fire.`;
+      lines.push(fires, since);
+    }
+    const recent = G.testDays.filter((row) => G.day - row.day < 30);
+    const proofs = recent.filter((row) => row.kind === "proof").length;
+    const tanks = recent.filter((row) => row.kind === "tanking").length;
+    const bits = [];
+    if (proofs === 1) bits.push("1 cryo proof");
+    else if (proofs > 1) bits.push(`${proofs} cryo proofs`);
+    if (tanks === 1) bits.push("1 tanking run");
+    else if (tanks > 1) bits.push(`${tanks} tanking runs`);
+    if (bits.length === 1) lines.push(`${bits[0]} in the last 30 days.`);
+    else if (bits.length > 1) lines.push(`${bits[0]} and ${bits[1]} in the last 30 days.`);
+    return lines;
   }
 
   function buyRp1Tank() {
@@ -3412,7 +3612,9 @@
       const pad = buildingOfType("pad_orbital");
       const v = pad && padHold();
       const loading = fluidsMoving();
-      const hold = !!(v && !loading && v.status === "on_pad" && !fireCheck(v, pad).ok);
+      // The red bar follows the static fire card. A proof and a tanking run ignore a closed range.
+      const offeringFire = !!(v && !loading && v.status === "on_pad" && v.proofDone && v.tankingDone);
+      const hold = !!(offeringFire && !fireCheck(v, pad).ok);
       readout.classList.toggle("hold", closed || hold);
     }
   }
@@ -4493,7 +4695,7 @@
     if (m && m.kind === "raise") return clamp(m.t / m.duration, 0, 1);
     if (m && m.kind === "lower") return 1 - clamp(m.t / m.duration, 0, 1);
     if (m && (m.kind === "fire" || m.kind === "fill" || m.kind === "fly")) return 1;
-    if (v.status === "on_pad" || v.status === "inspect" || v.status === "ready" || v.status === "flying" || v.status === "needs_return") return 1;
+    if (v.status === "on_pad" || v.status === "proof" || v.status === "tanking" || v.status === "inspect" || v.status === "ready" || v.status === "flying" || v.status === "needs_return") return 1;
     return 0;
   }
   function angleDelta(from, to) {
@@ -4536,7 +4738,7 @@
       return NOSE_UP + angleDelta(NOSE_UP, flat) * pose;
     }
     if (m && m.kind === "fly") return -((m.pitchDeg == null ? 90 : m.pitchDeg) * Math.PI / 180);
-    if ((m && (m.kind === "fire" || m.kind === "fill")) || v.status === "on_pad" || v.status === "inspect" || v.status === "ready" || v.status === "flying" || v.status === "needs_return") return NOSE_UP;
+    if ((m && (m.kind === "fire" || m.kind === "fill")) || v.status === "on_pad" || v.status === "proof" || v.status === "tanking" || v.status === "inspect" || v.status === "ready" || v.status === "flying" || v.status === "needs_return") return NOSE_UP;
     return 0;
   }
 
@@ -4882,6 +5084,8 @@
         if (v) stageToBay(v.id);
       },
       staticFire,
+      cryoProof,
+      tankingRun,
       startLaunch,
       upgradeBay,
       snap() {
@@ -4905,8 +5109,10 @@
           fleet: G.fleet.map((v) => ({
             id: v.id, name: v.name, status: v.status,
             engineLifeS: v.engineLifeS, fittingLifeS: v.fittingLifeS, stageLife: v.stageLife,
+            proofDone: !!v.proofDone, tankingDone: !!v.tankingDone, testLeft: v.testLeft || 0,
             refurbPart: v.refurbPart || null, refurbLeft: v.refurbLeft || 0,
           })),
+          testDays: G.testDays.map((row) => ({ day: row.day, kind: row.kind })),
           rangeClosed: rangeClosed(),
           padBusy: padBusy(),
           log: G.log.map((row) => row.msg).slice(0, 8),

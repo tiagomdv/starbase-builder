@@ -6,7 +6,7 @@ Phase 0 is Starship development at Starbase in Texas, up to orbit. Phase 1 is re
 
 When a row ships or is dropped, remove it from the table and note the ship in `IMPLEMENTATION_LOG.md`.
 
-**Last shipped:** `0.12.0-raptor`. The factory builds a test article with one Raptor. The header shows methane and liquid oxygen. The rocket sheet reads Structure, Fuel lines, and Engine (Raptor). See `IMPLEMENTATION_LOG.md`. The next row is `0.13.0-proof`.
+**Last shipped:** `0.13.0-proof`. The pad runs a cryo proof, then a tanking run, then a static fire. A clean fire is followed by a data review. See `IMPLEMENTATION_LOG.md`. The next row is `0.14.0-defects`.
 
 ## Roadmap restructure (2026-11-09)
 
@@ -14,7 +14,7 @@ Tiago approved a new order on 2026-11-09. The goal is to set the story straight.
 
 The shipped slices, `0.1.0-foundation` through `0.11.0-screen`, were built on a Falcon 1 stand-in on the Texas site. The yard, the map, Land, the Inspector, the purse, the tanks, the motion, and the part sheet all carry over. From `0.12.0-raptor` the vehicle becomes a Starship development article.
 
-The real test chain after a vehicle is built is tank proof, tanking, static fire, data review, then the range. Tanking means the crew fills the tanks and drains them again. `0.13.0-proof` follows that order. Falcon 1 ran a thinner chain. It went more often from build to a pad static fire to flight, and a flight carried more risk. `4.0.0-falcon1` keeps that.
+The real test chain after a vehicle is built is tank proof, tanking, static fire, data review, then the range. Tanking means the crew fills the tanks and drains them again. `0.13.0-proof` is live, and the pad runs that order now. Falcon 1 ran a thinner chain. It went more often from build to a pad static fire to flight, and a flight carried more risk. `4.0.0-falcon1` keeps that.
 
 The real Falcon order comes from SpaceX Brief. The rockets were built in California, at El Segundo and then Hawthorne. Falcon 1 flew from Omelek Island in the Kwajalein Atoll, from 2006 to 2009. It made orbit on 28 September 2008. Falcon 9 started at Cape Canaveral SLC-40, with its first flight in June 2010. Vandenberg SLC-4E came next. SpaceX leased LC-39A in 2014 and first launched from there in February 2017. Falcon Heavy and crew flights fly from 39A.
 
@@ -56,7 +56,7 @@ The owned line shipped in `0.4.0-borderline`. It follows the coast, about 8 km i
 
 `0.6.0-motion` plays the loop you already have, on the map. The static-fire modal closes. A build shows in the Starfactory. The finished rocket rolls from the Starfactory along the yard road to Mega Bay. It rolls from the bay to the Orbital Pad on that same road. At the pad it rises onto the mount. The static fire burns on the mount, and the flame stays on the map. Later versions add their own animations on top of the same system.
 
-`0.8.0-flight` shipped the first launch. `0.9.0-economy` shipped the purse. `0.10.0-parts` shipped the Merlin, the fuel fitting, and the stage. `0.11.0-screen` shipped the screen layout. `0.12.0-raptor` shipped. The next row is `0.13.0-proof`. Then come `0.14.0-defects`, `0.15.0-hop`, `0.16.0-high-hop`, `0.17.0-stack`, `0.18.0-suborbital`, and `0.19.0-orbit`. `0.20.0-tracking`, `0.21.0-picture`, and `0.22.0-motion-final` come after orbit, still in phase 0.
+`0.8.0-flight` shipped the first launch. `0.9.0-economy` shipped the purse. `0.10.0-parts` shipped the Merlin, the fuel fitting, and the stage. `0.11.0-screen` shipped the screen layout. `0.12.0-raptor` shipped. `0.13.0-proof` shipped. The next row is `0.14.0-defects`. Then come `0.15.0-hop`, `0.16.0-high-hop`, `0.17.0-stack`, `0.18.0-suborbital`, and `0.19.0-orbit`. `0.20.0-tracking`, `0.21.0-picture`, and `0.22.0-motion-final` come after orbit, still in phase 0.
 
 `0.20.0-tracking` lets you follow flights on the map. When you zoom out, each rocket shows its path and a box that grows and shrinks around it, with live numbers like altitude, speed and flight phase. Later, with many launches and some automation, you can watch them all fly at once.
 
@@ -72,7 +72,7 @@ The fire still passes or fails on thrust, the pad, the tanks, and the wind. `0.1
 
 A launch before the first contract spends the purse and pays nothing. That flight is the test. Fire the Orbital Pad until the card shows a run of clean results. Then fly.
 
-The pad card already shows fires in the last 30 days, and days since the last fire. From `0.13.0-proof`, each cryo proof and each tanking run joins the same record as the fires. Each flight joins it too.
+The pad card already shows fires in the last 30 days, and days since the last fire. The cryo proof and the tanking run are live now, and each one joins that record. Each flight joins it later. The hop is `0.15.0-hop`.
 
 Reliability is that record. It is not a meter you buy. A cryo proof shows the tanks hold. A tanking run shows the fuel lines hold. A clean static fire proves the mount and the engine. A flight proves the vehicle. A fail names the part. If every test logs the same line, the tests teach nothing.
 
