@@ -473,6 +473,24 @@
     .resource-bar #ver-label { font-size: 10px; color: #666; }
     #day-pause { min-width: 0; border: 1px solid #fff; background: #0a0a0a; color: #fff; padding: 2px 7px; font-size: 12px; line-height: 1.25; margin: 0; }
     #day-pause:hover, #day-pause:focus { background: #1a1a1a; border-color: #fff; }
+    #day-restart { min-width: 0; border: 1px solid #fff; background: #0a0a0a; color: #fff; padding: 2px 7px; font-size: 12px; line-height: 1.25; margin: 0; cursor: pointer; }
+    #day-restart:hover, #day-restart:focus { background: #1a1a1a; border-color: #fff; }
+    #restart-ask {
+      position: fixed; inset: 0; z-index: 90; display: none;
+      background: rgba(0, 0, 0, 0.72); align-items: center; justify-content: center; padding: 16px;
+    }
+    #restart-ask.open { display: flex; }
+    .restart-card {
+      width: min(360px, 100%); background: #0a0a0a; border: 1px solid #333;
+      color: #f2f2f2; padding: 18px 18px 16px;
+    }
+    .restart-card p { margin: 0; font-size: 15px; line-height: 1.45; }
+    .restart-acts { display: flex; gap: 8px; margin-top: 14px; }
+    .restart-acts button {
+      border: 1px solid #fff; background: #0a0a0a; color: #fff;
+      font: inherit; font-size: 13px; line-height: 1.25; padding: 6px 10px; cursor: pointer;
+    }
+    .restart-acts button:hover, .restart-acts button:focus { background: #1a1a1a; }
   </style>
 </head>
 <body class="flex flex-col h-full">
@@ -493,11 +511,12 @@
         <span class="ctr">LOX <b id="res-lox" class="tabular-nums">0</b></span>
         <span class="ctr">Fleet <b id="res-fleet" class="tabular-nums">0</b></span>
       </div>
-      <div id="ver-label">0.13.0-proof</div>
+      <div id="ver-label">0.13.1-fixes</div>
     </div>
     <div class="bar-right">
       <span class="ctr"><span id="day-run">Day</span> <b id="day-label" class="tabular-nums">1</b></span>
       <button type="button" id="day-pause">Pause</button>
+      <button type="button" id="day-restart">Restart</button>
     </div>
   </header>
 
@@ -572,11 +591,21 @@
     </div>
   </div>
 
+  <div id="restart-ask" aria-hidden="true">
+    <div class="restart-card" role="dialog" aria-labelledby="restart-copy">
+      <p id="restart-copy">Start a new game? The current yard is lost.</p>
+      <div class="restart-acts">
+        <button type="button" id="restart-go">Start over</button>
+        <button type="button" id="restart-cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <script>
 (() => {
   "use strict";
 
-  const VERSION = "0.13.0-proof";
+  const VERSION = "0.13.1-fixes";
   const CELL = 32, MAP_W = 40, MAP_H = 30;
   // ?test is a normal open with a short day. The purse, the tanks, and the yard start the same.
   const TEST = new URLSearchParams(location.search).has("test");
@@ -1177,7 +1206,8 @@
   function partLives(v) {
     return {
       engine: partLifeValue(v, "engine") / TUNING.ENGINE_FIRE_LIMIT_S,
-      fitting: partLifeValue(v, "fitting") / TUNING.FITTING_BURN_S,
+      // The sheet uses the 40 second life. The 169 second burn stays on the hidden launch.
+      fitting: partLifeValue(v, "fitting") / TUNING.FITTING_LIFE_S,
       stage: partLifeValue(v, "stage") / 100,
     };
   }
@@ -1207,7 +1237,7 @@
   function partLifeLabel(v, key) {
     const n = Math.round(partLifeValue(v, key));
     if (key === "engine") return `${n} of ${TUNING.ENGINE_FIRE_LIMIT_S} s`;
-    if (key === "fitting") return `${n} of ${TUNING.FITTING_BURN_S} s`;
+    if (key === "fitting") return `${n} of ${TUNING.FITTING_LIFE_S} s`;
     return `${n} of 100`;
   }
   function engineRefurbDays() {
@@ -1410,7 +1440,8 @@
   function finishPartRefurb(v) {
     const part = v.refurbPart;
     if (part === "engine") v.engineLifeS = TUNING.ENGINE_FIRE_LIMIT_S;
-    else if (part === "fitting") v.fittingLifeS = TUNING.FITTING_BURN_S;
+    // Inspect restores the life the sheet shows, not the hidden burn.
+    else if (part === "fitting") v.fittingLifeS = TUNING.FITTING_LIFE_S;
     else if (part === "stage") v.stageLife = 100;
     v.refurbPart = null;
     v.refurbLeft = 0;
@@ -2776,7 +2807,7 @@
         `A tanking run comes next. It loads ${TUNING.SF_CH4_KG} kg of methane and ${TUNING.SF_LOX_KG} kg of liquid oxygen. That is the static fire load. A short tank scrubs the run. Nothing loads, no day passes, and no fluid is spent.`,
         `The run takes ${dayCount(TUNING.TANKING_DAYS)}. ${TUNING.TANKING_CH4_LOSS_KG} kg of methane and ${TUNING.TANKING_LOX_LOSS_KG} kg of liquid oxygen boil off. The rest drains back to the pad tanks. The boil-off is a game number. The run passes when Fuel lines are ${TUNING.TANKING_LINES_MIN} seconds or more. A fresh article has ${TUNING.FITTING_LIFE_S}. That floor is a game number.`,
         `A static fire lights the engine on the pad. It holds when ${wikiGo("thrust", "thrust")}, the pad, ${wikiGo("propellant", "methane")}, ${wikiGo("propellant", "liquid oxygen")}, and the wind are inside the limits. The two tests come first.`,
-        `After a clean fire the rocket stays on the mount for ${dayCount(TUNING.INSPECT_DAYS)} of data review. Then it is ready. A ready rocket returns to the bay. The hop comes later.`,
+        `After a clean fire the rocket stays on the mount for ${dayCount(TUNING.INSPECT_DAYS)} of data review. Then it is ready. A ready rocket returns to the bay. A waiting rocket on the pad can return too. A passed cryo and a passed tanking run stay passed. The hop comes later.`,
         `A miss sends the rocket back to ${wikiPlace("mega_bay", "Mega Bay")}. The sheet names the short part. You start one refurb. The bay runs one part at a time. A failed proof or a failed tanking run also sends the rocket back. Nothing on the rocket is damaged.`,
         `When the check fails, Try static fire stays off and names every short part. A short tank does not light.`,
       ]) + wikiFacts([
@@ -2873,11 +2904,11 @@
         `The rocket equation ties the change in speed to the exhaust speed and to how much of the rocket is propellant.`,
         `A test article carries no payload. Liftoff comes with the hop, so this page does not print a payload.`,
         `Stage dry mass starts at ${TUNING.STAGE_DRY_KG} kg. Liftoff mass on the sheet is ${TUNING.STRUCT_LIMIT_KG} kg. Both are game numbers until the hop.`,
-        `Lighten the stage cuts ${TUNING.STAGE_LIGHTEN_KG} kg of dry mass on that rocket. It costs ${TUNING.STAGE_LIGHTEN_COST} steel and takes ${daySpan(TUNING.STAGE_LIGHTEN_DAYS_MIN, TUNING.STAGE_LIGHTEN_DAYS_MAX)}.`,
+        `The dry-mass cut waits until a flight uses dry mass. That button is off the sheet.`,
       ]) + wikiFacts([
         { value: `${TUNING.STAGE_DRY_KG} kg`, label: "Stage dry mass" },
         { value: `${TUNING.STRUCT_LIMIT_KG} kg`, label: "Liftoff mass" },
-        { value: `${TUNING.STAGE_LIGHTEN_KG} kg`, label: "Lighten the stage" },
+        { value: "Off the sheet", label: "The dry-mass cut waits until a flight uses dry mass" },
         { value: "None", label: "A test article carries no payload." },
       ]) + wikiReal([
         `Starhopper, SN5, and SN6 were test articles. They hopped. They did not carry a payload to orbit. The ${wikiSource("vehicles")} lists those vehicles.`,
@@ -2893,7 +2924,7 @@
         `Liquid methane is the same gas as natural gas, kept at minus 162 C. The CH4 counter and Load methane are that fluid.`,
         `The Raptor burns methane and liquid oxygen. The mix is ${wikiNum(TUNING.LOX_PER_CH4, 1)} kg of liquid oxygen for each kg of methane.`,
         `A static fire loads ${TUNING.SF_CH4_KG} kg of methane and ${TUNING.SF_LOX_KG} kg of liquid oxygen. Raptor 2 uses the same load. That fixed load is a game number.`,
-        `The methane tank holds ${TUNING.CH4_CAP} kg. The liquid oxygen tank holds ${TUNING.LOX_CAP} kg. Each holds two fires. Both tanks start empty.`,
+        `The methane tank holds ${TUNING.CH4_CAP} kg. The liquid oxygen tank holds ${TUNING.LOX_CAP} kg. Each tank holds two static-fire loads. Both tanks start empty. After a fill to the cap, a tanking run boils off ${TUNING.TANKING_CH4_LOSS_KG} kg of methane and ${TUNING.TANKING_LOX_LOSS_KG} kg of liquid oxygen. The tanks then hold ${TUNING.CH4_CAP - TUNING.TANKING_CH4_LOSS_KG} kg and ${TUNING.LOX_CAP - TUNING.TANKING_LOX_LOSS_KG} kg. The first fire still fits. They are short of a second fire by ${TUNING.TANKING_CH4_LOSS_KG} kg and ${TUNING.TANKING_LOX_LOSS_KG} kg, so the tanks are filled again before a second fire.`,
         `The methane tank buy costs ${TUNING.CH4_TANK_COST} steel and raises the cap to ${TUNING.CH4_CAP_L2} kg. The oxygen tank buy costs ${TUNING.LOX_TANK_COST} steel and raises the cap to ${TUNING.LOX_CAP_L2} kg.`,
         `The pad fills the methane tank or the liquid oxygen tank for ${TUNING.FLUID_FILL_COST} money. One press fills that tank.`,
       ]) + wikiFacts([
@@ -2959,7 +2990,7 @@
       body: wikiParas([
         `A static fire is a burn on the pad. It checks the ${wikiGo("thrust", "thrust")} before a hop.`,
         `The rocket sheet paints Structure, Fuel lines, and Engine (Raptor) on the rocket, top to bottom. Each part shows a percent. The big number is the lowest part. The engine also shows the seconds still left, out of ${TUNING.ENGINE_FIRE_LIMIT_S}. A lit static fire spends 5 seconds. Life stops at 0. The ${TUNING.ENGINE_FIRE_LIMIT_S} seconds are a game number.`,
-        `The fuel lines carry methane and liquid oxygen from the tanks to the engine. They start at ${TUNING.FITTING_LIFE_S} seconds out of ${TUNING.FITTING_BURN_S}. A static fire does not spend them. Inspect the fuel lines sets them to ${TUNING.FITTING_BURN_S}. That ${TUNING.FITTING_BURN_S} is a game number kept until the hop.`,
+        `The fuel lines carry methane and liquid oxygen from the tanks to the engine. They start at ${TUNING.FITTING_LIFE_S} seconds out of ${TUNING.FITTING_LIFE_S}. A static fire does not spend them. Inspect the fuel lines sets them to ${TUNING.FITTING_LIFE_S}. The hidden launch still asks for ${TUNING.FITTING_BURN_S} seconds. That figure stays until the hop.`,
         `The stage starts at 100. A lit miss takes ${TUNING.SF_MISS_CONDITION} off that life. Under ${TUNING.SCRAP_FLOOR} the rocket is scrap.`,
         `Refurb the engine costs ${TUNING.ENGINE_REFURB_COST} steel and takes ${dayCount(TUNING.REFURB_OK_DAYS)}. Pad level 2 cuts one day from that job only. Refurb the structure takes ${daySpan(TUNING.REFURB_FAIL_MIN, TUNING.REFURB_FAIL_MAX)} and no steel.`,
         `The bay runs one part at a time. Raise Raptor thrust spends ${TUNING.ENGINE_UP_COST} steel. Raptor 1 at ${TUNING.ENGINE_THRUST_KN} kN becomes Raptor 2 at ${TUNING.ENGINE_2_KN} kN. Mass drops from ${TUNING.ENGINE_MASS_KG} kg to ${TUNING.ENGINE_2_MASS_KG} kg. It does not build a second engine.`,
@@ -2986,7 +3017,7 @@
       body: wikiParas([
         `One game day lasts ${wikiNum(seconds, 1)} seconds. Builds, refurbs, and upgrades wait in those days.`,
         `${wikiPlace("starfactory", "Starfactory")} builds a test article in ${daySpan(TUNING.BUILD_DAYS_MIN, TUNING.BUILD_DAYS_MAX)}.`,
-        `Raise Raptor thrust takes ${daySpan(TUNING.ENGINE_UP_DAYS_MIN, TUNING.ENGINE_UP_DAYS_MAX)}. Lighten the stage takes ${daySpan(TUNING.STAGE_LIGHTEN_DAYS_MIN, TUNING.STAGE_LIGHTEN_DAYS_MAX)}.`,
+        `Raise Raptor thrust takes ${daySpan(TUNING.ENGINE_UP_DAYS_MIN, TUNING.ENGINE_UP_DAYS_MAX)}. The dry-mass cut waits until a flight uses dry mass. That button is off the sheet.`,
         `After a clean fire the rocket stays on the mount for ${dayCount(TUNING.INSPECT_DAYS)} of data review. Refurb the engine takes ${dayCount(TUNING.REFURB_OK_DAYS)}. Inspect the fuel lines takes ${dayCount(TUNING.INSPECT_DAYS)}. Refurb the structure takes ${daySpan(TUNING.REFURB_FAIL_MIN, TUNING.REFURB_FAIL_MAX)}.`,
         `Days keep moving while the tanks load or the engine burns. The purse does not grow on the day. Investors pay when a goal is finished. Pause stops the day and the burn. A roll, a raise, and a lower leave the day running.`,
         `The rollout along the yard road is counted in seconds. That is the short wait on the road between ${wikiPlace("mega_bay", "Mega Bay")} and the ${wikiPlace("pad_orbital", "Orbital Pad")}.`,
@@ -3009,15 +3040,15 @@
       title: "Starfactory",
       body: wikiParas([
         `Starfactory builds a ${rocket.name} from steel. It holds the finished rocket until you roll it to ${wikiPlace("mega_bay", "Mega Bay")}.`,
-        `Build ${rocket.name} costs ${rocket.steelCost} steel and takes ${daySpan(TUNING.BUILD_DAYS_MIN, TUNING.BUILD_DAYS_MAX)}. Roll to ${wikiPlace("mega_bay", "Mega Bay")} spends no steel and no propellant, and it takes no days.`,
-        `Raise Raptor thrust costs ${TUNING.ENGINE_UP_COST} steel and takes ${daySpan(TUNING.ENGINE_UP_DAYS_MIN, TUNING.ENGINE_UP_DAYS_MAX)}. Lighten the stage costs ${TUNING.STAGE_LIGHTEN_COST} steel and takes ${daySpan(TUNING.STAGE_LIGHTEN_DAYS_MIN, TUNING.STAGE_LIGHTEN_DAYS_MAX)}. Both run here, in the same slot as a build.`,
+        `Build ${rocket.name} costs ${rocket.steelCost} steel and takes ${daySpan(TUNING.BUILD_DAYS_MIN, TUNING.BUILD_DAYS_MAX)}. Roll to ${wikiPlace("mega_bay", "Mega Bay")} spends no steel and no propellant, and the day keeps running.`,
+        `Raise Raptor thrust costs ${TUNING.ENGINE_UP_COST} steel and takes ${daySpan(TUNING.ENGINE_UP_DAYS_MIN, TUNING.ENGINE_UP_DAYS_MAX)}. The dry-mass cut waits until a flight uses dry mass. That button is off the sheet.`,
         `Starfactory cannot be upgraded.`,
         `The next building is ${wikiPlace("mega_bay", "Mega Bay")}. ${wikiPageLink("thrust", "Thrust")} and the stage change while this factory is busy.`,
       ]) + wikiFacts([
         { value: `${rocket.steelCost} steel`, label: `Steel for a ${rocket.name}` },
         { value: daySpan(TUNING.BUILD_DAYS_MIN, TUNING.BUILD_DAYS_MAX), label: "Days to build" },
         { value: `${TUNING.ENGINE_UP_COST} steel`, label: "Raise Raptor thrust" },
-        { value: `${TUNING.STAGE_LIGHTEN_COST} steel`, label: "Lighten the stage" },
+        { value: "Off the sheet", label: "The dry-mass cut waits until a flight uses dry mass" },
       ]) + wikiReal([
         `Starhopper, SN5, and SN6 were built at Boca Chica and each flew with one Raptor. This game builds the test article at Starbase. The ${wikiSource("vehicles")} lists those vehicles.`,
       ]),
@@ -3063,7 +3094,7 @@
         `The tanking run comes next. It needs ${TUNING.SF_CH4_KG} kg of methane and ${TUNING.SF_LOX_KG} kg of liquid oxygen. A short tank scrubs the run. Nothing loads and no day passes. The run takes ${dayCount(TUNING.TANKING_DAYS)}. ${TUNING.TANKING_CH4_LOSS_KG} kg of methane and ${TUNING.TANKING_LOX_LOSS_KG} kg of liquid oxygen boil off. The rest drains back. The run passes when Fuel lines are ${TUNING.TANKING_LINES_MIN} seconds or more. The boil-off and that floor are game numbers.`,
         `The pad fills the methane tank or the liquid oxygen tank for ${TUNING.FLUID_FILL_COST} money. One press fills that tank.`,
         `Static fire loads ${TUNING.SF_CH4_KG} kg of methane and ${TUNING.SF_LOX_KG} kg of liquid oxygen. It waits until both tests are done. When the check fails, Try static fire stays off and names every short part. A short methane tank or a short oxygen tank does not light, takes no fluid, and changes no life.`,
-        `After a clean fire the rocket stays on the mount for ${dayCount(TUNING.INSPECT_DAYS)} of data review. Then it is ready. A ready rocket offers Return to Mega Bay. The hop comes later.`,
+        `After a clean fire the rocket stays on the mount for ${dayCount(TUNING.INSPECT_DAYS)} of data review. Then it is ready. A ready rocket offers Return to Mega Bay. A waiting rocket on the pad can return too. A passed cryo and a passed tanking run stay passed. The hop comes later.`,
         `The methane tank buy and the oxygen tank buy raise the caps to ${TUNING.CH4_CAP_L2} kg and ${TUNING.LOX_CAP_L2} kg.`,
         `A miss still returns to ${wikiPlace("mega_bay", "Mega Bay")}. ${wikiPageLink("engines", "Engines and life")} names the Raptor seconds a lit fire takes off. Structure under ${TUNING.SCRAP_FLOOR} scraps the rocket. A lit miss clears the cryo proof and the tanking run. A clean fire keeps them.`,
         `Pad level 2 costs ${TUNING.PAD_L2_COST} steel and takes no days. The thrust limit rises from ${TUNING.PAD_THRUST_L1} kilonewtons (kN) to ${TUNING.PAD_THRUST_L2} kN. The wind limit rises from ${TUNING.WIND_LIMIT_L1} knots to ${TUNING.WIND_LIMIT_L2} knots. The thrust limits are game numbers.${shorten}`,
@@ -3297,7 +3328,7 @@
         }
         acts += openCard(hold);
       }
-      html += `<p class="wait">Raise Raptor thrust and Lighten the stage run here. Open a rocket to start one.</p>`;
+      html += `<p class="wait">Raise Raptor thrust runs here. Open a rocket to start it. The dry-mass cut waits until a flight uses dry mass. That button is off the sheet.</p>`;
     }
 
     if (b.type === "mega_bay") {
@@ -3348,6 +3379,7 @@
       html += `<div class="sh sub">Data</div>`;
       html += inspRow("Pad level", b.level || 1);
       html += inspRow("Thrust limit", `${limits.thrust} kN`);
+      html += inspRow("Wind limit", `${limits.wind} kn`);
       html += inspRow("CH4 / LOX", `${Math.floor(G.ch4)} / ${Math.floor(G.lox)} kg`);
       html += on ? slotRow(on) : `<div class="slot empty"><span>Mount</span><span class="pc">—</span><span class="pl">Empty</span></div>`;
       const moving = on ? motionFor(on.id) : null;
@@ -3363,6 +3395,8 @@
         else if (!on.tankingDone) html += `<p class="wait">Cryo proof done. Tanking next.</p>`;
         else html += `<p class="wait">Cryo proof and tanking are done. Static fire next.</p>`;
         if (on.needsDetank) html += `<p class="wait">Open the rocket and empty the tanks.</p>`;
+        if (rangeClosed() && openPadTest(on) === "proof") html += `<p class="wait">The range is closed. The cryo proof can still run.</p>`;
+        if (rangeClosed() && openPadTest(on) === "tank") html += `<p class="wait">The range is closed. The tanking run can still run.</p>`;
         if (!on.proofDone) {
           const proofLine = G.money < TUNING.PROOF_COST
             ? `Liquid nitrogen to ${TUNING.PROOF_BAR} bar. Need ${TUNING.PROOF_COST} money.`
@@ -3385,6 +3419,7 @@
             acts += actCard("quiet", "btn-sf", " disabled", "Try static fire", null, "", fireLine);
           }
         }
+        acts += actCard("quiet roll", "btn-return", "", "Return to Mega Bay", null, "", "The rocket leaves the mount.");
       } else if (on && (on.status === "proof" || on.status === "tanking")) {
         const name = on.status === "proof" ? "Cryo proof" : "Tanking";
         html += `<p class="wait">${name}, ${dayCount(on.testLeft)} left.</p>`;
@@ -3565,7 +3600,7 @@
         lines.push(`${v ? v.name : "Rocket"} · Raptor thrust to ${TUNING.ENGINE_2_KN} kN · ${days(job.daysLeft)}`);
       } else if (job.kind === "structure") {
         const v = vehicleById(job.vehicleId);
-        lines.push(`${v ? v.name : "Rocket"} · lightening the stage · ${days(job.daysLeft)}`);
+        lines.push(`${v ? v.name : "Rocket"} · Stage dry mass · ${days(job.daysLeft)}`);
       } else {
         lines.push(`Starfactory · building ${rocketOf(job.rocketId).name} · ${days(job.daysLeft)}`);
       }
@@ -3597,6 +3632,14 @@
     return rangeShut(sky.storm, sky.wind, lim.wind);
   }
 
+  // An enabled proof or tanking card may still run when the range is closed.
+  function openPadTest(v) {
+    if (!v || v.status !== "on_pad" || motionFor(v.id) || fluidsMoving()) return "";
+    if (!v.proofDone) return G.money >= TUNING.PROOF_COST ? "proof" : "";
+    if (!v.tankingDone) return tankingShorts().length ? "" : "tank";
+    return "";
+  }
+
   function renderWeather() {
     const sky = document.getElementById("sky-label");
     const lamp = document.getElementById("range-lamp");
@@ -3612,10 +3655,12 @@
       const pad = buildingOfType("pad_orbital");
       const v = pad && padHold();
       const loading = fluidsMoving();
-      // The red bar follows the static fire card. A proof and a tanking run ignore a closed range.
+      // A refused fire stays red. A closed range drops that inset only for an enabled test card.
       const offeringFire = !!(v && !loading && v.status === "on_pad" && v.proofDone && v.tankingDone);
       const hold = !!(offeringFire && !fireCheck(v, pad).ok);
-      readout.classList.toggle("hold", closed || hold);
+      const selected = buildingById(G.selectedId);
+      const quietTest = !!(pad && selected && selected.id === pad.id && openPadTest(v));
+      readout.classList.toggle("hold", (closed && !quietTest) || hold);
     }
   }
 
@@ -3784,18 +3829,18 @@
     }
     if (engineJob) action += `<p class="wait">Raptor thrust · ${dayCount(engineJob.daysLeft)} left</p>`;
     else if ((v.engineTier || 1) < 2) {
+      const pad = buildingOfType("pad_orbital");
+      const lim = padLimits(pad);
+      let line = `${daySpan(TUNING.ENGINE_UP_DAYS_MIN, TUNING.ENGINE_UP_DAYS_MAX)}. Raptor 1 at ${TUNING.ENGINE_THRUST_KN} kN becomes Raptor 2 at ${TUNING.ENGINE_2_KN} kN. Mass drops from ${TUNING.ENGINE_MASS_KG} kg to ${TUNING.ENGINE_2_MASS_KG} kg.`;
+      if (lim.thrust < TUNING.ENGINE_2_KN) {
+        const level = pad && pad.level >= 2 ? pad.level : 1;
+        line += ` Pad level ${level} holds ${lim.thrust} kN. Raptor 2 is ${TUNING.ENGINE_2_KN} kN.`;
+      }
       action += actCard("up", "btn-engine", G.steel < TUNING.ENGINE_UP_COST ? " disabled" : "",
-        "Raise Raptor thrust", TUNING.ENGINE_UP_COST, "steel", `${daySpan(TUNING.ENGINE_UP_DAYS_MIN, TUNING.ENGINE_UP_DAYS_MAX)}. Raptor 1 at ${TUNING.ENGINE_THRUST_KN} kN becomes Raptor 2 at ${TUNING.ENGINE_2_KN} kN. Mass drops from ${TUNING.ENGINE_MASS_KG} kg to ${TUNING.ENGINE_2_MASS_KG} kg.`);
+        "Raise Raptor thrust", TUNING.ENGINE_UP_COST, "steel", line);
     }
+    // The dry-mass cut stays in the code. The sheet hides it until a flight uses dry mass.
     if (structureJob) action += `<p class="wait">Stage dry mass · ${dayCount(structureJob.daysLeft)} left</p>`;
-    else if ((v.structureTier || 1) < 2) {
-      action += actCard("up", "btn-structure", G.steel < TUNING.STAGE_LIGHTEN_COST ? " disabled" : "",
-        "Lighten the stage", TUNING.STAGE_LIGHTEN_COST, "steel", `${daySpan(TUNING.STAGE_LIGHTEN_DAYS_MIN, TUNING.STAGE_LIGHTEN_DAYS_MAX)}. Stage dry mass on this rocket falls by ${TUNING.STAGE_LIGHTEN_KG} kg.`);
-    } else {
-      // The used card stays so the player sees the upgrade happened and cannot repeat it.
-      action += actCard("up", "btn-structure-done", " disabled", "Stage lightened. One cut per rocket.", null, "",
-        `Dry mass on this rocket is ${TUNING.STAGE_LIGHTEN_KG} kg lower.`);
-    }
     const pct = rocketPct(v);
     const tone = lifeTone(pct);
     const html = `<div class="top">
@@ -4980,7 +5025,10 @@
   }, { passive: false });
 
   window.addEventListener("keydown", (ev) => {
+    if (ev.key === "Tab" && trapRestartTab(ev)) return;
     if (ev.key === "Escape") {
+      const ask = document.getElementById("restart-ask");
+      if (ask && ask.classList.contains("open")) { closeRestartAsk(); return; }
       if (motionKind("fire")) { skipEvent(); return; }
       if (G.wikiSheet) { G.wikiSheet = false; renderWiki(); return; }
       if (G.fleetSheet) { G.fleetSheet = false; renderFleetList(); return; }
@@ -5007,6 +5055,59 @@
     G.paused = !G.paused;
     renderResources();
   });
+  function restartGame() {
+    location.reload();
+  }
+  // The control that had focus before the confirm opened. Start over reloads, so that path does not use it.
+  let restartReturn = null;
+  function closeRestartAsk() {
+    const ask = document.getElementById("restart-ask");
+    if (!ask) return;
+    ask.classList.remove("open");
+    ask.setAttribute("aria-hidden", "true");
+    const back = restartReturn;
+    restartReturn = null;
+    if (back && back.isConnected) back.focus();
+  }
+  function openRestartAsk() {
+    const ask = document.getElementById("restart-ask");
+    if (!ask || ask.classList.contains("open")) return;
+    const active = document.activeElement;
+    restartReturn = active && active !== document.body ? active : document.getElementById("day-restart");
+    ask.classList.add("open");
+    ask.setAttribute("aria-hidden", "false");
+    const go = document.getElementById("restart-go");
+    if (go) go.focus();
+  }
+  // Tab stays on Start over and Cancel so a control under the card cannot take it.
+  function trapRestartTab(ev) {
+    const ask = document.getElementById("restart-ask");
+    if (!ask || !ask.classList.contains("open")) return false;
+    const go = document.getElementById("restart-go");
+    const cancel = document.getElementById("restart-cancel");
+    if (!go || !cancel) return false;
+    const buttons = [go, cancel];
+    const index = buttons.indexOf(document.activeElement);
+    const next = index < 0
+      ? (ev.shiftKey ? buttons.length - 1 : 0)
+      : (index + (ev.shiftKey ? -1 : 1) + buttons.length) % buttons.length;
+    ev.preventDefault();
+    buttons[next].focus();
+    return true;
+  }
+  // The confirm covers the map. Presses under it cannot start a test or buy steel.
+  function blockUnderRestart(ev) {
+    const ask = document.getElementById("restart-ask");
+    if (!ask || !ask.classList.contains("open")) return;
+    if (ev.target.closest && ev.target.closest(".restart-card")) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+  }
+  document.addEventListener("pointerdown", blockUnderRestart, true);
+  document.addEventListener("click", blockUnderRestart, true);
+  document.getElementById("day-restart").addEventListener("click", openRestartAsk);
+  document.getElementById("restart-cancel").addEventListener("click", closeRestartAsk);
+  document.getElementById("restart-go").addEventListener("click", restartGame);
   document.getElementById("fleet-open").addEventListener("click", () => {
     G.fleetSheet = !G.fleetSheet;
     renderFleetList();
@@ -5086,6 +5187,7 @@
       staticFire,
       cryoProof,
       tankingRun,
+      restartGame,
       startLaunch,
       upgradeBay,
       snap() {
