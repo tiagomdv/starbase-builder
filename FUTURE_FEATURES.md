@@ -6,7 +6,7 @@ Phase 0 is Starship development at Starbase in Texas, up to orbit. Phase 1 is re
 
 When a row ships or is dropped, remove it from the table and note the ship in `IMPLEMENTATION_LOG.md`.
 
-**Last shipped:** `0.13.1-fixes`. Return stays on a quiet pad, and Restart starts a new game after a confirm. See `IMPLEMENTATION_LOG.md`. The next row is `0.14.0-defects`.
+**Last shipped:** `0.14.0-defects`. A new article can leave with one real short part the tests can find. See `IMPLEMENTATION_LOG.md`. The next row is `0.15.0-hop`.
 
 ## Roadmap restructure (2026-11-09)
 
@@ -14,7 +14,7 @@ Tiago approved a new order on 2026-11-09. The goal is to set the story straight.
 
 The shipped slices, `0.1.0-foundation` through `0.11.0-screen`, were built on a Falcon 1 stand-in on the Texas site. The yard, the map, Land, the Inspector, the purse, the tanks, the motion, and the part sheet all carry over. From `0.12.0-raptor` the vehicle becomes a Starship development article.
 
-The real test chain after a vehicle is built is tank proof, tanking, static fire, data review, then the range. Tanking means the crew fills the tanks and drains them again. `0.13.0-proof` shipped that order. `0.13.1-fixes` is live, and the pad still runs it. Falcon 1 ran a thinner chain. It went more often from build to a pad static fire to flight, and a flight carried more risk. `4.0.0-falcon1` keeps that.
+The real test chain after a vehicle is built is tank proof, tanking, static fire, data review, then the range. Tanking means the crew fills the tanks and drains them again. `0.13.0-proof` shipped that order. `0.14.0-defects` is live, and the pad still runs it. A new article can leave with a real short part. Falcon 1 ran a thinner chain. It went more often from build to a pad static fire to flight, and a flight carried more risk. `4.0.0-falcon1` keeps that.
 
 The real Falcon order comes from SpaceX Brief. The rockets were built in California, at El Segundo and then Hawthorne. Falcon 1 flew from Omelek Island in the Kwajalein Atoll, from 2006 to 2009. It made orbit on 28 September 2008. Falcon 9 started at Cape Canaveral SLC-40, with its first flight in June 2010. Vandenberg SLC-4E came next. SpaceX leased LC-39A in 2014 and first launched from there in February 2017. Falcon Heavy and crew flights fly from 39A.
 
@@ -22,7 +22,7 @@ The invented Louisiana and Florida Starbases are dropped. The real Falcon sites 
 
 After phase 1 the player chooses a branch. Phases 2, 3, and 4 can be played in any order. The Moon and Mars branch needs the catch from `1.1.0-catch`.
 
-Two design checks stay open. The defect row, `0.14.0-defects`, and the staging row, `0.18.0-suborbital`, must stay decided by the hardware. A defect is a real part number that a test can show. A staging failure names the short part. Neither one is a hidden chance. The mix is 3.6 kg of liquid oxygen for each kg of methane, and methane has its own tank. The kerosene tank waits for the Falcon story.
+One design check stays open. The staging row, `0.18.0-suborbital`, must stay decided by the hardware. A staging failure names the short part. It is not a hidden chance. The mix is 3.6 kg of liquid oxygen for each kg of methane, and methane has its own tank. The kerosene tank waits for the Falcon story.
 
 The game parallels came from Starbase Research. Buzz Aldrin's Race Into Space and the KSP TestFlight mod show tests that earn reliability part by part. KSP RP-1 splits research time from factory time. Anno 1800 opens a second site while the first keeps earning.
 
@@ -56,7 +56,7 @@ The owned line shipped in `0.4.0-borderline`. It follows the coast, about 8 km i
 
 `0.6.0-motion` plays the loop you already have, on the map. The static-fire modal closes. A build shows in the Starfactory. The finished rocket rolls from the Starfactory along the yard road to Mega Bay. It rolls from the bay to the Orbital Pad on that same road. At the pad it rises onto the mount. The static fire burns on the mount, and the flame stays on the map. Later versions add their own animations on top of the same system.
 
-`0.8.0-flight` shipped the first launch. `0.9.0-economy` shipped the purse. `0.10.0-parts` shipped the Merlin, the fuel fitting, and the stage. `0.11.0-screen` shipped the screen layout. `0.12.0-raptor` shipped. `0.13.0-proof` shipped. `0.13.1-fixes` is live. The next row is `0.14.0-defects`. Then come `0.15.0-hop`, `0.16.0-high-hop`, `0.17.0-stack`, `0.18.0-suborbital`, and `0.19.0-orbit`. `0.20.0-tracking`, `0.21.0-picture`, and `0.22.0-motion-final` come after orbit, still in phase 0.
+`0.8.0-flight` shipped the first launch. `0.9.0-economy` shipped the purse. `0.10.0-parts` shipped the Merlin, the fuel fitting, and the stage. `0.11.0-screen` shipped the screen layout. `0.12.0-raptor` shipped. `0.13.0-proof` shipped. `0.13.1-fixes` shipped. `0.14.0-defects` is live. The next row is `0.15.0-hop`. Then come `0.16.0-high-hop`, `0.17.0-stack`, `0.18.0-suborbital`, and `0.19.0-orbit`. `0.20.0-tracking`, `0.21.0-picture`, and `0.22.0-motion-final` come after orbit, still in phase 0.
 
 `0.20.0-tracking` lets you follow flights on the map. When you zoom out, each rocket shows its path and a box that grows and shrinks around it, with live numbers like altitude, speed and flight phase. Later, with many launches and some automation, you can watch them all fly at once.
 
@@ -76,7 +76,7 @@ The pad card already shows fires in the last 30 days, and days since the last fi
 
 Reliability is that record. It is not a meter you buy. A cryo proof shows the tanks hold. A tanking run shows the fuel lines hold. A clean static fire proves the mount and the engine. A flight proves the vehicle. A fail names the part. If every test logs the same line, the tests teach nothing.
 
-`0.14.0-defects` lets a prototype leave the Starfactory with a hidden defect in one part. The defect is a real number on that part, not a dice roll. The tests can find it. Fixing it costs money and days. You can skip a test, and the flight then carries that part as it is. `1.2.0-refurb` runs the same check on a flown stage. `1.3.0-rate` lets a better process send fewer defects out of the factory.
+`0.14.0-defects` is live. A prototype can leave the Starfactory with one short part. The short is a real number: Structure 60, Fuel lines 0 seconds, or thrust 1400 kN. Those are game numbers. The tests can find it. The fix is the days and the steel prices that already exist. You can skip a test, and the part stays as it is. `1.2.0-refurb` runs the same check on a flown stage. `1.3.0-rate` lets a better process send fewer defects out of the factory.
 
 The first paying contract arrives at `0.18.0-suborbital`. It reads the test and flight record before it offers the sale. The sale names how many flights and how many clean results it wants. Pay arrives when a flight meets the sale. `0.19.0-orbit` lets a contract ask for an orbit card.
 
