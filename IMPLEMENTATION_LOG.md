@@ -277,3 +277,17 @@ History of what **shipped**, keyed by **version**.
 - The pad record keeps the fire lines and adds the tests from the last 30 days. It names only the kinds that happened.
 - `index.html?test` exposes cryoProof and tankingRun. snap returns proofDone, tankingDone, testLeft, and testDays. The purse, steel 0, both tanks empty, and an empty yard stay the same. A day still lasts half a second. The label reads `0.13.0-proof. Test start.`
 - The previous live file is `archive/index-0.12.0-raptor.html`.
+
+## `0.13.1-fixes` — 2026-11-10
+
+**Version:** `0.13.1-fixes`
+
+- A rocket waiting on the pad shows Return to Mega Bay next to the next test or the fire. The roll home keeps a passed cryo and a passed tanking run. Return is absent during a proof, a tanking run, a fill, and a fire.
+- Restart sits beside Pause. The first press asks "Start a new game? The current yard is lost." Start over reloads the page and keeps a test start. Cancel changes nothing. Other presses wait while that card is open. `restartGame` on `window.__sb` in `?test` reloads and skips the confirm.
+- A closed range still starts a cryo proof and a tanking run. The inspector drops the red inset only while that enabled card is up, and a wait line says the test can still run. The header lamp still follows the sky. An empty pad, a short tank, a running test, and a refused fire stay red.
+- Fuel lines use 40 seconds for the percent and the part label. A fresh article reads 100 percent, and the fuel-line label reads 40 of 40 s. Inspect the fuel lines sets them to 40. The hidden launch still asks for 169.
+- The Propellant page says each tank holds two static-fire loads. A tanking run boils off 61 kg of methane and 219 kg of liquid oxygen. The first fire still fits. The Starfactory page says the roll spends no steel and no propellant, and the day keeps running.
+- The pad Data list shows the wind limit beside the thrust limit. Raise Raptor thrust names the 2000 kN limit on pad level 1. Pad level 2 does not name it. The upgrade stays available.
+- Lighten the stage is off the rocket sheet, the factory card, and the Wiki lines that offered it. The cut waits until a flight uses dry mass. The factory job stays in the code.
+- The Propellant page names a fill to the cap before the boil-off. A running stage job on the map reads Stage dry mass. Tab stays on Start over and Cancel while the Restart confirm is open. Cancel and Escape return focus to the control that opened it.
+- The fire button stays off when the pad is short, so Structure does not drop to 60. `0.14.0-defects` still gives a real short part the tests can find, and it is the row that lets a short pad or a short engine light. `0.15.0-hop` is still its own short methane flight, not the hidden RP-1 launch. `index.html?test` still starts at 150 money, 0 steel, empty tanks, and an empty yard. A day is half a second. The previous live file is `archive/index-0.13.0-proof.html`.

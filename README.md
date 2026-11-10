@@ -18,7 +18,7 @@ The sites, the engines, and the propellants follow real SpaceX hardware. The gam
 
 ## Status
 
-Live release: `0.13.0-proof`. Next row: `0.14.0-defects`. Today's rocket is a Starship development article with one Raptor, on methane and liquid oxygen. A cryo proof and a tanking run come before the static fire. The hop comes later.
+Live release: `0.13.1-fixes`. Next row: `0.14.0-defects`. Today's rocket is a Starship development article with one Raptor, on methane and liquid oxygen. A cryo proof and a tanking run come before the static fire. Return stays on the pad. Restart starts a new game. The hop comes later.
 
 ## Where it's headed
 
