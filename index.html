@@ -475,6 +475,18 @@
     .resource-bar #ver-label { font-size: 10px; color: #666; }
     #day-pause { min-width: 0; border: 1px solid #fff; background: #0a0a0a; color: #fff; padding: 2px 7px; font-size: 12px; line-height: 1.25; margin: 0; }
     #day-pause:hover, #day-pause:focus { background: #1a1a1a; border-color: #fff; }
+    #day-speed-1, #day-speed-2, #day-speed-4, #day-skip {
+      min-width: 0; flex: none; cursor: pointer; font: inherit;
+      border: 1px solid #fff; background: #0a0a0a; color: #fff;
+      padding: 2px 7px; font-size: 12px; line-height: 1.25; margin: 0;
+    }
+    #day-speed-1:hover, #day-speed-1:focus,
+    #day-speed-2:hover, #day-speed-2:focus,
+    #day-speed-4:hover, #day-speed-4:focus,
+    #day-skip:hover, #day-skip:focus { background: #1a1a1a; border-color: #fff; outline: none; }
+    #day-speed-1[aria-pressed="true"],
+    #day-speed-2[aria-pressed="true"],
+    #day-speed-4[aria-pressed="true"] { background: #1a1a1a; }
     #day-restart { min-width: 0; border: 1px solid #fff; background: #0a0a0a; color: #fff; padding: 2px 7px; font-size: 12px; line-height: 1.25; margin: 0; cursor: pointer; }
     #day-restart:hover, #day-restart:focus { background: #1a1a1a; border-color: #fff; }
     #restart-ask {
@@ -513,10 +525,14 @@
         <span class="ctr">LOX <b id="res-lox" class="tabular-nums">0</b></span>
         <span class="ctr">Fleet <b id="res-fleet" class="tabular-nums">0</b></span>
       </div>
-      <div id="ver-label">0.14.1-teeth</div>
+      <div id="ver-label">0.14.2-seed</div>
     </div>
     <div class="bar-right">
       <span class="ctr"><span id="day-run">Day</span> <b id="day-label" class="tabular-nums">1</b></span>
+      <button type="button" id="day-speed-1" aria-pressed="true">1x</button>
+      <button type="button" id="day-speed-2" aria-pressed="false">2x</button>
+      <button type="button" id="day-speed-4" aria-pressed="false">4x</button>
+      <button type="button" id="day-skip">Skip</button>
       <button type="button" id="day-pause">Pause</button>
       <button type="button" id="day-restart">Restart</button>
     </div>
@@ -607,7 +623,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "0.14.1-teeth";
+  const VERSION = "0.14.2-seed";
   const CELL = 32, MAP_W = 40, MAP_H = 30;
   // ?test is a normal open with a short day. The purse, the tanks, and the yard start the same.
   const TEST = new URLSearchParams(location.search).has("test");
@@ -675,7 +691,7 @@
     TANKING_LOX_LOSS_KG: 219,
     // A new article can leave with 0 seconds on the fuel lines. A healthy article has 40. This floor is a game number.
     TANKING_LINES_MIN: 5,
-    // One short part on a new article. Game numbers. The order is Structure, Fuel lines, Engine.
+    // One short part on a new article. Game numbers. The seed picks which part comes first.
     DEFECT_STRUCT: 60,
     DEFECT_LINES_S: 0,
     DEFECT_THRUST_KN: 1400,
@@ -1022,6 +1038,10 @@
   // status: at_factory | in_bay | rolling | on_pad | proof | tanking | inspect | ready | flying | needs_return | refurb | destroyed
   const G = {
     day: 1, dayAcc: 0, paused: false,
+    // A null seed keeps the old defect order and the old sky. Speed 1 is a full day.
+    seed: null,
+    speed: 1,
+    skyTable: null,
     money: TUNING.START_MONEY,
     steel: 0,
     // Kerosene stays in state and stays off the screen.
@@ -1101,6 +1121,89 @@
   function dayCount(n) { return n === 1 ? "1 day" : `${n} days`; }
   function daySpan(min, max) { return min === max ? dayCount(min) : `${min} to ${max} days`; }
   function spanDays(min, max) { return min + Math.floor(Math.random() * (max - min + 1)); }
+
+  const DEFECT_ORDERS = [
+    ["stage", "fitting", "engine"],
+    ["stage", "engine", "fitting"],
+    ["fitting", "stage", "engine"],
+    ["fitting", "engine", "stage"],
+    ["engine", "stage", "fitting"],
+    ["engine", "fitting", "stage"],
+  ];
+
+  function mix32(n) {
+    n = n >>> 0;
+    n = Math.imul(n ^ (n >>> 16), 0x7feb352d);
+    n = Math.imul(n ^ (n >>> 15), 0x846ca68b);
+    return (n ^ (n >>> 16)) >>> 0;
+  }
+  function roll(seed, salt) {
+    return mix32((seed >>> 0) + Math.imul(salt >>> 0, 0x9e3779b9));
+  }
+  function shuffle(list, seed, salt0) {
+    const a = list.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = roll(seed, salt0 + i) % (i + 1);
+      const tmp = a[i];
+      a[i] = a[j];
+      a[j] = tmp;
+    }
+    return a;
+  }
+  // A missing seed must not fall through. undefined >>> 0 is 0, and 0 is a real seed.
+  function wholeSeed(value) {
+    return typeof value === "number" && Number.isInteger(value) && value >= 0 && value <= 4294967295;
+  }
+  function legalSpeed(value) {
+    return value === 2 || value === 4 ? value : 1;
+  }
+  function dayMs() {
+    return MS_PER_DAY / legalSpeed(G.speed);
+  }
+  function freshSeed() {
+    try {
+      const box = new Uint32Array(1);
+      crypto.getRandomValues(box);
+      return box[0];
+    } catch (err) {
+      return Math.floor(Math.random() * 4294967296);
+    }
+  }
+  function defectOrder() {
+    if (!wholeSeed(G.seed)) return DEFECT_ORDERS[0];
+    return DEFECT_ORDERS[roll(G.seed, 1) % 6];
+  }
+  function skyRows() {
+    if (G.skyTable) return G.skyTable;
+    if (!wholeSeed(G.seed)) {
+      G.skyTable = [
+        { sky: "Clear", wind: 8, storm: false },
+        { sky: "Clear", wind: 12, storm: false },
+        { sky: "Wind", wind: 24, storm: false },
+        { sky: "Clear", wind: 10, storm: false },
+        { sky: "Storm", wind: 36, storm: true },
+        { sky: "Wind", wind: 22, storm: false },
+        { sky: "Clear", wind: 6, storm: false },
+        { sky: "Clear", wind: 14, storm: false },
+        { sky: "Wind", wind: 26, storm: false },
+        { sky: "Storm", wind: 32, storm: true },
+      ];
+      return G.skyTable;
+    }
+    const kinds = shuffle(
+      ["Clear", "Clear", "Wind", "Clear", "Storm", "Wind", "Clear", "Clear", "Wind", "Storm"],
+      G.seed,
+      10
+    );
+    const winds = { Clear: [8, 12, 10, 6, 14], Wind: [24, 22, 26], Storm: [36, 32] };
+    const used = { Clear: 0, Wind: 0, Storm: 0 };
+    G.skyTable = kinds.map((kind) => {
+      const wind = winds[kind][used[kind]];
+      used[kind] += 1;
+      return { sky: kind, wind, storm: kind === "Storm" };
+    });
+    return G.skyTable;
+  }
   function esc(s) {
     return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   }
@@ -1403,15 +1506,18 @@
     log(`Investors add ${pay} money.`, "good");
   }
 
+  // Skip ticks still finish jobs. They do not print the countdown lines.
+  let skipQuiet = false;
+
   function dayTick() {
     G.day++;
 
     if (G.factoryJob) {
       G.factoryJob.daysLeft--;
       if (G.factoryJob.daysLeft <= 0) finishFactoryJob();
-      else if (G.factoryJob.kind === "engine") log(`Raptor thrust · ${dayCount(G.factoryJob.daysLeft)} left`, "info");
-      else if (G.factoryJob.kind === "structure") log(`Stage dry mass · ${dayCount(G.factoryJob.daysLeft)} left`, "info");
-      else log(`Starfactory · building ${rocketOf(G.factoryJob.rocketId).name} · ${dayCount(G.factoryJob.daysLeft)} left`, "info");
+      else if (!skipQuiet && G.factoryJob.kind === "engine") log(`Raptor thrust · ${dayCount(G.factoryJob.daysLeft)} left`, "info");
+      else if (!skipQuiet && G.factoryJob.kind === "structure") log(`Stage dry mass · ${dayCount(G.factoryJob.daysLeft)} left`, "info");
+      else if (!skipQuiet) log(`Starfactory · building ${rocketOf(G.factoryJob.rocketId).name} · ${dayCount(G.factoryJob.daysLeft)} left`, "info");
     }
 
     for (const v of liveFleet()) {
@@ -1490,10 +1596,10 @@
     fundGoal("refurb");
   }
 
-  // Article n takes part (n - 1) % 3. A restored part leaves this article healthy.
+  // Article n takes part (n - 1) % 3 of this seed's order. A restored part leaves this article healthy.
   function applyNewArticle(v) {
     G.builtArticles += 1;
-    const order = ["stage", "fitting", "engine"];
+    const order = defectOrder();
     const part = order[(G.builtArticles - 1) % 3];
     v.proofSkipped = false;
     v.tankingSkipped = false;
@@ -1821,19 +1927,86 @@
 
   function weatherOn(day) {
     if (TEST && G.skyLock) return G.skyLock;
-    const table = [
-      { sky: "Clear", wind: 8, storm: false },
-      { sky: "Clear", wind: 12, storm: false },
-      { sky: "Wind", wind: 24, storm: false },
-      { sky: "Clear", wind: 10, storm: false },
-      { sky: "Storm", wind: 36, storm: true },
-      { sky: "Wind", wind: 22, storm: false },
-      { sky: "Clear", wind: 6, storm: false },
-      { sky: "Clear", wind: 14, storm: false },
-      { sky: "Wind", wind: 26, storm: false },
-      { sky: "Storm", wind: 32, storm: true },
-    ];
+    const table = skyRows();
     return table[((day - 1) % table.length + table.length) % table.length];
+  }
+
+  // The header speed divides the day only. The fraction already spent stays spent.
+  function setSpeed(n) {
+    const next = n === 2 || n === 4 ? n : 1;
+    const prevLen = dayMs();
+    const frac = prevLen > 0 ? G.dayAcc / prevLen : 0;
+    G.speed = next;
+    G.dayAcc = frac * dayMs();
+    renderResources();
+    renderWiki();
+  }
+
+  function setDay(n) {
+    const day = Math.floor(Number(n));
+    G.day = Number.isFinite(day) && day >= 1 ? day : 1;
+    G.dayAcc = 0;
+    renderChrome();
+  }
+
+  // Header Skip moves the day. It does not finish a fire picture. Escape still does that.
+  function skipToEvent() {
+    if (G.paused) { log("The day is paused.", "warn"); return 0; }
+    if (motionKind("fill")) { log("The tanks are still loading.", "warn"); return 0; }
+    if (motionKind("fire")) { log("The static fire is still burning.", "warn"); return 0; }
+    if (motionKind("fly")) { log("The rocket is still in flight.", "warn"); return 0; }
+
+    const closed = rangeClosed();
+    const windLimit = padLimits(buildingOfType("pad_orbital")).wind;
+    let jobLeft = G.factoryJob ? G.factoryJob.daysLeft : null;
+    const copies = liveFleet().map((v) => ({
+      test: (v.status === "proof" || v.status === "tanking") && v.testLeft > 0 ? v.testLeft : 0,
+      review: v.status === "inspect" && v.inspectLeft > 0 ? v.inspectLeft : 0,
+      refurb: v.refurbPart && v.refurbLeft > 0 ? v.refurbLeft : 0,
+    }));
+
+    let steps = 0;
+    for (let step = 1; step <= 16; step++) {
+      let land = false;
+      if (jobLeft != null) {
+        jobLeft -= 1;
+        if (jobLeft <= 0) {
+          land = true;
+          jobLeft = null;
+        }
+      }
+      for (const copy of copies) {
+        if (copy.review > 0) {
+          copy.review -= 1;
+          if (copy.review <= 0) land = true;
+        }
+        if (copy.test > 0) {
+          copy.test -= 1;
+          if (copy.test <= 0) land = true;
+        }
+        if (copy.refurb > 0) {
+          copy.refurb -= 1;
+          if (copy.refurb <= 0) land = true;
+        }
+      }
+      const sky = weatherOn(G.day + step);
+      if (closed && !rangeShut(sky.storm, sky.wind, windLimit)) land = true;
+      if (land) { steps = step; break; }
+    }
+    if (!steps) {
+      log("Nothing to skip to.", "info");
+      return 0;
+    }
+    // The landing day's save has to store dayAcc 0. dayTick itself does not touch it.
+    G.dayAcc = 0;
+    skipQuiet = true;
+    try {
+      for (let i = 0; i < steps; i++) dayTick();
+    } finally {
+      skipQuiet = false;
+    }
+    log(`Skipped to day ${G.day}.`, "info");
+    return steps;
   }
 
   function stageDryKg(v) {
@@ -2854,6 +3027,11 @@
     const pauseBtn = document.getElementById("day-pause");
     if (run) run.textContent = G.paused ? "Paused" : "Day";
     if (pauseBtn) pauseBtn.textContent = G.paused ? "Resume" : "Pause";
+    const speed = legalSpeed(G.speed);
+    for (const n of [1, 2, 4]) {
+      const btn = document.getElementById(`day-speed-${n}`);
+      if (btn) btn.setAttribute("aria-pressed", speed === n ? "true" : "false");
+    }
   }
 
   function ownedLine(b) {
@@ -2997,7 +3175,7 @@
         `A static fire lights the engine on the pad. It holds when ${wikiGo("thrust", "thrust")}, the pad, ${wikiGo("propellant", "methane")}, ${wikiGo("propellant", "liquid oxygen")}, the wind, Structure, and the fuel lines are inside the limits. Each test is done or skipped before the fire.`,
         `After a clean fire the rocket stays on the mount for ${dayCount(TUNING.INSPECT_DAYS)} of data review. Then it is ready. A ready rocket returns to the bay. A waiting rocket on the pad can return too. A passed cryo and a passed tanking run stay passed. The hop comes later.`,
         `A miss sends the rocket back to ${wikiPlace("mega_bay", "Mega Bay")}. The sheet names the short part. You start one refurb. The bay runs one part at a time. A failed proof or a failed tanking run also sends the rocket back. Those two tests damage nothing.`,
-        `A new article leaves with one short part, in this order: Structure ${TUNING.DEFECT_STRUCT}, then Fuel lines ${TUNING.DEFECT_LINES_S} seconds, then thrust ${TUNING.DEFECT_THRUST_KN} kN. Those are game numbers. If that part was already restored in the bay, the article leaves healthy. It does not take the next short. After all three are restored, later articles leave healthy.`,
+        `A new article leaves with one short part. That short is Structure ${TUNING.DEFECT_STRUCT}, Fuel lines at ${TUNING.DEFECT_LINES_S} seconds, or thrust ${TUNING.DEFECT_THRUST_KN} kN. Those are game numbers. If that part was already restored in the bay, the article leaves healthy. It does not take the next short. After all three are restored, later articles leave healthy.`,
         `The cryo proof finds Structure. The tanking run finds the fuel lines. A fail on those tests names the part and damages nothing. The bay restores it in the days and the steel prices that already exist. You can skip a cryo proof or a tanking run. The part stays as it is. An untested part reads not tested.`,
         `A fire that lights can miss on Structure or the fuel lines. A short pad or a short engine still lights, and that fire is a miss. A fail names the part. A closed range or a short tank does not light. A scrub damages nothing.`,
       ]) + wikiFacts([
@@ -3204,24 +3382,26 @@
   }
 
   function wikiTime() {
-    const seconds = MS_PER_DAY / 1000;
+    const seconds = dayMs() / 1000;
+    const dayLen = wikiNum(seconds, 3) === "1" ? "1 second" : `${wikiNum(seconds, 3)} seconds`;
     return {
       id: "time",
       title: "Time at Starbase",
       body: wikiParas([
-        `One game day lasts ${wikiNum(seconds, 1)} seconds. Builds, refurbs, and upgrades wait in those days.`,
+        `One game day lasts ${dayLen}. Builds, refurbs, and upgrades wait in those days.`,
+        `1x, 2x, and 4x divide that day. The road, the fill, the fire, and the flight do not.`,
         `${wikiPlace("starfactory", "Starfactory")} builds a test article in ${daySpan(TUNING.BUILD_DAYS_MIN, TUNING.BUILD_DAYS_MAX)}.`,
         `Raise Raptor thrust takes ${daySpan(TUNING.ENGINE_UP_DAYS_MIN, TUNING.ENGINE_UP_DAYS_MAX)}. The dry-mass cut waits until a flight uses dry mass. That button is off the sheet.`,
         `After a clean fire the rocket stays on the mount for ${dayCount(TUNING.INSPECT_DAYS)} of data review. Refurb the engine takes ${dayCount(TUNING.REFURB_OK_DAYS)}. Inspect the fuel lines takes ${dayCount(TUNING.INSPECT_DAYS)}. Refurb the structure takes ${daySpan(TUNING.REFURB_FAIL_MIN, TUNING.REFURB_FAIL_MAX)}.`,
         `Days keep moving while the tanks load or the engine burns. The purse does not grow on the day. Investors pay when a goal is finished. Pause stops the day and the burn. A roll, a raise, and a lower leave the day running.`,
         `The rollout along the yard road is counted in seconds. That is the short wait on the road between ${wikiPlace("mega_bay", "Mega Bay")} and the ${wikiPlace("pad_orbital", "Orbital Pad")}.`,
       ]) + wikiFacts([
-        { value: `${wikiNum(seconds, 1)} seconds`, label: "One game day" },
+        { value: dayLen, label: "One game day" },
         { value: daySpan(TUNING.BUILD_DAYS_MIN, TUNING.BUILD_DAYS_MAX), labelHtml: `Build at ${wikiPlace("starfactory", "Starfactory")}` },
         { value: dayCount(TUNING.INSPECT_DAYS), label: "Data review on the mount" },
         { value: wikiSpan(TUNING.ROLLOUT_MIN_SEC, TUNING.ROLLOUT_MAX_SEC, "second", "seconds"), label: "Rollout on the road" },
       ]) + wikiReal([
-        `A calendar day is 24 hours. A day here lasts ${wikiNum(seconds, 1)} seconds so a session stays short.`,
+        `A calendar day is 24 hours. A day here lasts ${dayLen} so a session stays short.`,
       ]),
     };
   }
@@ -3235,7 +3415,7 @@
       body: wikiParas([
         `Starfactory builds a ${rocket.name} from steel. It holds the finished rocket until you roll it to ${wikiPlace("mega_bay", "Mega Bay")}.`,
         `Build ${rocket.name} costs ${rocket.steelCost} steel and takes ${daySpan(TUNING.BUILD_DAYS_MIN, TUNING.BUILD_DAYS_MAX)}. Roll to ${wikiPlace("mega_bay", "Mega Bay")} spends no steel and no propellant, and the day keeps running.`,
-        `A new article can leave with one short part. The order is Structure ${TUNING.DEFECT_STRUCT}, Fuel lines ${TUNING.DEFECT_LINES_S} seconds, then thrust ${TUNING.DEFECT_THRUST_KN} kN. Those are game numbers.`,
+        `A new article can leave with one short part. The short is Structure ${TUNING.DEFECT_STRUCT}, Fuel lines at ${TUNING.DEFECT_LINES_S} seconds, or thrust ${TUNING.DEFECT_THRUST_KN} kN. Those are game numbers.`,
         `Raise Raptor thrust costs ${TUNING.ENGINE_UP_COST} steel and takes ${daySpan(TUNING.ENGINE_UP_DAYS_MIN, TUNING.ENGINE_UP_DAYS_MAX)}. The dry-mass cut waits until a flight uses dry mass. That button is off the sheet.`,
         `Starfactory cannot be upgraded.`,
         `The next building is ${wikiPlace("mega_bay", "Mega Bay")}. ${wikiPageLink("thrust", "Thrust")} and the stage change while this factory is busy.`,
@@ -3354,7 +3534,7 @@
       ? `<h2>${esc(page.title)}</h2>${page.body}`
       : `<p>Nothing on this list is unlocked yet.</p>`;
     const placed = ["starfactory", "mega_bay", "pad_orbital"].map((t) => (buildingOfType(t) ? "1" : "0")).join("");
-    const sig = `${page ? page.id : ""}|${wikiUpperOn()}|${wikiVehicleOn()}|${placed}|${MS_PER_DAY}|${JSON.stringify(TUNING)}|${ROCKET_DEFS.article.steelCost}|${TUNING.SF_CH4_KG}|${TUNING.SF_LOX_KG}`;
+    const sig = `${page ? page.id : ""}|${wikiUpperOn()}|${wikiVehicleOn()}|${placed}|${MS_PER_DAY}|${G.speed}|${JSON.stringify(TUNING)}|${ROCKET_DEFS.article.steelCost}|${TUNING.SF_CH4_KG}|${TUNING.SF_LOX_KG}`;
     if (panel.dataset.sig !== sig) {
       panel.dataset.sig = sig;
       panel.innerHTML = `<div class="top"><div class="left">Wiki</div><button type="button" id="wiki-close">Close</button></div>
@@ -5277,6 +5457,10 @@
     G.paused = !G.paused;
     renderResources();
   });
+  document.getElementById("day-speed-1").addEventListener("click", () => setSpeed(1));
+  document.getElementById("day-speed-2").addEventListener("click", () => setSpeed(2));
+  document.getElementById("day-speed-4").addEventListener("click", () => setSpeed(4));
+  document.getElementById("day-skip").addEventListener("click", () => { skipToEvent(); });
   const SAVE_KEY = "starbase-save";
   const TEST_SAVE_KEY = "starbase-save-test";
   let leavingGame = false;
@@ -5362,8 +5546,9 @@
     for (const key of Object.keys(G.objectives)) objectives[key] = !!G.objectives[key];
     return {
       version: 1,
-      label: "0.14.1-teeth",
-      seed: null,
+      label: "0.14.2-seed",
+      seed: wholeSeed(G.seed) ? G.seed : null,
+      speed: legalSpeed(G.speed),
       day: G.day,
       dayAcc: G.dayAcc,
       paused: !!G.paused,
@@ -5468,8 +5653,17 @@
     for (const b of buildings) if (b.id > maxId) maxId = b.id;
     for (const v of fleet) if (v.id > maxId) maxId = v.id;
     if (!(nextId > maxId)) nextId = maxId + 1;
+    let seedNote = "";
+    if (data.seed == null) G.seed = null;
+    else if (wholeSeed(data.seed)) G.seed = data.seed;
+    else {
+      G.seed = null;
+      seedNote = "This save has no usable seed. The old sky stays.";
+    }
+    G.speed = legalSpeed(data.speed);
+    G.skyTable = null;
     G.day = Math.max(1, Math.round(finite(data.day, 1)));
-    G.dayAcc = Math.max(0, Math.min(MS_PER_DAY, finite(data.dayAcc, 0)));
+    G.dayAcc = Math.max(0, Math.min(dayMs(), finite(data.dayAcc, 0)));
     G.paused = !!data.paused;
     G.money = finite(data.money, TUNING.START_MONEY);
     G.steel = Math.max(0, finite(data.steel, 0));
@@ -5508,6 +5702,7 @@
       msg: row && row.msg != null ? String(row.msg) : "",
       kind: row && row.kind ? String(row.kind) : "info",
     }));
+    if (seedNote) log(seedNote, "bad");
     G.event = null;
     G.rocketSheet = null;
     G.goalSheet = false;
@@ -5634,7 +5829,8 @@
     if (!G.paused) {
       // Days keep moving during a fill, a fire, and a flight. Pause still holds both clocks.
       G.dayAcc += dt * 1000;
-      while (G.dayAcc >= MS_PER_DAY) { G.dayAcc -= MS_PER_DAY; dayTick(); }
+      const span = dayMs();
+      while (G.dayAcc >= span) { G.dayAcc -= span; dayTick(); }
       updateRollout(dt);
     }
     if (!G.paused && (G.rollouts.length || G.factoryJob)) {
@@ -5678,6 +5874,9 @@
       restartGame,
       startLaunch,
       upgradeBay,
+      setSpeed,
+      skipToEvent,
+      setDay,
       saveNow() {
         return writeGameSave(TEST_SAVE_KEY);
       },
@@ -5698,7 +5897,14 @@
           day: G.day,
           paused: G.paused,
           saved: realSavePresent(),
-          seed: null,
+          seed: G.seed,
+          speed: G.speed,
+          dayAcc: G.dayAcc,
+          defectOrder: defectOrder().slice(),
+          sky: (() => {
+            const row = weatherOn(G.day);
+            return { sky: row.sky, wind: row.wind, storm: !!row.storm };
+          })(),
           fireShorts: lastFireShorts.slice(),
           ch4: G.ch4,
           lox: G.lox,
@@ -5743,21 +5949,29 @@
   }
   let continued = false;
   let saveNote = "";
-  if (!TEST) {
+  if (TEST) {
+    G.seed = 11;
+    G.skyTable = null;
+  } else {
     const boot = takeSave();
     continued = boot.continued;
     saveNote = boot.note;
+    if (!continued) {
+      G.seed = freshSeed();
+      G.skyTable = null;
+    }
   }
   renderChrome();
   if (!continued) {
     log("The purse starts at 150 money. The day adds none. Investors pay when a goal is finished.", "info");
     log("The bay refurbs one part at a time. Open the rocket and pick Structure, Fuel lines, or Engine (Raptor).", "info");
     log("Two rockets can roll at the same time. The pad still holds one.", "info");
+    log(`This game uses seed ${G.seed}.`, "info");
   } else {
     paintLog();
   }
   if (saveNote) log(saveNote, "bad");
-  if (TEST) log("A day here lasts half a second.", "info");
+  if (TEST) log("A day here lasts half a second at 1x.", "info");
   requestAnimationFrame(frame);
 })();
   </script>
