@@ -23,3 +23,4 @@
 | index-0.13.1-fixes.html | 0.13.1-fixes | Playable site before a prototype can leave the factory with a real short part. |
 | index-0.14.0-defects.html | 0.14.0-defects | Playable site before the static fire reads Structure and the fuel lines, a reload continues the yard, and the Mega Bay fix stays off until the pad has checked that part. |
 | index-0.14.1-teeth.html | 0.14.1-teeth | Playable site before one seed picks the defect order and the sky, and the header adds 1x, 2x, 4x, and Skip. |
+| index-0.14.2-seed.html | 0.14.2-seed | Playable site before the rocket window names the short part and the fix. |

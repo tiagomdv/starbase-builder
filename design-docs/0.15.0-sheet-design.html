@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>0.15.0-sheet · design — starbase-builder</title>
+  <style>
+    :root {
+      --bg: #1c2118; --panel: #2a2218; --panel2: #221c14; --border: #5a4830;
+      --text: #e8d9b0; --muted: #a89878; --accent: #d4a84b; --link: #e8c56a; --code: #c4e08a;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; line-height: 1.55; }
+    .wrap { max-width: 1480px; margin: 0 auto; padding: 1.5rem 1.25rem 4rem; }
+    .doc-hero { background: linear-gradient(180deg, #2a2218, #1c2118); border: 1px solid var(--border); border-radius: 0.85rem; padding: 1.15rem 1.25rem 1.25rem; margin-bottom: 1.25rem; }
+    .doc-hero h1 { font-size: 1.55rem; font-weight: 650; color: #f5edd8; margin: 0.35rem 0 0.4rem; }
+    .doc-hero .lede { margin: 0; font-size: 0.9rem; color: var(--muted); max-width: 56rem; }
+    .role {
+      margin: 0 0 12px; padding: 12px 14px; background: #24180f; color: #f4ead8;
+      border-left: 6px solid #c45c26; font: 15px/1.45 system-ui, sans-serif;
+    }
+    .meta-row { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+    .tag { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 999px; background: #3a2e20; color: #e8c56a; border: 1px solid #6a5638; }
+    .tag.muted { background: #1e1a14; color: var(--muted); border-color: #4a3c28; }
+    .doc-grid { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 1.25rem; align-items: start; }
+    @media (max-width: 980px) {
+      .doc-grid { grid-template-columns: 1fr; }
+      .toc { position: static !important; }
+      .looks { grid-template-columns: 1fr; }
+    }
+    .toc { position: sticky; top: 0.75rem; background: var(--panel); border: 1px solid var(--border); border-radius: 0.65rem; padding: 0.75rem 0.85rem; max-height: calc(100vh - 1.5rem); overflow-y: auto; }
+    .toc .section-label { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); font-weight: 600; margin-bottom: 0.5rem; }
+    .toc ol { margin: 0; padding-left: 1.1rem; font-size: 0.78rem; }
+    .toc li { margin: 0.22rem 0; }
+    .toc a { color: var(--link); text-decoration: none; }
+    h2 { font-size: 1.12rem; color: #f5edd8; margin: 1.6rem 0 0.65rem; padding-bottom: 0.35rem; border-bottom: 1px solid var(--border); scroll-margin-top: 0.75rem; }
+    h3 { font-size: 0.95rem; color: var(--accent); margin: 0 0 0.45rem; scroll-margin-top: 0.75rem; }
+    p, li { font-size: 0.9rem; }
+    p { margin: 0.45rem 0 0.7rem; }
+    ul { margin: 0.35rem 0 0.75rem; padding-left: 1.35rem; }
+    li { margin: 0.28rem 0; }
+    code { font-family: ui-monospace, Menlo, monospace; color: var(--code); font-size: 0.86em; }
+    strong { color: #f5edd8; }
+    .footer-note { color: var(--muted); font-size: 0.82rem; margin-top: 2rem; }
+    .looks { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start; }
+    figure.look { margin: 0; }
+    figure.look figcaption p { margin: 0.28rem 0; }
+
+    /* The live rocket window, scoped so the page chrome stays put. */
+    .sheet {
+      background: #0a0a0a; color: #f2f2f2; border: 1px solid #333;
+      font-family: system-ui, sans-serif;
+    }
+    .sheet .top {
+      display: flex; align-items: flex-start; gap: 16px;
+      padding: 18px 18px 14px; border-bottom: 1px solid #2a2a2a;
+    }
+    .sheet .total b { display: block; font-size: 48px; line-height: 0.85; font-weight: 650; }
+    .sheet .total span {
+      display: block; margin-top: 6px; font-size: 11px; letter-spacing: 0.14em;
+      text-transform: uppercase; color: #9a9a9a; font-weight: 500;
+    }
+    .sheet .total.low b { color: #e10600; }
+    .sheet .who { flex: 1; min-width: 0; padding-top: 8px; }
+    .sheet .who b { font-size: 20px; font-weight: 650; }
+    .sheet .place { font-size: 12px; color: #9a9a9a; margin-top: 4px; }
+    .sheet .miss { margin-top: 6px; font-size: 13px; color: #e10600; }
+    .sheet .x {
+      background: transparent; border: 0; color: #9a9a9a; cursor: pointer;
+      letter-spacing: 0.16em; text-transform: uppercase; font-size: 11px; padding-top: 8px;
+    }
+    .sheet .body { padding: 12px 22px 22px; }
+    .sheet .plate {
+      display: grid; grid-template-columns: minmax(150px, 190px) 1fr;
+      gap: 8px 28px; align-items: center;
+    }
+    .sheet .ship { width: 100%; height: 420px; display: block; }
+    .sheet .ship .tag { font: 650 14px system-ui, sans-serif; fill: #f2f2f2; }
+    .sheet .ship .tag.unt { font-size: 10px; }
+    .sheet .calls {
+      height: 420px; display: grid; grid-template-rows: 2.4fr 0.95fr 1.15fr; align-items: center;
+    }
+    .sheet .call {
+      position: relative; display: block; width: 100%; text-align: left;
+      background: transparent; border: 0; color: inherit; font: inherit;
+      padding: 0 0 0 18px; cursor: default;
+    }
+    .sheet .call::before {
+      content: ""; position: absolute; left: 0; top: 8px; width: 12px; height: 1px; background: #444;
+    }
+    .sheet .call b { display: block; font-size: 16px; font-weight: 650; }
+    .sheet .call em { display: block; margin-top: 3px; font-style: normal; font-size: 13px; color: #c8c8c8; }
+    .sheet .call.low em { color: #e10600; }
+    .sheet .call .job { margin-top: 4px; font-size: 12px; color: #9a9a9a; }
+    .sheet .call.hot::before { background: #e10600; width: 22px; }
+    .sheet button.call:disabled .job { opacity: 0.4; }
+    .sheet .counts { display: flex; gap: 18px; margin-top: 8px; }
+    .sheet .counts b { font-size: 32px; line-height: 0.9; font-weight: 650; }
+    .sheet .counts .has { color: #e10600; }
+    .sheet .counts span {
+      display: block; margin-top: 4px; font-size: 11px; letter-spacing: 0.08em;
+      text-transform: uppercase; color: #9a9a9a; font-weight: 500;
+    }
+    .sheet .act {
+      display: block; width: 100%; text-align: left; cursor: pointer; margin-top: 10px;
+      background: #0e0e0e; border: 1px solid #f2f2f2; color: #f2f2f2; padding: 10px;
+    }
+    .sheet .act .name { font-size: 14px; font-weight: 650; }
+    .sheet .act .line { font-size: 12px; color: #c8c8c8; margin-top: 6px; }
+    .sheet .act.up { border-color: #c4a15a; background: #16140e; margin-top: 8px; }
+    .sheet .act.up .price { font-size: 18px; line-height: 1; font-weight: 650; margin-top: 4px; }
+    .sheet .act.up .unit { font-size: 11px; color: #9a9a9a; letter-spacing: 0.08em; text-transform: uppercase; }
+    .sheet .spec {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px 14px;
+      margin-top: 18px; padding-top: 14px; border-top: 1px solid #2a2a2a;
+    }
+    .sheet .spec b { display: block; font-size: 15px; font-weight: 650; }
+    .sheet .spec span { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: #9a9a9a; }
+    .sheet .wait { font-size: 12px; color: #c8c8c8; margin: 14px 0 0; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="doc-hero">
+      <div class="meta-row">
+        <span class="tag">0.15.0-sheet</span>
+        <span class="tag">The row · chosen</span>
+        <span class="tag muted">2026-11-12</span>
+      </div>
+      <h1>The rocket window shows the short</h1>
+      <p class="lede">
+        This page is one region. The region is <code>#rocket-sheet</code>.
+        Tiago chose The row. The two pictures stay.
+        The tank keeps 60%. While the rocket is on the pad, the window does not start the bay job.
+      </p>
+    </header>
+    <div class="role">
+      TA-1 is in Bay slot 1. The pad has checked Structure. The rocket has 60. The cryo proof needed 70. Both counts are game numbers. Fuel lines and the engine are healthy. The window still reads not tested for both.
+    </div>
+    <div class="doc-grid">
+      <nav class="toc">
+        <div class="section-label">On this page</div>
+        <ol>
+          <li><a href="#window">The window</a></li>
+          <li><a href="#stays">What stays</a></li>
+          <li><a href="#pick">How to pick</a></li>
+          <li><a href="#later">Later</a></li>
+        </ol>
+      </nav>
+      <article>
+        <h2 id="window">The window</h2>
+        <p>The hull, the tanks, the pipes, and the bell stay. The tank still reads 60%. The new line is the part, the 60 the rocket has, and the 70 the proof needed. Refurb the structure is a button.</p>
+
+        <div class="looks">
+          <figure class="look">
+            <h3>The header</h3>
+            <div class="sheet">
+              <div class="top">
+                <div class="total low"><b>60</b><span>Has</span></div>
+                <div class="total"><b>70</b><span>Needed</span></div>
+                <div class="who">
+                  <b>Test article</b>
+                  <div class="place">TA-1 · Bay slot 1</div>
+                  <div class="miss">Structure</div>
+                </div>
+                <button type="button" class="x">Close</button>
+              </div>
+              <div class="body">
+                <div class="plate">
+                  <svg class="ship" viewBox="0 0 160 420" role="img" aria-label="TA-1">
+                    <defs>
+                      <linearGradient id="hull-a" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0" stop-color="#8a8a8a"/><stop offset="0.38" stop-color="#f7f7f7"/>
+                        <stop offset="0.7" stop-color="#cfcfcf"/><stop offset="1" stop-color="#6e6e6e"/>
+                      </linearGradient>
+                      <clipPath id="stage-a"><polygon points="80,14 104,92 104,262 56,262 56,92"/></clipPath>
+                    </defs>
+                    <polygon points="80,14 104,92 104,262 56,262 56,92" fill="#141414"/>
+                    <polygon points="56,262 104,262 100,316 60,316" fill="#0c0c0c"/>
+                    <polygon points="70,316 90,316 116,408 44,408" fill="#120e0c"/>
+                    <g clip-path="url(#stage-a)"><rect x="56" y="113.2" width="48" height="148.8" fill="#c4a15a" fill-opacity="0.55"/></g>
+                    <polygon points="56,200 24,276 56,262" fill="url(#hull-a)" stroke="#0a0a0a" stroke-width="1"/>
+                    <polygon points="104,200 136,276 104,262" fill="url(#hull-a)" stroke="#0a0a0a" stroke-width="1"/>
+                    <rect x="61" y="100" width="38" height="66" rx="9" fill="none" stroke="#f2f2f2" stroke-opacity="0.55"/>
+                    <text class="tag" text-anchor="middle" x="80" y="137" fill="#f2f2f2" fill-opacity="0.7">LOX</text>
+                    <rect x="61" y="176" width="38" height="72" rx="9" fill="none" stroke="#f2f2f2" stroke-opacity="0.55"/>
+                    <text class="tag" text-anchor="middle" x="80" y="192" fill="#f2f2f2" fill-opacity="0.7">CH4</text>
+                    <polygon points="80,14 104,92 104,262 56,262 56,92" fill="none" stroke="#e10600" stroke-width="1.6"/>
+                    <path d="M74 30 L66 88" fill="none" stroke="#ffffff" stroke-opacity="0.4"/>
+                    <path d="M68 166 C66 220 64 250 72 286 M80 248 V286" fill="none" stroke="#e10600" stroke-width="2.4" stroke-linecap="round"/>
+                    <circle cx="76" cy="292" r="7" fill="#0a0a0a" stroke="#f2f2f2" stroke-width="1.4"/>
+                    <path d="M76 299 V316" stroke="#e10600" stroke-width="2.4"/>
+                    <polygon points="56,262 104,262 100,316 60,316" fill="none" stroke="#f2f2f2" stroke-width="1.6"/>
+                    <polygon points="70,316 90,316 116,408 44,408" fill="none" stroke="#f2f2f2" stroke-width="1.6"/>
+                    <path d="M60 352 H100 M54 382 H106" fill="none" stroke="#f2f2f2" stroke-opacity="0.22"/>
+                    <text class="tag" text-anchor="middle" x="80" y="214">60%</text>
+                    <text class="tag unt" text-anchor="middle" x="80" y="308">not tested</text>
+                    <text class="tag unt" text-anchor="middle" x="80" y="372">not tested</text>
+                  </svg>
+                  <div class="calls">
+                    <div class="call hot low">
+                      <b>Structure</b>
+                      <em>60 · the proof needed 70</em>
+                      <button type="button" class="act"><div class="name">Refurb the structure</div><div class="line">4 to 5 days · no steel</div></button>
+                    </div>
+                    <button type="button" class="call" disabled>
+                      <b>Fuel lines</b>
+                      <em>not tested</em>
+                      <div class="job">Inspect the fuel lines · 1 day · no steel</div>
+                    </button>
+                    <button type="button" class="call" disabled>
+                      <b>Engine (Raptor)</b>
+                      <em>not tested</em>
+                      <div class="job">Refurb the engine · 2 days · 24 steel</div>
+                    </button>
+                  </div>
+                </div>
+                <div class="spec">
+                  <div><b>not tested</b><span>Thrust</span></div>
+                  <div><b>330 s</b><span>Specific impulse</span></div>
+                  <div><b>2080 kg</b><span>Engine mass</span></div>
+                  <div><b>3</b><span>Burns</span></div>
+                  <div><b>1080 kg</b><span>Stage dry mass</span></div>
+                  <div><b>27572 kg</b><span>Liftoff mass</span></div>
+                  <div><b>A test article carries no payload.</b><span></span></div>
+                </div>
+                <p class="wait">Liftoff comes with the hop.</p>
+                <button type="button" class="act up">
+                  <div class="name">Raise Raptor thrust</div>
+                  <div class="price">36</div>
+                  <div class="unit">steel</div>
+                  <div class="line">3 to 5 days. This rocket becomes Raptor 2 at 2256 kN. Thrust is not tested. Mass drops from 2080 kg to 1630 kg.</div>
+                </button>
+              </div>
+            </div>
+            <figcaption>
+              <p>This is the rocket window. 60 and 70 sit in the header, where the percent sits today.</p>
+              <p>You press Refurb the structure on the Structure row.</p>
+              <p>The drawing is the one in the game. Fuel lines and the engine stay off.</p>
+            </figcaption>
+          </figure>
+
+          <figure class="look">
+            <h3>The row <span class="tag">Chosen</span></h3>
+            <div class="sheet">
+              <div class="top">
+                <div class="who">
+                  <b>Test article</b>
+                  <div class="place">TA-1 · Bay slot 1</div>
+                  <div class="miss">Structure</div>
+                </div>
+                <button type="button" class="x">Close</button>
+              </div>
+              <div class="body">
+                <div class="plate">
+                  <svg class="ship" viewBox="0 0 160 420" role="img" aria-label="TA-1">
+                    <defs>
+                      <linearGradient id="hull-b" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0" stop-color="#8a8a8a"/><stop offset="0.38" stop-color="#f7f7f7"/>
+                        <stop offset="0.7" stop-color="#cfcfcf"/><stop offset="1" stop-color="#6e6e6e"/>
+                      </linearGradient>
+                      <clipPath id="stage-b"><polygon points="80,14 104,92 104,262 56,262 56,92"/></clipPath>
+                    </defs>
+                    <polygon points="80,14 104,92 104,262 56,262 56,92" fill="#141414"/>
+                    <polygon points="56,262 104,262 100,316 60,316" fill="#0c0c0c"/>
+                    <polygon points="70,316 90,316 116,408 44,408" fill="#120e0c"/>
+                    <g clip-path="url(#stage-b)"><rect x="56" y="113.2" width="48" height="148.8" fill="#c4a15a" fill-opacity="0.55"/></g>
+                    <polygon points="56,200 24,276 56,262" fill="url(#hull-b)" stroke="#0a0a0a" stroke-width="1"/>
+                    <polygon points="104,200 136,276 104,262" fill="url(#hull-b)" stroke="#0a0a0a" stroke-width="1"/>
+                    <rect x="61" y="100" width="38" height="66" rx="9" fill="none" stroke="#f2f2f2" stroke-opacity="0.55"/>
+                    <text class="tag" text-anchor="middle" x="80" y="137" fill="#f2f2f2" fill-opacity="0.7">LOX</text>
+                    <rect x="61" y="176" width="38" height="72" rx="9" fill="none" stroke="#f2f2f2" stroke-opacity="0.55"/>
+                    <text class="tag" text-anchor="middle" x="80" y="192" fill="#f2f2f2" fill-opacity="0.7">CH4</text>
+                    <polygon points="80,14 104,92 104,262 56,262 56,92" fill="none" stroke="#e10600" stroke-width="1.6"/>
+                    <path d="M74 30 L66 88" fill="none" stroke="#ffffff" stroke-opacity="0.4"/>
+                    <path d="M68 166 C66 220 64 250 72 286 M80 248 V286" fill="none" stroke="#e10600" stroke-width="2.4" stroke-linecap="round"/>
+                    <circle cx="76" cy="292" r="7" fill="#0a0a0a" stroke="#f2f2f2" stroke-width="1.4"/>
+                    <path d="M76 299 V316" stroke="#e10600" stroke-width="2.4"/>
+                    <polygon points="56,262 104,262 100,316 60,316" fill="none" stroke="#f2f2f2" stroke-width="1.6"/>
+                    <polygon points="70,316 90,316 116,408 44,408" fill="none" stroke="#f2f2f2" stroke-width="1.6"/>
+                    <path d="M60 352 H100 M54 382 H106" fill="none" stroke="#f2f2f2" stroke-opacity="0.22"/>
+                    <text class="tag" text-anchor="middle" x="80" y="214">60%</text>
+                    <text class="tag unt" text-anchor="middle" x="80" y="308">not tested</text>
+                    <text class="tag unt" text-anchor="middle" x="80" y="372">not tested</text>
+                  </svg>
+                  <div class="calls">
+                    <div class="call hot">
+                      <b>Structure</b>
+                      <div class="counts"><div><b class="has">60</b><span>Has</span></div><div><b>70</b><span>Needed</span></div></div>
+                      <button type="button" class="act"><div class="name">Refurb the structure</div><div class="line">4 to 5 days · no steel</div></button>
+                    </div>
+                    <button type="button" class="call" disabled>
+                      <b>Fuel lines</b>
+                      <em>not tested</em>
+                      <div class="job">Inspect the fuel lines · 1 day · no steel</div>
+                    </button>
+                    <button type="button" class="call" disabled>
+                      <b>Engine (Raptor)</b>
+                      <em>not tested</em>
+                      <div class="job">Refurb the engine · 2 days · 24 steel</div>
+                    </button>
+                  </div>
+                </div>
+                <div class="spec">
+                  <div><b>not tested</b><span>Thrust</span></div>
+                  <div><b>330 s</b><span>Specific impulse</span></div>
+                  <div><b>2080 kg</b><span>Engine mass</span></div>
+                  <div><b>3</b><span>Burns</span></div>
+                  <div><b>1080 kg</b><span>Stage dry mass</span></div>
+                  <div><b>27572 kg</b><span>Liftoff mass</span></div>
+                  <div><b>A test article carries no payload.</b><span></span></div>
+                </div>
+                <p class="wait">Liftoff comes with the hop.</p>
+                <button type="button" class="act up">
+                  <div class="name">Raise Raptor thrust</div>
+                  <div class="price">36</div>
+                  <div class="unit">steel</div>
+                  <div class="line">3 to 5 days. This rocket becomes Raptor 2 at 2256 kN. Thrust is not tested. Mass drops from 2080 kg to 1630 kg.</div>
+                </button>
+              </div>
+            </div>
+            <figcaption>
+              <p>Chosen. This is the same rocket. The header keeps the name and the place.</p>
+              <p>You read 60 and 70 on the Structure row, and you press the fix there.</p>
+              <p>Fuel lines and the engine stay the thin rows, and both are off.</p>
+            </figcaption>
+          </figure>
+        </div>
+
+        <h2 id="stays">What stays</h2>
+        <ul>
+          <li>An untested part still reads "not tested".</li>
+          <li>The fix button for a part stays off until the pad has checked that part.</li>
+          <li>Cryo proof checks Structure. A tanking run checks the fuel lines. A static fire that lights checks all three. A skip does not.</li>
+          <li>The bay still runs one job at a time.</li>
+          <li>"Refurb the structure" stays 4 to 5 days and no steel.</li>
+          <li>"Inspect the fuel lines" stays 1 day and no steel.</li>
+          <li>"Refurb the engine" stays 24 steel and 2 days, or 1 day at pad level 2. These pictures use pad level 1, so that line says 2 days.</li>
+          <li>The rocket name stays Test article. Serials stay TA.</li>
+          <li>The cryo proof, the tanking run, and the static fire stay on the pad. This row adds no new test, no new price, and no new weak number.</li>
+          <li>60 and 70 are game numbers. A healthy Structure is still 100. The tank fill stays the gold the game already paints at 60%.</li>
+        </ul>
+
+        <h2 id="pick">How to pick</h2>
+        <p>Tiago chose The row. The build uses that look for <code>#rocket-sheet</code>. The button words, the days, and the steel stay as they are in What stays.</p>
+        <p>A wider column, a pinned button, or a dimmer line is not another look. The rocket drawing is the same in both.</p>
+        <p>While the rocket is on the pad, the window does not start the bay job. The job still starts only in Mega Bay.</p>
+        <p>The tank keeps 60%. The life band on the hull stays.</p>
+
+        <h2 id="later">Later</h2>
+        <ul>
+          <li>A check inside Mega Bay is <code>0.16.0-bay</code>. This page does not draw it.</li>
+          <li>A weak number other than 60, 0 seconds, or 1400 kN is <code>0.17.0-roll</code>. This page does not draw it.</li>
+          <li>The hop rename is <code>0.18.0-hop</code>. This page does not draw it.</li>
+        </ul>
+
+        <p class="footer-note">Tiago chose The row. The tank keeps 60%. While the rocket is on the pad, the window does not start the bay job.</p>
+      </article>
+    </div>
+  </div>
+</body>
+</html>

@@ -202,6 +202,16 @@
     .call .job { margin-top: 4px; font-size: 12px; color: #9a9a9a; }
     .call.hot::before { background: #e10600; width: 22px; }
     .call.hot .job { color: #f2f2f2; }
+    .rocket-panel .miss { margin-top: 6px; font-size: 13px; color: #e10600; }
+    .rocket-panel .counts { display: flex; gap: 18px; margin-top: 8px; }
+    .rocket-panel .counts b { display: block; font-size: 32px; line-height: 0.9; font-weight: 650; }
+    .rocket-panel .counts .has { color: #e10600; }
+    .rocket-panel .counts span {
+      display: block; margin-top: 4px; font-size: 11px; letter-spacing: 0.08em;
+      text-transform: uppercase; color: #9a9a9a; font-weight: 500;
+    }
+    .rocket-panel .call .act { margin-top: 10px; }
+    .rocket-panel .call .act .line { margin-top: 6px; }
     .spec {
       display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px 14px;
       margin-top: 18px; padding-top: 14px; border-top: 1px solid #2a2a2a;
@@ -525,7 +535,7 @@
         <span class="ctr">LOX <b id="res-lox" class="tabular-nums">0</b></span>
         <span class="ctr">Fleet <b id="res-fleet" class="tabular-nums">0</b></span>
       </div>
-      <div id="ver-label">0.14.2-seed</div>
+      <div id="ver-label">0.15.0-sheet</div>
     </div>
     <div class="bar-right">
       <span class="ctr"><span id="day-run">Day</span> <b id="day-label" class="tabular-nums">1</b></span>
@@ -623,7 +633,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "0.14.2-seed";
+  const VERSION = "0.15.0-sheet";
   const CELL = 32, MAP_W = 40, MAP_H = 30;
   // ?test is a normal open with a short day. The purse, the tanks, and the yard start the same.
   const TEST = new URLSearchParams(location.search).has("test");
@@ -1356,18 +1366,6 @@
     const key = worstPart(v);
     if (!key) return "not tested";
     return `${lifePct(v, key)}% · ${partName(key)}`;
-  }
-  function partCallText(v, key) {
-    if (!partTested(v, key)) return "not tested";
-    let text = `${lifePct(v, key)}% · ${partLifeLabel(v, key)}`;
-    if (key === "engine") text += ` · ${engineNowKn(v)} kN`;
-    return text;
-  }
-  function partLifeLabel(v, key) {
-    const n = Math.round(partLifeValue(v, key));
-    if (key === "engine") return `${n} of ${TUNING.ENGINE_FIRE_LIMIT_S} s`;
-    if (key === "fitting") return `${n} of ${TUNING.FITTING_LIFE_S} s`;
-    return `${n} of 100`;
   }
   function engineRefurbDays() {
     const pad = buildingOfType("pad_orbital");
@@ -3361,7 +3359,7 @@
       title: "Engines and life",
       body: wikiParas([
         `A static fire is a burn on the pad. It reads ${wikiGo("thrust", "thrust")}, Structure, and the fuel lines. A fire that lights can miss on Structure or the fuel lines. A fail names the part. A scrub damages nothing.`,
-        `The rocket sheet paints Structure, Fuel lines, and Engine (Raptor) on the rocket, top to bottom. An untested part reads not tested, with no figure. After a test, the part shows its percent. The big number is the lowest tested part. The engine bar stays on the seconds still left, out of ${TUNING.ENGINE_FIRE_LIMIT_S}. After the engine is tested, the engine line adds the real thrust. A lit static fire spends 5 seconds. A short engine also sets the seconds to 0. A short pad spends the 5 second hold. Life stops at 0. The ${TUNING.ENGINE_FIRE_LIMIT_S} seconds are a game number.`,
+        `The rocket window paints Structure, Fuel lines, and Engine (Raptor) on the rocket, top to bottom. An untested part reads not tested, with no figure. The line shows the number the rocket has and the number the test needed. The top bar keeps the name and the place. The engine bar stays on the seconds still left, out of ${TUNING.ENGINE_FIRE_LIMIT_S}. After the engine is tested, the line shows the thrust the rocket has. A lit static fire spends 5 seconds. A short engine also sets the seconds to 0. A short pad spends the 5 second hold. Life stops at 0. The ${TUNING.ENGINE_FIRE_LIMIT_S} seconds are a game number.`,
         `The fuel lines carry methane and liquid oxygen from the tanks to the engine. A new article can leave with ${TUNING.DEFECT_LINES_S} seconds. A healthy article has ${TUNING.FITTING_LIFE_S} seconds out of ${TUNING.FITTING_LIFE_S}. A static fire does not spend those seconds. A short set still lights, and thrust ends early. Inspect the fuel lines sets them to ${TUNING.FITTING_LIFE_S}. That job also retires the fuel-line short for later articles, even on a healthy article. The hidden launch still asks for ${TUNING.FITTING_BURN_S} seconds. That figure stays until the hop.`,
         `A new article can leave with Structure ${TUNING.DEFECT_STRUCT}. A healthy stage starts at 100. A lit miss takes ${TUNING.SF_MISS_CONDITION} off that life. Structure ${TUNING.DEFECT_STRUCT} minus that ${TUNING.SF_MISS_CONDITION} is 20. The rocket is scrap only under ${TUNING.SCRAP_FLOOR}, so 20 stays and the rocket comes home. The next cryo still fails, because 20 is under ${TUNING.PROOF_STRUCT_MIN}. An engine miss from a healthy 100 leaves Structure 60, so the stage needs a refurb before the next proof can pass.`,
         `Refurb the engine costs ${TUNING.ENGINE_REFURB_COST} steel and takes ${dayCount(TUNING.REFURB_OK_DAYS)}. Pad level 2 cuts one day from that job only. It restores a short thrust to the healthy thrust for that tier, and the seconds to ${TUNING.ENGINE_FIRE_LIMIT_S}. Refurb the structure takes ${daySpan(TUNING.REFURB_FAIL_MIN, TUNING.REFURB_FAIL_MAX)} and no steel.`,
@@ -4105,6 +4103,55 @@
     return `Refurb the structure · ${daySpan(TUNING.REFURB_FAIL_MIN, TUNING.REFURB_FAIL_MAX)} · no steel`;
   }
 
+  function partHasText(v, key) {
+    if (key === "engine") return `${engineNowKn(v)} kN`;
+    if (key === "fitting") return `${Math.round(partLifeValue(v, key))} seconds`;
+    return String(Math.round(partLifeValue(v, key)));
+  }
+
+  function partNeedText(key) {
+    if (key === "engine") return `${TUNING.SF_THRUST_BAR_KN} kN`;
+    if (key === "fitting") return `${TUNING.TANKING_LINES_MIN} seconds`;
+    return String(TUNING.PROOF_STRUCT_MIN);
+  }
+
+  // Short means the pad's own floor. A skip never reaches this.
+  function partIsShort(v, key) {
+    if (!partTested(v, key)) return false;
+    if (key === "engine") return engineNowKn(v) < TUNING.SF_THRUST_BAR_KN;
+    if (key === "fitting") return partLifeValue(v, key) < TUNING.TANKING_LINES_MIN;
+    return partLifeValue(v, key) < TUNING.PROOF_STRUCT_MIN;
+  }
+
+  // Same order as the lowest part. Only a checked short can take the name.
+  function namedShort(v) {
+    const lives = partLives(v);
+    let key = null;
+    for (const part of ["engine", "fitting", "stage"]) {
+      if (!partIsShort(v, part)) continue;
+      if (key == null || lives[part] < lives[key]) key = part;
+    }
+    return key;
+  }
+
+  function partCountsHtml(v, key) {
+    const hasCls = partIsShort(v, key) ? " has" : "";
+    return `<div class="counts"><div><b class="${hasCls.trim()}">${esc(partHasText(v, key))}</b><span>Has</span></div><div><b>${esc(partNeedText(key))}</b><span>Needed</span></div></div>`;
+  }
+
+  function partFixName(key) {
+    if (key === "engine") return "Refurb the engine";
+    if (key === "fitting") return "Inspect the fuel lines";
+    return "Refurb the structure";
+  }
+
+  function partFixDetail(v, key) {
+    if (v.refurbPart === key) return `${dayCount(v.refurbLeft)} left`;
+    if (key === "engine") return `${dayCount(engineRefurbDays())} · ${TUNING.ENGINE_REFURB_COST} steel`;
+    if (key === "fitting") return `${dayCount(TUNING.INSPECT_DAYS)} · no steel`;
+    return `${daySpan(TUNING.REFURB_FAIL_MIN, TUNING.REFURB_FAIL_MAX)} · no steel`;
+  }
+
   function lifeFill(pct) {
     if (pct < 40) return "#e10600";
     if (pct < 70) return "#c4a15a";
@@ -4186,18 +4233,19 @@
   function rocketCalls(v) {
     const inBay = v.status === "in_bay" || v.status === "refurb";
     const worst = worstPart(v);
-    const otherBusy = bayPartBusy(v.id);
     return ["stage", "fitting", "engine"].map((key) => {
       const tested = partTested(v, key);
       const pct = tested ? lifePct(v, key) : null;
-      const tone = tested ? lifeTone(pct) : "";
-      const hot = tested && (v.refurbPart === key || (!v.refurbPart && key === worst && pct < 100));
-      const wait = otherBusy || (v.refurbPart && v.refurbPart !== key) || !tested;
-      const cls = ["call", key, tone, hot ? "hot" : ""].filter(Boolean).join(" ");
-      const job = inBay ? `<div class="job">${esc(partJobLine(v, key))}</div>` : "";
-      const body = `<b>${esc(partName(key))}</b><em>${esc(partCallText(v, key))}</em>${job}`;
-      if (!inBay) return `<div class="${cls}">${body}</div>`;
-      return `<button type="button" class="${cls}" id="btn-part-${key}"${wait ? " disabled" : ""}>${body}</button>`;
+      const hot = tested && (v.refurbPart === key || key === namedShort(v) || (!v.refurbPart && key === worst && pct < 100));
+      const cls = ["call", key, hot ? "hot" : ""].filter(Boolean).join(" ");
+      const title = `<b>${esc(partName(key))}</b>`;
+      const read = tested ? partCountsHtml(v, key) : `<em>not tested</em>`;
+      if (!inBay) return `<div class="${cls}">${title}${read}</div>`;
+      if (!tested) {
+        return `<button type="button" class="${cls}" id="btn-part-${key}" disabled>${title}${read}<div class="job">${esc(partJobLine(v, key))}</div></button>`;
+      }
+      const off = !!(v.refurbPart || bayPartBusy(v.id));
+      return `<div class="${cls}">${title}${read}<button type="button" class="act" id="btn-part-${key}"${off ? " disabled" : ""}><div class="name">${esc(partFixName(key))}</div><div class="line">${esc(partFixDetail(v, key))}</div></button></div>`;
     }).join("");
   }
 
@@ -4237,15 +4285,11 @@
     }
     // The dry-mass cut stays in the code. The sheet hides it until a flight uses dry mass.
     if (structureJob) action += `<p class="wait">Stage dry mass · ${dayCount(structureJob.daysLeft)} left</p>`;
-    const lowKey = worstPart(v);
-    const pct = lowKey ? lifePct(v, lowKey) : null;
-    const tone = pct == null ? "" : lifeTone(pct);
-    const headline = pct == null ? "not tested" : `${pct}%`;
-    const sub = pct == null ? "Lowest part · not tested" : `Lowest part · ${partName(lowKey)}`;
     const thrustLabel = partTested(v, "engine") ? `${engineNowKn(v)} kN` : "not tested";
+    const shortKey = namedShort(v);
+    const miss = shortKey ? `<div class="miss">${esc(partName(shortKey))}</div>` : "";
     const html = `<div class="top">
-        <div class="total${tone ? ` ${tone}` : ""}${pct == null ? " words" : ""}"><b>${headline}</b><span>Rocket</span><em>${esc(sub)}</em></div>
-        <div class="who"><b>${esc(v.name)}</b><div class="place">${esc(placeLabel(v))}</div></div>
+        <div class="who"><b>${esc(v.name)}</b><div class="place">${esc(placeLabel(v))}</div>${miss}</div>
         <button type="button" id="rocket-close">Close</button>
       </div>
       <div class="sheet-body">
@@ -5546,7 +5590,7 @@
     for (const key of Object.keys(G.objectives)) objectives[key] = !!G.objectives[key];
     return {
       version: 1,
-      label: "0.14.2-seed",
+      label: "0.15.0-sheet",
       seed: wholeSeed(G.seed) ? G.seed : null,
       speed: legalSpeed(G.speed),
       day: G.day,
