@@ -325,3 +325,13 @@ History of what **shipped**, keyed by **version**.
 - The game writes the yard at the end of each day. It also writes when the page closes, unless a fill, a fire, or a flight is running. A reload continues that yard. Restart asks, then clears the save. `index.html?test` does not write `starbase-save`.
 - In Mega Bay, the fix button for a part stays off until the pad has checked that part. A skip leaves that button off. A cryo proof checks Structure. A tanking run checks the fuel lines. A static fire that lights checks Structure, the fuel lines, and the engine. After that, the bay can fix the part.
 - The previous live file is `archive/index-0.14.0-defects.html`.
+
+## `0.14.2-seed` — 2026-11-12
+
+**Version:** `0.14.2-seed`
+
+- One seed picks the defect order and the 10-day sky. The shorts stay Structure 60, Fuel lines at 0 seconds, and thrust 1400 kN. A healthy article stays Structure 100, Fuel lines 40 seconds, and Raptor 1 at 1814 kN. A null seed keeps the old order and the old sky. Seed 11 is the test seed. The build-day roll stays unseeded.
+- The header has 1x, 2x, 4x, and Skip. Speed divides the day length only. On the normal page a day is 4 seconds, 2 seconds, or 1 second. The road, the fill, the fire, and the flight keep their own clocks. Pause still stops the day and those clocks.
+- Skip lands on a build finish, a restored part, a finished cryo proof or tanking run, or the next open day. The earlier event wins. A fill, a lit fire, or a flight makes Skip refuse, and the day stays. Escape during a fire still finishes the fire picture. Header Skip does not.
+- The save stays version 1. The label is `0.14.2-seed`. It stores the seed and the speed. It does not store a weather table or a defect order. A `0.14.1` file with `seed: null` continues on the old sky and the old order.
+- The rocket name stays Test article. Serials stay TA. Steel stays 28. The bay prices stay. The sheet still says not tested until a test reads that part. The previous live file is `archive/index-0.14.1-teeth.html`.

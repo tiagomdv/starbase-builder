@@ -6,7 +6,7 @@ Phase 0 is Starship development at Starbase in Texas, up to orbit. Phase 1 is re
 
 When a row ships or is dropped, remove it from the table and note the ship in `IMPLEMENTATION_LOG.md`.
 
-**Last shipped:** `0.14.1-teeth`. The static fire reads Structure and the fuel lines. A reload continues the yard. The Mega Bay fix stays off until the pad has checked that part. See `IMPLEMENTATION_LOG.md`. The next row is `0.14.2-seed`.
+**Last shipped:** `0.14.2-seed`. One seed drives the defect order and the sky. The header has 1x, 2x, 4x, and Skip. See `IMPLEMENTATION_LOG.md`. The next row is `0.15.0-sheet`.
 
 ## Roadmap restructure (2026-11-09)
 
@@ -14,7 +14,7 @@ Tiago approved a new order on 2026-11-09. The goal is to set the story straight.
 
 The shipped slices, `0.1.0-foundation` through `0.11.0-screen`, were built on a Falcon 1 stand-in on the Texas site. The yard, the map, Land, the Inspector, the purse, the tanks, the motion, and the part sheet all carry over. From `0.12.0-raptor` the vehicle becomes a Starship development article.
 
-The real test chain after a vehicle is built is tank proof, tanking, static fire, data review, then the range. Tanking means the crew fills the tanks and drains them again. `0.13.0-proof` shipped that order. `0.14.1-teeth` is live, and the pad still runs it. A new article can leave with a real short part. Falcon 1 ran a thinner chain. It went more often from build to a pad static fire to flight, and a flight carried more risk. `4.0.0-falcon1` keeps that.
+The real test chain after a vehicle is built is tank proof, tanking, static fire, data review, then the range. Tanking means the crew fills the tanks and drains them again. `0.13.0-proof` shipped that order. `0.14.2-seed` is live, and the pad still runs it. A new article can leave with a real short part. Falcon 1 ran a thinner chain. It went more often from build to a pad static fire to flight, and a flight carried more risk. `4.0.0-falcon1` keeps that.
 
 The real Falcon order comes from SpaceX Brief. The rockets were built in California, at El Segundo and then Hawthorne. Falcon 1 flew from Omelek Island in the Kwajalein Atoll, from 2006 to 2009. It made orbit on 28 September 2008. Falcon 9 started at Cape Canaveral SLC-40, with its first flight in June 2010. Vandenberg SLC-4E came next. SpaceX leased LC-39A in 2014 and first launched from there in February 2017. Falcon Heavy and crew flights fly from 39A.
 
@@ -56,7 +56,7 @@ The owned line shipped in `0.4.0-borderline`. It follows the coast, about 8 km i
 
 `0.6.0-motion` plays the loop you already have, on the map. The static-fire modal closes. A build shows in the Starfactory. The finished rocket rolls from the Starfactory along the yard road to Mega Bay. It rolls from the bay to the Orbital Pad on that same road. At the pad it rises onto the mount. The static fire burns on the mount, and the flame stays on the map. Later versions add their own animations on top of the same system.
 
-`0.8.0-flight` shipped the first launch. `0.9.0-economy` shipped the purse. `0.10.0-parts` shipped the Merlin, the fuel fitting, and the stage. `0.11.0-screen` shipped the screen layout. `0.12.0-raptor` shipped. `0.13.0-proof` shipped. `0.13.1-fixes` shipped. `0.14.1-teeth` is live. The next row is `0.14.2-seed`. Then come `0.15.0-sheet`, `0.16.0-bay`, `0.17.0-roll`, `0.18.0-hop`, `0.18.1-pipeline`, `0.19.0-high-hop`, and `0.19.1-split`. After those come `0.20.0-stack`, `0.21.0-suborbital`, and `0.22.0-orbit`. `0.23.0-tracking`, `0.24.0-picture`, and `0.25.0-motion-final` come after orbit, still in phase 0.
+`0.8.0-flight` shipped the first launch. `0.9.0-economy` shipped the purse. `0.10.0-parts` shipped the Merlin, the fuel fitting, and the stage. `0.11.0-screen` shipped the screen layout. `0.12.0-raptor` shipped. `0.13.0-proof` shipped. `0.13.1-fixes` shipped. `0.14.2-seed` is live. The next row is `0.15.0-sheet`. Then come `0.16.0-bay`, `0.17.0-roll`, `0.18.0-hop`, `0.18.1-pipeline`, `0.19.0-high-hop`, and `0.19.1-split`. After those come `0.20.0-stack`, `0.21.0-suborbital`, and `0.22.0-orbit`. `0.23.0-tracking`, `0.24.0-picture`, and `0.25.0-motion-final` come after orbit, still in phase 0.
 
 Phase 0 should take about 90 real minutes at 1x, from an empty yard to orbit. At 2x and 4x it is shorter. Each row should add about 10 minutes of play, not of waiting. Tiago locked that target on 2026-11-11. On 2026-11-12 he added `0.15.0-sheet`, `0.16.0-bay`, and `0.17.0-roll` before the hop, so those three rows sit inside the same target.
 
@@ -80,7 +80,7 @@ Reliability is that record. It is not a meter you buy. A cryo proof shows the ta
 
 `0.14.0-defects` shipped. A prototype can leave the Starfactory with one short part. The short is a real number: Structure 60, Fuel lines 0 seconds, or thrust 1400 kN. Those are game numbers. The cryo proof finds Structure. The tanking run finds the fuel lines. The static fire finds a short engine. The live fire also reads Structure and the fuel lines. You can skip a test, and the part stays as it is until a pad check. Through phase 0, bay jobs keep their current steel and time costs: the engine takes 24 steel and 2 days, or 1 day at pad level 2, the fuel lines take 1 day and no steel, and Structure takes 4 to 5 days and no steel, the button shows that span before the press, there is no extra money price, no new currency, and no fail roll, and the one-time refurb goal pay of 40 stays. `1.2.0-refurb` runs the same check on a flown stage. `1.3.0-rate` lets a better process send fewer defects out of the factory.
 
-`0.14.2-seed` is the next row. It stores one seed in the save. Defect order and the weather table come from the seed. The player still sees every number. Restart rolls a new seed. A test start keeps a fixed seed. The same row adds speed 1x, 2x, and 4x, and a skip to the next named event. Waiting is the drag in the current build, so speed ships in this row. The design page for the row that just shipped is `design-docs/0.14.1-teeth-design.html`.
+`0.14.2-seed` shipped. One seed in the save picks the defect order and the 10-day sky. The player still sees every number. A null seed keeps the old order and the old sky. Restart rolls a new seed. A test start uses seed 11. The header has 1x, 2x, 4x, and Skip. The next row is `0.15.0-sheet`. The design page is `design-docs/0.14.2-seed-design.html`.
 
 `0.15.0-sheet` shows that weak part in the rocket window. The window names the part, the number the rocket has, and the number the test needed. The fix in Mega Bay is easy to see. This row adds no new test.
 
