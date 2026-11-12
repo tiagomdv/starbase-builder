@@ -21,3 +21,4 @@
 | index-0.12.0-raptor.html | 0.12.0-raptor | Playable site before the cryo proof and the tanking run come before the static fire. |
 | index-0.13.0-proof.html | 0.13.0-proof | Playable site before Return stays on the pad and Restart starts a new game. |
 | index-0.13.1-fixes.html | 0.13.1-fixes | Playable site before a prototype can leave the factory with a real short part. |
+| index-0.14.0-defects.html | 0.14.0-defects | Playable site before the static fire reads Structure and the fuel lines, a reload continues the yard, and the Mega Bay fix stays off until the pad has checked that part. |

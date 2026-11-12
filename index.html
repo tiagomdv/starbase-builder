@@ -513,7 +513,7 @@
         <span class="ctr">LOX <b id="res-lox" class="tabular-nums">0</b></span>
         <span class="ctr">Fleet <b id="res-fleet" class="tabular-nums">0</b></span>
       </div>
-      <div id="ver-label">0.14.0-defects</div>
+      <div id="ver-label">0.14.1-teeth</div>
     </div>
     <div class="bar-right">
       <span class="ctr"><span id="day-run">Day</span> <b id="day-label" class="tabular-nums">1</b></span>
@@ -607,7 +607,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "0.14.0-defects";
+  const VERSION = "0.14.1-teeth";
   const CELL = 32, MAP_W = 40, MAP_H = 30;
   // ?test is a normal open with a short day. The purse, the tanks, and the yard start the same.
   const TEST = new URLSearchParams(location.search).has("test");
@@ -2994,12 +2994,12 @@
         `The proof takes the tanks to ${TUNING.PROOF_BAR} bar. That figure is a label, not a check. The proof passes when Structure is ${TUNING.PROOF_STRUCT_MIN} or more. A new article can leave with Structure ${TUNING.DEFECT_STRUCT}. That short is a game number. A healthy article has 100. The ${TUNING.PROOF_COST} money, the ${dayCount(TUNING.PROOF_DAYS)}, and the floor of ${TUNING.PROOF_STRUCT_MIN} are game numbers.`,
         `A tanking run comes next. It loads ${TUNING.SF_CH4_KG} kg of methane and ${TUNING.SF_LOX_KG} kg of liquid oxygen. That is the static fire load. A short tank scrubs the run. Nothing loads, no day passes, and no fluid is spent.`,
         `The run takes ${dayCount(TUNING.TANKING_DAYS)}. ${TUNING.TANKING_CH4_LOSS_KG} kg of methane and ${TUNING.TANKING_LOX_LOSS_KG} kg of liquid oxygen boil off. The rest drains back to the pad tanks. The boil-off is a game number. The run passes when Fuel lines are ${TUNING.TANKING_LINES_MIN} seconds or more. A new article can leave with Fuel lines at ${TUNING.DEFECT_LINES_S} seconds. That short is a game number. A healthy article has ${TUNING.FITTING_LIFE_S}. That floor is a game number.`,
-        `A static fire lights the engine on the pad. It holds when ${wikiGo("thrust", "thrust")}, the pad, ${wikiGo("propellant", "methane")}, ${wikiGo("propellant", "liquid oxygen")}, and the wind are inside the limits. Each test is done or skipped before the fire.`,
+        `A static fire lights the engine on the pad. It holds when ${wikiGo("thrust", "thrust")}, the pad, ${wikiGo("propellant", "methane")}, ${wikiGo("propellant", "liquid oxygen")}, the wind, Structure, and the fuel lines are inside the limits. Each test is done or skipped before the fire.`,
         `After a clean fire the rocket stays on the mount for ${dayCount(TUNING.INSPECT_DAYS)} of data review. Then it is ready. A ready rocket returns to the bay. A waiting rocket on the pad can return too. A passed cryo and a passed tanking run stay passed. The hop comes later.`,
-        `A miss sends the rocket back to ${wikiPlace("mega_bay", "Mega Bay")}. The sheet names the short part. You start one refurb. The bay runs one part at a time. A failed proof or a failed tanking run also sends the rocket back. Nothing on the rocket is damaged.`,
+        `A miss sends the rocket back to ${wikiPlace("mega_bay", "Mega Bay")}. The sheet names the short part. You start one refurb. The bay runs one part at a time. A failed proof or a failed tanking run also sends the rocket back. Those two tests damage nothing.`,
         `A new article leaves with one short part, in this order: Structure ${TUNING.DEFECT_STRUCT}, then Fuel lines ${TUNING.DEFECT_LINES_S} seconds, then thrust ${TUNING.DEFECT_THRUST_KN} kN. Those are game numbers. If that part was already restored in the bay, the article leaves healthy. It does not take the next short. After all three are restored, later articles leave healthy.`,
-        `The matching test finds the short. A fail names the part and damages nothing. The bay restores it in the days and the steel prices that already exist. You can skip a cryo proof or a tanking run. The part stays as it is. An untested part reads not tested.`,
-        `A short pad or a short engine still lights, and that fire is a miss. A closed range or a short tank keeps Try static fire off. Those do not light.`,
+        `The cryo proof finds Structure. The tanking run finds the fuel lines. A fail on those tests names the part and damages nothing. The bay restores it in the days and the steel prices that already exist. You can skip a cryo proof or a tanking run. The part stays as it is. An untested part reads not tested.`,
+        `A fire that lights can miss on Structure or the fuel lines. A short pad or a short engine still lights, and that fire is a miss. A fail names the part. A closed range or a short tank does not light. A scrub damages nothing.`,
       ]) + wikiFacts([
         { value: `${rocket.steelCost} steel`, label: "Steel for a test article" },
         { value: daySpan(TUNING.BUILD_DAYS_MIN, TUNING.BUILD_DAYS_MAX), label: "Days to build" },
@@ -3145,7 +3145,7 @@
         `A tanking run takes ${dayCount(TUNING.TANKING_DAYS)}. It loses ${TUNING.TANKING_CH4_LOSS_KG} kg of methane and ${TUNING.TANKING_LOX_LOSS_KG} kg of liquid oxygen. It passes when Fuel lines are ${TUNING.TANKING_LINES_MIN} seconds or more. The day, the boil-off, and the floor are game numbers.`,
         `The methane tank starts at ${TUNING.CH4_CAP} kg and the buy raises it to ${TUNING.CH4_CAP_L2} kg. The oxygen tank starts at ${TUNING.LOX_CAP} kg and the buy raises it to ${TUNING.LOX_CAP_L2} kg. One press fills a tank for ${TUNING.FLUID_FILL_COST} money.`,
         `Pad level 1 holds ${TUNING.PAD_THRUST_L1} kN. Pad level 2 holds ${TUNING.PAD_THRUST_L2} kN. The engine floor is ${TUNING.SF_THRUST_BAR_KN} kN. Those three are game numbers.`,
-        `A new article can leave with one short part. Structure can be ${TUNING.DEFECT_STRUCT}. Fuel lines can be ${TUNING.DEFECT_LINES_S} seconds. Thrust can be ${TUNING.DEFECT_THRUST_KN} kN. Those three are game numbers. The matching test finds the short. An untested part reads not tested. The fix uses the days and the steel prices that already exist.`,
+        `A new article can leave with one short part. Structure can be ${TUNING.DEFECT_STRUCT}. Fuel lines can be ${TUNING.DEFECT_LINES_S} seconds. Thrust can be ${TUNING.DEFECT_THRUST_KN} kN. Those three are game numbers. The cryo proof finds Structure. The tanking run finds the fuel lines. The static fire also reads both. A fire that lights can miss on either part. A fail names the part. A scrub damages nothing. An untested part reads not tested. The fix uses the days and the steel prices that already exist.`,
         `Burns is ${TUNING.ENGINE_RESTARTS}. Engine life starts at ${TUNING.ENGINE_FIRE_LIMIT_S} seconds. A lit static fire spends 5. Burns and the engine life are game numbers.`,
         `Stage dry mass is ${TUNING.STAGE_DRY_KG} kg. Liftoff mass is ${TUNING.STRUCT_LIMIT_KG} kg. Both are game numbers until the hop. A test article carries no payload.`,
       ]) + wikiFacts([
@@ -3182,9 +3182,9 @@
       id: "engines",
       title: "Engines and life",
       body: wikiParas([
-        `A static fire is a burn on the pad. It checks the ${wikiGo("thrust", "thrust")} before a hop.`,
+        `A static fire is a burn on the pad. It reads ${wikiGo("thrust", "thrust")}, Structure, and the fuel lines. A fire that lights can miss on Structure or the fuel lines. A fail names the part. A scrub damages nothing.`,
         `The rocket sheet paints Structure, Fuel lines, and Engine (Raptor) on the rocket, top to bottom. An untested part reads not tested, with no figure. After a test, the part shows its percent. The big number is the lowest tested part. The engine bar stays on the seconds still left, out of ${TUNING.ENGINE_FIRE_LIMIT_S}. After the engine is tested, the engine line adds the real thrust. A lit static fire spends 5 seconds. A short engine also sets the seconds to 0. A short pad spends the 5 second hold. Life stops at 0. The ${TUNING.ENGINE_FIRE_LIMIT_S} seconds are a game number.`,
-        `The fuel lines carry methane and liquid oxygen from the tanks to the engine. A new article can leave with ${TUNING.DEFECT_LINES_S} seconds. A healthy article has ${TUNING.FITTING_LIFE_S} seconds out of ${TUNING.FITTING_LIFE_S}. A static fire does not spend them. Inspect the fuel lines sets them to ${TUNING.FITTING_LIFE_S}. That job also retires the fuel-line short for later articles, even on a healthy article. The hidden launch still asks for ${TUNING.FITTING_BURN_S} seconds. That figure stays until the hop.`,
+        `The fuel lines carry methane and liquid oxygen from the tanks to the engine. A new article can leave with ${TUNING.DEFECT_LINES_S} seconds. A healthy article has ${TUNING.FITTING_LIFE_S} seconds out of ${TUNING.FITTING_LIFE_S}. A static fire does not spend those seconds. A short set still lights, and thrust ends early. Inspect the fuel lines sets them to ${TUNING.FITTING_LIFE_S}. That job also retires the fuel-line short for later articles, even on a healthy article. The hidden launch still asks for ${TUNING.FITTING_BURN_S} seconds. That figure stays until the hop.`,
         `A new article can leave with Structure ${TUNING.DEFECT_STRUCT}. A healthy stage starts at 100. A lit miss takes ${TUNING.SF_MISS_CONDITION} off that life. Structure ${TUNING.DEFECT_STRUCT} minus that ${TUNING.SF_MISS_CONDITION} is 20. The rocket is scrap only under ${TUNING.SCRAP_FLOOR}, so 20 stays and the rocket comes home. The next cryo still fails, because 20 is under ${TUNING.PROOF_STRUCT_MIN}. An engine miss from a healthy 100 leaves Structure 60, so the stage needs a refurb before the next proof can pass.`,
         `Refurb the engine costs ${TUNING.ENGINE_REFURB_COST} steel and takes ${dayCount(TUNING.REFURB_OK_DAYS)}. Pad level 2 cuts one day from that job only. It restores a short thrust to the healthy thrust for that tier, and the seconds to ${TUNING.ENGINE_FIRE_LIMIT_S}. Refurb the structure takes ${daySpan(TUNING.REFURB_FAIL_MIN, TUNING.REFURB_FAIL_MAX)} and no steel.`,
         `The bay runs one part at a time. Raise Raptor thrust spends ${TUNING.ENGINE_UP_COST} steel. Raptor 1 at ${TUNING.ENGINE_THRUST_KN} kN becomes Raptor 2 at ${TUNING.ENGINE_2_KN} kN. Mass drops from ${TUNING.ENGINE_MASS_KG} kg to ${TUNING.ENGINE_2_MASS_KG} kg. It does not build a second engine.`,
@@ -3261,7 +3261,8 @@
         `Roll to the ${wikiPlace("pad_orbital", "Orbital Pad")} follows the yard road. The trip takes ${roll}. It spends no steel and no propellant.`,
         `Refurb the engine costs ${TUNING.ENGINE_REFURB_COST} steel and takes ${dayCount(TUNING.REFURB_OK_DAYS)}. Inspect the fuel lines takes ${dayCount(TUNING.INSPECT_DAYS)} and no steel. Refurb the structure takes ${daySpan(TUNING.REFURB_FAIL_MIN, TUNING.REFURB_FAIL_MAX)} and no steel. The bay runs one of those jobs. A finished refurb retires that short for later articles. Inspect the fuel lines does this even when the lines already read ${TUNING.FITTING_LIFE_S}.`,
         `Another slot costs ${TUNING.BAY_SLOT_COST} steel and takes no days. It adds a place in the bay, up to ${TUNING.BAY_MAX === 1 ? "1 vehicle" : `${TUNING.BAY_MAX} vehicles`}.`,
-        `The next step is a cryo proof, then a tanking run, then a static fire on the ${wikiPlace("pad_orbital", "Orbital Pad")}. That fire checks ${wikiPageLink("thrust", "thrust")}, ${wikiPageLink("propellant", "propellant")}, and the wind.`,
+        `The next step is a cryo proof, then a tanking run, then a static fire on the ${wikiPlace("pad_orbital", "Orbital Pad")}. That fire reads Structure and the fuel lines, plus ${wikiPageLink("thrust", "thrust")}, ${wikiPageLink("propellant", "propellant")}, and the wind.`,
+        `A fire that lights can miss on Structure or the fuel lines. A fail names the part. A scrub damages nothing. The fix for a part stays off until the pad has checked that part.`,
       ]) + wikiFacts([
         { value: `${TUNING.BAY_SLOT_COST} steel`, label: "Another slot" },
         { value: String(TUNING.BAY_MAX), label: "Vehicles the bay can hold" },
@@ -3288,7 +3289,7 @@
         `The cryo proof comes first. It buys liquid nitrogen and takes the tanks to ${TUNING.PROOF_BAR} bar. That figure is a label. The proof costs ${TUNING.PROOF_COST} money and takes ${dayCount(TUNING.PROOF_DAYS)}. It passes when Structure is ${TUNING.PROOF_STRUCT_MIN} or more. A new article can leave with Structure ${TUNING.DEFECT_STRUCT}. That short is a game number. The cost, the day, and the floor are game numbers.`,
         `The tanking run comes next. It needs ${TUNING.SF_CH4_KG} kg of methane and ${TUNING.SF_LOX_KG} kg of liquid oxygen. A short tank scrubs the run. Nothing loads and no day passes. The run takes ${dayCount(TUNING.TANKING_DAYS)}. ${TUNING.TANKING_CH4_LOSS_KG} kg of methane and ${TUNING.TANKING_LOX_LOSS_KG} kg of liquid oxygen boil off. The rest drains back. The run passes when Fuel lines are ${TUNING.TANKING_LINES_MIN} seconds or more. A new article can leave with ${TUNING.DEFECT_LINES_S} seconds. That short is a game number. The boil-off and that floor are game numbers.`,
         `The pad fills the methane tank or the liquid oxygen tank for ${TUNING.FLUID_FILL_COST} money. One press fills that tank.`,
-        `Static fire loads ${TUNING.SF_CH4_KG} kg of methane and ${TUNING.SF_LOX_KG} kg of liquid oxygen. It waits until each test is done or skipped. A short pad or a short engine still lights, and that fire is a miss. A closed range or a short tank keeps Try static fire off, takes no fluid, and changes no life.`,
+        `Static fire loads ${TUNING.SF_CH4_KG} kg of methane and ${TUNING.SF_LOX_KG} kg of liquid oxygen. It waits until each test is done or skipped. A fire that lights can miss on Structure or the fuel lines. A short pad or a short engine still lights, and that fire is a miss. A fail names the part. A closed range or a short tank keeps Try static fire off. A scrub takes no fluid, changes no life, and damages nothing.`,
         `After a clean fire the rocket stays on the mount for ${dayCount(TUNING.INSPECT_DAYS)} of data review. Then it is ready. A ready rocket offers Return to Mega Bay. A waiting rocket on the pad can return too. A passed cryo and a passed tanking run stay passed. The hop comes later.`,
         `The methane tank buy and the oxygen tank buy raise the caps to ${TUNING.CH4_CAP_L2} kg and ${TUNING.LOX_CAP_L2} kg.`,
         `A miss still returns to ${wikiPlace("mega_bay", "Mega Bay")}. ${wikiPageLink("engines", "Engines and life")} names the Raptor seconds a lit fire takes off. Structure under ${TUNING.SCRAP_FLOOR} scraps the rocket. A lit miss clears the cryo proof, the tanking run, and any skip. A clean fire keeps them.`,
@@ -3899,6 +3900,8 @@
     if (v.refurbPart || bayPartBusy(v.id)) { log("The bay is already on one part.", "warn"); return; }
     if (v.status !== "in_bay") { log("Refurb a part in Mega Bay.", "warn"); return; }
     if (part !== "engine" && part !== "fitting" && part !== "stage") return;
+    // The pad has to check this part before the bay can fix it. A skip or a scrub does not count.
+    if (!partTested(v, part)) return;
     let days = TUNING.INSPECT_DAYS;
     if (part === "engine") {
       if (G.steel < TUNING.ENGINE_REFURB_COST) { log(`Need ${TUNING.ENGINE_REFURB_COST} steel.`, "bad"); return; }
@@ -4009,7 +4012,7 @@
       const pct = tested ? lifePct(v, key) : null;
       const tone = tested ? lifeTone(pct) : "";
       const hot = tested && (v.refurbPart === key || (!v.refurbPart && key === worst && pct < 100));
-      const wait = otherBusy || (v.refurbPart && v.refurbPart !== key);
+      const wait = otherBusy || (v.refurbPart && v.refurbPart !== key) || !tested;
       const cls = ["call", key, tone, hot ? "hot" : ""].filter(Boolean).join(" ");
       const job = inBay ? `<div class="job">${esc(partJobLine(v, key))}</div>` : "";
       const body = `<b>${esc(partName(key))}</b><em>${esc(partCallText(v, key))}</em>${job}`;
@@ -4104,7 +4107,9 @@
     });
     if (v.status === "in_bay" || v.status === "refurb") {
       panel.querySelectorAll(".hit").forEach((hit) => {
-        hit.addEventListener("click", () => startPartRefurb(v.id, hit.getAttribute("data-part")));
+        const key = hit.getAttribute("data-part");
+        if (!partTested(v, key)) return;
+        hit.addEventListener("click", () => startPartRefurb(v.id, key));
       });
     }
   }

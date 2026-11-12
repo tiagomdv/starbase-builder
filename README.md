@@ -18,13 +18,13 @@ The sites, the engines, and the propellants follow real SpaceX hardware. The gam
 
 ## Status
 
-Live release: `0.14.0-defects`. Next row: `0.15.0-hop`. Today's rocket is a Starship development article with one Raptor, on methane and liquid oxygen. A new article can leave with a real short part the tests can find. A cryo proof and a tanking run come before the static fire. You can skip a test. Return stays on the pad. Restart starts a new game. The hop comes later.
+Live release: `0.14.1-teeth`. Next row: `0.14.2-seed`. Today's rocket is a Starship development article with one Raptor, on methane and liquid oxygen. The static fire reads Structure and the fuel lines. A reload continues the yard. The Mega Bay fix stays off until the pad has checked that part. A cryo proof and a tanking run come before the static fire. You can skip a test. Return stays on the pad. Restart starts a new game. The hop comes later.
 
 ## Where it's headed
 
 The full build map is [`design-docs/program-roadmap-design.html`](design-docs/program-roadmap-design.html).
 
-1. **Phase 0 · Starbase.** Starship development in Texas up to orbit: Raptor and methane, prototype tests, defects, hop, high hop, stack and tower, suborbital test, then orbit.
+1. **Phase 0 · Starbase.** Starship development in Texas up to orbit: Raptor and methane, prototype tests, defects, the rocket window, a bay check, a visible weak number, hop, high hop, stack and tower, suborbital test, then orbit.
 2. **Phase 1 · Recovery and catch.** Bring the booster home, catch it with the tower, inspect and refurbish it, then raise the factory rate.
 3. **A branch, in any order.** Starlink. The Moon and Mars, with a depot in orbit. Or the Falcon story at the real Falcon sites: California factory, Kwajalein, Cape Canaveral, Vandenberg, and 39A.
 4. **Later chapters.** Compute, the yard, longer flights, picture and record, and a fleet desk.

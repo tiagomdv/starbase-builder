@@ -103,6 +103,11 @@
         <p>Short Fuel lines keep the pad rule. The engine lights. Thrust ends at the Fuel lines seconds, capped at the 5 second hold. A line at 0 cuts as the engine lights. The hidden launch asks for 169 seconds, <code>FITTING_BURN_S</code> at line 768. Thrust ends at 34 seconds, <code>FITTING_ABORT_S</code> at line 770. <code>startFly</code> at line 2441 sets that cut. Those two numbers stay on the launch. The static fire does not copy them. For a fuel-line miss, the anomaly label reads Fuel lines, and the log says thrust ends early. A Fuel-lines miss takes 40 Structure because every lit miss does, per decision 5.</p>
         <p>A failed cryo proof and a failed tanking run stay what they are. They name the part and damage nothing. This row does not change their prices, their days, or their floors.</p>
 
+        <h2 id="bay">The bay buttons</h2>
+        <p>Tiago locked this on 2026-11-12. Until the pad has checked a part, the fix button for that part stays off. You cannot click Structure in Mega Bay and set it to 100% before the cryo proof. The same goes for the fuel lines and the engine. Skip a test and that fix button stays off. The static fire then shows the weak part the hard way. After that, the bay can fix it.</p>
+        <p>The cryo proof checks Structure. Until that check has finished on this rocket, "Refurb the structure" cannot start. The tanking run checks the fuel lines. Until that check has finished, "Inspect the fuel lines" cannot start. The static fire checks the engine. Until a static fire has lit on this rocket, "Refurb the engine" cannot start.</p>
+        <p>A failed cryo proof has still checked Structure, so that one button can start. A failed tanking run has still checked the fuel lines. A static fire that lights has checked Structure, the fuel lines, and the engine. A closed range or a short tank does not light, damages nothing, and does not count as the check. The days, the steel, and the words on the three jobs stay as they are. The bay still runs one job at a time.</p>
+
         <h2 id="cards">Cards and the debrief</h2>
         <p>The skip cards and the fire card print the floors before you commit.</p>
         <table class="doc">
@@ -188,12 +193,13 @@
         <ul>
           <li>The seed, and a new weather table. Those are <code>0.14.2-seed</code>. This save only reserves <code>seed: null</code>.</li>
           <li>Speed 1x, 2x, 4x, and skip to the next event. Those ride with the seed.</li>
-          <li>The hop, the camera, the countdown, the flame size, and the height choices. Those are <code>0.15.0-hop</code>.</li>
+          <li>The rocket window, a check inside Mega Bay, and a rolled weak number. Those are <code>0.15.0-sheet</code>, <code>0.16.0-bay</code>, and <code>0.17.0-roll</code>. This row only keeps the fix button off until the pad has checked that part.</li>
+          <li>The hop, the camera, the countdown, the flame size, and the height choices. Those are <code>0.18.0-hop</code>.</li>
           <li>Program reviews and their pay. The seven goal pays stay as they are.</li>
-          <li>A parallel factory build, and a cadence number in the header. Those are <code>0.15.1-pipeline</code>.</li>
+          <li>A parallel factory build, and a cadence number in the header. Those are <code>0.18.1-pipeline</code>.</li>
           <li>The high hop. That row stays the high hop only.</li>
           <li>Milestone cards, sound, and a Careful build.</li>
-          <li>Inlining the Tailwind CSS, and any file split. Those wait for <code>0.16.1-split</code>. The CDN script stays for this row.</li>
+          <li>Inlining the Tailwind CSS, and any file split. Those wait for <code>0.19.1-split</code>. The CDN script stays for this row.</li>
           <li>Hiding 1080 kg and 27572 kg, or any dry-mass rewrite. The sheet keeps the numbers it has.</li>
           <li>New parts on <code>site-objects-design.html</code>. No new pad part.</li>
           <li>The hidden launch. 169 seconds and the 34 second cut stay where they are.</li>
@@ -218,6 +224,10 @@
           <li>The pad upgrade button reads "Raise to level 2". With under 40 steel it reads "Need 40 steel."</li>
           <li>The footer log uses <code>h-28</code>. About 6 lines show, and the rest scroll. The newest line is first. The store stays 45 and the slice stays 12.</li>
           <li>Search the file for <code>sfSuccess</code> and <code>scrapOnFailChance</code>. Both are gone.</li>
+          <li>A new rocket in Mega Bay, before any pad test. None of the three fix buttons start a job.</li>
+          <li>After a failed cryo proof, Structure can be refurbished. The fuel lines and the engine still cannot.</li>
+          <li>After a failed tanking run, the fuel lines can be inspected. A part the pad has not checked still cannot.</li>
+          <li>Skip both tests. A closed range or a short tank does not turn the buttons on. A static fire that lights does. The bay can then fix the parts that fire checked.</li>
         </ol>
 
         <h2 id="docs">Docs after ship</h2>
@@ -233,7 +243,7 @@
           <li><code>site-objects-design.html</code> stays put.</li>
         </ul>
 
-        <p class="footer-note">Tiago answered the pad rule and the save on 2026-11-11. Thrust ends at the Fuel lines seconds, capped at the 5 second hold. The day boundary is enough, and pagehide saves only when no fill, fire, or flight is running. The log class is <code>h-28</code>.</p>
+        <p class="footer-note">Tiago answered the pad rule and the save on 2026-11-11. Thrust ends at the Fuel lines seconds, capped at the 5 second hold. The day boundary is enough, and pagehide saves only when no fill, fire, or flight is running. The log class is <code>h-28</code>. On 2026-11-12 the bay fix stays off until the pad has checked that part.</p>
       </article>
     </div>
   </div>
