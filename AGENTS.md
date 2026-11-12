@@ -82,6 +82,14 @@ Design documents in `design-docs/` are **HTML only** (browser-readable, same spi
 
 **Do not create `.md` design docs.** Project process docs (`README.md`, `AGENTS.md`, `FUTURE_FEATURES.md`, `IMPLEMENTATION_LOG.md`) stay markdown.
 
+### Design pages
+
+A design page is simple. It shows the pictures, names what is locked, and says how to pick. Research happens before the page is drawn. The page does not retell it. A caption says what the picture is, what you do there, and how it differs. It stays short. The pictures themselves have to differ. Three states of one column are not three options.
+
+When the work is a look, draw the options side by side. Each option is its own composition, made with care. The human should tell them apart before reading. A wider column, a pinned button, or a dim line is the same picture. It is not a new option. Prices and rules stay the same across the pictures unless the row changes a rule.
+
+One region at a time when the human is choosing a screen. The next region is added to that same page after the earlier one is closed.
+
 Examples:
 - `0.0.1-layout-aoe-3d.html`
 - `0.1.0-foundation-design.html`
@@ -152,6 +160,8 @@ After the human approves work, help update:
 - Multiple log sections for the same `VERSION` in `IMPLEMENTATION_LOG.md`.
 - Rewriting past versions’ log sections (except typos).
 - Writing chat, UI, or docs in fragments, jargon stacks, or a voice the human would not read aloud.
+- A design page that explains more than it shows.
+- Look options that share one composition and differ by a small tweak.
 
 ---
 
