@@ -11,10 +11,23 @@ History of what **shipped**, keyed by **version**.
 
 - Tiago approved a new roadmap on 2026-11-09. Phase 0 is now Starship development at Starbase in Texas, up to orbit. Starbase is the real Starship site. Falcon never started there.
 - The shipped slices `0.1.0` through `0.11.0` keep their names. They were built on a Falcon 1 stand-in. The yard, map, Land, Inspector, purse, tanks, motion, and part sheet carry over.
-- The new phase 0 rows are `0.12.0-raptor`, `0.13.0-proof`, `0.14.0-defects`, `0.15.0-hop`, `0.16.0-high-hop`, `0.17.0-stack`, `0.18.0-suborbital`, and `0.19.0-orbit`. Then come `0.20.0-tracking`, `0.21.0-picture`, and `0.22.0-motion-final`. The first paying contract arrives at `0.18.0-suborbital`.
+- The new phase 0 rows are `0.12.0-raptor`, `0.13.0-proof`, `0.14.0-defects`, `0.15.0-hop`, `0.16.0-high-hop`, `0.17.0-stack`, `0.18.0-suborbital`, and `0.19.0-orbit`. Then come `0.20.0-tracking`, `0.21.0-picture`, and `0.22.0-motion-final`. The first paying contract arrives at `0.18.0-suborbital`. This list is the map from that day. The 2026-11-12 section moves the later names.
 - Phase 1 is recovery and catch. Phases 2, 3, and 4 are a branch the player chooses: Starlink, the Moon and Mars, or the Falcon story. Phases 5 through 9 are compute, the yard, longer flights, picture and record, and the fleet desk.
 - The Falcon story uses the real site order: California factory, Falcon 1 at Kwajalein, Falcon 9 at SLC-40, Vandenberg, then 39A. The invented Louisiana and Florida Starbases are dropped.
 - Updated `design-docs/program-roadmap-design.html`, `FUTURE_FEATURES.md`, `AGENTS.md` (phase list only), `README.md`, `design-docs/learning-guide.html`, and `design-docs/site-objects-design.html`. Shipped design pages got one short note. No game code changed. `index.html` and `VERSION` did not change.
+
+---
+
+## 2026-11-12 — three rows before the hop (docs only, no version bump)
+
+**Version:** stays `0.14.0-defects` · docs only
+
+- Tiago locked three phase 0 rows on 2026-11-12. They sit after `0.14.2-seed` and before the hop.
+- `0.15.0-sheet` shows the weak part in the rocket window, and why the fix is there. The pad checks stay the checks.
+- `0.16.0-bay` lets you check a part in Mega Bay. That check reads the part, then the fix can start. The cryo proof, the tanking run, and the static fire stay on the pad.
+- `0.17.0-roll` lets a new rocket leave with a weak number you can see. It is not always Structure 60, fuel lines at 0 seconds, or thrust at 1400 kN. The exact range waits for that row's design. It is not a hidden coin flip.
+- The hop is now `0.18.0-hop`. The pipeline is `0.18.1-pipeline`. The high hop is `0.19.0-high-hop`. The inline CSS is `0.19.1-split`. The stack is `0.20.0-stack`. The suborbital test is `0.21.0-suborbital`. Orbit is `0.22.0-orbit`. Tracking is `0.23.0-tracking`. The building pictures are `0.24.0-picture`. The final motion pass is `0.25.0-motion-final`.
+- In `0.14.1-teeth`, the Mega Bay fix for a part stays off until the pad has checked that part. A skip leaves it off. A static fire that lights counts as the check. No game code changed in this pass.
 
 ---
 
@@ -290,7 +303,7 @@ History of what **shipped**, keyed by **version**.
 - The pad Data list shows the wind limit beside the thrust limit. Raise Raptor thrust names the 2000 kN limit on pad level 1. Pad level 2 does not name it. The upgrade stays available.
 - Lighten the stage is off the rocket sheet, the factory card, and the Wiki lines that offered it. The cut waits until a flight uses dry mass. The factory job stays in the code.
 - The Propellant page names a fill to the cap before the boil-off. A running stage job on the map reads Stage dry mass. Tab stays on Start over and Cancel while the Restart confirm is open. Cancel and Escape return focus to the control that opened it.
-- The fire button stays off when the pad is short, so Structure does not drop to 60. `0.14.0-defects` still gives a real short part the tests can find, and it is the row that lets a short pad or a short engine light. `0.15.0-hop` is still its own short methane flight, not the hidden RP-1 launch. `index.html?test` still starts at 150 money, 0 steel, empty tanks, and an empty yard. A day is half a second. The previous live file is `archive/index-0.13.0-proof.html`.
+- The fire button stays off when the pad is short, so Structure does not drop to 60. `0.14.0-defects` still gives a real short part the tests can find, and it is the row that lets a short pad or a short engine light. `0.18.0-hop` is still its own short methane flight, not the hidden RP-1 launch. `index.html?test` still starts at 150 money, 0 steel, empty tanks, and an empty yard. A day is half a second. The previous live file is `archive/index-0.13.0-proof.html`.
 
 ## `0.14.0-defects` — 2026-11-10
 
@@ -303,3 +316,12 @@ History of what **shipped**, keyed by **version**.
 - A short pad or a short engine lights. That fire is a miss. The first lit fire still pays 60. A later clean fire pays 80 and does not pay the 60 again. A lit miss clears the tests and the skips, and it shows the Structure life this fire wrote. A closed range or a short tank does not light, does not load, and does not ask for an empty.
 - A lit miss takes 40 off Structure. An engine miss also sets engine seconds to 0. A pad miss spends 5 seconds. Structure 60 becomes 20, which stays, because scrap is under 20. The next cryo fails until the bay refurbs Structure. Raise Raptor thrust sets the stored thrust to 2256 kN with the tier.
 - `index.html?test` adds skipCryoProof, skipTankingRun, and the new snap fields. The start is still 150 money, 0 steel, empty tanks, and an empty yard. A day is half a second. The previous live file is `archive/index-0.13.1-fixes.html`.
+
+## `0.14.1-teeth` — 2026-11-12
+
+**Version:** `0.14.1-teeth`
+
+- The static fire reads Structure and the fuel lines. A skipped short still lights, and that fire is a miss. A fail names the part. Structure falls by 40. Short fuel lines still light, and thrust ends early. A closed range or a short tank is a scrub. A scrub does not light and damages nothing.
+- The game writes the yard at the end of each day. It also writes when the page closes, unless a fill, a fire, or a flight is running. A reload continues that yard. Restart asks, then clears the save. `index.html?test` does not write `starbase-save`.
+- In Mega Bay, the fix button for a part stays off until the pad has checked that part. A skip leaves that button off. A cryo proof checks Structure. A tanking run checks the fuel lines. A static fire that lights checks Structure, the fuel lines, and the engine. After that, the bay can fix the part.
+- The previous live file is `archive/index-0.14.0-defects.html`.
