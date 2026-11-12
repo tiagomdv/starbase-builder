@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>0.14.1-teeth · design — starbase-builder</title>
+  <style>
+    :root {
+      --bg: #1c2118; --panel: #2a2218; --panel2: #221c14; --border: #5a4830;
+      --text: #e8d9b0; --muted: #a89878; --accent: #d4a84b; --link: #e8c56a; --code: #c4e08a;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; line-height: 1.55; }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 1.5rem 1.25rem 4rem; }
+    .doc-hero { background: linear-gradient(180deg, #2a2218, #1c2118); border: 1px solid var(--border); border-radius: 0.85rem; padding: 1.15rem 1.25rem 1.25rem; margin-bottom: 1.25rem; }
+    .doc-hero h1 { font-size: 1.55rem; font-weight: 650; color: #f5edd8; margin: 0.35rem 0 0.4rem; }
+    .doc-hero .lede { margin: 0; font-size: 0.9rem; color: var(--muted); max-width: 56rem; }
+    .role {
+      margin: 0 0 12px; padding: 12px 14px; background: #24180f; color: #f4ead8;
+      border-left: 6px solid #c45c26; font: 15px/1.45 system-ui, sans-serif;
+    }
+    .meta-row { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+    .tag { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 999px; background: #3a2e20; color: #e8c56a; border: 1px solid #6a5638; }
+    .tag.muted { background: #1e1a14; color: var(--muted); border-color: #4a3c28; }
+    .doc-grid { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 1.25rem; align-items: start; }
+    @media (max-width: 860px) { .doc-grid { grid-template-columns: 1fr; } .toc { position: static !important; } }
+    .toc { position: sticky; top: 0.75rem; background: var(--panel); border: 1px solid var(--border); border-radius: 0.65rem; padding: 0.75rem 0.85rem; max-height: calc(100vh - 1.5rem); overflow-y: auto; }
+    .toc .section-label { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); font-weight: 600; margin-bottom: 0.5rem; }
+    .toc ol { margin: 0; padding-left: 1.1rem; font-size: 0.78rem; }
+    .toc li { margin: 0.22rem 0; }
+    .toc a { color: var(--link); text-decoration: none; }
+    h2 { font-size: 1.12rem; color: #f5edd8; margin: 1.6rem 0 0.65rem; padding-bottom: 0.35rem; border-bottom: 1px solid var(--border); scroll-margin-top: 0.75rem; }
+    h3 { font-size: 0.95rem; color: var(--accent); margin: 1.1rem 0 0.4rem; scroll-margin-top: 0.75rem; }
+    p, li { font-size: 0.9rem; }
+    p { margin: 0.45rem 0 0.7rem; }
+    ul, ol { margin: 0.35rem 0 0.75rem; padding-left: 1.35rem; }
+    li { margin: 0.28rem 0; }
+    table.doc { width: 100%; border-collapse: collapse; font-size: 0.84rem; margin: 0.45rem 0 0.9rem; }
+    table.doc th, table.doc td { border: 1px solid var(--border); padding: 0.45rem 0.55rem; text-align: left; vertical-align: top; }
+    table.doc th { background: var(--panel2); color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; }
+    table.doc td { background: rgba(42,34,24,0.45); }
+    pre { background: var(--panel2); border: 1px solid var(--border); padding: 0.8rem 0.9rem; overflow-x: auto; font-size: 0.78rem; line-height: 1.45; }
+    code { font-family: ui-monospace, Menlo, monospace; color: var(--code); font-size: 0.86em; }
+    pre code { color: var(--text); }
+    strong { color: #f5edd8; }
+    .footer-note { color: var(--muted); font-size: 0.82rem; margin-top: 2rem; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="doc-hero">
+      <div class="meta-row">
+        <span class="tag">0.14.1-teeth</span>
+        <span class="tag muted">Design · not shipped</span>
+        <span class="tag muted">2026-11-11</span>
+      </div>
+      <h1>The static fire reads the parts</h1>
+      <p class="lede">
+        The live game is <code>0.14.0-defects</code>. This page is the build for the next row.
+        The static fire learns to read Structure and Fuel lines. The yard learns to stay after a reload.
+        Tiago reviews this page before any code.
+      </p>
+    </header>
+    <div class="role">
+      The lines named below are from <code>index.html</code> on this branch. Recheck them before you edit. The file moves.
+    </div>
+    <div class="doc-grid">
+      <nav class="toc">
+        <div class="section-label">On this page</div>
+        <ol>
+          <li><a href="#see">What you see</a></li>
+          <li><a href="#fire">The fire rule</a></li>
+          <li><a href="#cards">Cards and the debrief</a></li>
+          <li><a href="#save">The save</a></li>
+          <li><a href="#reload">Reload, Restart, and test</a></li>
+          <li><a href="#buttons">Upgrade buttons</a></li>
+          <li><a href="#goal">Goal 01</a></li>
+          <li><a href="#log">The log</a></li>
+          <li><a href="#chance">Chance fields</a></li>
+          <li><a href="#out">Out of scope</a></li>
+          <li><a href="#hooks">Test hooks</a></li>
+          <li><a href="#check">Acceptance</a></li>
+          <li><a href="#docs">Docs after ship</a></li>
+        </ol>
+      </nav>
+      <article>
+        <h2 id="see">What you see</h2>
+        <p>You skip the cryo proof on TA-1. Structure stays 60. You skip the tanking run. You press Static fire with full tanks and an open range. The engine lights. The fire misses. The log names Structure. Structure falls from 60 to 20. The tests clear. The rocket needs Mega Bay.</p>
+        <p>A later article leaves with Fuel lines at 0 seconds. You skip the tanking run. The engine lights. Thrust ends as the engine lights, because a line at 0 is under the 5 second hold. The log names Fuel lines. Structure falls by 40, from 100 to 60. The lines stay at 0 seconds, because a static fire still does not spend them.</p>
+        <p>A closed range does not light. A short methane tank or a short oxygen tank does not light. The rocket keeps its life. A scrub never damages hardware.</p>
+        <p>You play a few days. You reload the file. The yard, the purse, the fleet, and the day are still there. Restart asks, then starts a new game. <code>index.html?test</code> does not write over that save.</p>
+
+        <h2 id="fire">The fire rule</h2>
+        <p><code>fireShorts</code> at line 1904 lists weather, methane, oxygen, the pad, and the engine. It does not read Structure or Fuel lines. <code>staticFire</code> at line 2089 calls <code>fireCheck</code> at line 1945. A skip counts as done. <code>proofSettled</code> and <code>tankSettled</code> at lines 2143 and 2144 treat a skip as settled. That is why a skipped short can still hold.</p>
+        <p>The floors already exist. Structure needs 70. That is <code>PROOF_STRUCT_MIN</code> at line 671. Fuel lines need 5 seconds. That is <code>TANKING_LINES_MIN</code> at line 677. A new article can leave at Structure 60, Fuel lines 0 seconds, or thrust 1400 kN. Those are <code>DEFECT_STRUCT</code>, <code>DEFECT_LINES_S</code>, and <code>DEFECT_THRUST_KN</code> at lines 679 to 681. The engine floor stays 1500 kN. That is <code>SF_THRUST_BAR_KN</code> at line 728.</p>
+        <p><code>fireCheck</code> keeps the shared list, then adds two shorts of its own. Add <code>structure</code> when stage life is under 70. Add <code>fitting</code> when fuel-line seconds are under 5. Those two checks stay in <code>fireCheck</code>. <code>fireShorts</code> stays the shared list. The hidden launch calls it too, and it already has its own fuel-line rule.</p>
+        <p>The order on the fire is weather, methane, oxygen, Structure, Fuel lines, the pad, then the engine. The log names every short part, not only the first.</p>
+        <p><code>isScrub</code> at line 1915 stays weather, methane, and oxygen. Structure and Fuel lines are not scrubs. A short pad and a short engine are not scrubs. Those four can light.</p>
+        <p>A lit miss uses the rule that already exists. <code>afterFireLives</code> at line 1937 takes 40 off Structure. That 40 is <code>SF_MISS_CONDITION</code> at line 729. It takes 40 once, even when two parts are short. The engine loses 5 seconds, unless the engine itself is short. A short engine still sets the seconds to 0. Fuel-line seconds do not change. Scrap is still under 20. That is <code>SCRAP_FLOOR</code> at line 732. Structure 60 becomes 20, and the rocket stays. Structure 100 becomes 60.</p>
+        <p>The debrief names the part the player knows. Structure reads Structure. Fuel lines read Fuel lines. <code>shortReason</code> at line 2015 has no Structure line today. The fallback says the engine is short. Add a Structure line so a structure miss cannot wear the engine's name. The fuel-line phrase is already there.</p>
+        <p>A fire that lights marks Structure and Fuel lines as tested, because the fire read them. It still marks the engine tested, as it does today. The sheet can then show 60, or 0 seconds, instead of hiding them behind "not tested". <code>worstPart</code> at line 1240 skips an untested part. That is why a clean engine can read 97 percent while Structure 60 stays hidden. After this row, a short that the fire read is on the sheet.</p>
+        <p>A lit miss still clears the cryo proof, the tanking run, and both skips. A clean fire still keeps them. <code>applySfOutcome</code> at line 2310 already does that. The first lit fire still pays 60. The first clean fire still pays 80. Those are <code>GOAL_PAY</code> at lines 636 and 639. A miss still loads 609 kg of methane and 2193 kg of liquid oxygen. A scrub still loads nothing.</p>
+        <p>Short Fuel lines keep the pad rule. The engine lights. Thrust ends at the Fuel lines seconds, capped at the 5 second hold. A line at 0 cuts as the engine lights. The hidden launch asks for 169 seconds, <code>FITTING_BURN_S</code> at line 768. Thrust ends at 34 seconds, <code>FITTING_ABORT_S</code> at line 770. <code>startFly</code> at line 2441 sets that cut. Those two numbers stay on the launch. The static fire does not copy them. For a fuel-line miss, the anomaly label reads Fuel lines, and the log says thrust ends early. A Fuel-lines miss takes 40 Structure because every lit miss does, per decision 5.</p>
+        <p>A failed cryo proof and a failed tanking run stay what they are. They name the part and damage nothing. This row does not change their prices, their days, or their floors.</p>
+
+        <h2 id="cards">Cards and the debrief</h2>
+        <p>The skip cards and the fire card print the floors before you commit.</p>
+        <table class="doc">
+          <thead><tr><th>Card</th><th>What it says</th></tr></thead>
+          <tbody>
+            <tr><td>Skip the cryo proof</td><td>Structure needs 70. A skip leaves it untested.</td></tr>
+            <tr><td>Skip the tanking run</td><td>Fuel lines need 5 seconds. A skip leaves them untested.</td></tr>
+            <tr><td>Static fire, ready to hold</td><td>Structure needs 70. Fuel lines need 5 seconds. Thrust holds.</td></tr>
+            <tr><td>Static fire, Structure 60</td><td>Structure is short. It needs 70 and has 60. The button still lights.</td></tr>
+            <tr><td>Static fire, Fuel lines 0</td><td>The fuel lines are short. They need 5 seconds and have 0. Thrust ends early. The button still lights.</td></tr>
+            <tr><td>Try static fire, range or tank short</td><td>The button stays off. The line names every short, including Structure or Fuel lines if those are short too. No fluid moves. No life changes.</td></tr>
+          </tbody>
+        </table>
+        <p>The skip log names the same floor. TA-1 skips the cryo proof, and the log says Structure needs 70 and the tanks stay unproven. TA-2 skips the tanking run, and the log says Fuel lines need 5 seconds and the lines stay unproven.</p>
+        <p>A structure miss logs two lines. The first says TA-1 misses the static fire, Structure is short, it needs 70, and it has 60. The second says TA-1 failed, Structure is short, and Structure is 20. A fuel-line miss names Fuel lines, says thrust ends early, and prints the Structure life this fire wrote. The footer on the fire uses those same words. Today that footer can only say Pad or Engine. <code>startEventSF</code> at line 2259 picks that label.</p>
+
+        <h2 id="save">The save</h2>
+        <p>The live file has no <code>localStorage</code> and no <code>sessionStorage</code>. <code>restartGame</code> at line 5204 reloads the page, and the yard is gone. This row writes one save in the browser.</p>
+        <p>The key is <code>starbase-save</code>. The version key inside the file is <code>version</code>, and the value is <code>1</code>. A file with any other version stays on disk and does not load. The game starts empty and logs that this save is from another version. A file that will not parse stays on disk too. The game logs that the save could not be read, then starts empty. The game does not delete a file it does not understand.</p>
+        <p>The label sits next to the version so a person can see the row. <code>seed</code> is null. <code>0.14.2-seed</code> fills it later. This row does not roll defects or weather from a seed. Article n still takes part (n - 1) modulo 3. The sky stays the 10-day table.</p>
+        <pre><code>{
+  "version": 1,
+  "label": "0.14.1-teeth",
+  "seed": null,
+  "day": 4,
+  "dayAcc": 0,
+  "paused": false,
+  "money": 18,
+  "steel": 12,
+  "ch4Level": 1,
+  "loxLevel": 1,
+  "ch4": 609,
+  "lox": 2193,
+  "fireDays": [3],
+  "testDays": [{ "day": 3, "kind": "proof-skip" }],
+  "builtArticles": 1,
+  "defectRestored": { "stage": false, "fitting": false, "engine": false },
+  "nextId": 4,
+  "selectedId": 2,
+  "selectedVehicleId": 3,
+  "plots": { "starfactory": true, "mega_bay": true, "pad_orbital": true },
+  "objectives": { "place_all": true },
+  "buildings": [{ "id": 1, "type": "starfactory", "gx": 2, "gy": 6, "level": 1 }],
+  "fleet": [],
+  "factoryJob": null,
+  "rollouts": [],
+  "log": [{ "msg": "TA-1 complete at Starfactory.", "kind": "good" }]
+}</code></pre>
+        <p>The sample above is the shape, not a real yard. A vehicle keeps the fields <code>finishFactoryJob</code> already writes at line 1544, plus <code>fires</code>, <code>needsDetank</code>, and the test flags. A building keeps id, type, gx, gy, and level. A rollout keeps the plain fields a road roll, a raise, or a lower already uses. The log keeps the message and the kind, up to the 45 lines <code>log()</code> already stores at line 1093.</p>
+        <p>The save writes the fields the live game reads. It does not write the dormant kerosene stock. The camera, the open sheet, and the drag are not saved. The map opens the way a new game opens. <code>nextId</code> must stay above every saved id. If it is missing, set it to one more than the highest id in the file.</p>
+        <p>Autosave runs at the end of <code>dayTick</code> at line 1408, after the jobs for that day resolve. The saved day is the new day. If a fill, a fire, or a flight is on the clock, the save waits for the next day tick after that motion is gone. A road roll, a raise, and a lower can sit in the file. On load, those motions resume. A motion whose vehicle is missing is dropped. The day boundary is enough for a buy or a roll. The game never saves on a buy or a roll.</p>
+        <p>The game also saves on <code>pagehide</code>, and only when no fill, fire, or flight is running. A reload during one of those motions keeps the last save. A reload while the pad is idle writes the open day first, then the page continues that yard.</p>
+
+        <h2 id="reload">Reload, Restart, and test</h2>
+        <p>A normal open looks for <code>starbase-save</code>. If the version is 1, the game continues that yard and does not add the three intro lines. If the key is missing, the game starts as it does today. The purse is 150. Steel is 0. The tanks and the yard are empty. Day 1 has no save yet. The first autosave lands when day 1 becomes day 2, and only if no fill, fire, or flight is in the way.</p>
+        <p>Restart still opens the card at line 598. The words stay "Start a new game? The current yard is lost." Cancel closes the card and leaves the save. Start over removes <code>starbase-save</code>, then reloads. The new page finds no save and starts empty.</p>
+        <p><code>?test</code> is the flag at line 613. README already says that start is not saved. This row keeps that promise. A test page does not read <code>starbase-save</code> and does not write it. Autosave does not run. Restart on a test page reloads and skips the confirm, as it does today, and it does not delete <code>starbase-save</code>.</p>
+        <p>The hook <code>saveNow</code> writes a different key, <code>starbase-save-test</code>, and returns true. It never writes the real key. <code>loadSave</code> reads the test key only. If that key is missing, it returns false and leaves the test yard. Opening the test page does not call either hook. A player who opens <code>?test</code> beside a real game does not lose the real game.</p>
+
+        <h2 id="buttons">Upgrade buttons</h2>
+        <p><code>upgradeRow</code> at line 3393 always prints Build. The pad, the methane tank, the LOX tank, and the bay slot all use it. The button names the action instead.</p>
+        <table class="doc">
+          <thead><tr><th>Row</th><th>Button when you can press it</th><th>Button when steel is short</th></tr></thead>
+          <tbody>
+            <tr><td>Pad level 2, 40 steel</td><td>Raise to level 2</td><td>Need 40 steel.</td></tr>
+            <tr><td>Add bay slot, 30 steel</td><td>Add a slot</td><td>Need 30 steel.</td></tr>
+            <tr><td>Methane tank, 24 steel</td><td>Add the methane tank</td><td>Need 24 steel.</td></tr>
+            <tr><td>LOX tank, 24 steel</td><td>Add the LOX tank</td><td>Need 24 steel.</td></tr>
+          </tbody>
+        </table>
+        <p>The row still shows the name and the steel cost. The period on "Need 40 steel." matches the log. A busy fill or a busy fire can turn a tank button off while the steel is enough. The button then keeps its action name. The prices stay 40, 30, and 24. Those are <code>PAD_L2_COST</code>, <code>BAY_SLOT_COST</code>, <code>CH4_TANK_COST</code>, and <code>LOX_TANK_COST</code>.</p>
+
+        <h2 id="goal">Goal 01</h2>
+        <p><code>renderObjectives</code> at line 3697 labels the first goal "Buy both sites". <code>PLOTS</code> at line 4072 has three plots. Starfactory costs 40 steel. Mega Bay costs 50. The Orbital Pad costs 40. <code>updateObjectives</code> already pays when all three exist. The pay stays 40 money. Only the words change. Goal 01 reads "Buy the three plots."</p>
+
+        <h2 id="log">The log</h2>
+        <p>The footer log is <code>h-14</code> at line 565. The font is 11px and the line height is 1.35, at line 351. That box shows about 3 lines. <code>log()</code> at line 1094 still paints 12 lines, and it stores 45. Change the class from <code>h-14</code> to <code>h-28</code>. That is 112px, about 6 lines visible. The box scrolls. The newest line stays first. The store stays 45. The slice stays 12. Do not shrink the map further.</p>
+
+        <h2 id="chance">Chance fields</h2>
+        <p><code>ROCKET_DEFS</code> still holds <code>sfSuccess</code> and <code>scrapOnFailChance</code> on Falcon 1 at lines 955 and 958, and on Falcon 9 at lines 976 and 979. Nothing else reads them. The live article block at lines 931 to 942 has neither field. Delete those four fields, and delete the comment above the Falcon 1 chance. Do not replace them with another percent. A number the player sees has to be a tank, a thrust, a wind, a day, or a life.</p>
+
+        <h2 id="out">Out of scope</h2>
+        <ul>
+          <li>The seed, and a new weather table. Those are <code>0.14.2-seed</code>. This save only reserves <code>seed: null</code>.</li>
+          <li>Speed 1x, 2x, 4x, and skip to the next event. Those ride with the seed.</li>
+          <li>The hop, the camera, the countdown, the flame size, and the height choices. Those are <code>0.15.0-hop</code>.</li>
+          <li>Program reviews and their pay. The seven goal pays stay as they are.</li>
+          <li>A parallel factory build, and a cadence number in the header. Those are <code>0.15.1-pipeline</code>.</li>
+          <li>The high hop. That row stays the high hop only.</li>
+          <li>Milestone cards, sound, and a Careful build.</li>
+          <li>Inlining the Tailwind CSS, and any file split. Those wait for <code>0.16.1-split</code>. The CDN script stays for this row.</li>
+          <li>Hiding 1080 kg and 27572 kg, or any dry-mass rewrite. The sheet keeps the numbers it has.</li>
+          <li>New parts on <code>site-objects-design.html</code>. No new pad part.</li>
+          <li>The hidden launch. 169 seconds and the 34 second cut stay where they are.</li>
+        </ul>
+
+        <h2 id="hooks">Test hooks</h2>
+        <p>The <code>?test</code> object <code>window.__sb</code> starts at line 5315. Keep <code>snap</code>, <code>skipCryoProof</code>, <code>skipTankingRun</code>, <code>lockSky</code>, <code>cryoProof</code>, <code>tankingRun</code>, <code>staticFire</code>, and <code>restartGame</code>. Keep the other hooks that already sit on that object. Add <code>saveNow</code> and <code>loadSave</code>.</p>
+        <p><code>snap</code> gains three fields. <code>saved</code> is true only when <code>starbase-save</code> exists. A test page must not create that key, so this flag shows the real save and not the test one. <code>seed</code> is null until <code>0.14.2-seed</code>. <code>fireShorts</code> is the short list from the last <code>fireCheck</code>. After a miss it includes <code>structure</code> or <code>fitting</code>. Before any check it is an empty list.</p>
+
+        <h2 id="check">Acceptance</h2>
+        <p>Tiago runs these in the browser. A normal file is <code>index.html</code>. The test file is <code>index.html?test</code>.</p>
+        <ol>
+          <li>TA-1, skip the proof and the tanking run, Structure 60. The fire lights and misses. The log names Structure. Structure falls by 40, from 60 to 20. The tests clear. The rocket needs the bay.</li>
+          <li>After that refurb, a later article with Fuel lines at 0. Skip the tanking run. The fire lights and misses. The log names Fuel lines. Thrust ends early. Structure falls by 40.</li>
+          <li>A healthy article, both tests skipped. The fire holds. It pays the clean-fire goal if that goal is still open. It pays the first-fire goal too, if that one is still open.</li>
+          <li>Range closed. Try static fire stays off. No fluid. No life change.</li>
+          <li>Short methane or short oxygen. Same scrub. The rocket is whole.</li>
+          <li>Play a few days, then reload the file. The yard, the purse, the fleet, and the day come back.</li>
+          <li>Restart asks. Start over clears the save and starts a new game. Cancel leaves the save.</li>
+          <li>Open <code>index.html?test</code>. That start does not write <code>starbase-save</code>. A real save that was already there is still there.</li>
+          <li>Goals sheet line 01 reads "Buy the three plots."</li>
+          <li>The pad upgrade button reads "Raise to level 2". With under 40 steel it reads "Need 40 steel."</li>
+          <li>The footer log uses <code>h-28</code>. About 6 lines show, and the rest scroll. The newest line is first. The store stays 45 and the slice stays 12.</li>
+          <li>Search the file for <code>sfSuccess</code> and <code>scrapOnFailChance</code>. Both are gone.</li>
+        </ol>
+
+        <h2 id="docs">Docs after ship</h2>
+        <p>These updates happen in the ship pass, after the browser checks pass. This design page does not do them now.</p>
+        <ul>
+          <li><code>VERSION</code> becomes <code>0.14.1-teeth</code>. The version line in the header follows it.</li>
+          <li>README live-release line. The next row becomes <code>0.14.2-seed</code>. The line says the fire reads Structure and Fuel lines, and that a reload continues the yard.</li>
+          <li>One new section in <code>IMPLEMENTATION_LOG.md</code>. Leave the <code>0.14.0-defects</code> section as it is.</li>
+          <li><code>FUTURE_FEATURES.md</code> drops <code>0.14.1-teeth</code> from the open rows and points the next row at <code>0.14.2-seed</code>. The fire sentence matches what shipped. There is no separate chance-field note in that file today. Do not add one in order to delete it.</li>
+          <li><code>design-docs/program-roadmap-design.html</code> marks <code>0.14.1-teeth</code> shipped. The next row is <code>0.14.2-seed</code>.</li>
+          <li>Archive <code>index-0.14.0-defects.html</code> and append <code>archive/MANIFEST.md</code>.</li>
+          <li>Wiki copy ships in the same <code>index.html</code> pass. How a test works, around lines 2928 and 2932, still says the fire holds on thrust, the pad, methane, oxygen, and wind. The Orbital Pad page at line 3222 says the same. Mega Bay at line 3195 says the fire checks thrust, propellant, and wind. Numbers should follow the new fire rule if a line there still omits Structure and Fuel lines. A fail still names the part. A scrub still damages nothing.</li>
+          <li><code>site-objects-design.html</code> stays put.</li>
+        </ul>
+
+        <p class="footer-note">Tiago answered the pad rule and the save on 2026-11-11. Thrust ends at the Fuel lines seconds, capped at the 5 second hold. The day boundary is enough, and pagehide saves only when no fill, fire, or flight is running. The log class is <code>h-28</code>.</p>
+      </article>
+    </div>
+  </div>
+</body>
+</html>

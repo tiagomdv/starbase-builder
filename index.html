@@ -562,7 +562,7 @@
 
   <footer class="ui-panel border-x-0 border-b-0 shrink-0" style="display:flex; align-items:stretch;">
     <button type="button" id="wiki-open">Wiki</button>
-    <div id="log" class="px-3 py-1.5 h-14 overflow-y-auto flex-1"></div>
+    <div id="log" class="px-3 py-1.5 h-28 overflow-y-auto flex-1"></div>
   </footer>
 
   <div id="wiki-sheet" aria-hidden="true">
@@ -951,11 +951,8 @@
       sfStyle: "merlin_single",
       mapScale: 0.82,
       color: "#c8d0d8",
-      /** Base P(success) on a green pad with fresh vehicle */
-      sfSuccess: 0.72,
       refurbDaysOk: 2,
       refurbDaysFail: 4,
-      scrapOnFailChance: 0.35,
       blurb: "One Merlin. The fire follows thrust, the pad, the tanks, and the sky.",
       sfPhases: { approach: 1.0, chill: 1.0, ignition: 0.85, burn: 1.9, shutdown: 0.75, debrief: 1.0 },
       unlocked: false,
@@ -973,10 +970,8 @@
       sfStyle: "merlin_nine",
       mapScale: 1.12,
       color: "#e8eef4",
-      sfSuccess: 0.82,
       refurbDaysOk: 1,
       refurbDaysFail: 1,
-      scrapOnFailChance: 0.22,
       blurb: "Nine-engine first stage. Heavier fire, higher base reliability.",
       sfPhases: { approach: 1.15, chill: 1.4, ignition: 1.2, burn: 3.2, shutdown: 1.0, debrief: 1.2 },
       unlocked: false,
@@ -1088,9 +1083,7 @@
     fleetList: null,
   };
 
-  function log(msg, kind = "info", opts = {}) {
-    G.log.unshift({ msg, kind, roll: opts.roll || null });
-    if (G.log.length > 45) G.log.pop();
+  function paintLog() {
     el.log.innerHTML = G.log.slice(0, 12).map((e) => {
       const v = e.roll ? vehicleById(e.roll) : null;
       // The button shows only while that rocket still waits in the factory, so an old line cannot roll it twice.
@@ -1098,6 +1091,11 @@
         ? ` <button type="button" class="log-roll" data-roll="${v.id}">Roll ${esc(v.name)} to Mega Bay</button>` : "";
       return `<div class="${e.kind}">${esc(e.msg)}${btn}</div>`;
     }).join("");
+  }
+  function log(msg, kind = "info", opts = {}) {
+    G.log.unshift({ msg, kind, roll: opts.roll || null });
+    if (G.log.length > 45) G.log.pop();
+    paintLog();
   }
   // A count of one reads "1 day", so the player never sees "1 days".
   function dayCount(n) { return n === 1 ? "1 day" : `${n} days`; }
@@ -1435,6 +1433,7 @@
       }
     }
     renderChrome();
+    autosave();
   }
 
   // A proof or a tanking run ends on the mount. It never sets ready, and it does not touch inspectLeft.
@@ -1934,13 +1933,21 @@
   }
 
   // A lit fire spends the 5 second hold on the engine. The fuel lines stay put.
-  function afterFireLives(v, success, limiter) {
+  function afterFireLives(v, success, limiter, shorts) {
     let engine = Math.max(0, (v.engineLifeS || 0) - 5);
     let stage = v.stageLife || 0;
-    if (!success && limiter === "engine") engine = 0;
+    const engineShort = limiter === "engine" || (shorts && shorts.indexOf("engine") >= 0);
+    if (!success && engineShort) engine = 0;
     if (!success) stage = Math.max(0, stage - TUNING.SF_MISS_CONDITION);
     return { engine, stage };
   }
+
+  // The static fire hold is 5 seconds. Fuel lines cannot stretch that hold.
+  function padThrustS(v) {
+    return Math.min(5, Math.max(0, (v && v.fittingLifeS) || 0));
+  }
+
+  let lastFireShorts = [];
 
   function fireCheck(v, pad) {
     const sky = weatherOn(G.day);
@@ -1948,7 +1955,19 @@
     const thrust = engineNowKn(v);
     const needCh4 = TUNING.SF_CH4_KG;
     const needLox = TUNING.SF_LOX_KG;
-    const shorts = fireShorts(thrust, limits.thrust, G.ch4, G.lox, needCh4, needLox, sky.wind, limits.wind, sky.storm, "ch4");
+    const shared = fireShorts(thrust, limits.thrust, G.ch4, G.lox, needCh4, needLox, sky.wind, limits.wind, sky.storm, "ch4");
+    const head = [];
+    const tail = [];
+    for (const word of shared) {
+      if (word === "pad" || word === "engine") tail.push(word);
+      else head.push(word);
+    }
+    // Structure and Fuel lines stay off the shared list. The hidden launch has its own line rule.
+    const shorts = head.slice();
+    if ((v.stageLife || 0) < TUNING.PROOF_STRUCT_MIN) shorts.push("structure");
+    if ((v.fittingLifeS || 0) < TUNING.TANKING_LINES_MIN) shorts.push("fitting");
+    shorts.push(...tail);
+    lastFireShorts = shorts.slice();
     const word = shorts[0] || "hold";
     return {
       ok: word === "hold",
@@ -2018,9 +2037,42 @@
     if (word === "rp1") return "Fuel is short";
     if (word === "lox") return "Liquid oxygen is short";
     if (word === "pad") return "The pad is short";
+    if (word === "structure") return "Structure is short";
     if (word === "fitting") return "The fuel lines are short";
     if (word === "engine") return "The engine is short";
     return "The engine is short";
+  }
+
+  function shortDetail(v, word) {
+    if (word === "structure") {
+      const have = Math.round((v && v.stageLife) || 0);
+      return `Structure is short. It needs ${TUNING.PROOF_STRUCT_MIN} and has ${have}`;
+    }
+    if (word === "fitting") {
+      const have = Math.max(0, Math.round((v && v.fittingLifeS) || 0));
+      return `The fuel lines are short. They need ${TUNING.TANKING_LINES_MIN} seconds and have ${have}. Thrust ends early`;
+    }
+    return shortReason(word);
+  }
+
+  function missWords(v, check) {
+    const shorts = check && check.shorts && check.shorts.length ? check.shorts : [];
+    if (!shorts.length) return shortReason(check && check.limiter);
+    return shorts.map((word) => shortDetail(v, word)).join(". ");
+  }
+
+  function fireCardLine(v, check) {
+    if (check && check.ok) {
+      return `Structure needs ${TUNING.PROOF_STRUCT_MIN}. Fuel lines need ${TUNING.TANKING_LINES_MIN} seconds. Thrust holds.`;
+    }
+    return `${missWords(v, check)}.`;
+  }
+
+  function anomalyName(word) {
+    if (word === "structure") return "Structure";
+    if (word === "fitting") return "Fuel lines";
+    if (word === "pad") return "Pad";
+    return "Engine";
   }
 
   function finishScrub(v, check, kind) {
@@ -2119,7 +2171,7 @@
     if (v.proofSkipped) return;
     v.proofSkipped = true;
     G.testDays.push({ day: G.day, kind: "proof-skip" });
-    log(`${v.name} skips the cryo proof. The tanks stay unproven.`, "info");
+    log(`${v.name} skips the cryo proof. Structure needs ${TUNING.PROOF_STRUCT_MIN} and the tanks stay unproven.`, "info");
     renderChrome();
   }
 
@@ -2136,7 +2188,7 @@
     if (v.tankingSkipped) return;
     v.tankingSkipped = true;
     G.testDays.push({ day: G.day, kind: "tanking-skip" });
-    log(`${v.name} skips the tanking run. The fuel lines stay unproven.`, "info");
+    log(`${v.name} skips the tanking run. Fuel lines need ${TUNING.TANKING_LINES_MIN} seconds and the lines stay unproven.`, "info");
     renderChrome();
   }
 
@@ -2184,9 +2236,9 @@
       check,
       purpose: launch ? "launch" : "fire",
     });
-    if (check && !check.ok) log(`${v.name} tries the ${launch ? "launch" : "static fire"}. ${reasonText(check)}.`, "bad");
+    if (check && !check.ok && launch) log(`${v.name} tries the launch. ${reasonText(check)}.`, "bad");
     else if (launch) log(`${v.name} loads ${needFuel} kg of fuel and ${needLox} kg of liquid oxygen.`, "info");
-    else log(`${v.name} loads ${needFuel} kg of methane and ${needLox} kg of liquid oxygen.`, "info");
+    else if (!check || check.ok) log(`${v.name} loads ${needFuel} kg of methane and ${needLox} kg of liquid oxygen.`, "info");
   }
 
   function updateFill(r, dt) {
@@ -2225,7 +2277,7 @@
     }
     log(check.ok
       ? `${v.name} holds the static fire.`
-      : `${v.name} misses the static fire. ${reasonText(check)}.`, check.ok ? "good" : "bad");
+      : `${v.name} misses the static fire. ${missWords(v, check)}.`, check.ok ? "good" : "bad");
     startEventSF(v, pad, rocketOf(v.rocketId), check.ok, check);
     renderChrome();
   }
@@ -2241,6 +2293,21 @@
     skip: document.getElementById("event-skip"),
   };
 
+  function missPhases(ph, v, check) {
+    const phases = [
+      { id: "approach", label: "Camera · approach", dur: ph.approach * 0.9 },
+      { id: "chill", label: "Engine chill", dur: ph.chill * 0.85 },
+      { id: "ignition", label: "Ignition", dur: ph.ignition },
+    ];
+    const fittingMiss = check.shorts && check.shorts.indexOf("fitting") >= 0;
+    const thrustS = padThrustS(v);
+    // A short line burns only for the seconds it has, and a line at 0 cuts as the engine lights.
+    if (fittingMiss && thrustS > 0) phases.push({ id: "burn", label: "Thrust", dur: ph.burn * (thrustS / 5) });
+    phases.push({ id: "anomaly", label: anomalyName(check.limiter), dur: 1.6 });
+    phases.push({ id: "fail", label: "Range safe · vehicle compromised", dur: 1.4 });
+    return phases;
+  }
+
   function startEventSF(v, pad, r, success, check) {
     const ph = r.sfPhases;
     const phases = success
@@ -2252,13 +2319,7 @@
           { id: "shutdown", label: "Shutdown", dur: ph.shutdown },
           { id: "debrief", label: "Stable · hold-downs OK", dur: ph.debrief },
         ]
-      : [
-          { id: "approach", label: "Camera · approach", dur: ph.approach * 0.9 },
-          { id: "chill", label: "Engine chill", dur: ph.chill * 0.85 },
-          { id: "ignition", label: "Ignition", dur: ph.ignition },
-          { id: "anomaly", label: check.limiter === "pad" ? "Pad" : "Engine", dur: 1.6 },
-          { id: "fail", label: "Range safe · vehicle compromised", dur: 1.4 },
-        ];
+      : missPhases(ph, v, check);
     // The rollout clock advances this burn, and the stage stays closed.
     setMotion({
       kind: "fire",
@@ -2268,6 +2329,7 @@
       padLevel: pad.level,
       success,
       limiter: success ? null : check.limiter,
+      shorts: (check.shorts || []).slice(),
       t: 0, phaseIdx: 0, phaseT: 0,
       phases,
       done: false,
@@ -2276,21 +2338,22 @@
     });
     elEvent.phase.classList.remove("fail");
     // The footer names the real outcome, because the result is known before the animation starts.
-    const preview = afterFireLives(v, success, success ? null : check.limiter);
+    const preview = afterFireLives(v, success, success ? null : check.limiter, check.shorts);
     const next = sfNext(success, preview.engine, preview.stage);
+    const detail = missWords(v, check);
     document.getElementById("event-outcome").textContent = next.scrap
-      ? `${shortReason(check.limiter)}. The first stage is scrap.`
+      ? `${detail}. The first stage is scrap.`
       : success && next.status === "needs_return"
         ? "Held. The engine is worn. Return to Mega Bay."
         : success
           ? "Held. Data review starts on the mount."
-          : `${shortReason(check.limiter)}. Return to Mega Bay.`;
+          : `${detail}. Return to Mega Bay.`;
     openEvent(
       `Static fire · ${v.name}`,
       phases[0].label,
       success
         ? `${r.name} · thrust ${check.thrust} kN holds · ${check.sky.sky}`
-        : `${r.name} · ${shortReason(check.limiter)}`
+        : `${r.name} · ${anomalyName(check.limiter)}`
     );
   }
 
@@ -2316,7 +2379,7 @@
     if (ev.success) fundGoal("clean_fire");
     countFireDay();
     v.fires = (v.fires || 0) + 1;
-    const lives = afterFireLives(v, ev.success, ev.limiter);
+    const lives = afterFireLives(v, ev.success, ev.limiter, ev.shorts);
     v.engineLifeS = lives.engine;
     v.stageLife = lives.stage;
     const next = sfNext(ev.success, lives.engine, lives.stage);
@@ -2324,25 +2387,27 @@
     v.inspectLeft = next.inspectLeft || 0;
     v.refurbLeft = 0;
     v.refurbPart = null;
-    // A lit miss clears the tests. A clean fire keeps them, even when the engine is worn.
+    // A lit fire read Structure, Fuel lines, and the engine, so the sheet can show them.
     v.engineTested = true;
+    v.structTested = true;
+    v.fittingTested = true;
+    // A lit miss clears the tests. A clean fire keeps them, even when the engine is worn.
     if (!ev.success) {
       v.proofDone = false;
       v.tankingDone = false;
       v.proofSkipped = false;
       v.tankingSkipped = false;
-      // The fail log prints the Structure life this fire wrote, so the sheet may show it.
-      v.structTested = true;
     }
+    const why = (ev.shorts && ev.shorts.length) ? ev.shorts.map(shortReason).join(". ") : shortReason(ev.limiter);
     if (next.scrap) {
       v.buildingId = null;
-      log(`${v.name} is scrap. ${shortReason(ev.limiter)}. Structure is under ${TUNING.SCRAP_FLOOR}.`, "bad");
+      log(`${v.name} is scrap. ${why}. Structure is under ${TUNING.SCRAP_FLOOR}.`, "bad");
     } else if (ev.success && next.status === "inspect") {
       log(`${v.name} held. Data review starts on the mount. ${firedLine(v)}`, "good");
     } else if (ev.success) {
       log(`${v.name} held. The engine is worn. Return it to Mega Bay. ${firedLine(v)}`, "good");
     } else {
-      log(`${v.name} failed. ${shortReason(ev.limiter)}. Structure ${Math.round(v.stageLife)}.`, "bad");
+      log(`${v.name} failed. ${why}. Structure is ${Math.round(v.stageLife)}.`, "bad");
     }
   }
 
@@ -2373,6 +2438,10 @@
     r.t += dt;
     r.phaseT += dt;
     const phase = r.phases[r.phaseIdx];
+    if (phase && elEvent.phase.textContent !== phase.label) {
+      elEvent.phase.textContent = phase.label;
+      elEvent.phase.classList.toggle("fail", phase.id === "anomaly" || phase.id === "fail");
+    }
     if (!r.done && phase && r.phaseT >= phase.dur) {
       r.phaseT = 0;
       r.phaseIdx++;
@@ -3389,10 +3458,12 @@
     return `<div class="row"><span>${k}</span><b>${n}</b></div>`;
   }
 
-  // Compact Upgrade row (locked mock .u) — label · cost + Build, not a gold actCard.
-  function upgradeRow(id, label, cost, disabled) {
-    const dis = disabled ? " disabled" : "";
-    return `<div class="u"><span>${esc(label)} · ${cost} steel</span><button type="button" class="u-btn" id="${id}"${dis}>Build</button></div>`;
+  // The button names the action. Short steel names the cost, and a busy tank keeps the action name.
+  function upgradeRow(id, label, cost, action, busy) {
+    const steelShort = G.steel < cost;
+    const dis = steelShort || busy ? " disabled" : "";
+    const text = steelShort ? `Need ${cost} steel.` : action;
+    return `<div class="u"><span>${esc(label)} · ${cost} steel</span><button type="button" class="u-btn" id="${id}"${dis}>${esc(text)}</button></div>`;
   }
 
   // Description, data, and Upgrade scroll. Do-now actions sit pinned under them.
@@ -3493,7 +3564,7 @@
         html += `<p class="wait">Select a vehicle in the bay to roll it out.</p>`;
       }
       if (cap < TUNING.BAY_MAX) {
-        upgrade += upgradeRow("btn-bay", "Add bay slot", TUNING.BAY_SLOT_COST, G.steel < TUNING.BAY_SLOT_COST);
+        upgrade += upgradeRow("btn-bay", "Add bay slot", TUNING.BAY_SLOT_COST, "Add a slot", false);
       } else {
         upgrade += `<p class="wait">The bay holds ${TUNING.BAY_MAX} vehicles.</p>`;
       }
@@ -3533,7 +3604,7 @@
             : `Liquid nitrogen to ${TUNING.PROOF_BAR} bar.`;
           const proofOff = G.money < TUNING.PROOF_COST ? " disabled" : "";
           acts += actCard(proofOff ? "quiet" : "", "btn-proof", proofOff, "Cryo proof", TUNING.PROOF_COST, "money", proofLine);
-          acts += actCard("quiet", "btn-skip-proof", "", "Skip the cryo proof", null, "", "The tanks stay unproven.");
+          acts += actCard("quiet", "btn-skip-proof", "", "Skip the cryo proof", null, "", `Structure needs ${TUNING.PROOF_STRUCT_MIN}. A skip leaves it untested.`);
         } else if (!tankReady) {
           const shorts = tankingShorts();
           if (shorts.length) {
@@ -3541,10 +3612,10 @@
           } else {
             acts += actCard("", "btn-tank", "", "Tanking", TUNING.SF_CH4_KG, "kg CH4", `${TUNING.TANKING_CH4_LOSS_KG} kg of methane and ${TUNING.TANKING_LOX_LOSS_KG} kg of liquid oxygen boil off.`, TUNING.SF_LOX_KG, "kg LOX");
           }
-          acts += actCard("quiet", "btn-skip-tank", "", "Skip the tanking run", null, "", "The fuel lines stay unproven.");
+          acts += actCard("quiet", "btn-skip-tank", "", "Skip the tanking run", null, "", `Fuel lines need ${TUNING.TANKING_LINES_MIN} seconds. A skip leaves them untested.`);
         } else {
           const check = fireCheck(on, b);
-          const fireLine = check.ok ? "Thrust holds." : `${reasonText(check)}.`;
+          const fireLine = fireCardLine(on, check);
           if (check.ok || !isScrub(check)) {
             acts += actCard("fire", "btn-sf", "", "Static fire", TUNING.SF_CH4_KG, "kg CH4", fireLine, TUNING.SF_LOX_KG, "kg LOX");
           } else {
@@ -3577,17 +3648,17 @@
       if (on) acts += openCard(on);
       const tankBusy = !!(G.event || fluidsMoving());
       if (b.level < 2) {
-        upgrade += upgradeRow("btn-up", "Pad level 2", TUNING.PAD_L2_COST, G.steel < TUNING.PAD_L2_COST);
+        upgrade += upgradeRow("btn-up", "Pad level 2", TUNING.PAD_L2_COST, "Raise to level 2", false);
       } else {
         upgrade += `<p class="wait">The trench is wide. The thrust limit is ${TUNING.PAD_THRUST_L2} kN.</p>`;
       }
       if (G.ch4Level < 2) {
-        upgrade += upgradeRow("btn-ch4", "Methane tank", TUNING.CH4_TANK_COST, tankBusy || G.steel < TUNING.CH4_TANK_COST);
+        upgrade += upgradeRow("btn-ch4", "Methane tank", TUNING.CH4_TANK_COST, "Add the methane tank", tankBusy);
       } else {
         upgrade += `<p class="wait">The methane tank holds ${TUNING.CH4_CAP_L2} kg.</p>`;
       }
       if (G.loxLevel < 2) {
-        upgrade += upgradeRow("btn-lox", "LOX tank", TUNING.LOX_TANK_COST, tankBusy || G.steel < TUNING.LOX_TANK_COST);
+        upgrade += upgradeRow("btn-lox", "LOX tank", TUNING.LOX_TANK_COST, "Add the LOX tank", tankBusy);
       } else {
         upgrade += `<p class="wait">The LOX tank holds ${TUNING.LOX_CAP_L2} kg.</p>`;
       }
@@ -3694,7 +3765,7 @@
 
   function renderObjectives() {
     const items = [
-      ["place_all", "Buy both sites"],
+      ["place_all", "Buy the three plots."],
       ["build_rocket", "Build a rocket at Starfactory"],
       ["multi_bay", "House 2 vehicles in Mega Bay"],
       ["static_fire", "Finish a static fire"],
@@ -5058,7 +5129,7 @@
   }
   function drawFireWord(x, y, ev) {
     if (!burnStarted(ev)) return;
-    const word = ev.success ? "Held" : (ev.limiter === "pad" ? "Pad" : "Engine");
+    const word = ev.success ? "Held" : anomalyName(ev.limiter);
     ctx.font = "bold 12px system-ui";
     ctx.fillStyle = ev.success ? "#c8e2a8" : "#e09080";
     ctx.fillText(word, x - 8, y - 54);
@@ -5201,7 +5272,263 @@
     G.paused = !G.paused;
     renderResources();
   });
+  const SAVE_KEY = "starbase-save";
+  const TEST_SAVE_KEY = "starbase-save-test";
+  let leavingGame = false;
+
+  function storageGet(key) {
+    try { return localStorage.getItem(key); }
+    catch (err) { return null; }
+  }
+  function storageSet(key, text) {
+    try { localStorage.setItem(key, text); return true; }
+    catch (err) { return false; }
+  }
+  function storageDrop(key) {
+    try { localStorage.removeItem(key); }
+    catch (err) { /* A blocked store still lets the new game start. */ }
+  }
+  function finite(value, fallback) {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : fallback;
+  }
+  function vehicleSave(v) {
+    return {
+      id: v.id,
+      name: v.name,
+      rocketId: v.rocketId,
+      buildingId: v.buildingId == null ? null : v.buildingId,
+      status: v.status,
+      engineTier: v.engineTier || 1,
+      structureTier: v.structureTier || 1,
+      fires: v.fires || 0,
+      needsDetank: !!v.needsDetank,
+      proofDone: !!v.proofDone,
+      tankingDone: !!v.tankingDone,
+      testLeft: v.testLeft || 0,
+      engineLifeS: v.engineLifeS,
+      fittingLifeS: v.fittingLifeS,
+      stageLife: v.stageLife,
+      thrustKn: v.thrustKn,
+      proofSkipped: !!v.proofSkipped,
+      tankingSkipped: !!v.tankingSkipped,
+      structTested: !!v.structTested,
+      fittingTested: !!v.fittingTested,
+      engineTested: !!v.engineTested,
+      refurbPart: v.refurbPart || null,
+      refurbLeft: v.refurbLeft || 0,
+      inspectLeft: v.inspectLeft || 0,
+      baySlot: v.baySlot || 0,
+      wx: v.wx,
+      wy: v.wy,
+    };
+  }
+  function rolloutSave(r) {
+    if (!r || (r.kind !== "roll" && r.kind !== "raise" && r.kind !== "lower")) return null;
+    const out = {
+      kind: r.kind,
+      vehicleId: r.vehicleId,
+      t: r.t || 0,
+      duration: r.duration,
+      destKind: r.destKind,
+      destId: r.destId,
+      destStatus: r.destStatus,
+      baySlot: r.baySlot || 0,
+    };
+    if (r.kind === "roll") {
+      if (!Array.isArray(r.pts) || !Array.isArray(r.segLens)) return null;
+      out.pts = r.pts.map((p) => ({ x: Number(p.x) || 0, y: Number(p.y) || 0 }));
+      out.segLens = r.segLens.map((n) => Number(n) || 0);
+      out.totalLen = r.totalLen;
+    } else {
+      out.flatHeading = r.flatHeading == null ? 0 : r.flatHeading;
+    }
+    return out;
+  }
+  function jobSave(job) {
+    if (!job) return null;
+    const out = { kind: job.kind, daysLeft: job.daysLeft, totalDays: job.totalDays };
+    if (job.rocketId) out.rocketId = job.rocketId;
+    if (job.vehicleId != null) out.vehicleId = job.vehicleId;
+    return out;
+  }
+  function savePayload() {
+    const objectives = {};
+    for (const key of Object.keys(G.objectives)) objectives[key] = !!G.objectives[key];
+    return {
+      version: 1,
+      label: "0.14.1-teeth",
+      seed: null,
+      day: G.day,
+      dayAcc: G.dayAcc,
+      paused: !!G.paused,
+      money: G.money,
+      steel: G.steel,
+      ch4Level: G.ch4Level,
+      loxLevel: G.loxLevel,
+      ch4: G.ch4,
+      lox: G.lox,
+      fireDays: G.fireDays.slice(),
+      testDays: G.testDays.map((row) => ({ day: row.day, kind: row.kind })),
+      builtArticles: G.builtArticles,
+      defectRestored: {
+        stage: !!G.defectRestored.stage,
+        fitting: !!G.defectRestored.fitting,
+        engine: !!G.defectRestored.engine,
+      },
+      nextId: G.nextId,
+      selectedId: G.selectedId,
+      selectedVehicleId: G.selectedVehicleId,
+      plots: {
+        starfactory: !!G.plots.starfactory,
+        mega_bay: !!G.plots.mega_bay,
+        pad_orbital: !!G.plots.pad_orbital,
+      },
+      objectives,
+      buildings: G.buildings.map((b) => ({ id: b.id, type: b.type, gx: b.gx, gy: b.gy, level: b.level || 1 })),
+      fleet: G.fleet.map(vehicleSave),
+      factoryJob: jobSave(G.factoryJob),
+      rollouts: G.rollouts.map(rolloutSave).filter(Boolean),
+      log: G.log.slice(0, 45).map((row) => ({ msg: String(row.msg), kind: row.kind || "info" })),
+    };
+  }
+  function writeGameSave(key) {
+    return storageSet(key, JSON.stringify(savePayload()));
+  }
+  // A buy and a roll do not write. The day tick and pagehide do, and only when the pad is idle.
+  function autosave() {
+    if (TEST || leavingGame) return;
+    if (fluidsMoving()) return;
+    writeGameSave(SAVE_KEY);
+  }
+  function applySave(data) {
+    const buildings = [];
+    for (const b of Array.isArray(data.buildings) ? data.buildings : []) {
+      if (!b || !defOf(b.type)) continue;
+      buildings.push({
+        id: finite(b.id, 0),
+        type: b.type,
+        gx: finite(b.gx, 0),
+        gy: finite(b.gy, 0),
+        level: Math.max(1, finite(b.level, 1)),
+      });
+    }
+    const fleet = [];
+    for (const v of Array.isArray(data.fleet) ? data.fleet : []) {
+      if (!v || v.id == null) continue;
+      fleet.push({
+        id: finite(v.id, 0),
+        name: v.name ? String(v.name) : "TA",
+        rocketId: v.rocketId || "article",
+        buildingId: v.buildingId == null ? null : finite(v.buildingId, null),
+        status: v.status || "in_bay",
+        engineTier: finite(v.engineTier, 1),
+        structureTier: finite(v.structureTier, 1),
+        fires: finite(v.fires, 0),
+        needsDetank: !!v.needsDetank,
+        proofDone: !!v.proofDone,
+        tankingDone: !!v.tankingDone,
+        testLeft: finite(v.testLeft, 0),
+        engineLifeS: finite(v.engineLifeS, TUNING.ENGINE_FIRE_LIMIT_S),
+        fittingLifeS: finite(v.fittingLifeS, TUNING.FITTING_LIFE_S),
+        stageLife: finite(v.stageLife, 100),
+        thrustKn: finite(v.thrustKn, TUNING.ENGINE_THRUST_KN),
+        proofSkipped: !!v.proofSkipped,
+        tankingSkipped: !!v.tankingSkipped,
+        structTested: !!v.structTested,
+        fittingTested: !!v.fittingTested,
+        engineTested: !!v.engineTested,
+        refurbPart: v.refurbPart || null,
+        refurbLeft: finite(v.refurbLeft, 0),
+        inspectLeft: finite(v.inspectLeft, 0),
+        baySlot: finite(v.baySlot, 0),
+        wx: finite(v.wx, 0),
+        wy: finite(v.wy, 0),
+      });
+    }
+    const ids = new Set(fleet.map((v) => v.id));
+    const rollouts = [];
+    for (const r of Array.isArray(data.rollouts) ? data.rollouts : []) {
+      const plain = rolloutSave(r);
+      if (!plain || !ids.has(plain.vehicleId)) continue;
+      rollouts.push(plain);
+    }
+    let job = null;
+    if (data.factoryJob && typeof data.factoryJob === "object") {
+      job = jobSave(data.factoryJob);
+      if (job && job.vehicleId != null && !ids.has(job.vehicleId)) job = null;
+    }
+    let nextId = finite(data.nextId, 0);
+    let maxId = 0;
+    for (const b of buildings) if (b.id > maxId) maxId = b.id;
+    for (const v of fleet) if (v.id > maxId) maxId = v.id;
+    if (!(nextId > maxId)) nextId = maxId + 1;
+    G.day = Math.max(1, Math.round(finite(data.day, 1)));
+    G.dayAcc = Math.max(0, Math.min(MS_PER_DAY, finite(data.dayAcc, 0)));
+    G.paused = !!data.paused;
+    G.money = finite(data.money, TUNING.START_MONEY);
+    G.steel = Math.max(0, finite(data.steel, 0));
+    G.ch4Level = finite(data.ch4Level, 1) >= 2 ? 2 : 1;
+    G.loxLevel = finite(data.loxLevel, 1) >= 2 ? 2 : 1;
+    G.ch4 = Math.max(0, finite(data.ch4, 0));
+    G.lox = Math.max(0, finite(data.lox, 0));
+    G.fireDays = (Array.isArray(data.fireDays) ? data.fireDays : []).map((d) => finite(d, 0));
+    G.testDays = (Array.isArray(data.testDays) ? data.testDays : []).map((row) => ({
+      day: finite(row && row.day, 0),
+      kind: row && row.kind ? String(row.kind) : "",
+    }));
+    G.builtArticles = Math.max(0, Math.round(finite(data.builtArticles, 0)));
+    const restored = data.defectRestored || {};
+    G.defectRestored = {
+      stage: !!restored.stage,
+      fitting: !!restored.fitting,
+      engine: !!restored.engine,
+    };
+    G.nextId = nextId;
+    G.selectedId = data.selectedId == null ? null : finite(data.selectedId, null);
+    G.selectedVehicleId = data.selectedVehicleId == null ? null : finite(data.selectedVehicleId, null);
+    const plots = data.plots || {};
+    G.plots = {
+      starfactory: !!plots.starfactory,
+      mega_bay: !!plots.mega_bay,
+      pad_orbital: !!plots.pad_orbital,
+    };
+    const goals = data.objectives || {};
+    for (const key of Object.keys(G.objectives)) G.objectives[key] = !!goals[key];
+    G.buildings = buildings;
+    G.fleet = fleet;
+    G.factoryJob = job;
+    G.rollouts = rollouts;
+    G.log = (Array.isArray(data.log) ? data.log : []).slice(0, 45).map((row) => ({
+      msg: row && row.msg != null ? String(row.msg) : "",
+      kind: row && row.kind ? String(row.kind) : "info",
+    }));
+    G.event = null;
+    G.rocketSheet = null;
+    G.goalSheet = false;
+    G.fleetSheet = false;
+    G.wikiSheet = false;
+    G.placeType = null;
+    G.drag = null;
+  }
+  function takeSave() {
+    const raw = storageGet(SAVE_KEY);
+    if (!raw) return { continued: false, note: "" };
+    let data;
+    try { data = JSON.parse(raw); }
+    catch (err) { return { continued: false, note: "The save could not be read." }; }
+    if (!data || typeof data !== "object" || data.version !== 1) {
+      return { continued: false, note: "This save is from another version." };
+    }
+    applySave(data);
+    return { continued: true, note: "" };
+  }
+  function realSavePresent() {
+    return storageGet(SAVE_KEY) != null;
+  }
   function restartGame() {
+    leavingGame = true;
+    if (!TEST) storageDrop(SAVE_KEY);
     location.reload();
   }
   // The control that had focus before the confirm opened. Start over reloads, so that path does not use it.
@@ -5251,7 +5578,15 @@
   }
   document.addEventListener("pointerdown", blockUnderRestart, true);
   document.addEventListener("click", blockUnderRestart, true);
-  document.getElementById("day-restart").addEventListener("click", openRestartAsk);
+  document.getElementById("day-restart").addEventListener("click", () => {
+    if (TEST) restartGame();
+    else openRestartAsk();
+  });
+  window.addEventListener("pagehide", () => {
+    if (TEST || leavingGame) return;
+    if (fluidsMoving()) return;
+    writeGameSave(SAVE_KEY);
+  });
   document.getElementById("restart-cancel").addEventListener("click", closeRestartAsk);
   document.getElementById("restart-go").addEventListener("click", restartGame);
   document.getElementById("fleet-open").addEventListener("click", () => {
@@ -5338,10 +5673,28 @@
       restartGame,
       startLaunch,
       upgradeBay,
+      saveNow() {
+        return writeGameSave(TEST_SAVE_KEY);
+      },
+      loadSave() {
+        const raw = storageGet(TEST_SAVE_KEY);
+        if (!raw) return false;
+        let data;
+        try { data = JSON.parse(raw); }
+        catch (err) { return false; }
+        if (!data || data.version !== 1) return false;
+        applySave(data);
+        renderChrome();
+        paintLog();
+        return true;
+      },
       snap() {
         return {
           day: G.day,
           paused: G.paused,
+          saved: realSavePresent(),
+          seed: null,
+          fireShorts: lastFireShorts.slice(),
           ch4: G.ch4,
           lox: G.lox,
           money: G.money,
@@ -5383,10 +5736,22 @@
       },
     };
   }
+  let continued = false;
+  let saveNote = "";
+  if (!TEST) {
+    const boot = takeSave();
+    continued = boot.continued;
+    saveNote = boot.note;
+  }
   renderChrome();
-  log("The purse starts at 150 money. The day adds none. Investors pay when a goal is finished.", "info");
-  log("The bay refurbs one part at a time. Open the rocket and pick Structure, Fuel lines, or Engine (Raptor).", "info");
-  log("Two rockets can roll at the same time. The pad still holds one.", "info");
+  if (!continued) {
+    log("The purse starts at 150 money. The day adds none. Investors pay when a goal is finished.", "info");
+    log("The bay refurbs one part at a time. Open the rocket and pick Structure, Fuel lines, or Engine (Raptor).", "info");
+    log("Two rockets can roll at the same time. The pad still holds one.", "info");
+  } else {
+    paintLog();
+  }
+  if (saveNote) log(saveNote, "bad");
   if (TEST) log("A day here lasts half a second.", "info");
   requestAnimationFrame(frame);
 })();

@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>0.14.2-seed · design — starbase-builder</title>
+  <style>
+    :root {
+      --bg: #1c2118; --panel: #2a2218; --panel2: #221c14; --border: #5a4830;
+      --text: #e8d9b0; --muted: #a89878; --accent: #d4a84b; --link: #e8c56a; --code: #c4e08a;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; line-height: 1.55; }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 1.5rem 1.25rem 4rem; }
+    .doc-hero { background: linear-gradient(180deg, #2a2218, #1c2118); border: 1px solid var(--border); border-radius: 0.85rem; padding: 1.15rem 1.25rem 1.25rem; margin-bottom: 1.25rem; }
+    .doc-hero h1 { font-size: 1.55rem; font-weight: 650; color: #f5edd8; margin: 0.35rem 0 0.4rem; }
+    .doc-hero .lede { margin: 0; font-size: 0.9rem; color: var(--muted); max-width: 56rem; }
+    .role {
+      margin: 0 0 12px; padding: 12px 14px; background: #24180f; color: #f4ead8;
+      border-left: 6px solid #c45c26; font: 15px/1.45 system-ui, sans-serif;
+    }
+    .meta-row { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+    .tag { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 999px; background: #3a2e20; color: #e8c56a; border: 1px solid #6a5638; }
+    .tag.muted { background: #1e1a14; color: var(--muted); border-color: #4a3c28; }
+    .doc-grid { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 1.25rem; align-items: start; }
+    @media (max-width: 860px) { .doc-grid { grid-template-columns: 1fr; } .toc { position: static !important; } }
+    .toc { position: sticky; top: 0.75rem; background: var(--panel); border: 1px solid var(--border); border-radius: 0.65rem; padding: 0.75rem 0.85rem; max-height: calc(100vh - 1.5rem); overflow-y: auto; }
+    .toc .section-label { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); font-weight: 600; margin-bottom: 0.5rem; }
+    .toc ol { margin: 0; padding-left: 1.1rem; font-size: 0.78rem; }
+    .toc li { margin: 0.22rem 0; }
+    .toc a { color: var(--link); text-decoration: none; }
+    h2 { font-size: 1.12rem; color: #f5edd8; margin: 1.6rem 0 0.65rem; padding-bottom: 0.35rem; border-bottom: 1px solid var(--border); scroll-margin-top: 0.75rem; }
+    h3 { font-size: 0.95rem; color: var(--accent); margin: 1.1rem 0 0.4rem; scroll-margin-top: 0.75rem; }
+    p, li { font-size: 0.9rem; }
+    p { margin: 0.45rem 0 0.7rem; }
+    ul, ol { margin: 0.35rem 0 0.75rem; padding-left: 1.35rem; }
+    li { margin: 0.28rem 0; }
+    table.doc { width: 100%; border-collapse: collapse; font-size: 0.84rem; margin: 0.45rem 0 0.9rem; }
+    table.doc th, table.doc td { border: 1px solid var(--border); padding: 0.45rem 0.55rem; text-align: left; vertical-align: top; }
+    table.doc th { background: var(--panel2); color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; }
+    table.doc td { background: rgba(42,34,24,0.45); }
+    pre { background: var(--panel2); border: 1px solid var(--border); padding: 0.8rem 0.9rem; overflow-x: auto; font-size: 0.78rem; line-height: 1.45; }
+    code { font-family: ui-monospace, Menlo, monospace; color: var(--code); font-size: 0.86em; }
+    pre code { color: var(--text); }
+    strong { color: #f5edd8; }
+    .footer-note { color: var(--muted); font-size: 0.82rem; margin-top: 2rem; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="doc-hero">
+      <div class="meta-row">
+        <span class="tag">0.14.2-seed</span>
+        <span class="tag muted">Design · not shipped</span>
+        <span class="tag muted">2026-11-11</span>
+      </div>
+      <h1>One seed, a faster day, and Skip</h1>
+      <p class="lede">
+        <code>0.14.1-teeth</code> ships first. This page is the build spec for the session after that ship.
+        One seed picks the defect order and the 10-day sky. The header adds 1x, 2x, 4x, and Skip.
+        Tiago reviews this page before any code.
+      </p>
+    </header>
+    <div class="role">
+      The lines named below are from <code>index.html</code> on the <code>0.14.1-teeth</code> branch. Recheck them before you edit. The file moves.
+    </div>
+    <div class="doc-grid">
+      <nav class="toc">
+        <div class="section-label">On this page</div>
+        <ol>
+          <li><a href="#see">What you see</a></li>
+          <li><a href="#seed">The seed</a></li>
+          <li><a href="#boot">Boot order</a></li>
+          <li><a href="#order">Defect order</a></li>
+          <li><a href="#sky">The sky</a></li>
+          <li><a href="#speed">Speed</a></li>
+          <li><a href="#skip">Skip</a></li>
+          <li><a href="#save">The save</a></li>
+          <li><a href="#hooks">Test hooks</a></li>
+          <li><a href="#out">Out of scope</a></li>
+          <li><a href="#check">Acceptance</a></li>
+          <li><a href="#docs">Docs after ship</a></li>
+        </ol>
+      </nav>
+      <article>
+        <h2 id="see">What you see</h2>
+        <p>You start a new game. The log says "This game uses seed N." The header shows the day, then 1x held, then 2x, 4x, and Skip, then Pause and Restart. Day 1 wind is a number on the header.</p>
+        <p>The first article's short matches that seed. The number is Structure 60, Fuel lines at 0 seconds, or thrust 1400 kN. The sheet shows it after a test reads that part. The other two parts start healthy. An untested part still reads "not tested".</p>
+        <p>You press 4x. A build day takes 1 second. The road, the fill, the fire, and the flight keep their own clocks. Pause still stops the day and those clocks. You reload. The header still shows 4x.</p>
+        <p>On a closed day, with no job running, you press Skip. The day lands on the next open day. The header shows that wind. The lamp is open. On an open day, with nothing waiting, Skip does not move the day. The log says "Nothing to skip to."</p>
+        <p>A fill, a lit fire, or a flight makes Skip refuse. The day stays. The log names the tanks, the fire, or the flight. Escape during a fire still finishes the fire picture. Header Skip does not.</p>
+        <p>You reload an idle yard. The seed, the day, the wind, and the speed are still there. A <code>0.14.1</code> file with version 1 and <code>seed: null</code> continues. The sky stays the old table. The next article still follows Structure, then Fuel lines, then thrust. Restart asks, then rolls a new seed.</p>
+        <p>The rocket name stays Test article. Serials stay TA-1, TA-2, and so on. Steel stays 28. Build days stay 8 to 12. The bay prices stay. The wind number stays on the header after a Skip. The seed does not hide Structure or thrust, and it does not add a percent.</p>
+        <p>Two wiki sentences still name one fixed order. Both change in this same <code>index.html</code> pass. <code>wikiLaunch</code> at line 3000 is "How a test works." <code>wikiTime</code> is not that page. The Starfactory sentence is line 3238. Leave the order out of both. Keep the shorts 60, 0 seconds, and 1400 kN. Keep the restored-part rule. A restored part does not take the next short. The Numbers page at line 3148 names the three values and does not name an order. Leave that page alone.</p>
+
+        <h2 id="seed">The seed</h2>
+        <p><code>G</code> gains <code>seed</code> and <code>speed</code> on the state object at line 1023. The object starts with <code>seed: null</code> and <code>speed: 1</code>. A null or missing seed is not a roll. <code>undefined &gt;&gt;&gt; 0</code> is 0, so a missing seed must not fall through into <code>roll</code>.</p>
+        <p><code>weatherOn</code> and the defect picker call <code>roll</code> only when the seed is a whole number from 0 through 4294967295. Anything else uses the old order and the old sky. 0 is a valid seed. Only <code>null</code> means this file has no seed.</p>
+        <p>The roll uses <code>crypto.getRandomValues</code> into one 32-bit value. If that call throws, the fallback is <code>Math.floor(Math.random() * 4294967296)</code>. Both can return 0.</p>
+        <p>The game does not write the save on that roll. The first <code>dayTick</code> autosave is still the end of the day. An idle reload on day 1 is the <code>pagehide</code> write at line 5585. That write runs when no fill, fire, or flight is running, and it keeps the seed. A new roll happens only when no file was written. "Day 1 has no save yet" means only that <code>dayTick</code> has not written.</p>
+        <p>On the normal page, Restart still opens the card. The words stay "Start a new game? The current yard is lost." Cancel leaves the save and the seed. Start over runs <code>restartGame</code> at line 5529. That drops <code>starbase-save</code> and reloads. The new page finds no file and rolls a new seed. The log line is "This game uses seed N." A continued file does not print that line again.</p>
+        <p>The test page does not open that card. The click at lines 5581 to 5583 calls <code>restartGame</code> at once. <code>restartGame</code> drops the key only when <code>TEST</code> is false, at line 5531. A test restart reloads, uses seed 11 again, and does not delete <code>starbase-save</code>.</p>
+        <p><code>ROCKET_DEFS.article</code> at line 931 stays name "Test article", short "TA", steel 28. <code>finishFactoryJob</code> at line 1545 still names the serial from the living fleet count. This row does not tie that serial to <code>builtArticles</code>.</p>
+
+        <h2 id="boot">Boot order</h2>
+        <p>The boot sets the seed before <code>renderChrome</code> at line 5746. That paint calls <code>weatherOn</code>. A seed that is still null at that paint shows the old sky. Day 1 of seed 11 is also Clear 8 kn, so that paint hides a missed seed.</p>
+        <ol>
+          <li><code>G</code> already holds <code>seed: null</code> and <code>speed: 1</code>.</li>
+          <li>If the URL has <code>test</code>, set the seed to 11. Do not read <code>starbase-save</code>. Do not roll. The next step is the paint.</li>
+          <li>On the normal page, call <code>takeSave</code>. <code>applySave</code> runs inside that call, before the paint. A continued file keeps the seed and the speed from the file.</li>
+          <li>On the normal page only, if <code>takeSave</code> did not continue, roll the seed now. A missing key, a file that will not parse, and a version other than 1 all take this step. The test path does not. A test page never continues a file, and that fact must not roll over seed 11.</li>
+          <li>Then call <code>renderChrome</code> at line 5746. The intro lines come after that paint.</li>
+        </ol>
+        <p><code>?test</code> still returns before <code>takeSave</code>, as the block at line 5741 does now. The test edge stops at seed 11. On the normal page, a missing key, a file that will not parse, and a version other than 1 roll a seed and start empty. A file that will not parse, and a version other than 1, stay on disk until that new game writes. A continued file does not roll.</p>
+
+        <h2 id="order">Defect order</h2>
+        <p>The three shorts stay the constants at lines 679 to 681. Structure is 60. Fuel lines are 0 seconds. Thrust is 1400 kN. A healthy article is still Structure 100, Fuel lines 40 seconds, and Raptor 1 at 1814 kN. The proof floor stays 70. The fuel-line floor stays 5 seconds. The engine floor stays 1500 kN.</p>
+        <p>The seed picks which short comes first. It does not pick a new number. Six orders sit in a fixed list. Index 0 is the order the game uses today.</p>
+        <pre><code>const DEFECT_ORDERS = [
+  ["stage", "fitting", "engine"],
+  ["stage", "engine", "fitting"],
+  ["fitting", "stage", "engine"],
+  ["fitting", "engine", "stage"],
+  ["engine", "stage", "fitting"],
+  ["engine", "fitting", "stage"],
+];</code></pre>
+        <p>A numeric seed uses <code>DEFECT_ORDERS[roll(seed, 1) % 6]</code>. Salt 1 belongs to the defect roll only. A <code>null</code> seed does not call <code>roll</code>. It uses index 0.</p>
+        <pre><code>function mix32(n) {
+  n = n &gt;&gt;&gt; 0;
+  n = Math.imul(n ^ (n &gt;&gt;&gt; 16), 0x7feb352d);
+  n = Math.imul(n ^ (n &gt;&gt;&gt; 15), 0x846ca68b);
+  return (n ^ (n &gt;&gt;&gt; 16)) &gt;&gt;&gt; 0;
+}
+function roll(seed, salt) {
+  return mix32((seed &gt;&gt;&gt; 0) + Math.imul(salt &gt;&gt;&gt; 0, 0x9e3779b9));
+}</code></pre>
+        <p>The mix is fixed for this row. A later row that changes it needs a new save version. Until then, the same seed always yields the same order and the same sky.</p>
+        <p><code>applyNewArticle</code> at line 1494 still adds 1 to <code>builtArticles</code>, then takes index <code>(builtArticles - 1) % 3</code>. <code>defectRestored</code> still returns before writing the short. A restored part still leaves that later article healthy. Load does not call <code>applyNewArticle</code>. Vehicles already in the file keep <code>stageLife</code>, <code>fittingLifeS</code>, and <code>thrustKn</code>.</p>
+        <p>A <code>null</code> seed keeps that contract for the old file. Articles already built stay as they are. The next article follows stage, then fitting, then engine, from the saved count. The sky stays the old table too. <code>spanDays</code> at line 1103 stays <code>Math.random</code>. The span is stored on the job when the player presses the button.</p>
+
+        <h2 id="sky">The sky</h2>
+        <p><code>weatherOn</code> at line 1822 still returns one row for the day. The row is still <code>{ sky, wind, storm }</code>. <code>renderWeather</code> at line 3857 still writes the header as sky, wind, and "kn". The lamp still uses <code>rangeShut</code> at line 1897. A storm closes the range. Wind over the pad limit closes it. Level 1 limits wind at 20 kn. Level 2 limits wind at 28 kn.</p>
+        <p>The seeded table reorders the days the player already has. It does not invent a wind. The kind list starts as today's sequence. The wind queues start as today's numbers, in today's order. The first Clear gets 8, then 12, 10, 6, and 14. Wind gets 24, then 22, then 26. Storm gets 36, then 32. A Storm row has <code>storm: true</code>. The other rows have <code>storm: false</code>.</p>
+        <p>Five days are Clear, and all five are open at level 1. Three days are Wind, and all three are closed at level 1 and open at level 2. Two days are Storm, and both close the range at either level. The seed changes the order only.</p>
+        <pre><code>function shuffle(list, seed, salt0) {
+  const a = list.slice();
+  for (let i = a.length - 1; i &gt; 0; i--) {
+    const j = roll(seed, salt0 + i) % (i + 1);
+    const tmp = a[i];
+    a[i] = a[j];
+    a[j] = tmp;
+  }
+  return a;
+}</code></pre>
+        <p>Weather calls <code>shuffle</code> with <code>salt0</code> 10. The salts used are 19 down to 11. They do not overlap salt 1. The kind list before the shuffle is Clear, Clear, Wind, Clear, Storm, Wind, Clear, Clear, Wind, Storm.</p>
+        <p>The table is not stored. <code>weatherOn</code> derives it from the seed. <code>G</code> may cache the 10 rows after the first read. Load clears that cache and derives again. <code>lockSky</code> still wins, at the existing check on line 1823. The lock is not saved. It exists only on a test page. A <code>null</code> seed does not shuffle. <code>weatherOn</code> returns the literal table already in the file. The cycle still repeats with <code>(day - 1) % 10</code>, as line 1836 does now.</p>
+        <table class="doc">
+          <thead><tr><th>Day</th><th>Old sky, seed null</th><th>Seed 11</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>Clear 8</td><td>Clear 8</td></tr>
+            <tr><td>2</td><td>Clear 12</td><td>Storm 36</td></tr>
+            <tr><td>3</td><td>Wind 24</td><td>Wind 24</td></tr>
+            <tr><td>4</td><td>Clear 10</td><td>Clear 12</td></tr>
+            <tr><td>5</td><td>Storm 36</td><td>Clear 10</td></tr>
+            <tr><td>6</td><td>Wind 22</td><td>Clear 6</td></tr>
+            <tr><td>7</td><td>Clear 6</td><td>Storm 32</td></tr>
+            <tr><td>8</td><td>Clear 14</td><td>Wind 22</td></tr>
+            <tr><td>9</td><td>Wind 26</td><td>Wind 26</td></tr>
+            <tr><td>10</td><td>Storm 32</td><td>Clear 14</td></tr>
+          </tbody>
+        </table>
+        <p>Seed 11 is the test seed. Its order index is 0, so the test page still builds Structure, then Fuel lines, then thrust. Day 1 matches the old sky, so a day-1 fire still has an open range. Day 2 is Storm 36. That is the check that the seed is in force.</p>
+        <p>On seed 11 at pad level 1, Skip from day 2 with no job running lands on day 4. Day 3 is Wind 24, which is over 20 kn. Day 4 is Clear 12. At pad level 2, Wind 24 is inside 28 kn, so the same Skip lands on day 3.</p>
+
+        <h2 id="speed">Speed</h2>
+        <p>The day clock is the wait. Line 5631 adds real milliseconds to <code>dayAcc</code>. The <code>while</code> on line 5632 calls <code>dayTick</code> each time the accumulator reaches the day length. Builds, refurbs, the cryo proof, the tanking run, and the data review all wait on <code>dayTick</code>.</p>
+        <p>2x and 4x change that threshold only. The day length becomes <code>MS_PER_DAY / speed</code>. They do not multiply <code>dt</code> passed to <code>updateRollout</code>. A rollout, a raise, a lower, a fill, a fire, and a flight keep the clocks they have.</p>
+        <table class="doc">
+          <thead><tr><th>Clock</th><th>Code today</th><th>1x</th><th>2x</th><th>4x</th></tr></thead>
+          <tbody>
+            <tr><td>Game day, normal</td><td><code>MS_PER_DAY</code> 4000, line 614</td><td>4 s</td><td>2 s</td><td>1 s</td></tr>
+            <tr><td>Game day, <code>?test</code></td><td><code>MS_PER_DAY</code> 500</td><td>0.5 s</td><td>0.25 s</td><td>125 ms</td></tr>
+            <tr><td>Road roll</td><td><code>beginRoad</code>, clamped to 2–14 s</td><td>same</td><td>same</td><td>same</td></tr>
+            <tr><td>Raise or lower</td><td><code>LIFT_SEC</code> 2, line 616</td><td>same</td><td>same</td><td>same</td></tr>
+            <tr><td>Fill</td><td><code>FILL_SEC</code> 2, line 618</td><td>same</td><td>same</td><td>same</td></tr>
+            <tr><td>Static fire</td><td>article <code>sfPhases</code>, about 6.5 s</td><td>same</td><td>same</td><td>same</td></tr>
+            <tr><td>Flight</td><td><code>FLIGHT_TIME_SCALE</code> 7, line 758, about 24 s on screen. The comment is line 757. Line 756 is the pitch constant.</td><td>same</td><td>same</td><td>same</td></tr>
+          </tbody>
+        </table>
+        <p>Pause still wraps both clocks. The frame at line 5629 skips <code>dayAcc</code> and <code>updateRollout</code> while <code>G.paused</code> is true. Speed does not override Pause.</p>
+        <p>The header block is lines 519 to 521. After this row, that same row holds <code>day-speed-1</code>, <code>day-speed-2</code>, <code>day-speed-4</code>, and <code>day-skip</code>, between the day count and Pause. The labels are 1x, 2x, 4x, and Skip.</p>
+        <pre><code>&lt;span class="ctr"&gt;&lt;span id="day-run"&gt;Day&lt;/span&gt; &lt;b id="day-label"&gt;1&lt;/b&gt;&lt;/span&gt;
+&lt;button type="button" id="day-speed-1"&gt;1x&lt;/button&gt;
+&lt;button type="button" id="day-speed-2"&gt;2x&lt;/button&gt;
+&lt;button type="button" id="day-speed-4"&gt;4x&lt;/button&gt;
+&lt;button type="button" id="day-skip"&gt;Skip&lt;/button&gt;
+&lt;button type="button" id="day-pause"&gt;Pause&lt;/button&gt;
+&lt;button type="button" id="day-restart"&gt;Restart&lt;/button&gt;</code></pre>
+        <p>The three speed buttons use the same border as <code>#day-pause</code> and <code>#day-restart</code> at lines 476 to 478. The active speed sets <code>aria-pressed="true"</code> and the held background <code>#1a1a1a</code>. The others stay <code>#0a0a0a</code>.</p>
+        <p>A speed change keeps the fraction of the current day. If the day is half gone at 1x, it stays half gone at 4x. The change does not call <code>dayTick</code> by itself. A missing or unknown speed loads as 1. The legal values are 1, 2, and 4. Speed is saved. A reload otherwise snaps the header back to 1x.</p>
+        <p><code>applySave</code> reads speed before it clamps <code>dayAcc</code>. The clamp at line 5467 becomes the loaded day length, not always <code>MS_PER_DAY</code>. A <code>0.14.1</code> file has no speed field, so it loads at 1x and the old clamp still fits.</p>
+        <p><code>wikiTime</code> at line 3206 reads <code>MS_PER_DAY</code> and states one day length. It must divide by the current speed. It must say that the road, the fill, the fire, and the flight do not use that multiplier. <code>renderWiki</code> caches the page with the signature at line 3356. That string includes <code>MS_PER_DAY</code> and does not include speed. Put <code>G.speed</code> in that signature so the time page rebuilds when the speed changes. The test intro log becomes "A day here lasts half a second at 1x." It also names seed 11.</p>
+
+        <h2 id="skip">Skip</h2>
+        <p>The header button label is Skip. The function is <code>skipToEvent</code>. It is not <code>skipEvent</code> at line 2426. That older function only finishes a fire picture. Escape during a fire still calls it, at line 5249. The header Skip does not call it.</p>
+        <p>Skip refuses, and does not move the day, in this order.</p>
+        <ol>
+          <li>The day is paused. The log says "The day is paused."</li>
+          <li>A fill is on the clock. The log says "The tanks are still loading."</li>
+          <li>A fire is on the clock. The log says "The static fire is still burning."</li>
+          <li>A flight is on the clock. The log says "The rocket is still in flight."</li>
+        </ol>
+        <p><code>fluidsMoving</code> at line 1185 is the same three kinds. The refuse checks them by kind so the log can name the right one. A road roll, a raise, and a lower do not refuse. Skip does not cancel them and does not wait for them.</p>
+        <p>If none of those block, Skip counts days without applying them. The count uses copies of <code>factoryJob.daysLeft</code>, each vehicle's <code>testLeft</code>, <code>inspectLeft</code>, and <code>refurbLeft</code>, and <code>weatherOn</code> for the future day. The cap is 16 days. A build is at most 12 days. Five of the 10 days are closed at level 1. Today is one of them, so at most 4 closed days follow, and the next open day is at most 5 days later. The cap is the backstop when a test lock paints every day as a storm.</p>
+        <p>A day counts as the landing when any of these becomes true after that day tick.</p>
+        <ul>
+          <li>A factory job was present and its copied <code>daysLeft</code> has reached 0 or less. That covers the rocket build, Raise Raptor thrust, and the hidden dry-mass job. All three finish in <code>finishFactoryJob</code>.</li>
+          <li>A refurb was counting and its copied <code>refurbLeft</code> reaches 0. Engine, Fuel lines, and Structure all count.</li>
+          <li>A cryo proof or a tanking run was counting and its copied <code>testLeft</code> reaches 0.</li>
+          <li>A data review was counting, with status inspect and <code>inspectLeft</code> above 0, and the copy reaches 0. The rocket becomes ready on that day. Skip does not start a proof, a tanking run, or a fire.</li>
+          <li>The range was closed at the moment of the press, and the future day is open at the pad limit from that same moment. If the range was already open, an open day is not a landing.</li>
+        </ul>
+        <p>The copied counters follow <code>dayTick</code> at line 1406. A job decrements even when <code>daysLeft</code> is already 0, and then it finishes. A refurb, a proof, a tanking run, and a review decrement only when the remaining count is above 0. Weather is read after the day increments. Two landings on the same day both finish. Skip does not stop inside one <code>dayTick</code>.</p>
+        <p>If the count is 0, the day does not move and <code>dayAcc</code> stays as it was. The log says "Nothing to skip to." A refusal does not zero <code>dayAcc</code> either. If the count is N, set <code>G.dayAcc</code> to 0 before the first <code>dayTick</code>. Then call <code>dayTick</code> N times. Leave that zero in Skip. Do not put it inside <code>dayTick</code>.</p>
+        <p><code>dayTick</code> at line 1406 never reads or writes <code>dayAcc</code>. The frame at lines 5631 to 5632 adds real milliseconds, subtracts one day length, and then calls <code>dayTick</code>. What remains after that subtraction is the start of the new day. A zero inside <code>dayTick</code> would wipe that remainder. Skip calls <code>dayTick</code> outside that <code>while</code>, so the zero stays 0 through all N ticks.</p>
+        <p>Each tick still resolves the real jobs, pays a goal if a finish earns one, and autosaves. The "N days left" lines at lines 1412 to 1414 stay quiet during those ticks. Finish lines still log. <code>dayTick</code> writes the save at line 1436, and <code>savePayload</code> stores <code>dayAcc</code> at line 5363. The zero has to be in place before that write. With the zero first, the last tick's save holds the landing day and <code>dayAcc</code> 0. No second write is required. After the ticks, the log says "Skipped to day D." Newest line first, as <code>log</code> already unshifts.</p>
+        <p>That file lasts only until the next <code>dayTick</code> that is allowed to write. The next frame adds a few milliseconds and does not cross the day length, so an idle reload on the landing day still reads <code>dayAcc</code> 0 through <code>pagehide</code>. The next natural tick saves the new day and the remainder the <code>while</code> left. That remainder is not the skip's 0.</p>
+        <p>A reload during a fill, a fire, or a flight reads the last file a tick was allowed to write. <code>autosave</code> and <code>pagehide</code> both return when <code>fluidsMoving()</code> is true. The reload returns the landing day with <code>dayAcc</code> 0 only when that motion started on the landing day, before the next boundary. The rocket has to be able to load already. It is on the mount, the cryo proof and the tanking run are settled, and the tanks hold a fire load, so Static fire calls <code>startFill</code> at line 2217. <code>FILL_SEC</code> is 2 seconds. A day at 1x is 4 seconds. Start that load before the boundary.</p>
+        <p>A build finish does not leave a rocket that can load. <code>finishFactoryJob</code> sets <code>at_factory</code> at line 1548. The rocket still rolls to the bay, rolls to the pad, and rises. Each road is 2 to 14 seconds, at lines 741 and 742. The raise is 2 seconds, at line 616. Those motions are not a fill, a fire, or a flight, so each day boundary writes. The build-finish day is already gone before a load can start.</p>
+        <p>On <code>?test</code>, <code>autosave</code> returns at once and does not write <code>starbase-save</code>. The in-memory zero still holds for the next frame. Worked check, seed 11, pad level 1, day 2, no job and no test running. Skip sets <code>dayAcc</code> to 0, then runs two day ticks. The save from the second tick stores day 4 and <code>dayAcc</code> 0. The header reads day 4, Clear 12 kn, and Range open. The next <code>dayTick</code> that is allowed to write replaces that file.</p>
+
+        <h2 id="save">The save</h2>
+        <p>The key stays <code>starbase-save</code>. The test key stays <code>starbase-save-test</code>. Version stays 1. <code>takeSave</code> at line 5520 still rejects any other version, leaves the file in place, and logs "This save is from another version." A file that does not parse still logs "The save could not be read." and still is not deleted. The game does not delete a file it does not understand. Nothing is sent to a server.</p>
+        <p><code>seed</code> may now be a whole number. <code>speed</code> is new. The next write sets <code>label</code> to <code>0.14.2-seed</code>. The label is how a person sees which build wrote the file. Version stays 1 either way. Speed writes 1, 2, or 4.</p>
+        <pre><code>{
+  version: 1,
+  label: "0.14.2-seed",
+  seed: 11,
+  speed: 1
+}</code></pre>
+        <p>The rest of <code>savePayload</code> at line 5355 stays. The game still does not save the camera, the open sheet, the drag, the dormant kerosene stock, or <code>skyLock</code>. It still saves <code>paused</code>, <code>dayAcc</code>, the fleet, the factory job, and road, raise, and lower motions. It still waits to save while a fill, a fire, or a flight is running. No weather array is added. No defect-order array is added. Both are functions of <code>seed</code>, or of <code>null</code>. <code>builtArticles</code> and <code>defectRestored</code> stay the record of which shorts have already happened.</p>
+        <p>A <code>0.14.1</code> file looks like this and must continue.</p>
+        <pre><code>{ version: 1, label: "0.14.1-teeth", seed: null }</code></pre>
+        <p>A field that is missing, <code>null</code>, or not a whole number in range does not reject the yard. Missing or <code>null</code> is the <code>0.14.1</code> file. The old order and the old sky stay, and the game does not log a seed error. A present but unusable seed logs "This save has no usable seed. The old sky stays." and then follows the same old rules. The next autosave writes <code>seed: null</code> again for that file. It does not invent a seed under a yard the player already built.</p>
+        <p>On load, speed is applied before <code>dayAcc</code> is clamped to <code>MS_PER_DAY / speed</code>. Vehicles are copied as <code>applySave</code> already copies them at line 5416. Their part numbers are not run through the seed. An old page can open a new file, because version stays 1, and then ignore the seed. That downgrade is not a supported path. The supported path is the new page opening the old file.</p>
+
+        <h2 id="hooks">Test hooks</h2>
+        <p><code>window.__sb</code> exists only when the URL has <code>test</code>, as the block at line 5650 does now. Keep every hook that is already there, including <code>saveNow</code>, <code>loadSave</code>, <code>lockSky</code>, <code>snap</code>, and <code>restartGame</code>.</p>
+        <ul>
+          <li><code>setSpeed(n)</code> sets 1, 2, or 4, with the same fraction rule as the header. Any other n sets 1. It does not write <code>starbase-save</code>.</li>
+          <li><code>skipToEvent()</code> runs the header Skip. It returns how many days the clock moved. A refusal returns 0.</li>
+          <li><code>setDay(n)</code> sets <code>G.day</code> to a whole number of at least 1, sets <code>G.dayAcc</code> to 0, and redraws. It does not call <code>dayTick</code>. It does not finish a job. It does not pause the day. Pause would make the next Skip refuse. On <code>?test</code> the day length is 500 ms, so a later turn can still leave the day. Read <code>snap</code> in the same turn.</li>
+        </ul>
+        <p><code>snap</code> keeps its current fields. <code>seed</code> stops being hard-coded <code>null</code> at line 5696. It reports <code>G.seed</code>. Add <code>speed</code>, <code>dayAcc</code>, <code>defectOrder</code>, and <code>sky</code>. <code>defectOrder</code> is the three part names. <code>sky</code> is the object <code>{ sky, wind, storm }</code>. It is not the header string. <code>saved</code> still means the real key <code>starbase-save</code> exists. A test page must still leave that flag false unless a real game wrote it earlier.</p>
+        <p>A test start reports this shape.</p>
+        <pre><code>seed: 11,
+speed: 1,
+defectOrder: ["stage", "fitting", "engine"],
+sky: { sky: "Clear", wind: 8, storm: false },
+dayAcc: 0</code></pre>
+        <p>The header string <code>Clear 8 kn</code> is a separate check. Opening the test page does not call <code>saveNow</code> or <code>loadSave</code>. <code>saveNow</code> still writes only <code>starbase-save-test</code>. <code>loadSave</code> still reads only that key. A loaded test file with <code>seed: null</code> uses the old sky inside the test yard. That is how a check can rehearse the migration without the real key. <code>lockSky</code> still overrides the table for one check.</p>
+        <p>There is no metrics stack. The log and the test snap are the record. A new game, including a test start, logs "This game uses seed N." A continued game does not. A skip that moves logs "Skipped to day D." plus the finish lines <code>dayTick</code> already writes. A speed press does not log. The pressed header button is the record.</p>
+
+        <h2 id="out">Out of scope</h2>
+        <ul>
+          <li>The Starhopper rename, the serials SH-1 and SH-2, or a loaded TA serial rewrite. Those wait for the <code>0.15.0-hop</code> design. The hop cell already holds that paragraph. This row does not apply it.</li>
+          <li>The hopper shape, the hop, repeat hops, the heights 25 m, 50 m, and 150 m, the countdown, or the flame.</li>
+          <li>Bay money prices, a new currency, or a fail roll. The engine stays 24 steel and 2 days, or 1 day at pad level 2. Fuel lines stay 1 day and no steel. Structure stays 4 to 5 days and no steel. The button shows that span before the press. The refurb goal stays 40. Those are <code>startPartRefurb</code> at line 3896, <code>engineRefurbDays</code> at line 1269, <code>partJobLine</code> at line 3922, and <code>GOAL_PAY.refurb</code> at line 637.</li>
+          <li>Sound, the pipeline, the cadence count, and the high hop. <code>0.16.0-high-hop</code> stays the high hop only. <code>1.2.0-refurb</code> stays the flown-stage check.</li>
+          <li>Slots, flight history, or a harder start. Those stay on <code>8.4.0-saves</code>.</li>
+          <li>A new wind number, a new sky word, or a hidden miss chance.</li>
+          <li>Seeding the build-day roll, the upgrade-day roll, or the structure-day roll.</li>
+          <li>Renaming <code>REFURB_FAIL_MIN</code> and <code>REFURB_FAIL_MAX</code>. The names are old. The button is not a fail roll.</li>
+          <li>Revealing an untested part. The sheet still says "not tested" until a test reads that part.</li>
+          <li>A second save key, a version bump, or a stored weather table. Version stays 1. <code>seed: null</code> keeps the old order and the old sky.</li>
+          <li>Speeding the road, the fill, the fire, or the flight. Speed divides the day length only.</li>
+          <li>Editing <code>index.html</code> in the design session. Code starts only after <code>0.14.1-teeth</code> has shipped and Tiago has approved that ship.</li>
+        </ul>
+
+        <h2 id="check">Acceptance</h2>
+        <p>Tiago runs these in the browser after the implementation, not from this page. The normal file is <code>index.html</code>. The test file is <code>index.html?test</code>.</p>
+        <ol>
+          <li>A new game logs a seed. The header shows 1x held, plus 2x, 4x, and Skip. Day 1 wind matches that seed's first row, and the number is on the header.</li>
+          <li>The first article's short matches the seed. The number is Structure 60, Fuel lines at 0 seconds, or thrust 1400 kN. The sheet shows it once that part is tested. The other two parts start healthy.</li>
+          <li>Reload. An idle reload writes through <code>pagehide</code> and keeps the seed, the day, the wind, and the speed. The article already built keeps its numbers. The next article uses the next part in that same order. A new roll happens only when no file was written.</li>
+          <li>Load a <code>0.14.1</code> file with version 1 and <code>seed: null</code>. The yard continues. The sky is the old table, so a file on day 1 reads Clear 8 kn. The next new article still follows Structure, then Fuel lines, then thrust. The log does not invent a seed.</li>
+          <li>A file whose version is not 1 stays on disk and does not load. The log says this save is from another version.</li>
+          <li>On the normal page, Restart asks. Start over clears the save, rolls a new seed, and the log names it. Cancel leaves the save and the seed. The test page does not ask. See item 14.</li>
+          <li>At 1x a build day takes 4 seconds. At 2x it takes 2 seconds. At 4x it takes 1 second. A rollout, a fill, a fire, and a flight keep their own clocks. Pause still stops the day and those clocks.</li>
+          <li>Set 4x, reload, and the header still shows 4x.</li>
+          <li>On an open day, Skip while a build has days left. The finish is the first landing, because the range is already open and an open day is not a stop. The day lands on the build finish. <code>dayAcc</code> is 0 before the ticks, so the save from the last tick stores 0. That file is the landing day only until the next <code>dayTick</code>. The rocket is still at the factory. Do not start a fill and expect this day to return. The log names the article and the new day. The countdown lines do not fill the log. If the range was closed, and the next open day is sooner than the finish, Skip stops on that open day instead.</li>
+          <li>On an open day, Skip during a refurb. The day lands on the day that part is restored, and <code>dayAcc</code> is 0. The same closed-day rule applies. The earlier event wins.</li>
+          <li>On a closed day, with no job and no test running, Skip lands on the next open day for the current pad limit. The header shows that wind. The lamp is not closed. On seed 11 at level 1, day 2 lands on day 4.</li>
+          <li>On an open day, with no job and no test running, Skip does not move the day. The log says nothing to skip to.</li>
+          <li>Start a fill, a static fire, or a flight, then press header Skip. The day does not move. The log names the tanks, the fire, or the flight. Escape during a fire still finishes the fire picture.</li>
+          <li><code>index.html?test</code> uses seed 11. In one turn, read <code>snap</code> before any skip. <code>snap.seed</code> is 11. <code>snap.defectOrder</code> is stage, fitting, engine. <code>snap.sky</code> is <code>{ sky: "Clear", wind: 8, storm: false }</code>. The header string is separate. It reads <code>Clear 8 kn</code>. Then, in one synchronous turn, call <code>setDay(2)</code>, <code>skipToEvent()</code>, and <code>snap()</code>. The return is 2. <code>snap.day</code> is 4. <code>snap.dayAcc</code> is 0. <code>snap.sky</code> is <code>{ sky: "Clear", wind: 12, storm: false }</code>. The header string is <code>Clear 12 kn</code>, and the range is open. Do not read that header on a later turn. The test day is 500 ms, and Pause would make Skip refuse. <code>setSpeed(4)</code> sticks until reload of the test page, which starts at 1x again because the test page does not read <code>starbase-save</code>. Restart on that page skips the confirm, reloads, and does not delete <code>starbase-save</code>. The real key is not written. A real save that was already there is still there.</li>
+          <li>The rocket name stays Test article. Serials stay TA. Steel stays 28. Engine refurb stays 24 steel and 2 days, or 1 day at pad level 2. Fuel lines stay 1 day and no steel. Structure stays 4 to 5 days on the button before the press. The refurb goal stays 40.</li>
+          <li>At 1x, park a rocket on the mount that can already load. The cryo proof and the tanking run are settled, and the tanks hold a fire load. On a closed day, Skip to the next open day. The save from that skip stores that day and <code>dayAcc</code> 0. Before the next day boundary, press Static fire. That load is <code>startFill</code> at line 2217, and it lasts 2 seconds. Reload during that fill. The file is still the landing day, and <code>dayAcc</code> is 0. A fill that starts after the next <code>dayTick</code> belongs to the later day.</li>
+        </ol>
+
+        <h2 id="docs">Docs after ship</h2>
+        <p>These updates happen in the ship pass, after the browser checks. This design page does not do them. The pass assumes <code>0.14.1-teeth</code> has already shipped, including its own docs. Tiago commits. This design session does not open a pull request.</p>
+        <ul>
+          <li><code>VERSION</code> becomes <code>0.14.2-seed</code>. The header version follows it.</li>
+          <li>README live-release line. This row is live. The next row is <code>0.15.0-hop</code>. The line says one seed drives the defect order and the sky, and that the header has 1x, 2x, 4x, and Skip.</li>
+          <li>One new section in <code>IMPLEMENTATION_LOG.md</code>. Leave the <code>0.14.1-teeth</code> section as it is.</li>
+          <li><code>FUTURE_FEATURES.md</code> drops this row from the open list and points the next row at <code>0.15.0-hop</code>. The seed sentence matches what shipped. The hop note and the bay note already match the locked sentences. Do not paste them again.</li>
+          <li><code>design-docs/program-roadmap-design.html</code> marks <code>0.14.2-seed</code> shipped. The <code>0.15.0-hop</code> cell and the bay sentence in the law section are already pasted. Do not paste them again. Do not add a row. Do not change the <code>0.14.1-teeth</code> row in that pass except to mark the next row.</li>
+          <li>Archive <code>index-0.14.1-teeth.html</code> and append <code>archive/MANIFEST.md</code>.</li>
+          <li>The wiki edits in <code>index.html</code> ship with the code, not as a later docs pass. <code>site-objects-design.html</code> stays put.</li>
+        </ul>
+
+        <p class="footer-note">Tiago locked the seed, the sky, and the speed on 2026-11-11. Version stays 1. A null seed keeps the old order and the old sky. The test seed is 11. Skip sets <code>dayAcc</code> to 0 before its own day ticks. The landing-day file lasts only until the next <code>dayTick</code> that is allowed to write.</p>
+      </article>
+    </div>
+  </div>
+</body>
+</html>
