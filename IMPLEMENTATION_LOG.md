@@ -335,3 +335,14 @@ History of what **shipped**, keyed by **version**.
 - Skip lands on a build finish, a restored part, a finished cryo proof or tanking run, or the next open day. The earlier event wins. A fill, a lit fire, or a flight makes Skip refuse, and the day stays. Escape during a fire still finishes the fire picture. Header Skip does not.
 - The save stays version 1. The label is `0.14.2-seed`. It stores the seed and the speed. It does not store a weather table or a defect order. A `0.14.1` file with `seed: null` continues on the old sky and the old order.
 - The rocket name stays Test article. Serials stay TA. Steel stays 28. The bay prices stay. The sheet still says not tested until a test reads that part. The previous live file is `archive/index-0.14.1-teeth.html`.
+
+## `0.15.0-sheet` — 2026-11-12
+
+**Version:** `0.15.0-sheet`
+
+- The rocket window names the short part. The top bar keeps the rocket name and the place. It names Structure, the fuel lines, or the engine when that part is short.
+- Has and Needed sit on the part line. Structure shows the life the rocket has and the life the cryo proof needed. The fuel lines show the seconds. The engine shows the thrust.
+- In Mega Bay the fix button sits on that row. Refurb the structure is 4 to 5 days and no steel. Inspect the fuel lines is 1 day and no steel. Refurb the engine is 2 days and 24 steel at pad level 1.
+- On the pad the window does not start the job. An untested part still reads not tested. The fix stays off until the pad has checked that part.
+- This row adds no new test, no new price, and no new weak number. The cryo proof, the tanking run, and the static fire stay on the pad.
+- The save stays version 1. The label on the next write is `0.15.0-sheet`. The save still stores the seed and the speed. An older save still loads. The previous live file is `archive/index-0.14.2-seed.html`. The design page is `design-docs/0.15.0-sheet-design.html`.

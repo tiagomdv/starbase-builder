@@ -18,7 +18,7 @@ The sites, the engines, and the propellants follow real SpaceX hardware. The gam
 
 ## Status
 
-Live release: `0.14.2-seed`. Next row: `0.15.0-sheet`. One seed drives the defect order and the sky. The header has 1x, 2x, 4x, and Skip. Today's rocket is a Starship development article with one Raptor, on methane and liquid oxygen. The static fire reads Structure and the fuel lines. A reload continues the yard. The Mega Bay fix stays off until the pad has checked that part. A cryo proof and a tanking run come before the static fire. You can skip a test. Return stays on the pad. Restart starts a new game. The hop comes later.
+Live release: `0.15.0-sheet`. Next row: `0.16.0-bay`. The rocket window names the short part. Has and Needed sit on that line. In Mega Bay the fix button is on the same row. On the pad the window does not start the job. One seed still drives the defect order and the sky. The header has 1x, 2x, 4x, and Skip. The cryo proof, the tanking run, and the static fire stay on the pad. The hop comes later.
 
 ## Where it's headed
 
