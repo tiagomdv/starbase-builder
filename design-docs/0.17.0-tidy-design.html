@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>0.17.0-tidy · design — starbase-builder</title>
+  <style>
+    :root {
+      --bg: #1c2118; --panel: #2a2218; --panel2: #221c14; --border: #5a4830;
+      --text: #e8d9b0; --muted: #a89878; --accent: #d4a84b; --link: #e8c56a; --code: #c4e08a;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; line-height: 1.55; }
+    .wrap { max-width: 1340px; margin: 0 auto; padding: 1.5rem 1.25rem 4rem; }
+    .doc-hero { background: var(--panel); border: 1px solid var(--border); border-radius: 0.85rem; padding: 1.15rem 1.25rem 1.25rem; margin-bottom: 1.25rem; }
+    .doc-hero h1 { font-size: 1.55rem; font-weight: 650; color: #f5edd8; margin: 0.35rem 0 0.4rem; }
+    .doc-hero .lede { margin: 0; font-size: 0.9rem; color: var(--muted); max-width: 60rem; }
+    .meta-row { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+    .tag { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 999px; background: #3a2e20; color: #e8c56a; border: 1px solid #6a5638; }
+    .tag.muted { background: #1e1a14; color: var(--muted); border-color: #4a3c28; }
+    .toc { background: var(--panel); border: 1px solid var(--border); border-radius: 0.65rem; padding: 0.6rem 0.85rem; margin-bottom: 1rem; font-size: 0.8rem; }
+    .toc a { color: var(--link); text-decoration: none; margin-right: 0.9rem; white-space: nowrap; }
+    h2 { font-size: 1.12rem; color: #f5edd8; margin: 1.8rem 0 0.65rem; padding-bottom: 0.35rem; border-bottom: 1px solid var(--border); scroll-margin-top: 0.75rem; }
+    h3 { font-size: 0.95rem; color: var(--accent); margin: 0 0 0.45rem; }
+    p, li { font-size: 0.9rem; max-width: 62rem; }
+    p { margin: 0.45rem 0 0.7rem; }
+    ul, ol { margin: 0.35rem 0 0.75rem; padding-left: 1.35rem; }
+    li { margin: 0.28rem 0; }
+    code { font-family: ui-monospace, Menlo, monospace; color: var(--code); font-size: 0.86em; }
+    pre { background: var(--panel2); border: 1px solid var(--border); padding: 0.8rem 0.9rem; overflow-x: auto; font-size: 0.78rem; line-height: 1.45; max-width: 62rem; }
+    pre code { color: var(--text); }
+    strong { color: #f5edd8; }
+    table.doc { width: 100%; max-width: 62rem; border-collapse: collapse; font-size: 0.84rem; margin: 0.45rem 0 0.9rem; }
+    table.doc th, table.doc td { border: 1px solid var(--border); padding: 0.4rem 0.55rem; text-align: left; vertical-align: top; }
+    table.doc th { background: var(--panel2); color: var(--muted); font-size: 11px; font-weight: 600; }
+    table.doc td { background: rgba(42,34,24,0.45); }
+    .pair { display: flex; gap: 28px; align-items: flex-start; flex-wrap: wrap; margin: 0.6rem 0 0.4rem; }
+    figure { margin: 0; }
+    figcaption { font-size: 0.82rem; color: var(--muted); margin-top: 0.45rem; max-width: 40rem; }
+    figcaption b { color: var(--accent); font-weight: 600; }
+    .stamp { font: 600 11px ui-monospace, Menlo, monospace; color: var(--muted); margin-bottom: 6px; }
+    .stamp.after { color: var(--accent); }
+    .footer-note { color: var(--muted); font-size: 0.82rem; margin-top: 2rem; }
+
+    /* ---- Game frame shared by both mocks ---- */
+    .g { background: #0a0a0a; color: #f2f2f2; font-family: system-ui, -apple-system, Segoe UI, sans-serif; line-height: 1.3; }
+    .g * { box-sizing: border-box; }
+    .g .mono, .g b.n { font-family: ui-monospace, Menlo, monospace; font-variant-numeric: tabular-nums; }
+
+    /* ---- BEFORE: today's sizes, copied from index.html at ec403b5 ---- */
+    .bf { border: 1px solid #2a2a2a; }
+    .bf .shh { color: #c4a15a; font: 600 11px ui-monospace, Menlo, monospace; letter-spacing: 0.14em; text-transform: uppercase; border-bottom: 1px solid #333; margin: 0 0 8px; padding-bottom: 4px; }
+    .bf .shh.sub { margin-top: 14px; }
+    .bf .title { font-size: 16px; font-weight: 650; }
+    .bf .blurb { font-size: 12px; color: #c8c8c8; margin: 4px 0 0; }
+    .bf .row { display: flex; justify-content: space-between; align-items: baseline; padding: 3px 0; font-size: 12px; color: #c8c8c8; }
+    .bf .row b { font: 650 15px ui-monospace, Menlo, monospace; color: #f2f2f2; }
+    .bf .slot { display: grid; grid-template-columns: 1fr auto 78px; gap: 6px; border: 1px solid #555; padding: 5px 7px; margin-top: 5px; font-size: 12px; }
+    .bf .slot .pc { font-family: ui-monospace, Menlo, monospace; font-weight: 650; text-align: right; color: #e10600; }
+    .bf .slot .pl { color: #c4a15a; font-size: 11px; text-align: right; }
+    .bf .slot.sel { border-color: #f2f2f2; box-shadow: inset 3px 0 #e10600; }
+    .bf .u { display: flex; justify-content: space-between; align-items: center; border: 1px solid #555; padding: 4px 6px; margin-top: 5px; font-size: 12px; }
+    .bf .u span { color: #c8c8c8; }
+    .bf .ubtn { border: 1px solid #f2f2f2; padding: 2px 7px; font-size: 12px; opacity: 0.4; }
+    .bf .act { border: 1px solid #444; padding: 5px 7px; margin-top: 4px; background: #0a0a0a; }
+    .bf .act .name { font-size: 13px; font-weight: 650; }
+    .bf .act .line { font-size: 11px; color: #9a9a9a; margin-top: 2px; }
+    .bf .big { font-size: 15px; font-weight: 650; letter-spacing: 0.22em; text-transform: uppercase; color: #e6e6e6; border: 1px solid #8a8a8a; background: #0e0e0e; text-align: center; padding: 12px 14px; margin: 8px; }
+    .bf .plot { border: 1px dashed #f2f2f2; padding: 10px 10px 12px; margin-bottom: 8px; background: #0e0e0e; }
+    .bf .plot .name { font-size: 15px; font-weight: 650; }
+    .bf .plot .price { font-size: 28px; line-height: 1; font-weight: 650; margin-top: 6px; }
+    .bf .unit { font-size: 11px; color: #9a9a9a; letter-spacing: 0.08em; text-transform: uppercase; }
+    .bf .plot .line { font-size: 12px; color: #c8c8c8; margin-top: 8px; }
+    .bf .steel { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .bf .steel > div { border: 1px solid #f2f2f2; padding: 6px 7px 7px; background: #0e0e0e; }
+    .bf .steel .name { font-size: 12px; font-weight: 650; }
+    .bf .steel .price { font-size: 18px; line-height: 1; font-weight: 650; margin-top: 4px; }
+    .bf .steel .unit { font-size: 10px; }
+    .bf .rate { font-size: 11px; color: #9a9a9a; margin: 6px 0 8px; }
+
+    .bf-sheet { width: 600px; height: 760px; overflow: hidden; position: relative; border: 1px solid #333; background: #0a0a0a; }
+    .bf-sheet .top { display: flex; gap: 16px; padding: 18px 18px 14px; border-bottom: 1px solid #2a2a2a; }
+    .bf-sheet .who { flex: 1; padding-top: 8px; }
+    .bf-sheet .who b { font-size: 20px; }
+    .bf-sheet .place { font-size: 12px; color: #9a9a9a; margin-top: 4px; }
+    .bf-sheet .miss { font-size: 13px; color: #e10600; margin-top: 6px; }
+    .bf-sheet .x { color: #9a9a9a; letter-spacing: 0.16em; text-transform: uppercase; font-size: 11px; padding-top: 8px; }
+    .bf-sheet .body { padding: 12px 22px; display: grid; grid-template-columns: 150px 1fr; gap: 8px 24px; }
+    .bf-sheet .call b.t { display: block; font-size: 16px; font-weight: 650; }
+    .bf-sheet .counts { display: flex; gap: 18px; margin-top: 6px; }
+    .bf-sheet .counts b { display: block; font-size: 32px; line-height: 0.9; font-weight: 650; }
+    .bf-sheet .counts .has { color: #e10600; }
+    .bf-sheet .counts span { display: block; margin-top: 4px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #9a9a9a; }
+    .bf-sheet .fix { border: 1px solid #f2f2f2; padding: 10px; margin: 10px 0 16px; }
+    .bf-sheet .fix .name { font-size: 14px; font-weight: 650; }
+    .bf-sheet .fix .line { font-size: 12px; color: #c8c8c8; margin-top: 6px; }
+    .bf-sheet .spec { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px 14px; padding-top: 14px; border-top: 1px solid #2a2a2a; }
+    .bf-sheet .spec b { display: block; font-size: 15px; font-weight: 650; }
+    .bf-sheet .spec span { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: #9a9a9a; }
+    .bf-sheet .wait { grid-column: 1 / -1; font-size: 12px; color: #c8c8c8; margin: 0; }
+    .bf-sheet .gold { grid-column: 1 / -1; border: 1px solid #c4a15a; background: #16140e; padding: 10px; }
+    .bf-sheet .gold .name { font-size: 14px; font-weight: 650; }
+    .bf-sheet .gold .price { font-size: 26px; font-weight: 650; }
+    .bf-sheet .fold { position: absolute; left: 0; right: 0; bottom: 0; height: 64px; background: linear-gradient(transparent, #0a0a0a 80%); }
+    .bf-sheet .fold span { position: absolute; bottom: 8px; left: 22px; font-size: 12px; color: #e10600; font-family: ui-monospace, Menlo, monospace; }
+
+    /* ---- AFTER: four sizes only. 11, 12, 14, 16. ---- */
+    .af { --t11: 11px; --t12: 12px; --t14: 14px; --t16: 16px; }
+    .af .sh { color: #c4a15a; font: 600 12px ui-monospace, Menlo, monospace; border-bottom: 1px solid #333; margin: 0 0 6px; padding-bottom: 3px; }
+    .af .sh.sub { margin-top: 12px; }
+    .af .title { font-size: 16px; font-weight: 650; }
+    .af .blurb { font-size: 12px; color: #c8c8c8; margin: 2px 0 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .af .wl { font-size: 12px; color: #9a9a9a; text-decoration: underline; text-underline-offset: 2px; text-decoration-color: #555; }
+    .af .r { display: flex; justify-content: space-between; align-items: baseline; padding: 1px 0; font-size: 14px; color: #c8c8c8; border-bottom: 1px solid #1c1c1c; }
+    .af .r b { font: 650 14px ui-monospace, Menlo, monospace; color: #f2f2f2; }
+    .af .r b small { font: 400 12px system-ui, sans-serif; color: #9a9a9a; margin-left: 4px; }
+    .af .slot { display: grid; grid-template-columns: 1fr auto 82px; gap: 6px; align-items: baseline; border: 1px solid #555; padding: 4px 7px; margin-top: 5px; font-size: 14px; }
+    .af .slot .pc { font: 650 14px ui-monospace, Menlo, monospace; text-align: right; }
+    .af .slot .pl { color: #c4a15a; font-size: 12px; text-align: right; }
+    .af .slot { white-space: nowrap; }
+    .af .slot .pc.w { font: 400 12px system-ui, sans-serif; color: #c8c8c8; }
+    .af .slot.empty { color: #666; border-style: dashed; }
+    .af .slot.sel { border-color: #f2f2f2; box-shadow: inset 3px 0 #e10600; }
+    .af .now { font-size: 12px; color: #c8c8c8; margin: 6px 0 0; }
+    .af .u { display: flex; justify-content: space-between; align-items: center; padding: 2px 0; font-size: 14px; color: #c8c8c8; border-bottom: 1px solid #1c1c1c; }
+    .af .u .c { font: 650 14px ui-monospace, Menlo, monospace; color: #f2f2f2; margin-left: auto; margin-right: 8px; }
+    .af .btn { border: 1px solid #f2f2f2; background: #0a0a0a; color: #f2f2f2; font-size: 12px; padding: 1px 7px; line-height: 1.4; white-space: nowrap; }
+    .af .btn.off { opacity: 0.4; }
+    .af .btn.hot { border-color: #e07030; color: #f2c0a0; }
+    .af .acts { border-top: 1px solid #f2f2f2; padding: 4px 10px 6px; }
+    .af .a { display: block; border: 1px solid #444; padding: 3px 7px; margin-top: 4px; }
+    .af .a .l1 { display: flex; justify-content: space-between; align-items: baseline; font-size: 14px; font-weight: 650; }
+    .af .a .l1 b { font: 650 14px ui-monospace, Menlo, monospace; }
+    .af .a .l1 b small { font: 400 12px system-ui, sans-serif; color: #9a9a9a; }
+    .af .a .l2 { font-size: 12px; color: #9a9a9a; }
+    .af .a.go { border-color: #f2f2f2; }
+    .af .duo { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+    .af .duo .a { margin-top: 4px; }
+    .af .foot { border: 1px solid #8a8a8a; background: #0e0e0e; color: #e6e6e6; font-size: 14px; font-weight: 650; text-align: center; padding: 6px 12px; margin: 6px 8px; }
+    .af .tl { display: flex; justify-content: space-between; align-items: baseline; }
+    .af .duo.wide { grid-template-columns: 3fr 2fr; }
+    .af .own { border: 1px solid #555; padding: 5px 8px; margin-bottom: 5px; }
+    .af .own.sel { border-color: #e10600; box-shadow: inset 3px 0 #e10600; }
+    .af .own .name { font-size: 14px; font-weight: 650; }
+    .af .own .line { font-size: 12px; color: #9a9a9a; }
+    .af .plot { border: 1px dashed #bbb; padding: 5px 8px; margin-bottom: 5px; }
+    .af .plot .l1 { display: flex; justify-content: space-between; align-items: baseline; font-size: 14px; font-weight: 650; }
+    .af .plot .l1 b { font: 650 14px ui-monospace, Menlo, monospace; }
+    .af .plot .l1 b small { font: 400 12px system-ui, sans-serif; color: #9a9a9a; }
+    .af .plot .l2 { font-size: 12px; color: #9a9a9a; }
+    .af .steel { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+    .af .steel > div { border: 1px solid #f2f2f2; padding: 3px 7px; font-size: 14px; font-weight: 650; display: flex; justify-content: space-between; align-items: baseline; }
+    .af .steel b { font: 650 14px ui-monospace, Menlo, monospace; color: #c8c8c8; }
+    .af .rate { font-size: 12px; color: #9a9a9a; margin: 4px 0 2px; }
+    .af .log { font: 11px/1.35 ui-monospace, Menlo, monospace; color: #9a9a9a; }
+
+    /* Screen frame at 1280 by 800 */
+    .screen { width: 1280px; height: 800px; position: relative; overflow: hidden; display: flex; flex-direction: column; border: 1px solid #333; }
+    .bar { height: 56px; flex: none; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 6px 12px; border-bottom: 1px solid #fff; font: 13px ui-monospace, Menlo, monospace; background: #050505; }
+    .bar .lamp { width: 12px; height: 12px; border-radius: 50%; background: #3dd68c; box-shadow: 0 0 8px #3dd68c; display: inline-block; vertical-align: middle; margin-right: 10px; }
+    .bar .sky { display: inline-block; vertical-align: middle; }
+    .bar .sky b { display: block; font-size: 15px; line-height: 1.1; }
+    .bar .sky i { display: block; font-style: normal; font-size: 11px; color: #c8c8c8; }
+    .bar .mid { text-align: center; }
+    .bar .ctr { color: #c8c8c8; margin: 0 7px; }
+    .bar .ctr b { color: #c4a15a; font-size: 15px; margin-left: 4px; }
+    .bar .ver { font-size: 10px; color: #666; }
+    .bar .right { display: flex; justify-content: flex-end; align-items: center; gap: 6px; }
+    .bar .chip { border: 1px solid #fff; padding: 2px 7px; font-size: 12px; }
+    .bar .chip.on { background: #1a1a1a; }
+    .bar .chip.new { box-shadow: 0 0 0 2px #c4a15a; }
+    .main { flex: 1; display: flex; min-height: 0; }
+    .land { width: 216px; flex: none; display: flex; flex-direction: column; border-right: 1px solid #2a2a2a; }
+    .land .in, .insp .in { flex: 1; padding: 10px; overflow: hidden; }
+    .map { flex: 1; position: relative; background: #0f4a57; overflow: hidden; }
+    .map .sand { position: absolute; left: 0; top: 0; bottom: 0; width: 72%; background: #e2cb9b; clip-path: polygon(0 62%, 6% 54%, 30% 46%, 45% 39%, 53% 26%, 57% 0, 100% 0, 92% 30%, 90% 100%, 0 100%); }
+    .map .limit { position: absolute; inset: 0; }
+    .map .chips { position: absolute; left: 10px; top: 10px; display: flex; gap: 6px; }
+    .map .chips span, .map .zoom span { background: #0a0a0a; border: 1px solid #333; font-size: 12px; padding: 3px 8px; border-radius: 3px; }
+    .map .zoom { position: absolute; right: 10px; top: 10px; display: flex; gap: 6px; }
+    .map .bldg { position: absolute; border: 1px solid #222; background: #c9c9c9; font-size: 11px; color: #111; padding: 1px 3px; }
+    .insp { width: 280px; flex: none; display: flex; flex-direction: column; border-left: 1px solid #2a2a2a; }
+    .footer { height: 112px; flex: none; border-top: 1px solid #2a2a2a; display: flex; align-items: stretch; }
+    .footer .foot { align-self: center; padding: 6px 14px; }
+    .footer .log { padding: 6px 12px; overflow: hidden; }
+
+    /* Rocket window after */
+    .veil { position: absolute; inset: 0; background: rgba(0,0,0,0.72); display: flex; align-items: center; justify-content: center; }
+    .rw { width: 860px; background: #0a0a0a; border: 1px solid #333; }
+    .rw .hd { display: flex; align-items: baseline; gap: 12px; padding: 10px 16px; border-bottom: 1px solid #2a2a2a; }
+    .rw .hd .nm { font-size: 16px; font-weight: 650; }
+    .rw .hd .pl { font-size: 12px; color: #9a9a9a; }
+    .rw .hd .ms { font-size: 12px; color: #e10600; }
+    .rw .hd .x { margin-left: auto; font-size: 12px; color: #9a9a9a; }
+    .rw .bd { display: grid; grid-template-columns: 112px 1fr; gap: 0 18px; padding: 12px 16px 6px; align-items: start; }
+    .rw svg.ship { width: 112px; height: 294px; display: block; }
+    .rw .ship .tag { font: 650 16.8px system-ui, sans-serif; fill: #f2f2f2; }
+    .rw .ship .tag.s { font-size: 15.4px; }
+    table.parts { width: 100%; border-collapse: collapse; font-size: 14px; }
+    table.parts th { font-size: 12px; font-weight: 400; color: #9a9a9a; text-align: left; padding: 0 8px 4px 0; border-bottom: 1px solid #333; }
+    table.parts td { padding: 9px 8px 9px 0; border-bottom: 1px solid #1f1f1f; vertical-align: middle; }
+    table.parts td.p { font-weight: 650; width: 132px; }
+    table.parts td.p span { display: block; font-size: 12px; font-weight: 400; color: #9a9a9a; }
+    table.parts td.n { font: 650 16px ui-monospace, Menlo, monospace; white-space: nowrap; width: 92px; }
+    table.parts td.n.short { color: #e10600; }
+    table.parts td.n.dim { color: #9a9a9a; font-weight: 400; }
+    table.parts td.b { width: 112px; }
+    table.parts td.j { font-size: 12px; color: #9a9a9a; white-space: nowrap; }
+    table.parts td.k { text-align: right; white-space: nowrap; width: 128px; }
+    table.parts td.k .btn + .btn { margin-left: 4px; }
+    table.parts tr.hot td.p { box-shadow: inset 3px 0 #e10600; padding-left: 8px; }
+    .meter { position: relative; height: 6px; background: #2a2a2a; width: 100px; }
+    .meter i { display: block; height: 100%; }
+    .meter em { position: absolute; top: -3px; bottom: -3px; width: 2px; margin-left: -1px; background: #e10600; }
+    .band { position: relative; height: 6px; width: 100px; background: #2a2a2a; }
+    .band i { position: absolute; top: 0; bottom: 0; background: #c4a15a; }
+    .band em { position: absolute; top: -4px; bottom: -4px; width: 2px; background: #e10600; }
+    .rw .up { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; align-items: center; margin-top: 10px; padding: 7px 0 0; border-top: 1px solid #333; }
+    .rw .up .l1 { font-size: 14px; font-weight: 650; }
+    .rw .up .l1 b { font: 650 14px ui-monospace, Menlo, monospace; margin-left: 8px; }
+    .rw .up .l1 small { font-size: 12px; color: #9a9a9a; font-weight: 400; margin-left: 6px; }
+    .rw .up .l2 { grid-column: 1 / -1; font-size: 12px; color: #9a9a9a; }
+    .rw .empty { display: grid; grid-template-columns: 1fr auto; align-items: center; padding: 5px 8px; margin-bottom: 8px; border: 1px solid #444; box-shadow: inset 3px 0 #e10600; font-size: 14px; }
+    .rw .empty b { font: 650 14px ui-monospace, Menlo, monospace; margin-left: 8px; }
+    .rw .strip { display: flex; flex-wrap: wrap; gap: 4px 18px; padding: 7px 16px 9px; border-top: 1px solid #2a2a2a; font-size: 12px; color: #9a9a9a; }
+    .rw .strip b { font: 650 12px ui-monospace, Menlo, monospace; color: #f2f2f2; margin-left: 4px; }
+    .rw .strip .wl { margin-left: auto; }
+    .note-pin { position: absolute; font: 600 11px ui-monospace, Menlo, monospace; color: #1c2118; background: #e8c56a; padding: 1px 5px; border-radius: 2px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="doc-hero">
+      <div class="meta-row">
+        <span class="tag">0.17.0-tidy</span>
+        <span class="tag">Decided · 2026-11-18</span>
+        <span class="tag muted">Between 0.16.0-bay and 0.18.0-hop</span>
+      </div>
+      <h1>Smaller type, one parts table, and one clock for the road</h1>
+      <p class="lede">
+        This row tidies the right column, the left column, and the rocket window.
+        Numbers drop to 14 and 16 px. Words move to the wiki. The rocket window fits at 1280 by 800.
+        Four rule changes ride in this row and nothing else. The road and the lift run in game days. The day holds during a fill, a fire, and a flight. The speeds are 1x and 3x. Every build is named Starhopper and a number.
+        Tiago decided every open question on 2026-11-18. Nothing is left open.
+      </p>
+    </header>
+
+    <nav class="toc">
+      <a href="#see">What you see</a><a href="#screen">The screen</a><a href="#rocket">Rocket window</a><a href="#right">Right column</a><a href="#left">Left column</a><a href="#scale">Type scale</a><a href="#road">Road time</a><a href="#hold">The day holds</a><a href="#speed">Two speeds</a><a href="#hopper">Starhopper</a><a href="#moved">What moved where</a><a href="#acts">Every action</a><a href="#stays">What stays</a><a href="#decided">Decided</a><a href="#check-list">Acceptance</a><a href="#docs">Docs after ship</a>
+    </nav>
+
+    <h2 id="see">What you see</h2>
+    <p>You open a test start with seed 11. You buy the three plots. Each plot is one line with its price at 14 px. The 28 px price is gone.</p>
+    <p>You build Starhopper 1. It rolls to Mega Bay in under a day. At 3x it is the same share of a day. In <code>?test</code> it is the same share of a day.</p>
+    <p>You select the Orbital Pad. The right column reads like a spec sheet. The name with a Wiki link, one line, then label and number rows. The pinned actions are two lines at most.</p>
+    <p>You load the tanks and fire. The day number stops while the tanks fill and while the engine burns. It moves again when the fire ends.</p>
+    <p>A lit miss sends Starhopper 1 home with Structure 20. You open the rocket. One table holds Structure, Fuel lines, and Engine. Only the 20 is red. Each row has one small button. The window fits on the screen. Nothing scrolls.</p>
+
+    <h2 id="screen">The screen after</h2>
+    <p>This is the whole screen at 1280 by 800, drawn at full size. The Orbital Pad is selected and Starhopper 1 is on the mount before its cryo proof. That is the tallest right column in the game today. It fits without a scroll.</p>
+    <div style="overflow-x:auto"><div class="g af screen" id="after-screen"><div class="bar">
+  <div><span class="lamp"></span><span class="sky"><b>Range open</b><i>clear 8 kn</i></span></div>
+  <div class="mid"><span class="ctr">Money<b>130</b></span><span class="ctr">Steel<b>2</b></span><span class="ctr">CH4<b>0</b></span><span class="ctr">LOX<b>0</b></span><span class="ctr">Fleet<b>1</b></span><div class="ver">0.17.0-tidy. Test start.</div></div>
+  <div class="right"><span class="ctr">Day<b>14</b></span><span class="chip on">1x</span><span class="chip new">3x</span><span class="chip">Skip</span><span class="chip">Pause</span><span class="chip">Restart</span></div>
+</div><div class="main"><div class="land"><div class="in">
+  <div class="sh">Land</div>
+  <div class="steel"><div>Buy 10 <b>10</b></div><div>Buy 50 <b>50</b></div></div>
+  <p class="rate">1 money buys 1 steel.</p>
+  <div class="sh sub">Buildings</div>
+  <div class="own"><div class="name">Starfactory</div><div class="line">Builds a Starhopper</div></div>
+  <div class="own"><div class="name">Mega Bay</div><div class="line">0 of 1 slot used</div></div>
+  <div class="own sel"><div class="name">Orbital Pad</div><div class="line">Pad level 1</div></div>
+</div><div class="foot">Goals</div></div><div class="map"><div class="sand"></div>
+  <svg class="limit" viewBox="0 0 784 632" preserveAspectRatio="none"><path d="M0 392 L47 341 L235 291 L353 246 L415 164 L447 0" fill="none" stroke="#c0392b" stroke-width="1.5" stroke-dasharray="6 4"/><path d="M720 0 L705 190 L706 632" fill="none" stroke="#c0392b" stroke-width="1.5" stroke-dasharray="6 4"/></svg>
+  <div class="chips"><span>World</span><span>Region</span><span>Site</span><span style="border-color:#e10600">Work</span></div>
+  <div class="zoom"><span>Zoom in</span><span>Zoom out</span></div>
+  <div class="bldg" style="left:150px;top:430px">Factory</div><div class="bldg" style="left:300px;top:400px">Bay</div><div class="bldg" style="left:470px;top:300px">Pad</div>
+</div><div class="insp"><div class="in">
+  <div class="title tl">Orbital Pad<span class="wl">Wiki</span></div>
+  <p class="blurb">Holds one vehicle for its pad tests.</p>
+  <div class="sh sub">Data</div>
+  <div class="r"><span>Pad level</span><b>1</b></div>
+  <div class="r"><span>Thrust limit</span><b>2000<small>kN</small></b></div>
+  <div class="r"><span>Wind limit</span><b>20<small>kn</small></b></div>
+  <div class="r"><span>Methane / LOX</span><b>0 / 0<small>kg</small></b></div>
+  <div class="r"><span>Fires, last 30 days</span><b>0</b></div>
+  <div class="r"><span>Last fire</span><b>none</b></div>
+  <div class="slot sel"><span>Starhopper 1</span><span class="pc w">not tested</span><span class="pl">On the pad</span></div>
+  <p class="now">Cryo proof, then tanking, then a static fire.</p>
+  <div class="sh sub">Upgrade</div>
+  <div class="u"><span>Pad level 2</span><span class="c">40</span><span class="btn off">Need 40 steel</span></div>
+  <div class="u"><span>Methane tank</span><span class="c">24</span><span class="btn off">Need 24 steel</span></div>
+  <div class="u"><span>LOX tank</span><span class="c">24</span><span class="btn off">Need 24 steel</span></div>
+</div>
+<div class="acts">
+  <div class="a go"><div class="l1">Cryo proof <b>20 <small>money</small></b></div><div class="l2">Liquid nitrogen to 4.9 bar.</div></div>
+  <div class="a"><div class="l1">Skip the cryo proof</div><div class="l2">Structure needs 70. A skip leaves it untested.</div></div>
+  <div class="duo"><div class="a"><div class="l1">Load methane <b>6</b></div><div class="l2">Fills to 1218 kg.</div></div><div class="a"><div class="l1">Load LOX <b>6</b></div><div class="l2">Fills to 4386 kg.</div></div></div>
+  <div class="duo wide"><div class="a"><div class="l1">Return to Mega Bay</div></div><div class="a" title="Open Starhopper 1"><div class="l1">Open</div></div></div>
+</div>
+<div class="foot">Fleet</div></div></div><div class="footer"><div class="foot">Wiki</div><div class="log">
+Starhopper 1 rises onto the mount.<br>Starhopper 1 rolls to the Orbital Pad · 0.6 days left<br>Starhopper 1 is ready at Starfactory.<br>Starfactory starts Starhopper 1 · 8 to 12 days.<br>A day here lasts half a second at 1x.<br>This game uses seed 11.</div></div></div></div>
+    <figcaption><b>After.</b> The top bar is the locked bar. Only its speed chips change, to 1x and 3x, marked gold here. The Land column lists buildings as rows. The Inspector holds the name with a Wiki link, one line, Data rows, the mount row, one status line, and Upgrade. The pinned actions show the price on the same line as the name.</figcaption>
+
+    <h2 id="rocket">The rocket window</h2>
+    <p>Today the window shows each part as a poster. A 32 px pair of numbers, then a full-width box for the fix. The stats grid and two loose sentences sit under it. Raise Raptor thrust is a gold card at the bottom, past the fold. At 1280 by 800 it scrolls.</p>
+    <p>After, the window is one table. A row is the part, what it has, what it needs, a small margin bar, the bay job cost, and one small button. The drawing stays and gets smaller. The stats are one strip. Empty the tanks sits on top of the table, because it blocks every pad test. Raise Raptor thrust is one line under the table.</p>
+    <div class="pair">
+      <figure>
+        <div class="stamp">Before · 0.16.0-bay · TA-1 in Bay slot 1</div>
+        <div class="g bf-sheet">
+  <div class="top"><div class="who"><b>TA-1</b><div class="place">Bay slot 1</div><div class="miss">Structure</div></div><div class="x">Close</div></div>
+  <div class="body">
+    <div style="grid-row:span 3"><svg viewBox="0 0 160 420" width="150" height="390"><polygon points="80,14 104,92 104,262 56,262 56,92" fill="#141414" stroke="#e10600" stroke-width="1.6"/><rect x="56" y="212" width="48" height="50" fill="#e10600" fill-opacity=".55"/><polygon points="56,262 104,262 100,316 60,316" fill="#555" stroke="#f2f2f2"/><polygon points="70,316 90,316 116,408 44,408" fill="#f2f2f2"/><polygon points="56,200 24,276 56,262" fill="#cfcfcf"/><polygon points="104,200 136,276 104,262" fill="#cfcfcf"/><text x="80" y="240" text-anchor="middle" fill="#f2f2f2" style="font:650 14px system-ui">20%</text></svg></div>
+    <div class="call"><b class="t">Structure</b><div class="counts"><div><b class="has">20</b><span>Has</span></div><div><b>70</b><span>Needed</span></div></div><div class="fix"><div class="name">Refurb the structure</div><div class="line">4 to 5 days · no steel</div></div></div>
+    <div class="call"><b class="t">Fuel lines</b><div class="counts"><div><b>40 seconds</b><span>Has</span></div><div><b>5 seconds</b><span>Needed</span></div></div><div class="fix"><div class="name">Inspect the fuel lines</div><div class="line">1 day · no steel</div></div></div>
+    <div class="call"><b class="t">Engine (Raptor)</b><div class="counts"><div><b>1814 kN</b><span>Has</span></div><div><b>1500 kN</b><span>Needed</span></div></div><div class="fix"><div class="name">Refurb the engine</div><div class="line">2 days · 24 steel</div></div></div>
+    <div class="spec"><div><b>1814 kN</b><span>Thrust</span></div><div><b>330 s</b><span>Specific impulse</span></div><div><b>2080 kg</b><span>Engine mass</span></div><div><b>3</b><span>Burns</span></div><div><b>1080 kg</b><span>Stage dry mass</span></div><div><b>27572 kg</b><span>Liftoff mass</span></div><div><b>A test article carries no payload.</b></div></div>
+    <p class="wait">Liftoff comes with the hop.</p>
+    <div class="gold"><div class="name">Raise Raptor thrust</div><div class="price">36</div><div class="unit">Steel</div></div>
+  </div>
+  <div class="fold"><span>scrolls here</span></div>
+</div>
+        <figcaption>Drawn from <code>before-rocket.png</code>. The numbers are 32 px. Labels are uppercase. Raise Raptor thrust is below the fold.</figcaption>
+      </figure>
+    </div>
+    <div class="stamp after">After · 1280 by 800 · Starhopper 1 in Bay slot 1 with a scrubbed load still aboard</div>
+    <div style="overflow-x:auto"><div class="g af screen" id="after-rocket"><div class="bar">
+  <div><span class="lamp"></span><span class="sky"><b>Range open</b><i>clear 8 kn</i></span></div>
+  <div class="mid"><span class="ctr">Money<b>130</b></span><span class="ctr">Steel<b>2</b></span><span class="ctr">CH4<b>0</b></span><span class="ctr">LOX<b>0</b></span><span class="ctr">Fleet<b>1</b></span><div class="ver">0.17.0-tidy. Test start.</div></div>
+  <div class="right"><span class="ctr">Day<b>14</b></span><span class="chip on">1x</span><span class="chip new">3x</span><span class="chip">Skip</span><span class="chip">Pause</span><span class="chip">Restart</span></div>
+</div><div class="main"><div class="land"><div class="in">
+  <div class="sh">Land</div>
+  <div class="steel"><div>Buy 10 <b>10</b></div><div>Buy 50 <b>50</b></div></div>
+  <p class="rate">1 money buys 1 steel.</p>
+  <div class="sh sub">Buildings</div>
+  <div class="own"><div class="name">Starfactory</div><div class="line">Builds a Starhopper</div></div>
+  <div class="own sel"><div class="name">Mega Bay</div><div class="line">0 of 1 slot used</div></div>
+  <div class="own"><div class="name">Orbital Pad</div><div class="line">Pad level 1</div></div>
+</div><div class="foot">Goals</div></div><div class="map"><div class="sand"></div>
+  <svg class="limit" viewBox="0 0 784 632" preserveAspectRatio="none"><path d="M0 392 L47 341 L235 291 L353 246 L415 164 L447 0" fill="none" stroke="#c0392b" stroke-width="1.5" stroke-dasharray="6 4"/><path d="M720 0 L705 190 L706 632" fill="none" stroke="#c0392b" stroke-width="1.5" stroke-dasharray="6 4"/></svg>
+  <div class="chips"><span>World</span><span>Region</span><span>Site</span><span style="border-color:#e10600">Work</span></div>
+  <div class="zoom"><span>Zoom in</span><span>Zoom out</span></div>
+  <div class="bldg" style="left:150px;top:430px">Factory</div><div class="bldg" style="left:300px;top:400px">Bay</div><div class="bldg" style="left:470px;top:300px">Pad</div>
+</div><div class="insp"><div class="in">
+  <div class="title tl">Mega Bay<span class="wl">Wiki</span></div>
+  <p class="blurb">Houses the fleet.</p>
+  <div class="sh sub">Data</div>
+  <div class="r"><span>Housed</span><b>1 of 1</b></div>
+  <div class="slot sel"><span>Starhopper 1</span><span class="pc" style="color:#e10600">20%</span><span class="pl">Bay slot 1</span></div>
+  <div class="sh sub">Upgrade</div>
+  <div class="u"><span>Add bay slot</span><span class="c">30</span><span class="btn off">Need 30 steel</span></div>
+</div>
+<div class="acts">
+  <div class="a go"><div class="l1">Roll Starhopper 1 to the pad</div></div>
+  <div class="a"><div class="l1">Open Starhopper 1</div></div>
+</div>
+<div class="foot">Fleet</div></div></div><div class="footer"><div class="foot">Wiki</div><div class="log">
+Starhopper 1 rises onto the mount.<br>Starhopper 1 rolls to the Orbital Pad · 0.6 days left<br>Starhopper 1 is ready at Starfactory.<br>Starfactory starts Starhopper 1 · 8 to 12 days.<br>A day here lasts half a second at 1x.<br>This game uses seed 11.</div></div><div class="veil"><div class="rw">
+  <div class="hd"><span class="nm">Starhopper 1</span><span class="pl">Bay slot 1</span><span class="ms">Structure is short</span><span class="x">Close</span></div>
+  <div class="bd">
+    <svg class="ship" viewBox="0 0 160 420" aria-label="Starhopper 1">
+  <defs><clipPath id="c-st"><polygon points="80,14 104,92 104,262 56,262 56,92"/></clipPath><clipPath id="c-en"><polygon points="70,316 90,316 116,408 44,408"/></clipPath></defs>
+  <polygon points="80,14 104,92 104,262 56,262 56,92" fill="#141414"/>
+  <polygon points="56,262 104,262 100,316 60,316" fill="#0c0c0c"/>
+  <polygon points="70,316 90,316 116,408 44,408" fill="#120e0c"/>
+  <g clip-path="url(#c-st)"><rect x="56" y="212" width="48" height="50" fill="#e10600" fill-opacity="0.55"/></g>
+  <rect x="56" y="262" width="48" height="54" fill="#f2f2f2" fill-opacity="0.35"/>
+  <g clip-path="url(#c-en)"><rect x="44" y="316" width="72" height="92" fill="#f2f2f2"/></g>
+  <polygon points="56,200 24,276 56,262" fill="#cfcfcf"/><polygon points="104,200 136,276 104,262" fill="#cfcfcf"/>
+  <polygon points="80,14 104,92 104,262 56,262 56,92" fill="none" stroke="#e10600" stroke-width="1.6"/>
+  <polygon points="56,262 104,262 100,316 60,316" fill="none" stroke="#f2f2f2" stroke-width="1.6"/>
+  <polygon points="70,316 90,316 116,408 44,408" fill="none" stroke="#f2f2f2" stroke-width="1.6"/>
+  <text class="tag" text-anchor="middle" x="80" y="150">20%</text>
+  <text class="tag s" text-anchor="middle" x="80" y="296" fill="#141414" style="fill:#141414">100%</text>
+  <text class="tag s" text-anchor="middle" x="80" y="372" style="fill:#141414">100%</text>
+</svg>
+    <div>
+      <div class="empty"><span>Empty the tanks<b>609</b> <small style="font-size:12px;color:#9a9a9a">kg CH4</small><b>2193</b> <small style="font-size:12px;color:#9a9a9a">kg LOX</small></span><span class="btn">Empty</span></div>
+      <table class="parts">
+        <thead><tr><th>Part</th><th>Has</th><th>Needs</th><th>Margin</th><th>Bay job</th><th></th></tr></thead>
+        <tbody>
+          <tr class="hot"><td class="p">Structure</td><td class="n short">20</td><td class="n">70</td><td class="b"><div class="meter" title="Has 20 against Needs 70, out of 100"><i style="width:20%;background:#e10600"></i><em style="left:70%"></em></div></td><td class="j">4 to 5 days · no steel</td><td class="k"><span class="btn">Refurb</span></td></tr>
+          <tr><td class="p">Fuel lines</td><td class="n">40 s</td><td class="n">5 s</td><td class="b"><div class="meter" title="Has 40 s against Needs 5 s, out of 40 s"><i style="width:100%;background:#f2f2f2"></i><em style="left:12.5%"></em></div></td><td class="j">1 day · no steel</td><td class="k"><span class="btn">Inspect</span></td></tr>
+          <tr><td class="p">Engine<span>Raptor</span></td><td class="n">1814 kN</td><td class="n">1500 kN</td><td class="b"><div class="meter" title="Has 1814 kN against Needs 1500 kN, out of 1814 kN"><i style="width:100%;background:#f2f2f2"></i><em style="left:82.7%"></em></div></td><td class="j">2 days · 24 steel</td><td class="k"><span class="btn">Refurb</span></td></tr>
+        </tbody>
+      </table>
+      <div class="up"><div class="l1">Raise Raptor thrust<b>36</b><small>steel · 3 to 5 days</small></div><span class="btn off">Need 36 steel</span>
+        <div class="l2">Raptor 1 at 1814 kN becomes Raptor 2 at 2256 kN. Mass drops from 2080 kg to 1630 kg. Pad level 1 holds 2000 kN.</div></div>
+    </div>
+  </div>
+  <div class="strip"><span>Thrust<b>1814 kN</b></span><span>Specific impulse<b>330 s</b></span><span>Engine mass<b>2080 kg</b></span><span>Burns<b>3</b></span><span>Stage dry mass<b>1080 kg</b></span><span>Liftoff mass<b>27572 kg</b></span><span class="wl">Payload and liftoff in the wiki</span></div>
+</div></div></div></div>
+    <figcaption><b>After.</b> This is the tallest case. The tanks still hold a scrubbed load, Structure is short, and Raptor thrust can still be raised. The window is about 470 px tall in an 800 px screen. Red marks the 20, the Needs ticks, the Structure rule, and the hull.</figcaption>
+
+    <h3 style="margin-top:1rem">The margin bar</h3>
+    <p>The bar shows Has against Needs. Its full width is the healthy number for that part: 100 for Structure, 40 s for Fuel lines, and the engine's full thrust, 1814 kN for Raptor 1 or 2256 kN for Raptor 2. Needs is a red tick. Has fills from the left up to its number. The fill is red only when it stops short of the tick. An untested part shows the tick alone. A banded Structure shows the gold band against the tick. The column is called Margin. The cutaway keeps the life percent.</p>
+    <p>Before the pad test, the Structure row holds the 0.16.0-bay band. Check Structure stays on the Structure row, beside Refurb. Untested parts keep their off button and their cost.</p>
+    <div class="g af" style="width:640px;padding:10px 14px;border:1px solid #333">
+<table class="parts"><thead><tr><th>Part</th><th>Has</th><th>Needs</th><th>Margin</th><th>Bay job</th><th></th></tr></thead><tbody>
+<tr><td class="p">Structure<span>first check</span></td><td class="n">52 to 82</td><td class="n">70</td><td class="b"><div class="band" title="Reads 52 to 82 against Needs 70, out of 100"><i style="left:52%;width:30%"></i><em style="left:70%"></em></div></td><td class="j">1 day · no money</td><td class="k"><span class="btn">Check</span><span class="btn">Refurb</span></td></tr>
+<tr><td class="p">Fuel lines</td><td class="n dim">not tested</td><td class="n">5 s</td><td class="b"><div class="meter" title="Needs 5 s. Not tested."><em style="left:12.5%"></em></div></td><td class="j">1 day · no steel</td><td class="k"><span class="btn off">Inspect</span></td></tr>
+<tr><td class="p">Engine<span>Raptor</span></td><td class="n dim">not tested</td><td class="n">1500 kN</td><td class="b"><div class="meter" title="Needs 1500 kN. Not tested."><em style="left:82.7%"></em></div></td><td class="j">2 days · 24 steel</td><td class="k"><span class="btn off">Refurb</span></td></tr>
+</tbody></table></div>
+    <figcaption><b>After, first check.</b> The Has cell reads 52 to 82. The gold band sits from 52 to 82 on the 100 scale, and the red tick sits at 70, inside the band. Fuel lines and the engine are untested, so each shows its tick alone. The read line "52 to 82 · the proof needs 70" is the Has and Needs cells.</figcaption>
+
+    <p style="margin-top:1rem">The buttons are short verbs. Refurb, Inspect, Check, Empty. The full name stays in the button's title and its aria label, so "Refurb the structure" is still one hover away. A running job puts "2 days left" in the Bay job cell and turns the button off. On the pad the window starts no job, as 0.15.0-sheet locked. The button cell is empty there and the cost cell is dim.</p>
+
+    <h2 id="right">The right column</h2>
+    <p>Today's column already has rows from 0.11.0-screen. The trouble is the sentences. Starfactory prints three long lines. The pad prints up to seven wait lines and three cadence lines. The pinned action cards carry a second and third line of prose.</p>
+    <p>After, each building shows one line that says what it is, and a small link that opens its wiki page. Status sentences become one line under the mount or slot row. Cadence becomes two Data rows. Each action is one line with its price, plus one 12 px line with its fact.</p>
+    <div class="pair">
+      <figure><div class="stamp">Before · Mega Bay</div><div class="g bf" style="width:280px;height:560px;padding:10px;position:relative">
+  <div class="shh">Inspector</div>
+  <div class="title">Mega Bay</div>
+  <p class="blurb">Houses the fleet. The rocket sheet refurbs one part at a time.</p>
+  <div class="shh sub">Data</div>
+  <div class="row"><span>Housed</span><b>1 of 1</b></div>
+  <div class="slot sel"><span>TA-1</span><span class="pc">20%</span><span class="pl">Bay slot 1</span></div>
+  <div class="shh sub" style="margin-top:14px">Upgrade</div>
+  <div class="u"><span>Add bay slot · 30 steel</span><span class="ubtn">Need 30 steel.</span></div>
+  <div style="position:absolute;left:0;right:0;bottom:56px;border-top:1px solid #f2f2f2;padding:3px 10px 8px">
+    <div class="act"><div class="name">Roll TA-1 to the pad</div><div class="line">The vehicle leaves the bay.</div></div>
+    <div class="act"><div class="name">Open TA-1</div></div>
+  </div>
+  <div class="big" style="position:absolute;left:0;right:0;bottom:0">Fleet</div>
+</div><figcaption>Today. Uppercase heads, a two-sentence blurb, prose on each action.</figcaption></figure>
+      <figure><div class="stamp after">After · Mega Bay</div><div class="g af" style="width:280px;height:560px;border:1px solid #2a2a2a;display:flex"><div class="insp"><div class="in">
+  <div class="title tl">Mega Bay<span class="wl">Wiki</span></div>
+  <p class="blurb">Houses the fleet.</p>
+  <div class="sh sub">Data</div>
+  <div class="r"><span>Housed</span><b>1 of 1</b></div>
+  <div class="slot sel"><span>Starhopper 1</span><span class="pc" style="color:#e10600">20%</span><span class="pl">Bay slot 1</span></div>
+  <div class="sh sub">Upgrade</div>
+  <div class="u"><span>Add bay slot</span><span class="c">30</span><span class="btn off">Need 30 steel</span></div>
+</div>
+<div class="acts">
+  <div class="a go"><div class="l1">Roll Starhopper 1 to the pad</div></div>
+  <div class="a"><div class="l1">Open Starhopper 1</div></div>
+</div>
+<div class="foot">Fleet</div></div></div><figcaption>One line, a Wiki link, rows. "The vehicle leaves the bay" moves to the button title.</figcaption></figure>
+      <figure><div class="stamp after">After · Starfactory</div><div class="g af" style="width:280px;height:560px;border:1px solid #2a2a2a;display:flex;flex-direction:column">
+<div style="flex:1;padding:10px">
+  <div class="title tl">Starfactory<span class="wl">Wiki</span></div>
+  <p class="blurb">Builds one vehicle from steel.</p>
+  <div class="sh sub">Data</div>
+  <div class="r"><span>Holding</span><b>0 of 1</b></div>
+  <div class="r"><span>Structure floor</span><b>20</b></div>
+  <p class="now">Each found and fixed Structure fault raises the floor by 8.</p>
+</div>
+<div class="acts"><div class="a go"><div class="l1">Build Starhopper <b>28 <small>steel</small></b></div><div class="l2">8 to 12 days. A static fire loads 609 kg of methane and 2193 kg of LOX.</div></div></div>
+<div class="foot">Fleet</div></div><figcaption>The floor is a row. "Bigger vehicles come later" and the Raptor thrust note move to the Starfactory wiki page.</figcaption></figure>
+    </div>
+
+    <h2 id="left">The left column</h2>
+    <p>Plot cards and steel buys get the same treatment. The name and the price share one line at 14 px. The unit is a small word after the number. The dashed frame stays, so a free plot still looks like land you do not own.</p>
+    <div class="pair">
+      <figure><div class="stamp">Before · empty yard</div><div class="g bf" style="width:216px;height:560px;padding:10px;overflow:hidden;position:relative">
+  <div class="shh">Land</div>
+  <div class="steel"><div><div class="name">Buy 10</div><div class="price">10</div><div class="unit">Money</div></div><div><div class="name">Buy 50</div><div class="price">50</div><div class="unit">Money</div></div></div>
+  <p class="rate">1 money buys 1 steel.</p>
+  <div class="shh sub">Buildings</div>
+  <p class="rate">No building yet. Buy a plot below.</p>
+  <div class="shh sub">Free plots</div>
+  <div class="plot"><div class="name">Starfactory</div><div class="price">40</div><div class="unit">Steel</div><div class="line">One hall on its own plot.</div></div>
+  <div class="plot"><div class="name">Mega Bay</div><div class="price">50</div><div class="unit">Steel</div><div class="line">One hall on its own plot.</div></div>
+  <div class="plot"><div class="name">Orbital Pad</div><div class="price">40</div><div class="unit">Steel</div><div class="line">One pad on its own plot.</div></div>
+</div><figcaption>Drawn from <code>before-yard.png</code>. 28 px prices, uppercase units, three tall cards.</figcaption></figure>
+      <figure><div class="stamp after">After · empty yard</div><div class="g af" style="width:216px;height:560px;padding:10px;border:1px solid #2a2a2a;position:relative">
+  <div class="sh">Land</div>
+  <div class="steel"><div>Buy 10 <b>10</b></div><div>Buy 50 <b>50</b></div></div>
+  <p class="rate">1 money buys 1 steel.</p>
+  <div class="sh sub">Buildings</div>
+  <p class="rate">No building yet. Buy a plot below.</p>
+  <div class="sh sub">Free plots</div>
+  <div class="plot"><div class="l1">Starfactory <b>40 <small>steel</small></b></div><div class="l2">One hall on its own plot.</div></div>
+  <div class="plot"><div class="l1">Mega Bay <b>50 <small>steel</small></b></div><div class="l2">One hall on its own plot.</div></div>
+  <div class="plot"><div class="l1">Orbital Pad <b>40 <small>steel</small></b></div><div class="l2">One pad on its own plot.</div></div>
+  <div class="foot" style="position:absolute;left:0;right:0;bottom:0">Goals</div>
+</div><figcaption>Each plot is two lines. The column has room left for Goals without a scroll.</figcaption></figure>
+    </div>
+
+    <h2 id="scale">The type scale</h2>
+    <p>The whole page outside the top bar uses four sizes. The top bar stays exactly as locked. Today the live bar is the topbar mock, with 15 px gold counters. The old 40 px <code>.stat-n</code> rule is no longer drawn. This row does not touch either.</p>
+    <table class="doc">
+      <thead><tr><th>Size</th><th>Where it is used</th><th>What it replaces</th></tr></thead>
+      <tbody>
+        <tr><td><strong>16 px</strong></td><td>Building name in the Inspector. Rocket name in the window. Has and Needs numbers in the parts table. The Fleet, Goals, and Wiki titles.</td><td>Rocket name 20, Has and Needs 32, Fleet and Goals 42, Wiki title 22, Goals now row 22.</td></tr>
+        <tr><td><strong>14 px</strong></td><td>Data rows, label and number. Slot rows. Upgrade rows. Action names and prices. Plot and steel lines. Owned building names. Part names. Goals, Fleet, and Wiki buttons. Wiki body text and Fleet rows.</td><td>Plot price 28, action price 26, bay slot 26, facts 22, steel price 18, row number 15, plot name 15, footer buttons 15, wiki body 15, fleet row 18.</td></tr>
+        <tr><td><strong>12 px</strong></td><td>Blurb line, Wiki link, status line, the fact line under an action, units, section heads, table heads, bay job cost, the stats strip, Close, map chips, job note.</td><td>10 and 11 px units and heads, 13 px miss line, spec 15 and 10.</td></tr>
+        <tr><td><strong>11 px</strong></td><td>The log, map coordinates and scale, the flight panel keys.</td><td>9 and 10 px keys.</td></tr>
+      </tbody>
+    </table>
+    <p>Drawing text has its own rule. The cutaway is 112 by 294 px, which is 0.7 of its 160 by 420 drawing. Its percent tags are 16.8 units and its small tags 15.4 units, so they show at about 12 and 11 px. The four-sizes check leaves SVG text out, and the drawing has a check of its own. Section heads stay gold mono, in sentence case, with no letter spacing. Today's 22 uppercase rules drop to 1. The one that stays is the fire stage title, which this row does not draw.</p>
+
+    <h2 id="road">Road time and the day clock</h2>
+    <p>Today the road, the lift, and the return run on real seconds. A day runs on its own clock. A day is 4 s at 1x and 0.5 s in <code>?test</code>, divided by the speed. So the same road costs a different number of days at each speed. The longest road is 14 s. That is 3.5 days at 1x, 14 days at 4x, and 28 days in <code>?test</code>.</p>
+    <p>After, the road and the lift are measured in game days. They move with the day clock. The same road costs the same days at 1x, at 3x, and in <code>?test</code>. Fires, flights, and the tank fill keep their real seconds, and the day holds while they run.</p>
+    <table class="doc">
+      <thead><tr><th>Motion</th><th>Today at 1x</th><th>Today at 4x</th><th>Today in ?test at 1x</th><th>After, every speed</th></tr></thead>
+      <tbody>
+        <tr><td>Longest road, 728 px</td><td>3.5 days</td><td>14 days</td><td>28 days</td><td>1 day</td></tr>
+        <tr><td>Shortest road</td><td>0.5 days</td><td>2 days</td><td>4 days</td><td>half a day</td></tr>
+        <tr><td>Raise or lower on the mount</td><td>0.5 days</td><td>2 days</td><td>4 days</td><td>half a day</td></tr>
+        <tr><td>Tank fill, static fire, flight</td><td colspan="3">Real seconds, and the day keeps moving</td><td>Real seconds, and the day holds</td></tr>
+      </tbody>
+    </table>
+    <p>These numbers are locked. A road takes its length over 728 px per day, held between half a day and 1 day. The return road uses 784 px per day, which keeps today's ratio of 56 to 52. Raise and lower take half a day each. At 1x that is 2 to 4 s of road and a 2 s lift, close to today. At 3x it is 0.7 to 1.3 s of road.</p>
+    <pre><code>// TUNING: the road and the lift follow the day clock, not real seconds.
+ROLLOUT_PX_PER_DAY: 728, RETURN_PX_PER_DAY: 784,
+ROLLOUT_MIN_DAYS: 0.5, ROLLOUT_MAX_DAYS: 1, LIFT_DAYS: 0.5,
+
+// beginRoad: duration is in days.
+const duration = clamp(metrics.totalLen / pxPerDay, TUNING.ROLLOUT_MIN_DAYS, TUNING.ROLLOUT_MAX_DAYS);
+
+// updateRollout: a road or a lift moves by the share of a day this frame spent.
+r.t += (dt * 1000) / dayMs();</code></pre>
+    <p>The log and the Inspector say days. "Starhopper 1 is rolling to the Orbital Pad · 0.6 days left." The wiki rollout fact says "half a day to 1 day". It adds one sentence: the road length is a game number, and a real rollout takes a few hours.</p>
+    <p>Skip during a road finishes the road, and any lift that is running or that the road starts, in that order. Then it jumps to the next event as it does today. The days still pay for the trip. Skip adds the trip's remaining days to the clock before the jump, so the rocket lands on the same day it would have reached by waiting.</p>
+    <p>A save written before this row holds a road in seconds. On load, the game keeps the share of the trip already driven, <code>t / duration</code>. It recomputes the full trip in days from the stored road length, or half a day for a lift, and sets <code>t</code> to that same share of the new trip. A road saved halfway arrives after half of the new trip. A new save marks each road with <code>unit: "day"</code>. The save stays version 1.</p>
+
+    <h2 id="hold">The day holds</h2>
+    <p>Today the day keeps moving during a fill, a fire, and a flight. 0.14.2-seed kept that rule. This row replaces it. The day holds while a fill, a fire, or a flight runs.</p>
+    <p>You see the day number stop. The map job note reads "The day holds while the tanks fill", "The day holds while the engine burns", or "The day holds during the flight". When the motion ends, the note goes and the day moves again from the same point. The top bar does not change.</p>
+    <p>Holding stops everything that runs on the day clock, on purpose. The share of the current day, <code>G.dayAcc</code>, stays where it is. The factory build and the bay job countdowns stop. A road or a lift elsewhere in the yard stops too, because it now runs on days. The fill, the fire, and the flight themselves keep their real seconds. When <code>0.18.1-pipeline</code> lets the factory build during a test, that build pauses during a fire too.</p>
+    <pre><code>// frame(): the day clock holds while a fill, a fire, or a flight runs.
+const hold = motionKind("fill") || motionKind("fire") || motionKind("fly");
+if (!G.paused &amp;&amp; !hold) {
+  G.dayAcc += dt * 1000;
+  // dayTick() as today
+}
+if (!G.paused) updateRollout(dt); // roads and lifts read dayMs() and skip their step while hold is true</code></pre>
+    <p>Pause still holds both clocks. Pause during a fire freezes the fire and the day. During a fill, a fire, or a flight, Skip does not jump. It logs the same line it logs today. The save does not change. A fill, a fire, and a flight are not saved today, so a load never starts inside a hold.</p>
+
+    <h2 id="speed">Two speeds</h2>
+    <p>The header offers 1x, 3x, Skip, Pause, and Restart. 2x and 4x are gone. 3x makes a day 1.33 s at normal pace and 0.17 s in <code>?test</code>. The chip sizes and the bar layout stay as locked.</p>
+    <p><code>legalSpeed</code> returns 3 for 3, and also for an old 2 or 4. Anything else is 1. <code>setSpeed</code> keeps the share of the day already spent, as it does today. A save on 2x or 4x loads at 3x. The wiki time page names 1x and 3x.</p>
+
+    <h2 id="hopper">Starhopper</h2>
+    <p>The first Raptor vehicle at Boca Chica was Starhopper. Its first static fire was in April 2019. So every build is named Starhopper and a number: Starhopper 1, Starhopper 2, and so on. There is no short serial. SH stays free for Super Heavy at <code>0.20.0-stack</code>. SN serials start at <code>0.19.0-high-hop</code>. "Test article" and TA leave the screen, the log, and the wiki. Grasshopper stays out of phase 0. It was a Falcon 9 hopper at McGregor, and it belongs to the Falcon story.</p>
+    <p>The rocket key in the code stays <code>article</code>. That keeps the defect order, the seed salts, <code>builtArticles</code>, and <code>articleN</code> exactly as they are. The rocket's name becomes "Starhopper". The new vehicle's name is the rocket name, a space, and the number, in place of <code>`${r.short}-${n}`</code>. The number rule stays: the live count of that rocket plus 1.</p>
+    <p>Each vehicle also has a numeric <code>id</code>. Clicks, the save, and the rocket window use that id. The display name is only a label. The test hooks <code>__sb.startRoll(name, dest)</code>, <code>__sb.stage(name)</code>, and <code>__sb.startBayCheck(name)</code> find the vehicle by its display name. After this row they take "Starhopper 1", not "TA-1".</p>
+    <p>Old saves are renamed on load, in <code>applySave</code>:</p>
+    <ul>
+      <li>Each fleet name has <code>/\bTA-(\d+)\b/g</code> replaced with "Starhopper $1". TA-1 loads as Starhopper 1.</li>
+      <li>The fleet loader's default name changes from "TA" to "Starhopper". <code>vehicleSave</code> writes the name as it is, so the next save holds the new names.</li>
+      <li>Each of the 45 saved log rows gets the same whole-word swap. "Test article" becomes "Starhopper" in those rows too, so the log and the fleet agree.</li>
+    </ul>
+    <p>The save stays version 1. No other field changes. Text that changes with the name: the Build button reads "Build Starhopper", the Starfactory owned line reads "Builds a Starhopper", and the wiki lines that say "a test article" name Starhopper. "A test article carries no payload" becomes "Starhopper carries no payload" on its wiki page. The 0.18.0-hop row text is updated to match.</p>
+
+    <h2 id="moved">What moved where</h2>
+    <h3>Right column, the Inspector</h3>
+    <ul>
+      <li>The gold "Inspector" head goes. The building name heads the column, which buys the room the pad needs.</li>
+      <li>The two-sentence blurb becomes one line. The rest of each blurb, and the long notes, move to that building's wiki page. A small "Wiki" link on the name line opens it.</li>
+      <li>Starfactory: "Structure floor 20" becomes a Data row. The step sentence stays as one status line. "Bigger vehicles come later" and the Raptor thrust note move to the Starfactory wiki page.</li>
+      <li>Mega Bay: "Select a vehicle in the bay to roll it out" stays as the status line. "The bay holds 4 vehicles" stays in Upgrade.</li>
+      <li>A word in the slot row, like "not tested", is 12 px. A percent stays 14 px mono.</li>
+      <li>Orbital Pad: the cadence sentences become two Data rows, "Fires, last 30 days" and "Last fire". The proof and tanking count joins the wiki pad page and the log. "CH4 / LOX" reads "Methane / LOX". The pad wiki page spells out LOX as liquid oxygen once. Only the first status sentence shows. Detank and range-closed notes stay, because they block an action.</li>
+      <li>Action cards: the price moves up to the name line. The fact line stays at 12 px. Filler like "The rocket leaves the mount" moves to the button title.</li>
+      <li>Return to Mega Bay and Open share one row on the pad, as Load methane and Load LOX already do. On that half row the button reads "Open", with "Open Starhopper 1" as its title. The rocket's name is on the mount row just above. Mega Bay and Starfactory keep the full "Open Starhopper 1".</li>
+    </ul>
+    <h3>Left column, Land</h3>
+    <ul>
+      <li>Steel buys become one line each, "Buy 10" and the price.</li>
+      <li>Free plot cards become two lines: name and price, then the one-line note.</li>
+      <li>Section heads become sentence case: Land, Buildings, Free plots.</li>
+      <li>Goals, Fleet, and Wiki buttons drop the uppercase and the wide spacing.</li>
+    </ul>
+    <h3>The rocket window</h3>
+    <ul>
+      <li>Three part blocks become one table with the columns Part, Has, Needs, Margin, Bay job, and the button.</li>
+      <li>Has and Needs go from 32 px to 16 px. "40 seconds" reads "40 s".</li>
+      <li>The full-width fix boxes become small buttons at the row end. The cost moves to the Bay job cell.</li>
+      <li>The drawing goes from about 390 px tall to 294 px. Its click areas stay.</li>
+      <li>The 4 by 2 stats grid becomes one strip.</li>
+      <li>"A test article carries no payload", which becomes "Starhopper carries no payload", and "Liftoff comes with the hop" move to the wiki. A link closes the strip.</li>
+      <li>Empty the tanks moves from a gold card at the bottom to a row on top of the table.</li>
+      <li>Raise Raptor thrust moves from a gold card at the bottom to one line under the table. Its full sentence stays as the 12 px line.</li>
+      <li>The red miss word becomes "Structure is short" in the header.</li>
+    </ul>
+
+    <h2 id="acts">Every action</h2>
+    <p>This table lists every clickable control in <code>index.html</code> at ec403b5, 45 rows in all, checked against the file. None is removed. The ids and data attributes stay, so the test hooks still find them. Two handlers, <code>#btn-launch</code> and <code>#btn-structure</code>, have no button drawn today. They stay that way.</p>
+    <table class="doc" id="act-table">
+      <thead><tr><th>Action</th><th>Id or attribute</th><th>Today</th><th>After</th></tr></thead>
+      <tbody>
+        <tr><td>Buy 10 steel, Buy 50 steel</td><td><code>.steel-buy</code></td><td>Land, two tall cards</td><td>Land, two one-line buttons</td></tr>
+        <tr><td>Buy a plot</td><td><code>[data-plot]</code></td><td>Land, tall dashed cards</td><td>Land, two-line dashed rows</td></tr>
+        <tr><td>Select a building</td><td><code>[data-own]</code></td><td>Land, owned cards</td><td>Same</td></tr>
+        <tr><td>Goals</td><td><code>#next-goal</code></td><td>Uppercase 15 px</td><td>Same place, sentence case 14 px</td></tr>
+        <tr><td>Fleet</td><td><code>#fleet-open</code></td><td>Uppercase 15 px</td><td>Same place, sentence case 14 px</td></tr>
+        <tr><td>Wiki</td><td><code>#wiki-open</code></td><td>Uppercase 15 px</td><td>Same place, sentence case 14 px</td></tr>
+        <tr><td>Close Goals</td><td><code>#goal-close</code></td><td>Uppercase</td><td>"Close" 12 px</td></tr>
+        <tr><td>Open a rocket from Fleet</td><td><code>[data-vid]</code></td><td>Fleet rows, 18 px</td><td>Fleet rows, 14 px</td></tr>
+        <tr><td>Close Fleet</td><td><code>#fleet-close</code></td><td>Uppercase</td><td>"Close" 12 px</td></tr>
+        <tr><td>Wiki topics and wiki links</td><td><code>[data-wiki]</code></td><td>Wiki nav and article text</td><td>Same, plus the Inspector "Wiki" link and the strip link</td></tr>
+        <tr><td>Close Wiki</td><td><code>#wiki-close</code></td><td>Uppercase</td><td>"Close" 12 px</td></tr>
+        <tr><td>Roll to Mega Bay from the log</td><td><code>[data-roll]</code></td><td>Log line button</td><td>Same</td></tr>
+        <tr><td>1x</td><td><code>#day-speed-1</code></td><td>Top bar</td><td>Same</td></tr>
+        <tr><td>2x, 4x</td><td><code>#day-speed-2</code> <code>#day-speed-4</code></td><td>Top bar</td><td>One 3x chip, <code>#day-speed-3</code></td></tr>
+        <tr><td>Skip</td><td><code>#day-skip</code></td><td>Top bar</td><td>Same chip. During a road it finishes the trip, then jumps.</td></tr>
+        <tr><td>Pause</td><td><code>#day-pause</code></td><td>Top bar</td><td>Same</td></tr>
+        <tr><td>Restart</td><td><code>#day-restart</code></td><td>Top bar</td><td>Same</td></tr>
+        <tr><td>Start over, Cancel</td><td><code>#restart-go</code> <code>#restart-cancel</code></td><td>Restart card</td><td>Same</td></tr>
+        <tr><td>World, Region, Site, Work</td><td><code>[data-band]</code></td><td>Map corner</td><td>Same</td></tr>
+        <tr><td>Zoom in, Zoom out</td><td><code>#zoom-in</code> <code>#zoom-out</code></td><td>Map corner</td><td>Same</td></tr>
+        <tr><td>Skip the fire watch</td><td><code>#event-skip</code></td><td>Fire panel</td><td>Same</td></tr>
+        <tr><td>Cancel placing</td><td><code>#btn-x</code></td><td>Pinned actions</td><td>Same</td></tr>
+        <tr><td>Build</td><td><code>[data-rocket]</code></td><td>Pinned, "Build Test article"</td><td>Pinned, "Build Starhopper", price on the name line</td></tr>
+        <tr><td>Roll to Mega Bay</td><td><code>#btn-stage</code></td><td>Pinned</td><td>Same, one line</td></tr>
+        <tr><td>Roll to the pad</td><td><code>#btn-topad</code></td><td>Pinned</td><td>Same, one line</td></tr>
+        <tr><td>Open a rocket</td><td><code>#btn-open</code></td><td>Pinned</td><td>Same. On the pad it shares a row with Return.</td></tr>
+        <tr><td>Select a slot and open its rocket</td><td><code>[data-slot]</code>, bay rows also <code>[data-bay]</code></td><td>Slot rows</td><td>Same rows, 14 px</td></tr>
+        <tr><td>Cryo proof</td><td><code>#btn-proof</code></td><td>Pinned, three lines</td><td>Pinned, two lines</td></tr>
+        <tr><td>Skip the cryo proof</td><td><code>#btn-skip-proof</code></td><td>Pinned, three lines</td><td>Pinned, two lines</td></tr>
+        <tr><td>Tanking, Try tanking</td><td><code>#btn-tank</code></td><td>Pinned</td><td>Pinned, two lines. The two loads share the name line.</td></tr>
+        <tr><td>Skip the tanking run</td><td><code>#btn-skip-tank</code></td><td>Pinned</td><td>Pinned, two lines</td></tr>
+        <tr><td>Static fire, Try static fire</td><td><code>#btn-sf</code></td><td>Pinned</td><td>Pinned, two lines</td></tr>
+        <tr><td>Return to Mega Bay</td><td><code>#btn-return</code></td><td>Pinned</td><td>Pinned, half a row</td></tr>
+        <tr><td>Load methane, Load LOX</td><td><code>#btn-buy-ch4</code> <code>#btn-buy-lox</code></td><td>Pinned pair</td><td>Same pair</td></tr>
+        <tr><td>Pad level 2</td><td><code>#btn-up</code></td><td>Upgrade row</td><td>Upgrade row, price as its own number</td></tr>
+        <tr><td>Methane tank, LOX tank</td><td><code>#btn-ch4</code> <code>#btn-lox</code></td><td>Upgrade rows</td><td>Upgrade rows, price as its own number</td></tr>
+        <tr><td>Add bay slot</td><td><code>#btn-bay</code></td><td>Upgrade row</td><td>Upgrade row, price as its own number</td></tr>
+        <tr><td>Close the rocket window</td><td><code>#rocket-close</code></td><td>Top right, uppercase</td><td>Top right, "Close" 12 px</td></tr>
+        <tr><td>Empty the tanks</td><td><code>#btn-empty</code></td><td>Gold card, bottom</td><td>Row on top of the table</td></tr>
+        <tr><td>Check Structure</td><td><code>#btn-check-stage</code></td><td>Structure block</td><td>Structure row, "Check"</td></tr>
+        <tr><td>Refurb the structure</td><td><code>#btn-part-stage</code></td><td>Full-width box</td><td>Structure row, "Refurb"</td></tr>
+        <tr><td>Inspect the fuel lines</td><td><code>#btn-part-fitting</code></td><td>Full-width box</td><td>Fuel lines row, "Inspect"</td></tr>
+        <tr><td>Refurb the engine</td><td><code>#btn-part-engine</code></td><td>Full-width box</td><td>Engine row, "Refurb"</td></tr>
+        <tr><td>Fix by clicking the drawing</td><td><code>.hit</code></td><td>Cutaway</td><td>Same, smaller drawing</td></tr>
+        <tr><td>Raise Raptor thrust</td><td><code>#btn-engine</code></td><td>Gold card below the fold</td><td>One line under the table</td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="stays">What stays</h2>
+    <ul>
+      <li>Every price, cost, day count, thrust, tank, and limit. The table above names where each control shows.</li>
+      <li>The seed, the salts, the defect order, the hidden Structure roll, and the bands.</li>
+      <li>The save stays version 1. It gains only the road <code>unit</code> mark. Speed and names are cleaned on load.</li>
+      <li>The top bar layout, the map, the log, and the column widths of 13.5 and 17.5 rem.</li>
+      <li>Fires, flights, and the tank fill keep real seconds. The day holds while they run. That replaces the moving-day rule from 0.14.2-seed.</li>
+      <li>The rocket window still starts no job on the pad.</li>
+    </ul>
+    <p>This row has four rule changes and no others: the road and the lift in days, the day hold, the two speeds, and the Starhopper name. Because the road and the hold change which day a rocket reaches the pad, the sky on that day can shift. The sky table itself does not change.</p>
+
+    <h2 id="decided">Tiago decided on 2026-11-18</h2>
+    <ol>
+      <li>The day holds during a fill, a fire, and a flight. This replaces the 0.14.2-seed rule that days keep moving.</li>
+      <li>A road takes half a day to 1 day. Each lift takes half a day.</li>
+      <li>Skip during a road finishes the road, and any lift that is running, then jumps to the next event.</li>
+      <li>The bar shows Has against Needs. The column is called Margin.</li>
+      <li>The Fleet, Goals, and Wiki titles go down to 16 px.</li>
+      <li>The pad row reads "Methane / LOX".</li>
+      <li>Builds are named Starhopper 1, Starhopper 2, and so on, with no short serial. SH stays free for Super Heavy. SN serials start at 0.19.0-high-hop.</li>
+    </ol>
+    <p>No question is open.</p>
+
+    <h2 id="check-list">Acceptance</h2>
+    <p>Run each check in <code>index.html?test</code> with seed 11, in a 1280 by 800 window, unless it says otherwise. The day share is <code>snap().dayAcc / dayMs()</code>, where <code>snap()</code> is <code>window.__sb.snap()</code>. "Day plus share" means <code>snap().day</code> plus that share.</p>
+    <ol>
+      <li><strong>No scroll in the rocket window.</strong> Build Starhopper 1, roll it to the pad, skip both tests, fire, and bring it home short. Open it. <code>.sheet-body</code> has <code>scrollHeight &lt;= clientHeight</code>. Repeat with a scrubbed load aboard, so Empty the tanks shows.</li>
+      <li><strong>No scroll in the Inspector.</strong> With Starhopper 1 on the mount before its cryo proof, <code>#insp-scroll</code> has <code>scrollHeight &lt;= clientHeight</code>. Same for Land with all three plots free.</li>
+      <li><strong>Four sizes.</strong> This snippet returns at most 11px, 12px, 14px, and 16px, on the main screen and with the rocket window open. It leaves out the top bar and SVG text.
+<pre><code>const s = new Set();
+document.querySelectorAll("body *").forEach((e) =&gt; {
+  if (e.closest("header.resource-bar") || e.closest("svg")) return;
+  const r = e.getBoundingClientRect();
+  if (!r.width || !r.height) return;
+  if (![...e.childNodes].some((n) =&gt; n.nodeType === 3 &amp;&amp; n.textContent.trim())) return;
+  s.add(getComputedStyle(e).fontSize);
+});
+[...s].sort();</code></pre></li>
+      <li><strong>Largest size.</strong> The largest size in that set is 16px.</li>
+      <li><strong>The drawing.</strong> <code>.ship</code> draws at 112 by 294 px, which is 0.7 of its viewBox. Each <code>.ship text</code> has a <code>getBoundingClientRect().height</code> between 10 and 15 px, so the tags read at about 11 and 12 px.</li>
+      <li><strong>Uppercase.</strong> <code>grep -c "text-transform: uppercase" index.html</code> is 1. No visible element outside the top bar has a computed uppercase transform.</li>
+      <li><strong>Every action.</strong> Each id or attribute in the action table is found by <code>querySelector</code> in the state that shows it today, and its click runs the same function.</li>
+      <li><strong>The margin bar.</strong> On the short rocket, Structure fills 20 percent in red with the red tick at 70 percent. Fuel lines fill fully against a tick at 12.5 percent. The engine fills fully against a tick at about 82.7 percent. An untested part shows the tick with no fill. After the first check, Structure shows a gold band from 52 to 82 percent.</li>
+      <li><strong>Road days.</strong> Read day plus share when Starhopper 1 leaves the bay and when it reaches the end of the road. Do it at 1x, at 3x, and with a normal open at 1x. The three differences agree within 0.05 day. Each one is the road length over 728 px per day, held between 0.5 and 1.</li>
+      <li><strong>Lift days.</strong> The raise onto the mount takes 0.5 day, within 0.05, at 1x, at 3x, and in a normal open.</li>
+      <li><strong>Skip mid-road.</strong> Note the arrival day plus share from check 9. Start the same trip again from the same save, press Skip halfway, and read day plus share when the road and the raise end. They match the waited arrival within 0.05 day. Then Skip goes on to the next event.</li>
+      <li><strong>The day holds.</strong> Read day plus share just before a fill starts and just after it ends. Do the same around a static fire. Both pairs are identical. Run it at 1x, at 3x, and in a normal open. The factory countdown and any bay job countdown read the same before and after. A road that was moving during the fire is at the same spot after it.</li>
+      <li><strong>The day moves again.</strong> One second after the fire ends, at 1x in <code>?test</code>, the day share has grown.</li>
+      <li><strong>Old speed.</strong> Save, set <code>speed</code> to 2 in the stored save, and load. The 3x chip is pressed. Repeat with 4.</li>
+      <li><strong>Old name.</strong> Save, then edit the stored save. Set a fleet name to <code>TA-1</code>. Add the log rows "TA-1 is in Mega Bay", "Starfactory is building Test article", and "TA-10 rolls". Load. The fleet and the slot row read Starhopper 1. The log reads "Starhopper 1 is in Mega Bay", "Starfactory is building Starhopper", and "Starhopper 10 rolls". <code>window.__sb.startRoll("Starhopper 1", "pad")</code> works. <code>window.__sb.startRoll("TA-1", "pad")</code> finds nothing. The next save holds "Starhopper 1".</li>
+      <li><strong>New name.</strong> A fresh build reads Starhopper 1, and a second live build reads Starhopper 2. No "SH" and no "TA" appears on screen, in the log, or in the wiki.</li>
+      <li><strong>Old road.</strong> Save during a road. Edit the stored road so <code>t</code> is half its <code>duration</code> in seconds, with no <code>unit</code>. Load. The rocket starts halfway along the road. It arrives after half the new trip in days, within 0.05 day.</li>
+      <li><strong>No other change.</strong> <code>git diff</code> on <code>TUNING</code> shows only the road and lift keys. The seed 11 Structure is still 58, and the first band is still 52 to 82. The pad arrival day and its wind move, because the road and the hold changed the clock. I cannot run the build from this page. So the builder runs this fixed path once and writes the result in the log section: test start, buy the three plots, buy steel, build, Skip to the build end, roll to Mega Bay, then roll to the pad with no Skip. Record day plus share when the raise ends, and the wind in the header. The playtester runs the same path and gets the same day and wind. That wind equals <code>weatherOn</code> for that day from the unchanged sky table.</li>
+      <li><strong>Console.</strong> No error in a normal open or in <code>?test</code>.</li>
+    </ol>
+
+    <h2 id="docs">Docs after ship</h2>
+    <ul>
+      <li><code>VERSION</code>, the README live line, and the archive row, by the versioning ritual.</li>
+      <li><code>IMPLEMENTATION_LOG.md</code> gets one 0.17.0-tidy section, with the recorded pad arrival day and wind from the last check.</li>
+      <li><code>FUTURE_FEATURES.md</code> and the roadmap drop this row and say the next row is 0.18.0-hop.</li>
+      <li>The roadmap's live-release text says "The factory shows a test article". It changes to Starhopper at ship. Its line that the header has 1x, 2x, 4x changes to 1x and 3x.</li>
+      <li><code>design-docs/site-objects-design.html</code> does not change. No part is added or renamed.</li>
+    </ul>
+    <p class="footer-note">0.17.0-tidy · design · decided 2026-11-18 · Tiago reviews before any build.</p>
+  </div>
+</body>
+</html>

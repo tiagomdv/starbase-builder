@@ -371,3 +371,17 @@ History of what **shipped**, keyed by **version**.
 - Save stays version 1. The label is `0.16.0-bay`. A missing `structFloor` loads as 20. A missing `structChecks` loads as 0. A rocket the pad already measured stays measured, and the fix stays on. The previous live file is `archive/index-0.15.0-sheet.html`. The design page is `design-docs/0.16.0-bay-design.html`.
 - On 2026-11-18 Tiago decided a lit miss never scraps the rocket because of the rolled Structure. It damages that part further. It takes up to 40 off Structure and leaves it at 20 at worst. Seed 11 stores 58, so a skipped proof and a lit miss leave Structure at 20. The rocket comes home.
 - On 2026-11-18 Tiago decided Check Structure switches off once the pad has measured the number. The button hides when that part is already tested. A bay check does not start.
+
+## `0.17.0-tidy` — 2026-11-18
+
+**Version:** `0.17.0-tidy`
+
+- The screen is tidier. Outside the top bar the page uses four type sizes, 11, 12, 14, and 16 px. Numbers are 14 and 16 px. Only the event title stays in capitals. The Inspector, the Land plot cards, and the rocket window fit at 1280 by 800 without a scroll. Long sentences moved to the wiki and to button tips.
+- The rocket window is one parts table. Each row shows the part, what the rocket has, what the test needs, a small button, and a margin bar. The bar has a tick where the need sits. A Structure band shows as a strip, so seed 11 reads 52 to 82 before the pad test.
+- The road and the lift run in game days. A road takes half a day to 1 day. Each lift takes half a day. That holds at every speed and in `?test`. A road from Mega Bay to the Orbital Pad takes about 0.86 days.
+- Skip during a road finishes the road and any lift, counts those days, and then jumps to the next event.
+- The day holds while the tanks fill, while the engine burns, and while the rocket flies. The factory and the bay wait too. The moving-day rule from `0.14.2-seed` is gone.
+- The speeds are 1x and 3x. An old save at 2x or 4x loads at 3x.
+- Every build is named Starhopper and a number. The first is Starhopper 1 and the next is Starhopper 2. An old TA-1 loads as Starhopper 1, and old log lines read the same way. An old road keeps its share of the trip and finishes in game days.
+- With seed 11 in `?test`, building the first Starhopper, rolling it out, and raising it puts it on the Orbital Pad at day 14.0. The sky that day is Clear with 12 kn of wind, and the range is open. A run with no wait at all would land just before day 14 on day 13, at 24 kn and closed. Day 15 is Clear with 10 kn.
+- Save stays version 1. The label is `0.17.0-tidy`. The previous live file is `archive/index-0.16.0-bay.html`. The design page is `design-docs/0.17.0-tidy-design.html`.
