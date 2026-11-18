@@ -25,9 +25,22 @@ History of what **shipped**, keyed by **version**.
 - Tiago locked three phase 0 rows on 2026-11-12. They sit after `0.14.2-seed` and before the hop.
 - `0.15.0-sheet` shows the weak part in the rocket window, and why the fix is there. The pad checks stay the checks.
 - `0.16.0-bay` lets you check a part in Mega Bay. That check reads the part, then the fix can start. The cryo proof, the tanking run, and the static fire stay on the pad.
-- `0.17.0-roll` lets a new rocket leave with a weak number you can see. It is not always Structure 60, fuel lines at 0 seconds, or thrust at 1400 kN. The exact range waits for that row's design. It is not a hidden coin flip.
+- `0.17.0-roll` lets a new rocket leave with a weak number you can see. It is not always Structure 60, fuel lines at 0 seconds, or thrust at 1400 kN. The exact range waits for that row's design. The 2026-11-17 section merges this row and replaces that line.
 - The hop is now `0.18.0-hop`. The pipeline is `0.18.1-pipeline`. The high hop is `0.19.0-high-hop`. The inline CSS is `0.19.1-split`. The stack is `0.20.0-stack`. The suborbital test is `0.21.0-suborbital`. Orbit is `0.22.0-orbit`. Tracking is `0.23.0-tracking`. The building pictures are `0.24.0-picture`. The final motion pass is `0.25.0-motion-final`.
 - In `0.14.1-teeth`, the Mega Bay fix for a part stays off until the pad has checked that part. A skip leaves it off. A static fire that lights counts as the check. No game code changed in this pass.
+
+---
+
+## 2026-11-17 — 0.16.0-bay design (docs only, no version bump)
+
+**Version:** stays `0.15.0-sheet` · docs only
+
+- Tiago locked `0.16.0-bay` on 2026-11-17. It absorbs `0.17.0-roll`. The hop stays `0.18.0-hop`. Nothing else is renumbered.
+- Structure is rolled at build end from the seed, salted by article count and part, and stored on the vehicle. The player measures that number. A bay check costs one day and no money. The first reading is about 30 wide. The second is about 10 wide. Only the pad writes the exact number. The first slice is Structure only.
+- Each found and fixed Structure fault raises the factory floor by 8. It rises once per article, and only when the number stored at build was under 70. Seven such fixes reach a floor of 76. That takes about 31 articles if every miss is found and fixed. A normal path to the hop does not get there.
+- The look is the band on the Structure row, next to the fix from `0.15.0-sheet`. The bench ticket is turned down.
+- Save stays version 1. A missing `structFloor` loads as 20. A missing `structChecks` loads as 0. The sheet says not tested only when `structTested` is false. When `structTested` is true, the sheet still shows the stored number and the fix stays on.
+- Design page: `design-docs/0.16.0-bay-design.html`. Updated `FUTURE_FEATURES.md` and `design-docs/program-roadmap-design.html`. No game code changed.
 
 ---
 
@@ -346,3 +359,15 @@ History of what **shipped**, keyed by **version**.
 - On the pad the window does not start the job. An untested part still reads not tested. The fix stays off until the pad has checked that part.
 - This row adds no new test, no new price, and no new weak number. The cryo proof, the tanking run, and the static fire stay on the pad.
 - The save stays version 1. The label on the next write is `0.15.0-sheet`. The save still stores the seed and the speed. An older save still loads. The previous live file is `archive/index-0.14.2-seed.html`. The design page is `design-docs/0.15.0-sheet-design.html`.
+
+## `0.16.0-bay` — 2026-11-17
+
+**Version:** `0.16.0-bay`
+
+- Structure is a fixed number. The factory rolls it when the job ends and stores it on the vehicle. Seed 11 stores 58 on TA-1. The sheet says not tested until the pad writes that number. A reload does not roll it again.
+- Check Structure sits on the Structure row, beside Refurb the structure. It costs 1 bay day and no money. The first band is 30 wide. On TA-1 that is 52 to 82. The second is 10 wide. On TA-1 that is 50 to 60. A third check does not start. The check does not change the stored number, and it does not pay the refurb goal.
+- The window names Structure short only when the high end is under 70, or the pad has written a number under 70. The cryo proof still writes the exact number. On TA-1 it fails, and the log says Structure needs 70 and has 58.
+- A found and fixed Structure fault raises the factory floor by 8, once for that article, and only when the number stored at build was under 70. TA-1's fix sets the floor to 28. TA-2 then stores 80, with Fuel lines at 0 seconds and thrust at 1814 kN. A band that still holds 70 does not move the floor. A second refurb does not add 8. Fuel lines and thrust keep today's fixed shorts. A null seed keeps the old cliff.
+- Save stays version 1. The label is `0.16.0-bay`. A missing `structFloor` loads as 20. A missing `structChecks` loads as 0. A rocket the pad already measured stays measured, and the fix stays on. The previous live file is `archive/index-0.15.0-sheet.html`. The design page is `design-docs/0.16.0-bay-design.html`.
+- On 2026-11-18 Tiago decided a lit miss never scraps the rocket because of the rolled Structure. It damages that part further. It takes up to 40 off Structure and leaves it at 20 at worst. Seed 11 stores 58, so a skipped proof and a lit miss leave Structure at 20. The rocket comes home.
+- On 2026-11-18 Tiago decided Check Structure switches off once the pad has measured the number. The button hides when that part is already tested. A bay check does not start.

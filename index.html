@@ -202,6 +202,14 @@
     .call .job { margin-top: 4px; font-size: 12px; color: #9a9a9a; }
     .call.hot::before { background: #e10600; width: 22px; }
     .call.hot .job { color: #f2f2f2; }
+    .call.stage { align-self: start; }
+    .call.stage::before { top: 8px; }
+    .call .scale { margin-top: 8px; }
+    .call .scale svg { display: block; width: 100%; height: 54px; }
+    .call .read { font-size: 13px; color: #c8c8c8; margin-top: 4px; }
+    .call .jobs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+    .rocket-panel .call .jobs .act { margin-top: 0; flex: 1 1 140px; width: auto; }
+    .act.gold { border-color: #c4a15a; background: #16140e; }
     .rocket-panel .miss { margin-top: 6px; font-size: 13px; color: #e10600; }
     .rocket-panel .counts { display: flex; gap: 18px; margin-top: 8px; }
     .rocket-panel .counts b { display: block; font-size: 32px; line-height: 0.9; font-weight: 650; }
@@ -535,7 +543,7 @@
         <span class="ctr">LOX <b id="res-lox" class="tabular-nums">0</b></span>
         <span class="ctr">Fleet <b id="res-fleet" class="tabular-nums">0</b></span>
       </div>
-      <div id="ver-label">0.15.0-sheet</div>
+      <div id="ver-label">0.16.0-bay</div>
     </div>
     <div class="bar-right">
       <span class="ctr"><span id="day-run">Day</span> <b id="day-label" class="tabular-nums">1</b></span>
@@ -633,7 +641,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "0.15.0-sheet";
+  const VERSION = "0.16.0-bay";
   const CELL = 32, MAP_W = 40, MAP_H = 30;
   // ?test is a normal open with a short day. The purse, the tanks, and the yard start the same.
   const TEST = new URLSearchParams(location.search).has("test");
@@ -693,7 +701,7 @@
     PROOF_BAR: 4.9,
     PROOF_COST: 20,
     PROOF_DAYS: 1,
-    // A new article can leave with Structure 60. A healthy article has 100. This floor is a game number.
+    // The cryo proof passes at 70. A healthy article has 100. This line is a game number.
     PROOF_STRUCT_MIN: 70,
     TANKING_DAYS: 1,
     // About 10 percent of the static fire load, rounded. Game numbers.
@@ -701,7 +709,7 @@
     TANKING_LOX_LOSS_KG: 219,
     // A new article can leave with 0 seconds on the fuel lines. A healthy article has 40. This floor is a game number.
     TANKING_LINES_MIN: 5,
-    // One short part on a new article. Game numbers. The seed picks which part comes first.
+    // Null-seed short. A seeded yard rolls Structure instead and stores it. Game number.
     DEFECT_STRUCT: 60,
     DEFECT_LINES_S: 0,
     DEFECT_THRUST_KN: 1400,
@@ -753,9 +761,14 @@
     // Below this the engine is short. Game number. A new article can leave at 1400 kN. A healthy Raptor clears it.
     SF_THRUST_BAR_KN: 1500,
     SF_MISS_CONDITION: 40,
-    // A clean hold no longer spends this. A lit miss still takes SF_MISS_CONDITION off the stage.
+    // A clean hold no longer spends this. A lit miss takes up to this much off Structure and leaves it at the scrap floor.
     SF_OK_CONDITION: 12,
     SCRAP_FLOOR: 20,
+    // First Structure reading in the bay. The second is narrower. A third check does not start. Initial balance.
+    BAY_BAND_1: 30,
+    BAY_BAND_2: 10,
+    // Added once when a short Structure was found and then fixed. Initial balance.
+    STRUCT_FLOOR_STEP: 8,
     WIND_LIMIT_L1: 20,
     WIND_LIMIT_L2: 28,
     // Game numbers. Level 1 holds Raptor 1 and not Raptor 2. Level 2 holds both.
@@ -1065,9 +1078,11 @@
     testDays: [],
     buildings: [],
     fleet: [],
-    // builtArticles counts new vehicles only. defectRestored retires that short for later articles.
+    // builtArticles counts new vehicles only. A null seed still retires a short. A seeded yard ignores that cliff for Structure.
     builtArticles: 0,
     defectRestored: { stage: false, fitting: false, engine: false },
+    // The Structure floor starts at the scrap floor. A found and fixed fault raises it.
+    structFloor: TUNING.SCRAP_FLOOR,
     factoryJob: null,
     // Road rolls overlap. The pad still raises, lowers, loads, and burns one rocket.
     rollouts: [],
@@ -1149,6 +1164,41 @@
   }
   function roll(seed, salt) {
     return mix32((seed >>> 0) + Math.imul(salt >>> 0, 0x9e3779b9));
+  }
+  function partCode(part) {
+    if (part === "fitting") return 1;
+    if (part === "engine") return 2;
+    return 0;
+  }
+  // The build salt stays clear of the defect order and the sky.
+  function hiddenSalt(articleN, part) {
+    return 20 + articleN * 3 + partCode(part);
+  }
+  function readSalt(articleN, part, checkN) {
+    if (checkN === 1) return 80 + articleN * 3 + partCode(part);
+    return 140 + articleN * 3 + partCode(part);
+  }
+  function hiddenStruct(seed, articleN, floor) {
+    const lo = Math.max(TUNING.SCRAP_FLOOR, floor);
+    const span = 100 - lo + 1;
+    return lo + roll(seed, hiddenSalt(articleN, "stage")) % span;
+  }
+  // The band always holds the stored number. It is not a new roll of that number.
+  function readBand(seed, articleN, part, checkN, value, width) {
+    const d = roll(seed, readSalt(articleN, part, checkN)) % (width + 1);
+    let lo = value - d;
+    let hi = lo + width;
+    if (lo < TUNING.SCRAP_FLOOR) { lo = TUNING.SCRAP_FLOOR; hi = lo + width; }
+    if (hi > 100) { hi = 100; lo = hi - width; }
+    if (value < lo) { lo = value; hi = Math.min(100, value + width); }
+    if (value > hi) { hi = value; lo = Math.max(TUNING.SCRAP_FLOOR, value - width); }
+    return { lo, hi };
+  }
+  // An old rocket has no article count. The check uses its id, or 0, and does not reroll Structure.
+  function articleForRead(v) {
+    if (v && Number.isInteger(v.articleN)) return v.articleN;
+    if (v && Number.isFinite(v.id)) return v.id;
+    return 0;
   }
   function shuffle(list, seed, salt0) {
     const a = list.slice();
@@ -1546,6 +1596,7 @@
     if (v.status === "proof") {
       v.structTested = true;
       const have = Math.round(v.stageLife || 0);
+      if (have < TUNING.PROOF_STRUCT_MIN) v.structFound = true;
       if (have >= TUNING.PROOF_STRUCT_MIN) {
         v.proofDone = true;
         v.status = "on_pad";
@@ -1570,8 +1621,42 @@
     G.testDays.push({ day: G.day, kind: "tanking" });
   }
 
+  function clampStructFloor(n) {
+    const value = Math.round(Number.isFinite(n) ? n : TUNING.SCRAP_FLOOR);
+    return Math.max(TUNING.SCRAP_FLOOR, Math.min(100, value));
+  }
+
+  // Once per article, and only for a short that was stored at build and then found.
+  function payStructFloor(v) {
+    if (!wholeSeed(G.seed) || !v || v.structFloorPaid || !v.structBuiltShort || !v.structFound) return;
+    G.structFloor = clampStructFloor((G.structFloor || TUNING.SCRAP_FLOOR) + TUNING.STRUCT_FLOOR_STEP);
+    v.structFloorPaid = true;
+  }
+
+  function finishBayCheck(v) {
+    const n = (v.structChecks || 0) + 1;
+    if (n <= 2 && wholeSeed(G.seed)) {
+      const width = n === 1 ? TUNING.BAY_BAND_1 : TUNING.BAY_BAND_2;
+      const value = Math.round(v.stageLife || 0);
+      const band = readBand(G.seed, articleForRead(v), "stage", n, value, width);
+      v.structChecks = n;
+      v.structReadLo = band.lo;
+      v.structReadHi = band.hi;
+      if (band.hi < TUNING.PROOF_STRUCT_MIN) v.structFound = true;
+      log(`${v.name} · Structure reads ${band.lo} to ${band.hi}.`, "info");
+    }
+    v.refurbPart = null;
+    v.refurbLeft = 0;
+    v.status = "in_bay";
+  }
+
   function finishPartRefurb(v) {
     const part = v.refurbPart;
+    // The check stores a band. It does not restore the part, pay the goal, or retire a short.
+    if (part === "check") {
+      finishBayCheck(v);
+      return;
+    }
     if (part === "engine") {
       v.engineLifeS = TUNING.ENGINE_FIRE_LIMIT_S;
       v.thrustKn = v.engineTier >= 2 ? TUNING.ENGINE_2_KN : TUNING.ENGINE_THRUST_KN;
@@ -1584,9 +1669,11 @@
     } else if (part === "stage") {
       v.stageLife = 100;
       v.structTested = true;
+      payStructFloor(v);
     }
-    // A healthy refurb still retires that short. Inspect the fuel lines on TA-1 does this.
-    if (part === "engine" || part === "fitting" || part === "stage") G.defectRestored[part] = true;
+    // Fuel lines and the engine still retire. Structure does that only on a null seed.
+    if (part === "fitting" || part === "engine") G.defectRestored[part] = true;
+    else if (part === "stage" && !wholeSeed(G.seed)) G.defectRestored.stage = true;
     v.refurbPart = null;
     v.refurbLeft = 0;
     v.status = "in_bay";
@@ -1594,7 +1681,7 @@
     fundGoal("refurb");
   }
 
-  // Article n takes part (n - 1) % 3 of this seed's order. A restored part leaves this article healthy.
+  // Article n takes part (n - 1) % 3 of this seed's order. articleN is that count, not the TA serial.
   function applyNewArticle(v) {
     G.builtArticles += 1;
     const order = defectOrder();
@@ -1607,10 +1694,27 @@
     v.stageLife = 100;
     v.fittingLifeS = TUNING.FITTING_LIFE_S;
     v.thrustKn = TUNING.ENGINE_THRUST_KN;
-    if (G.defectRestored[part]) return;
-    if (part === "stage") v.stageLife = TUNING.DEFECT_STRUCT;
-    else if (part === "fitting") v.fittingLifeS = TUNING.DEFECT_LINES_S;
-    else v.thrustKn = TUNING.DEFECT_THRUST_KN;
+    v.articleN = G.builtArticles;
+    v.structChecks = 0;
+    v.structReadLo = null;
+    v.structReadHi = null;
+    v.structBuiltShort = false;
+    v.structFound = false;
+    v.structFloorPaid = false;
+    if (!wholeSeed(G.seed)) {
+      if (G.defectRestored[part]) return;
+      if (part === "stage") v.stageLife = TUNING.DEFECT_STRUCT;
+      else if (part === "fitting") v.fittingLifeS = TUNING.DEFECT_LINES_S;
+      else v.thrustKn = TUNING.DEFECT_THRUST_KN;
+      return;
+    }
+    v.stageLife = hiddenStruct(G.seed, v.articleN, G.structFloor || TUNING.SCRAP_FLOOR);
+    v.structBuiltShort = v.stageLife < TUNING.PROOF_STRUCT_MIN;
+    if (part === "fitting") {
+      if (!G.defectRestored.fitting) v.fittingLifeS = TUNING.DEFECT_LINES_S;
+    } else if (part === "engine") {
+      if (!G.defectRestored.engine) v.thrustKn = TUNING.DEFECT_THRUST_KN;
+    }
   }
 
   function finishFactoryJob() {
@@ -2099,17 +2203,19 @@
       if ((engineLifeS || 0) <= 0) return { scrap: false, status: "needs_return", inspectLeft: 0 };
       return { scrap: false, status: "inspect", inspectLeft: TUNING.INSPECT_DAYS };
     }
+    // A lit miss never arrives under this floor. afterFireLives already stopped the cut there.
     if ((stageLife || 0) < TUNING.SCRAP_FLOOR) return { scrap: true, status: "destroyed", inspectLeft: 0 };
     return { scrap: false, status: "needs_return", inspectLeft: 0 };
   }
 
   // A lit fire spends the 5 second hold on the engine. The fuel lines stay put.
+  // A lit miss damages Structure and still comes home. The loss stops at the scrap floor.
   function afterFireLives(v, success, limiter, shorts) {
     let engine = Math.max(0, (v.engineLifeS || 0) - 5);
     let stage = v.stageLife || 0;
     const engineShort = limiter === "engine" || (shorts && shorts.indexOf("engine") >= 0);
     if (!success && engineShort) engine = 0;
-    if (!success) stage = Math.max(0, stage - TUNING.SF_MISS_CONDITION);
+    if (!success) stage = Math.max(TUNING.SCRAP_FLOOR, stage - TUNING.SF_MISS_CONDITION);
     return { engine, stage };
   }
 
@@ -2553,6 +2659,8 @@
     const lives = afterFireLives(v, ev.success, ev.limiter, ev.shorts);
     v.engineLifeS = lives.engine;
     v.stageLife = lives.stage;
+    // A fire cut does not mark the build as short. A written number under 70 can still be found.
+    if (Math.round(v.stageLife) < TUNING.PROOF_STRUCT_MIN) v.structFound = true;
     const next = sfNext(ev.success, lives.engine, lives.stage);
     v.status = next.status;
     v.inspectLeft = next.inspectLeft || 0;
@@ -2578,7 +2686,7 @@
     } else if (ev.success) {
       log(`${v.name} held. The engine is worn. Return it to Mega Bay. ${firedLine(v)}`, "good");
     } else {
-      log(`${v.name} failed. ${why}. Structure is ${Math.round(v.stageLife)}.`, "bad");
+      log(`${v.name} failed. ${why}. Structure is ${Math.round(v.stageLife)}. A lit miss takes up to ${TUNING.SF_MISS_CONDITION} off Structure and leaves it at ${TUNING.SCRAP_FLOOR} at worst.`, "bad");
     }
   }
 
@@ -3167,13 +3275,15 @@
         `You spend steel at ${wikiPlace("starfactory", "Starfactory")}. The factory builds a ${rocket.name} and holds it until you roll it to ${wikiPlace("mega_bay", "Mega Bay")}.`,
         `${wikiPlace("mega_bay", "Mega Bay")} houses the rocket. Roll to the ${wikiPlace("pad_orbital", "Orbital Pad")} moves it along the yard road and sets it on the mount.`,
         `The first test is a cryo proof. Liquid nitrogen is the cold liquid used for the proof. It does not burn. The test buys it. The game keeps no nitrogen tank.`,
-        `The proof takes the tanks to ${TUNING.PROOF_BAR} bar. That figure is a label, not a check. The proof passes when Structure is ${TUNING.PROOF_STRUCT_MIN} or more. A new article can leave with Structure ${TUNING.DEFECT_STRUCT}. That short is a game number. A healthy article has 100. The ${TUNING.PROOF_COST} money, the ${dayCount(TUNING.PROOF_DAYS)}, and the floor of ${TUNING.PROOF_STRUCT_MIN} are game numbers.`,
+        `The proof takes the tanks to ${TUNING.PROOF_BAR} bar. That figure is a label, not a check. The proof passes when Structure is ${TUNING.PROOF_STRUCT_MIN} or more. Structure is a fixed number you have to measure. The ${TUNING.PROOF_COST} money, the ${dayCount(TUNING.PROOF_DAYS)}, and the proof line of ${TUNING.PROOF_STRUCT_MIN} are game numbers.`,
         `A tanking run comes next. It loads ${TUNING.SF_CH4_KG} kg of methane and ${TUNING.SF_LOX_KG} kg of liquid oxygen. That is the static fire load. A short tank scrubs the run. Nothing loads, no day passes, and no fluid is spent.`,
         `The run takes ${dayCount(TUNING.TANKING_DAYS)}. ${TUNING.TANKING_CH4_LOSS_KG} kg of methane and ${TUNING.TANKING_LOX_LOSS_KG} kg of liquid oxygen boil off. The rest drains back to the pad tanks. The boil-off is a game number. The run passes when Fuel lines are ${TUNING.TANKING_LINES_MIN} seconds or more. A new article can leave with Fuel lines at ${TUNING.DEFECT_LINES_S} seconds. That short is a game number. A healthy article has ${TUNING.FITTING_LIFE_S}. That floor is a game number.`,
         `A static fire lights the engine on the pad. It holds when ${wikiGo("thrust", "thrust")}, the pad, ${wikiGo("propellant", "methane")}, ${wikiGo("propellant", "liquid oxygen")}, the wind, Structure, and the fuel lines are inside the limits. Each test is done or skipped before the fire.`,
         `After a clean fire the rocket stays on the mount for ${dayCount(TUNING.INSPECT_DAYS)} of data review. Then it is ready. A ready rocket returns to the bay. A waiting rocket on the pad can return too. A passed cryo and a passed tanking run stay passed. The hop comes later.`,
         `A miss sends the rocket back to ${wikiPlace("mega_bay", "Mega Bay")}. The sheet names the short part. You start one refurb. The bay runs one part at a time. A failed proof or a failed tanking run also sends the rocket back. Those two tests damage nothing.`,
-        `A new article leaves with one short part. That short is Structure ${TUNING.DEFECT_STRUCT}, Fuel lines at ${TUNING.DEFECT_LINES_S} seconds, or thrust ${TUNING.DEFECT_THRUST_KN} kN. Those are game numbers. If that part was already restored in the bay, the article leaves healthy. It does not take the next short. After all three are restored, later articles leave healthy.`,
+        `Structure is a fixed number you have to measure. The factory rolls it when the job ends and stores it on the rocket. Check Structure in Mega Bay takes 1 day and no money. The first reading is about 30 wide. The second is about 10 wide. A third check does not start. Only the pad writes the exact number. The hull stays not tested until then.`,
+        `Each found and fixed Structure fault raises the Structure floor by ${TUNING.STRUCT_FLOOR_STEP}. It rises once for that article, and only when the number stored at build was under ${TUNING.PROOF_STRUCT_MIN}. The floor starts at ${TUNING.SCRAP_FLOOR}.`,
+        `Fuel lines can still leave at ${TUNING.DEFECT_LINES_S} seconds. Thrust can still leave at ${TUNING.DEFECT_THRUST_KN} kN. A refurb retires that short for later articles. Structure does not. A null seed keeps the old one short, and it keeps the old cliff.`,
         `The cryo proof finds Structure. The tanking run finds the fuel lines. A fail on those tests names the part and damages nothing. The bay restores it in the days and the steel prices that already exist. You can skip a cryo proof or a tanking run. The part stays as it is. An untested part reads not tested.`,
         `A fire that lights can miss on Structure or the fuel lines. A short pad or a short engine still lights, and that fire is a miss. A fail names the part. A closed range or a short tank does not light. A scrub damages nothing.`,
       ]) + wikiFacts([
@@ -3181,7 +3291,7 @@
         { value: daySpan(TUNING.BUILD_DAYS_MIN, TUNING.BUILD_DAYS_MAX), label: "Days to build" },
         { value: `${TUNING.PROOF_COST} money`, label: "Cryo proof cost, a game number" },
         { value: `${TUNING.PROOF_BAR} bar`, label: "Proof pressure, the SN4 figure" },
-        { value: String(TUNING.PROOF_STRUCT_MIN), label: "Structure floor, a game number" },
+        { value: String(TUNING.PROOF_STRUCT_MIN), label: "Cryo proof needs" },
         { value: `${TUNING.TANKING_CH4_LOSS_KG} kg`, label: "Methane boil-off, a game number" },
         { value: `${TUNING.TANKING_LOX_LOSS_KG} kg`, label: "Oxygen boil-off, a game number" },
         { value: dayCount(TUNING.PROOF_DAYS), label: "Cryo proof, a game number" },
@@ -3321,7 +3431,7 @@
         `A tanking run takes ${dayCount(TUNING.TANKING_DAYS)}. It loses ${TUNING.TANKING_CH4_LOSS_KG} kg of methane and ${TUNING.TANKING_LOX_LOSS_KG} kg of liquid oxygen. It passes when Fuel lines are ${TUNING.TANKING_LINES_MIN} seconds or more. The day, the boil-off, and the floor are game numbers.`,
         `The methane tank starts at ${TUNING.CH4_CAP} kg and the buy raises it to ${TUNING.CH4_CAP_L2} kg. The oxygen tank starts at ${TUNING.LOX_CAP} kg and the buy raises it to ${TUNING.LOX_CAP_L2} kg. One press fills a tank for ${TUNING.FLUID_FILL_COST} money.`,
         `Pad level 1 holds ${TUNING.PAD_THRUST_L1} kN. Pad level 2 holds ${TUNING.PAD_THRUST_L2} kN. The engine floor is ${TUNING.SF_THRUST_BAR_KN} kN. Those three are game numbers.`,
-        `A new article can leave with one short part. Structure can be ${TUNING.DEFECT_STRUCT}. Fuel lines can be ${TUNING.DEFECT_LINES_S} seconds. Thrust can be ${TUNING.DEFECT_THRUST_KN} kN. Those three are game numbers. The cryo proof finds Structure. The tanking run finds the fuel lines. The static fire also reads both. A fire that lights can miss on either part. A fail names the part. A scrub damages nothing. An untested part reads not tested. The fix uses the days and the steel prices that already exist.`,
+        `Structure is a fixed number you have to measure. The factory rolls it when the job ends. Check Structure takes 1 day and no money. The first reading is about 30 wide. The second is about 10 wide. Only the pad writes the exact number. Each found and fixed Structure fault raises the Structure floor by ${TUNING.STRUCT_FLOOR_STEP}. Fuel lines can still leave at ${TUNING.DEFECT_LINES_S} seconds. Thrust can still leave at ${TUNING.DEFECT_THRUST_KN} kN. The cryo proof finds Structure. The tanking run finds the fuel lines. The static fire also reads both. A fire that lights can miss on either part. A fail names the part. A scrub damages nothing. An untested part reads not tested.`,
         `Burns is ${TUNING.ENGINE_RESTARTS}. Engine life starts at ${TUNING.ENGINE_FIRE_LIMIT_S} seconds. A lit static fire spends 5. Burns and the engine life are game numbers.`,
         `Stage dry mass is ${TUNING.STAGE_DRY_KG} kg. Liftoff mass is ${TUNING.STRUCT_LIMIT_KG} kg. Both are game numbers until the hop. A test article carries no payload.`,
       ]) + wikiFacts([
@@ -3330,7 +3440,7 @@
         { value: `${TUNING.SF_LOX_KG} kg`, label: "Liquid oxygen for a static fire" },
         { value: `${TUNING.PROOF_COST} money`, label: "Cryo proof cost, a game number" },
         { value: `${TUNING.PROOF_BAR} bar`, label: "Proof pressure, the SN4 figure" },
-        { value: String(TUNING.PROOF_STRUCT_MIN), label: "Structure floor, a game number" },
+        { value: String(TUNING.PROOF_STRUCT_MIN), label: "Cryo proof needs" },
         { value: `${TUNING.TANKING_CH4_LOSS_KG} kg`, label: "Methane boil-off, a game number" },
         { value: `${TUNING.TANKING_LOX_LOSS_KG} kg`, label: "Oxygen boil-off, a game number" },
         { value: dayCount(TUNING.PROOF_DAYS), label: "Cryo proof, a game number" },
@@ -3344,7 +3454,10 @@
         { value: String(TUNING.ENGINE_RESTARTS), label: "Burns" },
         { value: `${TUNING.PAD_THRUST_L1} kN`, label: "Pad level 1 limit" },
         { value: `${TUNING.SF_THRUST_BAR_KN} kN`, label: "Engine floor" },
-        { value: String(TUNING.DEFECT_STRUCT), label: "Short Structure, a game number" },
+        { value: "1 day", label: "Check Structure, no money" },
+        { value: "30 wide", label: "First Structure reading" },
+        { value: "10 wide", label: "Second Structure reading" },
+        { value: String(TUNING.STRUCT_FLOOR_STEP), label: "Structure floor step" },
         { value: `${TUNING.DEFECT_LINES_S} s`, label: "Short Fuel lines, a game number" },
         { value: `${TUNING.DEFECT_THRUST_KN} kN`, label: "Short thrust, a game number" },
       ]) + wikiReal([
@@ -3359,9 +3472,9 @@
       title: "Engines and life",
       body: wikiParas([
         `A static fire is a burn on the pad. It reads ${wikiGo("thrust", "thrust")}, Structure, and the fuel lines. A fire that lights can miss on Structure or the fuel lines. A fail names the part. A scrub damages nothing.`,
-        `The rocket window paints Structure, Fuel lines, and Engine (Raptor) on the rocket, top to bottom. An untested part reads not tested, with no figure. The line shows the number the rocket has and the number the test needed. The top bar keeps the name and the place. The engine bar stays on the seconds still left, out of ${TUNING.ENGINE_FIRE_LIMIT_S}. After the engine is tested, the line shows the thrust the rocket has. A lit static fire spends 5 seconds. A short engine also sets the seconds to 0. A short pad spends the 5 second hold. Life stops at 0. The ${TUNING.ENGINE_FIRE_LIMIT_S} seconds are a game number.`,
+        `The rocket window paints Structure, Fuel lines, and Engine (Raptor) on the rocket, top to bottom. An untested part reads not tested, with no figure. A bay check draws a band on the Structure row. The hull stays not tested until the pad writes the number. After that, the line shows the number the rocket has and the number the test needed. The top bar keeps the name and the place. It names Structure short only when the band is under ${TUNING.PROOF_STRUCT_MIN}, or the pad wrote a number under ${TUNING.PROOF_STRUCT_MIN}. The engine bar stays on the seconds still left, out of ${TUNING.ENGINE_FIRE_LIMIT_S}. After the engine is tested, the line shows the thrust the rocket has. A lit static fire spends 5 seconds. A short engine also sets the seconds to 0. A short pad spends the 5 second hold. Life stops at 0. The ${TUNING.ENGINE_FIRE_LIMIT_S} seconds are a game number.`,
         `The fuel lines carry methane and liquid oxygen from the tanks to the engine. A new article can leave with ${TUNING.DEFECT_LINES_S} seconds. A healthy article has ${TUNING.FITTING_LIFE_S} seconds out of ${TUNING.FITTING_LIFE_S}. A static fire does not spend those seconds. A short set still lights, and thrust ends early. Inspect the fuel lines sets them to ${TUNING.FITTING_LIFE_S}. That job also retires the fuel-line short for later articles, even on a healthy article. The hidden launch still asks for ${TUNING.FITTING_BURN_S} seconds. That figure stays until the hop.`,
-        `A new article can leave with Structure ${TUNING.DEFECT_STRUCT}. A healthy stage starts at 100. A lit miss takes ${TUNING.SF_MISS_CONDITION} off that life. Structure ${TUNING.DEFECT_STRUCT} minus that ${TUNING.SF_MISS_CONDITION} is 20. The rocket is scrap only under ${TUNING.SCRAP_FLOOR}, so 20 stays and the rocket comes home. The next cryo still fails, because 20 is under ${TUNING.PROOF_STRUCT_MIN}. An engine miss from a healthy 100 leaves Structure 60, so the stage needs a refurb before the next proof can pass.`,
+        `Structure is a fixed number you have to measure. It is rolled when the factory job ends. A bay check reads a band and does not write that number. A lit miss takes up to ${TUNING.SF_MISS_CONDITION} off Structure and leaves it at ${TUNING.SCRAP_FLOOR} at worst. A fire cut does not raise the Structure floor. The floor rises by ${TUNING.STRUCT_FLOOR_STEP} only when a short stored at build was found and then fixed.`,
         `Refurb the engine costs ${TUNING.ENGINE_REFURB_COST} steel and takes ${dayCount(TUNING.REFURB_OK_DAYS)}. Pad level 2 cuts one day from that job only. It restores a short thrust to the healthy thrust for that tier, and the seconds to ${TUNING.ENGINE_FIRE_LIMIT_S}. Refurb the structure takes ${daySpan(TUNING.REFURB_FAIL_MIN, TUNING.REFURB_FAIL_MAX)} and no steel.`,
         `The bay runs one part at a time. Raise Raptor thrust spends ${TUNING.ENGINE_UP_COST} steel. Raptor 1 at ${TUNING.ENGINE_THRUST_KN} kN becomes Raptor 2 at ${TUNING.ENGINE_2_KN} kN. Mass drops from ${TUNING.ENGINE_MASS_KG} kg to ${TUNING.ENGINE_2_MASS_KG} kg. It does not build a second engine.`,
         `Burns is ${TUNING.ENGINE_RESTARTS}. That count is a game number. The fire holds when thrust stays between ${TUNING.SF_THRUST_BAR_KN} kN and the pad's thrust limit. The floor and the pad limits are game numbers.`,
@@ -3413,7 +3526,7 @@
       body: wikiParas([
         `Starfactory builds a ${rocket.name} from steel. It holds the finished rocket until you roll it to ${wikiPlace("mega_bay", "Mega Bay")}.`,
         `Build ${rocket.name} costs ${rocket.steelCost} steel and takes ${daySpan(TUNING.BUILD_DAYS_MIN, TUNING.BUILD_DAYS_MAX)}. Roll to ${wikiPlace("mega_bay", "Mega Bay")} spends no steel and no propellant, and the day keeps running.`,
-        `A new article can leave with one short part. The short is Structure ${TUNING.DEFECT_STRUCT}, Fuel lines at ${TUNING.DEFECT_LINES_S} seconds, or thrust ${TUNING.DEFECT_THRUST_KN} kN. Those are game numbers.`,
+        `Structure is a fixed number you have to measure. The card names the Structure floor and the step of ${TUNING.STRUCT_FLOOR_STEP}. Fuel lines can leave at ${TUNING.DEFECT_LINES_S} seconds. Thrust can leave at ${TUNING.DEFECT_THRUST_KN} kN. Those shorts are game numbers.`,
         `Raise Raptor thrust costs ${TUNING.ENGINE_UP_COST} steel and takes ${daySpan(TUNING.ENGINE_UP_DAYS_MIN, TUNING.ENGINE_UP_DAYS_MAX)}. The dry-mass cut waits until a flight uses dry mass. That button is off the sheet.`,
         `Starfactory cannot be upgraded.`,
         `The next building is ${wikiPlace("mega_bay", "Mega Bay")}. ${wikiPageLink("thrust", "Thrust")} and the stage change while this factory is busy.`,
@@ -3437,10 +3550,11 @@
       body: wikiParas([
         `Mega Bay houses the rockets between ${wikiPlace("starfactory", "Starfactory")} and the ${wikiPlace("pad_orbital", "Orbital Pad")}. Open the rocket here to refurb one part.`,
         `Roll to the ${wikiPlace("pad_orbital", "Orbital Pad")} follows the yard road. The trip takes ${roll}. It spends no steel and no propellant.`,
-        `Refurb the engine costs ${TUNING.ENGINE_REFURB_COST} steel and takes ${dayCount(TUNING.REFURB_OK_DAYS)}. Inspect the fuel lines takes ${dayCount(TUNING.INSPECT_DAYS)} and no steel. Refurb the structure takes ${daySpan(TUNING.REFURB_FAIL_MIN, TUNING.REFURB_FAIL_MAX)} and no steel. The bay runs one of those jobs. A finished refurb retires that short for later articles. Inspect the fuel lines does this even when the lines already read ${TUNING.FITTING_LIFE_S}.`,
+        `Check Structure takes 1 day and no money. The first reading is about 30 wide. The second is about 10 wide. A third check does not start. The hull stays not tested until the pad writes the number.`,
+        `Refurb the engine costs ${TUNING.ENGINE_REFURB_COST} steel and takes ${dayCount(TUNING.REFURB_OK_DAYS)}. Inspect the fuel lines takes ${dayCount(TUNING.INSPECT_DAYS)} and no steel. Refurb the structure takes ${daySpan(TUNING.REFURB_FAIL_MIN, TUNING.REFURB_FAIL_MAX)} and no steel. The bay runs one job at a time. A found and fixed Structure fault raises the Structure floor by ${TUNING.STRUCT_FLOOR_STEP}, once for that article. Fuel lines and the engine still retire their shorts. Inspect the fuel lines does this even when the lines already read ${TUNING.FITTING_LIFE_S}.`,
         `Another slot costs ${TUNING.BAY_SLOT_COST} steel and takes no days. It adds a place in the bay, up to ${TUNING.BAY_MAX === 1 ? "1 vehicle" : `${TUNING.BAY_MAX} vehicles`}.`,
         `The next step is a cryo proof, then a tanking run, then a static fire on the ${wikiPlace("pad_orbital", "Orbital Pad")}. That fire reads Structure and the fuel lines, plus ${wikiPageLink("thrust", "thrust")}, ${wikiPageLink("propellant", "propellant")}, and the wind.`,
-        `A fire that lights can miss on Structure or the fuel lines. A fail names the part. A scrub damages nothing. The fix for a part stays off until the pad has checked that part.`,
+        `A fire that lights can miss on Structure or the fuel lines. A fail names the part. A scrub damages nothing. The Structure fix can start after a bay check. Fuel lines and the engine stay off until the pad has checked that part.`,
       ]) + wikiFacts([
         { value: `${TUNING.BAY_SLOT_COST} steel`, label: "Another slot" },
         { value: String(TUNING.BAY_MAX), label: "Vehicles the bay can hold" },
@@ -3464,18 +3578,18 @@
       title: "Orbital Pad",
       body: wikiParas([
         `The Orbital Pad holds the rocket for a cryo proof, a tanking run, and a static fire. The hop comes later. The rocket rolls here from ${wikiPlace("mega_bay", "Mega Bay")}.`,
-        `The cryo proof comes first. It buys liquid nitrogen and takes the tanks to ${TUNING.PROOF_BAR} bar. That figure is a label. The proof costs ${TUNING.PROOF_COST} money and takes ${dayCount(TUNING.PROOF_DAYS)}. It passes when Structure is ${TUNING.PROOF_STRUCT_MIN} or more. A new article can leave with Structure ${TUNING.DEFECT_STRUCT}. That short is a game number. The cost, the day, and the floor are game numbers.`,
+        `The cryo proof comes first. It buys liquid nitrogen and takes the tanks to ${TUNING.PROOF_BAR} bar. That figure is a label. The proof costs ${TUNING.PROOF_COST} money and takes ${dayCount(TUNING.PROOF_DAYS)}. It passes when Structure is ${TUNING.PROOF_STRUCT_MIN} or more. It writes the exact Structure number. The cost, the day, and that line are game numbers.`,
         `The tanking run comes next. It needs ${TUNING.SF_CH4_KG} kg of methane and ${TUNING.SF_LOX_KG} kg of liquid oxygen. A short tank scrubs the run. Nothing loads and no day passes. The run takes ${dayCount(TUNING.TANKING_DAYS)}. ${TUNING.TANKING_CH4_LOSS_KG} kg of methane and ${TUNING.TANKING_LOX_LOSS_KG} kg of liquid oxygen boil off. The rest drains back. The run passes when Fuel lines are ${TUNING.TANKING_LINES_MIN} seconds or more. A new article can leave with ${TUNING.DEFECT_LINES_S} seconds. That short is a game number. The boil-off and that floor are game numbers.`,
         `The pad fills the methane tank or the liquid oxygen tank for ${TUNING.FLUID_FILL_COST} money. One press fills that tank.`,
         `Static fire loads ${TUNING.SF_CH4_KG} kg of methane and ${TUNING.SF_LOX_KG} kg of liquid oxygen. It waits until each test is done or skipped. A fire that lights can miss on Structure or the fuel lines. A short pad or a short engine still lights, and that fire is a miss. A fail names the part. A closed range or a short tank keeps Try static fire off. A scrub takes no fluid, changes no life, and damages nothing.`,
         `After a clean fire the rocket stays on the mount for ${dayCount(TUNING.INSPECT_DAYS)} of data review. Then it is ready. A ready rocket offers Return to Mega Bay. A waiting rocket on the pad can return too. A passed cryo and a passed tanking run stay passed. The hop comes later.`,
         `The methane tank buy and the oxygen tank buy raise the caps to ${TUNING.CH4_CAP_L2} kg and ${TUNING.LOX_CAP_L2} kg.`,
-        `A miss still returns to ${wikiPlace("mega_bay", "Mega Bay")}. ${wikiPageLink("engines", "Engines and life")} names the Raptor seconds a lit fire takes off. Structure under ${TUNING.SCRAP_FLOOR} scraps the rocket. A lit miss clears the cryo proof, the tanking run, and any skip. A clean fire keeps them.`,
+        `A miss still returns to ${wikiPlace("mega_bay", "Mega Bay")}. ${wikiPageLink("engines", "Engines and life")} names the Raptor seconds a lit fire takes off. A lit miss takes up to ${TUNING.SF_MISS_CONDITION} off Structure and leaves it at ${TUNING.SCRAP_FLOOR} at worst. A lit miss clears the cryo proof, the tanking run, and any skip. A clean fire keeps them.`,
         `Pad level 2 costs ${TUNING.PAD_L2_COST} steel and takes no days. The thrust limit rises from ${TUNING.PAD_THRUST_L1} kilonewtons (kN) to ${TUNING.PAD_THRUST_L2} kN. The wind limit rises from ${TUNING.WIND_LIMIT_L1} knots to ${TUNING.WIND_LIMIT_L2} knots. The thrust limits are game numbers.${shorten}`,
       ]) + wikiFacts([
         { value: `${TUNING.PROOF_COST} money`, label: "Cryo proof cost, a game number" },
         { value: `${TUNING.PROOF_BAR} bar`, label: "Proof pressure, the SN4 figure" },
-        { value: String(TUNING.PROOF_STRUCT_MIN), label: "Structure floor, a game number" },
+        { value: String(TUNING.PROOF_STRUCT_MIN), label: "Cryo proof needs" },
         { value: `${TUNING.TANKING_CH4_LOSS_KG} kg`, label: "Methane boil-off, a game number" },
         { value: `${TUNING.TANKING_LOX_LOSS_KG} kg`, label: "Oxygen boil-off, a game number" },
         { value: dayCount(TUNING.PROOF_DAYS), label: "Cryo proof, a game number" },
@@ -3593,6 +3707,7 @@
     if (v.status === "ready") return "Ready on the mount";
     if (v.status === "flying") return "In flight";
     if (v.status === "on_pad" || v.status === "needs_return") return "On the pad";
+    if (v.status === "refurb" && v.refurbPart === "check") return `Check Structure · ${dayCount(v.refurbLeft)} left`;
     if (v.status === "refurb") return `Refurb · ${partName(v.refurbPart)} · ${dayCount(v.refurbLeft)} left`;
     if (v.status === "rolling") return "On the road";
     return v.status;
@@ -3682,6 +3797,9 @@
       const hold = factoryHold();
       html += `<div class="sh sub">Data</div>`;
       html += inspRow("Holding", `${hold ? 1 : 0} of 1`);
+      if (wholeSeed(G.seed)) {
+        html += `<p class="wait">Structure floor ${G.structFloor}. Each found and fixed Structure fault raises it by ${TUNING.STRUCT_FLOOR_STEP}.</p>`;
+      }
       if (G.factoryJob) {
         const pct = 1 - G.factoryJob.daysLeft / G.factoryJob.totalDays;
         const label = G.factoryJob.kind === "engine" ? "Raptor thrust" : G.factoryJob.kind === "structure" ? "Stage dry mass" : rocketOf(G.factoryJob.rocketId).name;
@@ -3737,7 +3855,10 @@
         }
         acts += openCard(v);
       } else if (v && v.status === "refurb" && v.buildingId === b.id) {
-        html += `<p class="wait">${esc(v.name)} · ${esc(partName(v.refurbPart))} · ${dayCount(v.refurbLeft)} left</p>`;
+        const wait = v.refurbPart === "check"
+          ? `${v.name} · Check Structure · ${dayCount(v.refurbLeft)} left`
+          : `${v.name} · ${partName(v.refurbPart)} · ${dayCount(v.refurbLeft)} left`;
+        html += `<p class="wait">${esc(wait)}</p>`;
         acts += openCard(v);
       } else {
         html += `<p class="wait">Select a vehicle in the bay to roll it out.</p>`;
@@ -4003,7 +4124,9 @@
       }
     }
     for (const v of liveFleet()) {
-      if (v.refurbPart && v.refurbLeft > 0) {
+      if (v.refurbPart === "check" && v.refurbLeft > 0) {
+        lines.push(`${v.name} · Check Structure · ${days(v.refurbLeft)}`);
+      } else if (v.refurbPart && v.refurbLeft > 0) {
         lines.push(`${v.name} · ${partName(v.refurbPart)} · refurb in Mega Bay · ${days(v.refurbLeft)}`);
       }
     }
@@ -4072,14 +4195,30 @@
     renderChrome();
   }
 
+  function startBayCheck(vehicleId) {
+    const v = typeof vehicleId === "string"
+      ? G.fleet.find((item) => item.name === vehicleId)
+      : vehicleById(vehicleId);
+    if (!v || !wholeSeed(G.seed)) return false;
+    if (v.refurbPart || bayPartBusy(v.id)) return false;
+    if (v.status !== "in_bay") return false;
+    if ((v.structChecks || 0) >= 2 || partTested(v, "stage")) return false;
+    v.refurbPart = "check";
+    v.refurbLeft = 1;
+    v.status = "refurb";
+    log(`${v.name} · Check Structure · ${dayCount(1)}. No money.`, "info");
+    renderChrome();
+    return true;
+  }
+
   function startPartRefurb(vehicleId, part) {
     const v = vehicleById(vehicleId);
     if (!v) return;
     if (v.refurbPart || bayPartBusy(v.id)) { log("The bay is already on one part.", "warn"); return; }
     if (v.status !== "in_bay") { log("Refurb a part in Mega Bay.", "warn"); return; }
     if (part !== "engine" && part !== "fitting" && part !== "stage") return;
-    // The pad has to check this part before the bay can fix it. A skip or a scrub does not count.
-    if (!partTested(v, part)) return;
+    // Fuel lines and the engine still wait for the pad. Structure can also start after a bay check.
+    if (!partFixAllowed(v, part)) return;
     let days = TUNING.INSPECT_DAYS;
     if (part === "engine") {
       if (G.steel < TUNING.ENGINE_REFURB_COST) { log(`Need ${TUNING.ENGINE_REFURB_COST} steel.`, "bad"); return; }
@@ -4115,12 +4254,23 @@
     return String(TUNING.PROOF_STRUCT_MIN);
   }
 
-  // Short means the pad's own floor. A skip never reaches this.
+  // A band that still holds 70 is not a miss. The pad's own number is.
   function partIsShort(v, key) {
+    if (key === "stage") {
+      if (partTested(v, "stage") && partLifeValue(v, "stage") < TUNING.PROOF_STRUCT_MIN) return true;
+      if (!partTested(v, "stage") && v && v.structReadHi != null && v.structReadHi < TUNING.PROOF_STRUCT_MIN) return true;
+      return false;
+    }
     if (!partTested(v, key)) return false;
     if (key === "engine") return engineNowKn(v) < TUNING.SF_THRUST_BAR_KN;
     if (key === "fitting") return partLifeValue(v, key) < TUNING.TANKING_LINES_MIN;
-    return partLifeValue(v, key) < TUNING.PROOF_STRUCT_MIN;
+    return false;
+  }
+
+  function partFixAllowed(v, key) {
+    if (!v) return false;
+    if (key === "stage") return partTested(v, "stage") || (v.structChecks || 0) >= 1;
+    return partTested(v, key);
   }
 
   // Same order as the lowest part. Only a checked short can take the name.
@@ -4230,10 +4380,59 @@
     </svg>`;
   }
 
+  function structBandHtml(v) {
+    const lo = v.structReadLo;
+    const hi = v.structReadHi;
+    const x0 = 8;
+    const span = 304;
+    const x = (n) => x0 + (n - TUNING.SCRAP_FLOOR) / (100 - TUNING.SCRAP_FLOOR) * span;
+    const xLo = x(lo);
+    const xHi = x(hi);
+    const xNeed = x(TUNING.PROOF_STRUCT_MIN);
+    return `<div class="scale"><svg viewBox="0 0 320 54" role="img" aria-label="Structure reading ${lo} to ${hi}, proof at ${TUNING.PROOF_STRUCT_MIN}">
+      <rect x="8" y="18" width="304" height="10" fill="#1a1a1a" stroke="#444"/>
+      <rect x="${xLo.toFixed(1)}" y="18" width="${Math.max(1, xHi - xLo).toFixed(1)}" height="10" fill="#c4a15a"/>
+      <line x1="${xNeed.toFixed(1)}" y1="12" x2="${xNeed.toFixed(1)}" y2="40" stroke="#e10600" stroke-width="2"/>
+      <text x="8" y="12" fill="#9a9a9a" font-size="9">${TUNING.SCRAP_FLOOR}</text>
+      <text x="${xLo.toFixed(0)}" y="12" fill="#f2f2f2" font-size="9">${lo}</text>
+      <text x="${(xNeed - 8).toFixed(0)}" y="10" fill="#e10600" font-size="9">${TUNING.PROOF_STRUCT_MIN}</text>
+      <text x="${xHi.toFixed(0)}" y="12" fill="#f2f2f2" font-size="9">${hi}</text>
+      <text x="292" y="12" fill="#9a9a9a" font-size="9">100</text>
+      <text x="${xNeed.toFixed(1)}" y="52" fill="#e10600" font-size="9" text-anchor="middle">proof</text>
+    </svg><div class="read">${lo} to ${hi} · the proof needs ${TUNING.PROOF_STRUCT_MIN}</div></div>`;
+  }
+
+  function checkButtonHtml(v) {
+    if (!wholeSeed(G.seed) || (v.structChecks || 0) >= 2 || partTested(v, "stage")) return "";
+    const running = v.refurbPart === "check";
+    const busy = !!(v.refurbPart || bayPartBusy(v.id));
+    const line = running ? `Check Structure · ${dayCount(v.refurbLeft)} left` : "1 day · no money";
+    return `<button type="button" class="act gold" id="btn-check-stage"${busy ? " disabled" : ""}><div class="name">Check Structure</div><div class="line">${line}</div></button>`;
+  }
+
+  function structFixButtonHtml(v) {
+    const busy = !!(v.refurbPart || bayPartBusy(v.id));
+    const off = !partFixAllowed(v, "stage") || busy;
+    return `<button type="button" class="act" id="btn-part-stage"${off ? " disabled" : ""}><div class="name">${esc(partFixName("stage"))}</div><div class="line">${esc(partFixDetail(v, "stage"))}</div></button>`;
+  }
+
+  function stageCallHtml(v, inBay, worst) {
+    const tested = partTested(v, "stage");
+    const pct = tested ? lifePct(v, "stage") : null;
+    const hot = partIsShort(v, "stage") || (tested && (v.refurbPart === "stage" || (!v.refurbPart && worst === "stage" && pct < 100)));
+    const cls = ["call", "stage", hot ? "hot" : ""].filter(Boolean).join(" ");
+    const title = `<b>${esc(partName("stage"))}</b>`;
+    const band = v.structReadLo != null && v.structReadHi != null;
+    const read = tested ? partCountsHtml(v, "stage") : (band ? structBandHtml(v) : `<em>not tested</em>`);
+    if (!inBay) return `<div class="${cls}">${title}${read}</div>`;
+    return `<div class="${cls}">${title}${read}<div class="jobs">${checkButtonHtml(v)}${structFixButtonHtml(v)}</div></div>`;
+  }
+
   function rocketCalls(v) {
     const inBay = v.status === "in_bay" || v.status === "refurb";
     const worst = worstPart(v);
     return ["stage", "fitting", "engine"].map((key) => {
+      if (key === "stage") return stageCallHtml(v, inBay, worst);
       const tested = partTested(v, key);
       const pct = tested ? lifePct(v, key) : null;
       const hot = tested && (v.refurbPart === key || key === namedShort(v) || (!v.refurbPart && key === worst && pct < 100));
@@ -4325,6 +4524,8 @@
     if (eng) eng.onclick = () => startEngineUpgrade(v.id);
     const structure = panel.querySelector("#btn-structure");
     if (structure) structure.onclick = () => startStructureLighten(v.id);
+    const checkBtn = panel.querySelector("#btn-check-stage");
+    if (checkBtn) checkBtn.onclick = () => startBayCheck(v.id);
     ["engine", "fitting", "stage"].forEach((key) => {
       const btn = panel.querySelector(`#btn-part-${key}`);
       if (btn) btn.onclick = () => startPartRefurb(v.id, key);
@@ -4332,7 +4533,7 @@
     if (v.status === "in_bay" || v.status === "refurb") {
       panel.querySelectorAll(".hit").forEach((hit) => {
         const key = hit.getAttribute("data-part");
-        if (!partTested(v, key)) return;
+        if (!partFixAllowed(v, key)) return;
         hit.addEventListener("click", () => startPartRefurb(v.id, key));
       });
     }
@@ -5525,6 +5726,11 @@
     const n = Number(value);
     return Number.isFinite(n) ? n : fallback;
   }
+  function optNum(value) {
+    if (value == null || value === "") return null;
+    const n = Number(value);
+    return Number.isFinite(n) ? n : null;
+  }
   function vehicleSave(v) {
     return {
       id: v.id,
@@ -5548,6 +5754,13 @@
       structTested: !!v.structTested,
       fittingTested: !!v.fittingTested,
       engineTested: !!v.engineTested,
+      articleN: Number.isInteger(v.articleN) ? v.articleN : null,
+      structBuiltShort: !!v.structBuiltShort,
+      structChecks: v.structChecks || 0,
+      structReadLo: v.structReadLo == null ? null : v.structReadLo,
+      structReadHi: v.structReadHi == null ? null : v.structReadHi,
+      structFound: !!v.structFound,
+      structFloorPaid: !!v.structFloorPaid,
       refurbPart: v.refurbPart || null,
       refurbLeft: v.refurbLeft || 0,
       inspectLeft: v.inspectLeft || 0,
@@ -5590,8 +5803,9 @@
     for (const key of Object.keys(G.objectives)) objectives[key] = !!G.objectives[key];
     return {
       version: 1,
-      label: "0.15.0-sheet",
+      label: "0.16.0-bay",
       seed: wholeSeed(G.seed) ? G.seed : null,
+      structFloor: clampStructFloor(G.structFloor),
       speed: legalSpeed(G.speed),
       day: G.day,
       dayAcc: G.dayAcc,
@@ -5672,6 +5886,13 @@
         structTested: !!v.structTested,
         fittingTested: !!v.fittingTested,
         engineTested: !!v.engineTested,
+        articleN: Number.isInteger(v.articleN) ? v.articleN : null,
+        structBuiltShort: !!v.structBuiltShort,
+        structChecks: Math.max(0, Math.round(finite(v.structChecks, 0))),
+        structReadLo: optNum(v.structReadLo),
+        structReadHi: optNum(v.structReadHi),
+        structFound: !!v.structFound,
+        structFloorPaid: !!v.structFloorPaid,
         refurbPart: v.refurbPart || null,
         refurbLeft: finite(v.refurbLeft, 0),
         inspectLeft: finite(v.inspectLeft, 0),
@@ -5721,6 +5942,7 @@
       kind: row && row.kind ? String(row.kind) : "",
     }));
     G.builtArticles = Math.max(0, Math.round(finite(data.builtArticles, 0)));
+    G.structFloor = clampStructFloor(finite(data.structFloor, TUNING.SCRAP_FLOOR));
     const restored = data.defectRestored || {};
     G.defectRestored = {
       stage: !!restored.stage,
@@ -5892,6 +6114,7 @@
   G.cam.x = (MAP_W * CELL) / 2 - W / 2;
   G.cam.y = (MAP_H * CELL) / 2 - H / 2;
   if (TEST) {
+    const runBayCheck = startBayCheck;
     window.__sb = {
       selectBuilding(type) {
         const b = buildingOfType(type);
@@ -5921,6 +6144,9 @@
       setSpeed,
       skipToEvent,
       setDay,
+      startBayCheck(name) {
+        return runBayCheck(name);
+      },
       saveNow() {
         return writeGameSave(TEST_SAVE_KEY);
       },
@@ -5955,6 +6181,7 @@
           money: G.money,
           steel: G.steel,
           builtArticles: G.builtArticles,
+          structFloor: G.structFloor,
           defectRestored: {
             stage: !!G.defectRestored.stage,
             fitting: !!G.defectRestored.fitting,
@@ -5977,6 +6204,13 @@
             proofDone: !!v.proofDone, tankingDone: !!v.tankingDone, testLeft: v.testLeft || 0,
             proofSkipped: !!v.proofSkipped, tankingSkipped: !!v.tankingSkipped,
             structTested: !!v.structTested, fittingTested: !!v.fittingTested, engineTested: !!v.engineTested,
+            articleN: Number.isInteger(v.articleN) ? v.articleN : null,
+            structChecks: v.structChecks || 0,
+            structReadLo: v.structReadLo == null ? null : v.structReadLo,
+            structReadHi: v.structReadHi == null ? null : v.structReadHi,
+            structBuiltShort: !!v.structBuiltShort,
+            structFound: !!v.structFound,
+            structFloorPaid: !!v.structFloorPaid,
             refurbPart: v.refurbPart || null, refurbLeft: v.refurbLeft || 0,
           })),
           testDays: G.testDays.map((row) => ({ day: row.day, kind: row.kind })),
