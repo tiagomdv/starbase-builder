@@ -377,11 +377,12 @@ History of what **shipped**, keyed by **version**.
 **Version:** `0.17.0-tidy`
 
 - The screen is tidier. Outside the top bar the page uses four type sizes, 11, 12, 14, and 16 px. Numbers are 14 and 16 px. Only the event title stays in capitals. The Inspector, the Land plot cards, and the rocket window fit at 1280 by 800 without a scroll. Long sentences moved to the wiki and to button tips.
+- The engine percent on the drawing is now dark on the light bell, so you can read it. Before, it was white on white.
 - The rocket window is one parts table. Each row shows the part, what the rocket has, what the test needs, a small button, and a margin bar. The bar has a tick where the need sits. A Structure band shows as a strip, so seed 11 reads 52 to 82 before the pad test.
 - The road and the lift run in game days. A road takes half a day to 1 day. Each lift takes half a day. That holds at every speed and in `?test`. A road from Mega Bay to the Orbital Pad takes about 0.86 days.
 - Skip during a road finishes the road and any lift, counts those days, and then jumps to the next event.
 - The day holds while the tanks fill, while the engine burns, and while the rocket flies. The factory and the bay wait too. The moving-day rule from `0.14.2-seed` is gone.
 - The speeds are 1x and 3x. An old save at 2x or 4x loads at 3x.
 - Every build is named Starhopper and a number. The first is Starhopper 1 and the next is Starhopper 2. An old TA-1 loads as Starhopper 1, and old log lines read the same way. An old road keeps its share of the trip and finishes in game days.
-- With seed 11 in `?test`, building the first Starhopper, rolling it out, and raising it puts it on the Orbital Pad at day 14.0. The sky that day is Clear with 12 kn of wind, and the range is open. A run with no wait at all would land just before day 14 on day 13, at 24 kn and closed. Day 15 is Clear with 10 kn.
+- With seed 11 in `?test`, building the first Starhopper, rolling it out, and raising it puts it on the Orbital Pad on day 13 or 14 when the build takes 10 days. The build length is not seeded and runs 8 to 12 days, so across runs the pad day falls between 12 and 16. With a 10-day build, the raise ends just after day 14 begins, so a run with almost no delay ends on day 13. Day 13 has 24 kn of wind, and the range is closed. Day 14 is Clear, with 12 kn, and the range is open. The fixed path here ended at day 14.0.
 - Save stays version 1. The label is `0.17.0-tidy`. The previous live file is `archive/index-0.16.0-bay.html`. The design page is `design-docs/0.17.0-tidy-design.html`.

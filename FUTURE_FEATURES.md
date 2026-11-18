@@ -52,6 +52,8 @@ Leave the map free of a caption for every part. Leave the launch track off until
 
 The owned line shipped in `0.4.0-borderline`. It follows the coast, about 8 km inland on the solid beach, and it follows the bay where the water cuts in. Each building is a separate buy on a fixed plot, and the building is about one tenth of that plot. The Land column counts plots. The picture is `design-docs/0.4.0-borderline-design.html`.
 
+One backlog item stays open. Cancel placing, `#btn-x`, and Skip the fire watch, `#event-skip`, were dead before `0.17.0-tidy`, and no player can reach them. A later row removes them, or brings them back with a path that shows them.
+
 ## Motion, then pictures
 
 `0.6.0-motion` plays the loop you already have, on the map. The static-fire modal closes. A build shows in the Starfactory. The finished rocket rolls from the Starfactory along the yard road to Mega Bay. It rolls from the bay to the Orbital Pad on that same road. At the pad it rises onto the mount. The static fire burns on the mount, and the flame stays on the map. Later versions add their own animations on top of the same system.

@@ -604,9 +604,9 @@
     .sheet-body { padding: 12px 16px 6px; }
     .plate { grid-template-columns: 112px 1fr; gap: 0 18px; align-items: start; }
     .ship { width: 112px; height: 294px; min-height: 0; }
-    /* The drawing shows at 0.7, so these tags read at about 10 to 11 px. */
-    .ship .tag { font-size: 15px; }
-    .ship .tag.unt, .ship .tag.sm { font-size: 14px; }
+    /* The drawing shows at 0.7, so these sizes read at 12 px and 11 px on screen. */
+    .ship .tag { font-size: 17.1429px; }
+    .ship .tag.unt, .ship .tag.sm { font-size: 15.7143px; }
     .empty-row {
       display: grid; grid-template-columns: 1fr auto; align-items: center; padding: 5px 8px; margin-bottom: 8px;
       border: 1px solid #444; box-shadow: inset 3px 0 #e10600; font-size: 14px;
@@ -4493,9 +4493,13 @@
       const fade = opacity == null ? "" : ` fill-opacity="${opacity}"`;
       return `<g clip-path="url(#${clip})"><rect class="life ${lifeTone(pct)}" x="${x}" y="${box.y}" width="${w}" height="${box.h}" fill="${lifeFill(pct)}"${fade}/></g>`;
     };
-    const cutTag = (key, x, y, ink) => {
-      if (!partTested(v, key)) return `<text class="tag unt" text-anchor="middle" x="${x}" y="${y}" fill="#f2f2f2">not tested</text>`;
-      return `<text class="tag" text-anchor="middle" x="${x}" y="${y}" fill="${ink}">${lifePct(v, key)}%</text>`;
+    // The picked ink goes in style, because the .ship .tag CSS fill would beat a fill attribute.
+    // The stage fill is see-through over the dark hull, so its tag stays light.
+    const cutTag = (key, x, y, ink, at) => {
+      const u = at && at.unt ? at.unt : { x, y };
+      if (!partTested(v, key)) return `<text class="tag unt" text-anchor="middle" x="${u.x}" y="${u.y}" style="fill:#f2f2f2">not tested</text>`;
+      const p = at && at.tag ? at.tag : { x, y, anchor: "middle" };
+      return `<text class="tag" text-anchor="${p.anchor}" x="${p.x}" y="${p.y}" style="fill:${ink}">${lifePct(v, key)}%</text>`;
     };
     const hull = "80,14 104,92 104,262 56,262 56,92";
     const thrust = "56,262 104,262 100,316 60,316";
@@ -4530,8 +4534,8 @@
       <polygon points="${thrust}" fill="none" stroke="${stroke("fitting")}" stroke-width="1.6"/>
       <polygon points="${bell}" fill="none" stroke="${stroke("engine")}" stroke-width="1.6"/>
       <path d="M60 352 H100 M54 382 H106" fill="none" stroke="#f2f2f2" stroke-opacity="0.22"/>
-      ${cutTag("stage", 80, 214, partTested(v, "stage") ? inkOn(lifePct(v, "stage"), 210, 14, 262) : "#f2f2f2")}
-      ${cutTag("fitting", 94, 296, "#f2f2f2")}
+      ${cutTag("stage", 80, 228, "#f2f2f2")}
+      ${cutTag("fitting", 94, 296, "#f2f2f2", { tag: { x: 87, y: 305, anchor: "start" }, unt: { x: 80, y: 318 } })}
       ${cutTag("engine", 80, 372, partTested(v, "engine") ? inkOn(lifePct(v, "engine"), 368, 316, 408) : "#f2f2f2")}
       <rect class="hit" data-part="stage" x="20" y="12" width="120" height="250" fill="transparent"/>
       <rect class="hit" data-part="fitting" x="18" y="262" width="122" height="54" fill="transparent"/>
