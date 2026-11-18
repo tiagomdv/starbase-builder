@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>0.16.0-bay · design — starbase-builder</title>
+  <style>
+    :root {
+      --bg: #1c2118; --panel: #2a2218; --panel2: #221c14; --border: #5a4830;
+      --text: #e8d9b0; --muted: #a89878; --accent: #d4a84b; --link: #e8c56a; --code: #c4e08a;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; line-height: 1.55; }
+    .wrap { max-width: 1480px; margin: 0 auto; padding: 1.5rem 1.25rem 4rem; }
+    .doc-hero { background: linear-gradient(180deg, #2a2218, #1c2118); border: 1px solid var(--border); border-radius: 0.85rem; padding: 1.15rem 1.25rem 1.25rem; margin-bottom: 1.25rem; }
+    .doc-hero h1 { font-size: 1.55rem; font-weight: 650; color: #f5edd8; margin: 0.35rem 0 0.4rem; }
+    .doc-hero .lede { margin: 0; font-size: 0.9rem; color: var(--muted); max-width: 56rem; }
+    .role {
+      margin: 0 0 12px; padding: 12px 14px; background: #24180f; color: #f4ead8;
+      border-left: 6px solid #c45c26; font: 15px/1.45 system-ui, sans-serif;
+    }
+    .meta-row { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+    .tag { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 999px; background: #3a2e20; color: #e8c56a; border: 1px solid #6a5638; }
+    .tag.muted { background: #1e1a14; color: var(--muted); border-color: #4a3c28; }
+    .doc-grid { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 1.25rem; align-items: start; }
+    @media (max-width: 980px) {
+      .doc-grid { grid-template-columns: 1fr; }
+      .toc { position: static !important; }
+      .looks { grid-template-columns: 1fr; }
+    }
+    .toc { position: sticky; top: 0.75rem; background: var(--panel); border: 1px solid var(--border); border-radius: 0.65rem; padding: 0.75rem 0.85rem; max-height: calc(100vh - 1.5rem); overflow-y: auto; }
+    .toc .section-label { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); font-weight: 600; margin-bottom: 0.5rem; }
+    .toc ol { margin: 0; padding-left: 1.1rem; font-size: 0.78rem; }
+    .toc li { margin: 0.22rem 0; }
+    .toc a { color: var(--link); text-decoration: none; }
+    h2 { font-size: 1.12rem; color: #f5edd8; margin: 1.6rem 0 0.65rem; padding-bottom: 0.35rem; border-bottom: 1px solid var(--border); scroll-margin-top: 0.75rem; }
+    h3 { font-size: 0.95rem; color: var(--accent); margin: 0 0 0.45rem; scroll-margin-top: 0.75rem; }
+    p, li { font-size: 0.9rem; }
+    p { margin: 0.45rem 0 0.7rem; }
+    ul, ol { margin: 0.35rem 0 0.75rem; padding-left: 1.35rem; }
+    li { margin: 0.28rem 0; }
+    code { font-family: ui-monospace, Menlo, monospace; color: var(--code); font-size: 0.86em; }
+    pre { background: var(--panel2); border: 1px solid var(--border); padding: 0.8rem 0.9rem; overflow-x: auto; font-size: 0.78rem; line-height: 1.45; }
+    pre code { color: var(--text); }
+    strong { color: #f5edd8; }
+    table.doc { width: 100%; border-collapse: collapse; font-size: 0.84rem; margin: 0.45rem 0 0.9rem; }
+    table.doc th, table.doc td { border: 1px solid var(--border); padding: 0.45rem 0.55rem; text-align: left; vertical-align: top; }
+    table.doc th { background: var(--panel2); color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; }
+    table.doc td { background: rgba(42,34,24,0.45); }
+    .footer-note { color: var(--muted); font-size: 0.82rem; margin-top: 2rem; }
+    .looks { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start; }
+    figure.look.down { opacity: 0.72; }
+    figure.look.down h3 { color: var(--muted); }
+    figure.look { margin: 0; }
+    figure.look figcaption p { margin: 0.28rem 0; }
+    .sheet {
+      background: #0a0a0a; color: #f2f2f2; border: 1px solid #333;
+      font-family: system-ui, sans-serif;
+    }
+    .sheet .top {
+      display: flex; align-items: flex-start; gap: 16px;
+      padding: 18px 18px 14px; border-bottom: 1px solid #2a2a2a;
+    }
+    .sheet .who { flex: 1; min-width: 0; padding-top: 8px; }
+    .sheet .who b { font-size: 20px; font-weight: 650; }
+    .sheet .place { font-size: 12px; color: #9a9a9a; margin-top: 4px; }
+    .sheet .x {
+      background: transparent; border: 0; color: #9a9a9a; cursor: pointer;
+      letter-spacing: 0.16em; text-transform: uppercase; font-size: 11px; padding-top: 8px;
+    }
+    .sheet .body { padding: 12px 22px 22px; }
+    .sheet .plate {
+      display: grid; grid-template-columns: minmax(150px, 190px) 1fr;
+      gap: 8px 28px; align-items: center;
+    }
+    .sheet .ship { width: 100%; height: 420px; display: block; }
+    .sheet .ship .tag { font: 650 14px system-ui, sans-serif; fill: #f2f2f2; }
+    .sheet .ship .tag.unt { font-size: 10px; }
+    .sheet .calls {
+      height: 420px; display: grid; grid-template-rows: 2.4fr 0.95fr 1.15fr; align-items: center;
+    }
+    .sheet .call {
+      position: relative; display: block; width: 100%; text-align: left;
+      background: transparent; border: 0; color: inherit; font: inherit;
+      padding: 0 0 0 18px; cursor: default;
+    }
+    .sheet .call::before {
+      content: ""; position: absolute; left: 0; top: 8px; width: 12px; height: 1px; background: #444;
+    }
+    .sheet .call b { display: block; font-size: 16px; font-weight: 650; }
+    .sheet .call em { display: block; margin-top: 3px; font-style: normal; font-size: 13px; color: #c8c8c8; }
+    .sheet .call .job { margin-top: 4px; font-size: 12px; color: #9a9a9a; }
+    .sheet button.call:disabled .job { opacity: 0.4; }
+    .sheet .call.hot::before { background: #c4a15a; width: 22px; }
+    .sheet .jobs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+    .sheet .act {
+      display: block; text-align: left; cursor: pointer; margin-top: 0;
+      background: #0e0e0e; border: 1px solid #f2f2f2; color: #f2f2f2; padding: 10px;
+    }
+    .sheet .act .name { font-size: 14px; font-weight: 650; }
+    .sheet .act .line { font-size: 12px; color: #c8c8c8; margin-top: 6px; }
+    .sheet .act.gold { border-color: #c4a15a; background: #16140e; }
+    .scale { margin-top: 8px; }
+    .scale svg { display: block; width: 100%; height: 54px; }
+    .scale .read { font-size: 13px; color: #c8c8c8; margin-top: 4px; }
+
+    .bench {
+      background: #12100c; color: #f2f2f2; border: 1px solid #6a5638;
+      font-family: system-ui, sans-serif; min-height: 520px;
+    }
+    .bench .insp {
+      padding: 10px 12px 8px; border-bottom: 1px solid #3a3228;
+      font-size: 13px;
+    }
+    .bench .insp b { color: #f5edd8; }
+    .bench .insp .sub { color: #9a9a9a; margin-top: 2px; font-size: 12px; }
+    .bench .slots { padding: 10px 12px; }
+    .bench .slot {
+      display: grid; grid-template-columns: 1fr auto auto; gap: 8px;
+      border: 1px solid #555; padding: 6px 8px; font-size: 12px; margin-bottom: 6px;
+    }
+    .bench .slot.on { border-color: #c45c26; box-shadow: inset 3px 0 #c45c26; }
+    .bench .ticket {
+      margin: 12px; background: #d7c4a0; color: #1a140e;
+      border: 2px solid #3a2a18; padding: 14px 16px 16px;
+      box-shadow: 6px 6px 0 #0a0a0a;
+    }
+    .bench .ticket .head {
+      display: flex; justify-content: space-between; align-items: baseline;
+      border-bottom: 1px dashed #6a5638; padding-bottom: 8px; margin-bottom: 10px;
+    }
+    .bench .ticket .head b { font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; }
+    .bench .ticket .head span { font-size: 11px; color: #5a4830; }
+    .bench .ticket .pair { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; text-align: center; }
+    .bench .ticket .pair strong { display: block; font-size: 36px; line-height: 0.9; color: #1a140e; }
+    .bench .ticket .pair em { display: block; margin-top: 4px; font-style: normal; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #5a4830; }
+    .bench .ticket .pair .need strong { color: #a33a12; }
+    .bench .ticket p { font-size: 13px; margin: 10px 0 0; color: #3a2a18; }
+    .bench .ticket .go {
+      margin-top: 12px; width: 100%; text-align: left; cursor: pointer;
+      background: #1a140e; color: #f2f2f2; border: 1px solid #1a140e; padding: 10px;
+    }
+    .bench .ticket .go .name { font-size: 14px; font-weight: 650; }
+    .bench .ticket .go .line { font-size: 12px; color: #c8c8c8; margin-top: 4px; }
+
+    .factory {
+      background: #0a0a0a; color: #f2f2f2; border: 1px solid #333; padding: 12px 14px;
+      font-family: system-ui, sans-serif; max-width: 420px;
+    }
+    .factory .sh { color: #c4a15a; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; border-bottom: 1px solid #333; margin-bottom: 8px; padding-bottom: 4px; }
+    .factory .row { display: flex; justify-content: space-between; font-size: 13px; padding: 2px 0; }
+    .factory .wait { font-size: 13px; color: #c8c8c8; margin: 8px 0 0; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="doc-hero">
+      <div class="meta-row">
+        <span class="tag">0.16.0-bay</span>
+        <span class="tag">Locked · 2026-11-17</span>
+        <span class="tag muted">Absorbs 0.17.0-roll</span>
+      </div>
+      <h1>A bay check, and a number you measure</h1>
+      <p class="lede">
+        This row is the Mega Bay check and the hidden Structure number.
+        Structure is a fixed number you have to measure.
+        <code>0.17.0-roll</code> is gone. Nothing else is renumbered.
+        Tiago reviews this page before any code.
+      </p>
+    </header>
+    <div class="role">
+      TA-1 sits in Bay slot 1. Structure is 58. That number is already on the rocket. The sheet still says not tested. You spend one bay day. The first reading is 52 to 82. The cryo proof needs 70, and that 70 sits inside the band.
+    </div>
+    <div class="doc-grid">
+      <nav class="toc">
+        <div class="section-label">On this page</div>
+        <ol>
+          <li><a href="#see">What you see</a></li>
+          <li><a href="#looks">The look</a></li>
+          <li><a href="#roll">The roll</a></li>
+          <li><a href="#check">The check</a></li>
+          <li><a href="#floor">The floor</a></li>
+          <li><a href="#stays">What stays</a></li>
+          <li><a href="#life">Real life</a></li>
+          <li><a href="#save">The save</a></li>
+          <li><a href="#hooks">Test hooks</a></li>
+          <li><a href="#out">Out of scope</a></li>
+          <li><a href="#check-list">Acceptance</a></li>
+          <li><a href="#docs">Docs after ship</a></li>
+          <li><a href="#pick">The lock</a></li>
+          <li><a href="#later">Later</a></li>
+        </ol>
+      </nav>
+      <article>
+        <h2 id="see">What you see</h2>
+        <p>TA-1 finishes at Starfactory. Structure is already 58. Fuel lines and the engine are healthy. The sheet still says not tested.</p>
+        <p>You roll it to Mega Bay. You press Check Structure. One day passes. Money does not move. The first reading is 52 to 82. The hull still says not tested. That band still holds 70. A fix from this band, with no pad test, leaves the floor at 20.</p>
+        <p>The button reads "1 day · no money". The header keeps the wind. A clear day is the day the check spends, because the pad could have used it. An empty purse can still run the check, refurb the structure, and skip the proof.</p>
+        <p>You press Check Structure again. One more day. The second reading is 50 to 60. The 70 line is out. The window names Structure short. You can start the fix now, or roll to the pad.</p>
+        <p>The cryo proof still costs 20 money and 1 pad day. It writes Structure 58. The log says it needs 70 and has 58. The rocket needs Mega Bay.</p>
+        <p>You refurb the structure. That takes 4 to 5 days. It spends no steel. Structure is 100. The factory card says the Structure floor is now 28.</p>
+        <p>TA-2 rolls from 28 to 100. Its Structure is 80. Fuel lines are 0 seconds. Thrust stays 1814 kN. The floor stays 28, because 80 clears 70.</p>
+        <p>You reload after the build, before any check. Structure is still 58. The sheet still says not tested. The same seed never rolls that number again at test time.</p>
+
+        <h2 id="looks">The look</h2>
+        <p>The band is the build. Check Structure sits on the Structure row, beside Refurb the structure. The bench is the Mega Bay job Tiago turned down. A wider column is not a new look.</p>
+
+        <div class="looks">
+          <figure class="look">
+            <h3>The band</h3>
+            <div class="sheet">
+              <div class="top">
+                <div class="who">
+                  <b>Test article</b>
+                  <div class="place">TA-1 · Bay slot 1</div>
+                </div>
+                <button type="button" class="x">Close</button>
+              </div>
+              <div class="body">
+                <div class="plate">
+                  <svg class="ship" viewBox="0 0 160 420" role="img" aria-label="TA-1, Structure unread on the hull">
+                    <defs>
+                      <linearGradient id="hull-a" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0" stop-color="#8a8a8a"/><stop offset="0.38" stop-color="#f7f7f7"/>
+                        <stop offset="0.7" stop-color="#cfcfcf"/><stop offset="1" stop-color="#6e6e6e"/>
+                      </linearGradient>
+                      <clipPath id="stage-a"><polygon points="80,14 104,92 104,262 56,262 56,92"/></clipPath>
+                    </defs>
+                    <polygon points="80,14 104,92 104,262 56,262 56,92" fill="#141414"/>
+                    <polygon points="56,262 104,262 100,316 60,316" fill="#0c0c0c"/>
+                    <polygon points="70,316 90,316 116,408 44,408" fill="#120e0c"/>
+                    <polygon points="56,200 24,276 56,262" fill="url(#hull-a)" stroke="#0a0a0a" stroke-width="1"/>
+                    <polygon points="104,200 136,276 104,262" fill="url(#hull-a)" stroke="#0a0a0a" stroke-width="1"/>
+                    <rect x="61" y="100" width="38" height="66" rx="9" fill="none" stroke="#f2f2f2" stroke-opacity="0.55"/>
+                    <text class="tag" text-anchor="middle" x="80" y="137" fill="#f2f2f2" fill-opacity="0.7">LOX</text>
+                    <rect x="61" y="176" width="38" height="72" rx="9" fill="none" stroke="#f2f2f2" stroke-opacity="0.55"/>
+                    <text class="tag" text-anchor="middle" x="80" y="192" fill="#f2f2f2" fill-opacity="0.7">CH4</text>
+                    <polygon points="80,14 104,92 104,262 56,262 56,92" fill="none" stroke="#c4a15a" stroke-width="1.6"/>
+                    <path d="M74 30 L66 88" fill="none" stroke="#ffffff" stroke-opacity="0.4"/>
+                    <path d="M68 166 C66 220 64 250 72 286 M80 248 V286" fill="none" stroke="#e10600" stroke-width="2.4" stroke-linecap="round"/>
+                    <circle cx="76" cy="292" r="7" fill="#0a0a0a" stroke="#f2f2f2" stroke-width="1.4"/>
+                    <path d="M76 299 V316" stroke="#e10600" stroke-width="2.4"/>
+                    <polygon points="56,262 104,262 100,316 60,316" fill="none" stroke="#f2f2f2" stroke-width="1.6"/>
+                    <polygon points="70,316 90,316 116,408 44,408" fill="none" stroke="#f2f2f2" stroke-width="1.6"/>
+                    <path d="M60 352 H100 M54 382 H106" fill="none" stroke="#f2f2f2" stroke-opacity="0.22"/>
+                    <text class="tag unt" text-anchor="middle" x="80" y="214">not tested</text>
+                    <text class="tag unt" text-anchor="middle" x="80" y="308">not tested</text>
+                    <text class="tag unt" text-anchor="middle" x="80" y="372">not tested</text>
+                  </svg>
+                  <div class="calls">
+                    <div class="call hot">
+                      <b>Structure</b>
+                      <div class="scale">
+                        <svg viewBox="0 0 320 54" role="img" aria-label="Structure reading 52 to 82, proof at 70">
+                          <rect x="8" y="18" width="304" height="10" fill="#1a1a1a" stroke="#444"/>
+                          <rect x="129.6" y="18" width="114" height="10" fill="#c4a15a"/>
+                          <line x1="198" y1="12" x2="198" y2="40" stroke="#e10600" stroke-width="2"/>
+                          <text x="8" y="12" fill="#9a9a9a" font-size="9">20</text>
+                          <text x="129" y="12" fill="#f2f2f2" font-size="9">52</text>
+                          <text x="190" y="10" fill="#e10600" font-size="9">70</text>
+                          <text x="236" y="12" fill="#f2f2f2" font-size="9">82</text>
+                          <text x="292" y="12" fill="#9a9a9a" font-size="9">100</text>
+                          <text x="198" y="52" fill="#e10600" font-size="9" text-anchor="middle">proof</text>
+                        </svg>
+                        <div class="read">52 to 82 · the proof needs 70</div>
+                      </div>
+                      <div class="jobs">
+                        <button type="button" class="act gold"><div class="name">Check Structure</div><div class="line">1 day · no money</div></button>
+                        <button type="button" class="act"><div class="name">Refurb the structure</div><div class="line">4 to 5 days · no steel</div></button>
+                      </div>
+                    </div>
+                    <button type="button" class="call" disabled>
+                      <b>Fuel lines</b>
+                      <em>not tested</em>
+                      <div class="job">Inspect the fuel lines · 1 day · no steel</div>
+                    </button>
+                    <button type="button" class="call" disabled>
+                      <b>Engine (Raptor)</b>
+                      <em>not tested</em>
+                      <div class="job">Refurb the engine · 2 days · 24 steel</div>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <figcaption>
+              <p>This is the rocket window after the first bay check. The hull still says not tested.</p>
+              <p>You read 52 to 82 on a scale. The red mark is 70. Check Structure sits beside Refurb the structure.</p>
+              <p>Fuel lines and the engine stay the thin rows, and both are off. This is the build.</p>
+            </figcaption>
+          </figure>
+
+          <figure class="look down">
+            <h3>The bench, turned down</h3>
+            <div class="bench">
+              <div class="insp">
+                <b>Mega Bay</b>
+                <div class="sub">Houses the rocket. One job at a time.</div>
+              </div>
+              <div class="slots">
+                <div class="slot on"><span>TA-1</span><span>not tested</span><span>Bay slot 1</span></div>
+                <div class="slot"><span>Bay slot 2</span><span>—</span><span>Empty</span></div>
+              </div>
+              <div class="ticket">
+                <div class="head"><b>Bay check</b><span>TA-1 · Mega Bay</span></div>
+                <div class="pair">
+                  <div><strong>52</strong><em>Low</em></div>
+                  <div><strong>82</strong><em>High</em></div>
+                  <div class="need"><strong>70</strong><em>Proof</em></div>
+                </div>
+                <p>One bay day. No money. The weld reading is not the cryo proof.</p>
+                <button type="button" class="go">
+                  <div class="name">Check Structure again</div>
+                  <div class="line">1 day · no money · next band about 10 wide</div>
+                </button>
+                <button type="button" class="go" style="margin-top:8px;background:#0e0e0e;border-color:#1a140e">
+                  <div class="name">Refurb the structure</div>
+                  <div class="line">4 to 5 days · no steel</div>
+                </button>
+              </div>
+            </div>
+            <figcaption>
+              <p>Tiago turned this Mega Bay job down. The build does not use this ticket.</p>
+              <p>The stamps say Low, High, and Proof. Those words are not on the rocket window.</p>
+              <p>The check stays on the Structure row, next to the fix from <code>0.15.0-sheet</code>.</p>
+            </figcaption>
+          </figure>
+        </div>
+
+        <h2 id="roll">The roll</h2>
+        <p>The real Structure number is rolled when the factory job ends. <code>applyNewArticle</code> at line 1598 stores it on the vehicle as <code>stageLife</code>. A check, a proof, and a reload do not roll it again.</p>
+        <p>The roll uses the game seed. The salt is the article count and the part. Salts 1 and 11 through 19 stay with the defect order and the sky.</p>
+        <pre><code>function partCode(part) {
+  if (part === "fitting") return 1;
+  if (part === "engine") return 2;
+  return 0;
+}
+function hiddenSalt(articleN, part) {
+  return 20 + articleN * 3 + partCode(part);
+}
+function readSalt(articleN, part, checkN) {
+  if (checkN === 1) return 80 + articleN * 3 + partCode(part);
+  return 140 + articleN * 3 + partCode(part);
+}
+function hiddenStruct(seed, articleN, floor) {
+  const lo = Math.max(TUNING.SCRAP_FLOOR, floor);
+  const span = 100 - lo + 1;
+  return lo + roll(seed, hiddenSalt(articleN, "stage")) % span;
+}</code></pre>
+        <p><code>mix32</code> and <code>roll</code> stay the functions at lines 1144 and 1150. A later change to that mix needs a new save version. This row does not change them.</p>
+        <p>The starting floor is 20. That is the scrap floor. The roll never goes under 20 and never goes over 100. 20 is initial balance.</p>
+        <p>Seed 11, article 1, salt 23, floor 20. Structure is 58. Store 58 on TA-1. Store <code>articleN: 1</code> with it.</p>
+        <p>Every seeded article stores one rolled Structure. <code>articleN</code> is <code>builtArticles</code> after the increment in <code>applyNewArticle</code>, not the TA serial.</p>
+        <p><code>DEFECT_ORDERS</code> at line 1135 is still the list. Article n takes index <code>(n - 1) % 3</code> of that list. That is the same index <code>applyNewArticle</code> uses now.</p>
+        <p>When the index is stage, Fuel lines stay 40 seconds and thrust stays 1814 kN. When the index is fitting, Fuel lines are 0 and Structure still rolls. When the index is engine, thrust is 1400 kN and Structure still rolls.</p>
+        <p>A seeded yard ignores <code>defectRestored.stage</code>. <code>defectRestored.fitting</code> and <code>defectRestored.engine</code> still retire those two shorts.</p>
+        <p>A null seed does not call <code>roll</code>. It keeps one short, and it keeps the old cliff for all three. That short is still Structure 60, Fuel lines at 0 seconds, or thrust at 1400 kN.</p>
+
+        <h2 id="check">The check</h2>
+        <p>The first slice is Structure only. The button is Check Structure. It runs only in Mega Bay. The rocket status is <code>in_bay</code>. The bay still runs one job at a time.</p>
+        <p>The job lasts 1 day. It spends no money and no steel. <code>startPartRefurb</code> at line 4075 stays the fix. A new start, <code>startBayCheck</code>, writes the check job.</p>
+        <p>Use the bay job slot so Skip already lands on it. Set <code>refurbPart</code> to <code>"check"</code> and <code>refurbLeft</code> to 1. <code>finishPartRefurb</code> at line 1573 branches on <code>"check"</code> and does not restore Structure to 100.</p>
+        <p><code>startBayCheck</code> sets the status to <code>refurb</code>. The bay offers Roll to the pad only while the status is <code>in_bay</code>, at line 3732. <code>startPartRefurb</code> already avoids that roll by the same status. The check does too.</p>
+        <p>The wait line and the job note read "Check Structure · 1 day left". <code>partName</code> at line 1315 returns Structure for any other key. The check does not use that fallback.</p>
+        <p>When the day ends, the <code>"check"</code> branch stores the band, clears the job, and sets the status back to <code>in_bay</code>. It returns before the restored log, before <code>fundGoal</code>, and before <code>defectRestored</code>. It leaves <code>stageLife</code> and <code>structTested</code> as they are. The check does not pay the refurb goal of 40.</p>
+        <p>When the day ends, derive the band from the seed, then store it. Do not roll <code>stageLife</code>.</p>
+        <pre><code>function readBand(seed, articleN, part, checkN, value, width) {
+  const d = roll(seed, readSalt(articleN, part, checkN)) % (width + 1);
+  let lo = value - d;
+  let hi = lo + width;
+  if (lo &lt; TUNING.SCRAP_FLOOR) { lo = TUNING.SCRAP_FLOOR; hi = lo + width; }
+  if (hi &gt; 100) { hi = 100; lo = hi - width; }
+  if (value &lt; lo) { lo = value; hi = Math.min(100, value + width); }
+  if (value &gt; hi) { hi = value; lo = Math.max(TUNING.SCRAP_FLOOR, value - width); }
+  return { lo, hi };
+}</code></pre>
+        <p>The first width is 30. The second width is 10. Both are initial balance. Neither band is a single number. The pad still writes the exact number.</p>
+        <p>Seed 11, TA-1, first check, salt 83. The band is 52 to 82. The 70 line sits inside it. Second check, salt 143. The band is 50 to 60. The 70 line is out.</p>
+        <p>A check never damages a part. It does not set <code>structTested</code>. The cryo proof and a static fire that lights still do that, as they do today.</p>
+        <p>After the first check, the fix may start. After the second check, Check Structure goes off. A third bay check does not exist. The pad test still runs. Once the pad has written the number, Check Structure is off, even if the bay has not used both checks.</p>
+        <p>The cutaway still says not tested until the pad writes the exact number. The band on the Structure row holds the range. A hull fill would leak the truth.</p>
+        <p>Name Structure as short only when the high end is under 70, or when the pad has written a number under 70. A band that contains 70 does not take the miss line.</p>
+
+        <h2 id="floor">The floor</h2>
+        <p>The learning curve counts faults found and fixed. A Structure fault is a stored number under 70. Finding it means a band whose high end is under 70, or a pad test that wrote the number. Fixing it means the bay restored that part to 100.</p>
+        <p>The floor rises once per article, when the refurb finishes. It rises only if the number stored at build was under 70, and a band whose high end is under 70, or a pad test, has found it.</p>
+        <p><code>applyNewArticle</code> stores that fact on the vehicle as <code>structBuiltShort</code>. A fire cut does not set it. A lit miss takes up to 40 off Structure and leaves it at 20 at worst. It can mark the part tested. A healthy 100 can become 60. That refurb does not raise the floor. A rolled 58 becomes 20, and the rocket comes home.</p>
+        <p>The first time a band has a high end under 70, store <code>structFound</code>. A pad test that writes a number under 70 sets it too. A later band does not clear it. A band that still contains 70 does not set it.</p>
+        <p>The rise adds 8 to <code>G.structFloor</code>, then sets <code>structFloorPaid</code> on that vehicle. A second refurb does not add 8. A refurb from a band that still contains 70, with no pad write, leaves the floor where it is.</p>
+        <p>That 8 is initial balance. The next article rolls from the new floor to 100. The floor never passes 100. It never drops under 20.</p>
+        <p>This replaces the <code>defectRestored.stage</code> cliff. One fix no longer makes every later article a 100. Fuel lines and the engine keep their cliffs until a later row.</p>
+        <p>The Starfactory card says one sentence. It names the floor and the step.</p>
+        <figure class="look">
+          <div class="factory">
+            <div class="sh">Starfactory</div>
+            <div class="row"><span>Holding</span><span>0 of 1</span></div>
+            <p class="wait">Structure floor 20. Each found and fixed Structure fault raises it by 8.</p>
+          </div>
+          <figcaption>
+            <p>This is the Starfactory card at the start of the row.</p>
+            <p>You read the floor before you press Build.</p>
+            <p>After the TA-1 Structure fix that was really found, this sentence reads 28.</p>
+          </figcaption>
+        </figure>
+        <p>From 20 to 100 there are 81 numbers, and 50 are under 70, so about 3 in 5 first articles miss. A miss costs the same 4 to 5 days as today's Structure 60. About 2 in 5 clear 70, so a floor of 20 is playable.</p>
+        <p>One fix moves the floor to 28, and 42 of 73 numbers still miss. The drop on that one fix is small. The floors then run 36, 44, 52, 60, 68, and 76.</p>
+        <p>Seven fixes reach a floor of 76. That is the first floor of 70 or more. Safe means every new article is 70 or more. Floor 68 still rolls 68 and 69.</p>
+        <p>If every miss is found and then fixed, those 7 fixes take about 31 articles. The last step, from 68 to 76, is about 17 of them, because only 2 of 33 numbers are under 70. That count is past a normal path to the hop.</p>
+        <p>On a normal path this slope does not make <code>0.18.0-hop</code> safe. The new wait before the hop is a check day or two, plus a few extra structure refurbs. At 4 seconds a day, that sits inside the 10 minutes this row should add, and inside the 90 minutes of phase 0. A later sitting can move the 8.</p>
+        <p>Keep the widths. Across a uniform roll and a uniform offset, about 37 of 100 first readings straddle 70, about 43 of 100 are a known miss, and about 20 of 100 are a known pass. A true miss shows up as a miss on about 7 of 10 first readings. The 52 to 82 picture is the uncertain case, which is the right one to draw.</p>
+        <p>The floor does not reset on a new TA. It does not reset at the hop rename. A later design change, such as the stacked ship, can reset it. That reset is not this row.</p>
+
+        <h2 id="stays">What stays</h2>
+        <ul>
+          <li>The cryo proof still costs 20 money, takes 1 pad day, and passes at 70. It writes the exact Structure number.</li>
+          <li>The tanking run and the static fire stay on the pad. <code>6.2.0-stand</code> still moves those pad checks inland later.</li>
+          <li>Fuel lines still leave at 0 seconds or 40. Thrust still leaves at 1400 kN or 1814 kN.</li>
+          <li>Refurb the structure stays 4 to 5 days and no steel. The button shows that span before the press. A fix restores Structure to 100.</li>
+          <li>Inspect the fuel lines stays 1 day and no steel.</li>
+          <li>Refurb the engine stays 24 steel and 2 days, or 1 day at pad level 2. These pictures use pad level 1, so that line says 2 days.</li>
+          <li>The bay still runs one job at a time. The one-time refurb goal pay of 40 stays.</li>
+          <li>The rocket name stays Test article. Serials stay TA. Steel stays 28. Build days stay 8 to 12.</li>
+          <li>While the rocket is on the pad, the window does not start the bay job.</li>
+          <li>A closed range or a short tank still scrubs. A scrub does not damage the rocket.</li>
+        </ul>
+
+        <h2 id="life">Real life</h2>
+        <p>Welds are X-rayed in the factory. That reading is a band, not the tank at proof pressure.</p>
+        <p>SN1 passed those shop checks and failed its cryo proof. Test Tank 2 held at room temperature and burst when it was cold.</p>
+        <p>Ships went from six static fires on SN9 to one main fire on S33 and S34. The shop learned. When the design changed, that curve started over.</p>
+
+        <h2 id="save">The save</h2>
+        <p>The key stays <code>starbase-save</code>. The test key stays <code>starbase-save-test</code>. Version stays 1. The next write sets <code>label</code> to <code>0.16.0-bay</code>.</p>
+        <p>New fields have defaults. A missing field does not reject the yard.</p>
+        <pre><code>{
+  version: 1,
+  label: "0.16.0-bay",
+  seed: 11,
+  structFloor: 20,
+  fleet: [{
+    name: "TA-1",
+    articleN: 1,
+    stageLife: 58,
+    structBuiltShort: true,
+    structChecks: 1,
+    structReadLo: 52,
+    structReadHi: 82,
+    structFound: false,
+    structTested: false
+  }]
+}</code></pre>
+        <p>A missing <code>structFloor</code> loads as 20. A missing <code>structChecks</code> loads as 0. <code>structReadLo</code> and <code>structReadHi</code> missing load as null. <code>structBuiltShort</code>, <code>structFound</code>, and <code>structFloorPaid</code> missing load as false.</p>
+        <p>The sheet says not tested only when <code>structTested</code> is false. When <code>structTested</code> is true, the sheet still shows the stored number and the fix stays on. Leave <code>structTested</code>, <code>proofDone</code>, and <code>stageLife</code> alone.</p>
+        <p>An old save that already set <code>defectRestored.stage</code> does not keep that cliff. New articles roll Structure from 20. Vehicles already in the file keep their numbers. <code>defectRestored.fitting</code> and <code>defectRestored.engine</code> still load as they do today.</p>
+        <p><code>articleN</code> missing on an old vehicle does not reroll Structure. A later bay check on that rocket uses <code>readSalt</code> with <code>checkN</code>, and a stand-in of <code>0</code> or <code>v.id</code> for the article count. It does not call <code>hiddenStruct</code>. It still does not touch <code>stageLife</code>.</p>
+        <p>Article 21 shares salt 83 with TA-1's first check. <code>hiddenSalt(21, "stage")</code> and <code>readSalt(1, "stage", 1)</code> are both 83. Salts 23, 83, and 143 stay, so the oracle stays. That shared salt does not break a reload.</p>
+        <p>A file whose version is not 1 stays on disk and does not load. Same log as today.</p>
+
+        <h2 id="hooks">Test hooks</h2>
+        <p><code>window.__sb</code> exists only on <code>?test</code>. Keep every hook that is already there.</p>
+        <ul>
+          <li><code>startBayCheck(name)</code> starts Check Structure on that rocket. It returns false if the bay is busy, the rocket is not in the bay, two checks are already done, or the pad has already written the number.</li>
+          <li><code>snap.structFloor</code> is the factory floor.</li>
+          <li><code>snap.fleet[].articleN</code>, <code>structChecks</code>, <code>structReadLo</code>, <code>structReadHi</code>, <code>structBuiltShort</code>, <code>structFound</code>, <code>structFloorPaid</code>, and <code>stageLife</code> are on each vehicle.</li>
+        </ul>
+        <p>A test start still uses seed 11. Day 1 is still Clear 8 kn. The defect order is still stage, then fitting, then engine. TA-1's hidden Structure is 58.</p>
+
+        <h2 id="out">Out of scope</h2>
+        <ul>
+          <li>A bay check for Fuel lines or the engine. A later row extends the roll, the check, and the floor to them. That row is not named yet.</li>
+          <li>A new money price, a new currency, or a fail roll on the check or the fix.</li>
+          <li>Changing the cryo proof cost, the 70 line, the tanking run, or the static fire.</li>
+          <li>The Starhopper rename, the hop, the pipeline, or the high hop.</li>
+          <li>Seeding the build-day span or the structure-refurb span. Those stay <code>Math.random</code>.</li>
+          <li>A save version bump. Version stays 1.</li>
+          <li>Resetting the floor when the hop starts. That wait belongs to a later design change.</li>
+          <li>Editing <code>index.html</code> in this design session.</li>
+        </ul>
+
+        <h2 id="check-list">Acceptance</h2>
+        <p>Tiago runs these in the browser after the implementation, not from this page. The test file is <code>index.html?test</code>. Seed 11. Read <code>snap</code> in the same turn as the action.</p>
+        <ol>
+          <li>Build TA-1 and let the factory finish. <code>snap.fleet[0].stageLife</code> is 58. <code>articleN</code> is 1. <code>structChecks</code> is 0. <code>fittingLifeS</code> is 40. <code>thrustKn</code> is 1814. <code>structBuiltShort</code> is true. The sheet says not tested. Money is unchanged by the roll. Investors add 20 for the first rocket in that same finish.</li>
+          <li>Reload that idle yard. <code>stageLife</code> is still 58. The sheet still says not tested. The game does not roll Structure again.</li>
+          <li>Reload the idle yard before any check, then roll TA-1 to Mega Bay. Note the money. Press Check Structure. Skip to the finish. One day has passed. Money is the same. The band is still 52 to 82. <code>stageLife</code> is still 58. <code>structChecks</code> is 1. <code>structReadLo</code> is 52. <code>structReadHi</code> is 82. <code>structTested</code> is false. The hull still says not tested. The window does not name Structure short.</li>
+          <li>Press Check Structure again. Skip to the finish. One more day. Money is the same. <code>structChecks</code> is 2. The band is 50 to 60. The high end is under 70, so the window names Structure short. Check Structure is now off. The fix can start. Structure is still 58 on the vehicle. <code>structFound</code> is true.</li>
+          <li>Roll to the pad and run the cryo proof. It fails. The log says Structure needs 70 and has 58. <code>structTested</code> is true. The sheet shows 58 and 70. The rocket needs Mega Bay. Structure is still 58.</li>
+          <li>Refurb the structure. Skip to the finish. Structure is 100. <code>snap.structFloor</code> is 28. The factory card says the Structure floor is 28, and that a found and fixed fault raises it by 8. The checks did not pay the refurb goal. This structure refurb pays that 40 once.</li>
+          <li>Build TA-2. <code>stageLife</code> is 80. <code>articleN</code> is 2. <code>fittingLifeS</code> is 0. <code>thrustKn</code> is 1814. <code>structBuiltShort</code> is false. The floor stays 28, because 80 clears 70.</li>
+          <li>Load a version 1 file that has no <code>structTested</code>, no <code>structChecks</code>, and no <code>structFloor</code>. The yard continues. The sheet says not tested. The fix stays off. The floor is 20.</li>
+          <li>Load a version 1 file that has <code>structTested</code> true and <code>stageLife</code> 60. The sheet shows 60 and 70. The fix is on. Leave <code>proofDone</code> and <code>stageLife</code> alone. A missing <code>structFloor</code> loads as 20. A missing <code>structChecks</code> loads as 0.</li>
+          <li>On a new seed 11 yard, run only the first check, so the band is 52 to 82. Refurb the structure with no pad test. <code>structFloor</code> stays 20.</li>
+          <li>On a new seed 11 yard, run both checks, so the band is 50 to 60. Refurb the structure with no pad test. <code>structFloor</code> is 28. Refurb the structure on TA-1 again. <code>structFloor</code> stays 28.</li>
+          <li>A check never cuts Structure, Fuel lines, or thrust. A second check on a rocket that is not in the bay does not start. A third Structure check does not start. During the check the bay does not offer Roll to the pad.</li>
+          <li>Refurb the structure still shows 4 to 5 days and no steel before the press. Inspect the fuel lines stays 1 day and no steel. Refurb the engine stays 24 steel and 2 days at pad level 1. The refurb goal stays 40.</li>
+          <li>On a new seed 11 yard, skip the cryo proof on TA-1. Structure is still 58. Skip the tanking run. Light the static fire. It misses. Structure is 20. The rocket is alive and needs Mega Bay. It is not scrap. A lit miss takes up to 40 off Structure and leaves it at 20 at worst.</li>
+          <li>After the pad writes the Structure number, roll the rocket to Mega Bay. Check Structure is gone. A bay check does not start.</li>
+        </ol>
+
+        <h2 id="docs">Docs after ship</h2>
+        <p>These updates happen in the ship pass, after the browser checks. This design session does not do them. Tiago commits. This session does not open a pull request.</p>
+        <ul>
+          <li><code>VERSION</code> becomes <code>0.16.0-bay</code>. The header version follows it.</li>
+          <li>README live-release line. This row is live. The next row is <code>0.18.0-hop</code>.</li>
+          <li>One new section in <code>IMPLEMENTATION_LOG.md</code>.</li>
+          <li>The wiki in <code>index.html</code> drops Structure 60 as the only short. It says Structure is a fixed number you have to measure. It names the bay check, the two bands, and the floor sentence.</li>
+          <li>Archive <code>index-0.15.0-sheet.html</code> and append <code>archive/MANIFEST.md</code>.</li>
+        </ul>
+
+        <h2 id="pick">The lock</h2>
+        <p>The rules on this page are locked. The band is the build. Check Structure sits on the Structure row, beside Refurb the structure.</p>
+        <p>Tiago turned the bench down. That picture is a Mega Bay ticket. The build does not use it.</p>
+        <p>A dimmer line, a pinned button, or the same scale in a taller column is not another look.</p>
+        <p>The starting floor 20, the first width 30, the second width 10, and the step 8 are initial balance. A later sitting can move them. The 70 line must still fall inside the first reading often.</p>
+
+        <h2 id="later">Later</h2>
+        <ul>
+          <li>The hop is <code>0.18.0-hop</code>. This page does not draw it. On a normal path the floor is still under 70 when that row starts. Seven fixes and about 31 articles are what it takes to reach a floor of 76.</li>
+          <li>The pipeline is <code>0.18.1-pipeline</code>. The high hop is <code>0.19.0-high-hop</code>.</li>
+          <li>Fuel lines and thrust keep today's fixed shorts until a later row extends this system. That row is not named yet. Do not revive <code>0.17.0-roll</code>.</li>
+          <li><code>1.3.0-rate</code> keeps factory speed and the process upgrade. It may add to this slope. It does not send fewer defects as a separate trick, and it does not roll a new number.</li>
+        </ul>
+
+        <p class="footer-note">Tiago locked the merge, the measure line, the build-time roll, the bay check, the Structure slice, the learning curve, the fix prices, and save version 1 on 2026-11-17. The same day he locked the band on the Structure row and set the step to 8. Floor 20, width 30, width 10, and step 8 are initial balance. Seed 11, article 1, Structure 58. First band 52 to 82. Second band 50 to 60. After that fix the floor is 28, and TA-2's Structure is 80.</p>
+      </article>
+    </div>
+  </div>
+</body>
+</html>

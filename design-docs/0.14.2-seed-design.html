@@ -115,7 +115,7 @@
 
         <h2 id="order">Defect order</h2>
         <p>The three shorts stay the constants at lines 679 to 681. Structure is 60. Fuel lines are 0 seconds. Thrust is 1400 kN. A healthy article is still Structure 100, Fuel lines 40 seconds, and Raptor 1 at 1814 kN. The proof floor stays 70. The fuel-line floor stays 5 seconds. The engine floor stays 1500 kN.</p>
-        <p>The seed picks which short comes first. It does not pick a new number. Six orders sit in a fixed list. Index 0 is the order the game uses today.</p>
+        <p>The seed picks which short comes first. This row does not pick a new Structure number. <code>0.16.0-bay</code> rolls Structure from this same seed at build end. Six orders sit in a fixed list. Index 0 is the order the game uses today.</p>
         <pre><code>const DEFECT_ORDERS = [
   ["stage", "fitting", "engine"],
   ["stage", "engine", "fitting"],
@@ -263,7 +263,7 @@ dayAcc: 0</code></pre>
 
         <h2 id="out">Out of scope</h2>
         <ul>
-          <li>The rocket window, a check inside Mega Bay, and a rolled weak number. Those are <code>0.15.0-sheet</code>, <code>0.16.0-bay</code>, and <code>0.17.0-roll</code>. This row still only shuffles which part comes first. The three numbers stay 60, 0 seconds, and 1400 kN.</li>
+          <li>The rocket window, a check inside Mega Bay, and a rolled Structure number. Those are <code>0.15.0-sheet</code> and <code>0.16.0-bay</code>. This row still only shuffles which part comes first. The three numbers stay 60, 0 seconds, and 1400 kN until <code>0.16.0-bay</code>.</li>
           <li>The Starhopper rename, the serials SH-1 and SH-2, or a loaded TA serial rewrite. Those wait for the <code>0.18.0-hop</code> design. The hop cell already holds that paragraph. This row does not apply it.</li>
           <li>The hopper shape, the hop, repeat hops, the heights 25 m, 50 m, and 150 m, the countdown, or the flame.</li>
           <li>Bay money prices, a new currency, or a fail roll. The engine stays 24 steel and 2 days, or 1 day at pad level 2. Fuel lines stay 1 day and no steel. Structure stays 4 to 5 days and no steel. The button shows that span before the press. The refurb goal stays 40. Those are <code>startPartRefurb</code> at line 3896, <code>engineRefurbDays</code> at line 1269, <code>partJobLine</code> at line 3922, and <code>GOAL_PAY.refurb</code> at line 637.</li>
