@@ -81,7 +81,7 @@
     .plot-card:disabled { opacity: 0.4; cursor: not-allowed; }
     .plot-card .name { font-size: 15px; font-weight: 650; }
     .plot-card .price { font-size: 28px; line-height: 1; font-weight: 650; margin-top: 6px; }
-    .plot-card .unit { font-size: 11px; color: #9a9a9a; letter-spacing: 0.08em; text-transform: uppercase; }
+    .plot-card .unit { font-size: 11px; color: #9a9a9a; }
     .plot-card .line { font-size: 12px; color: #c8c8c8; margin-top: 8px; }
     .steel-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
     .steel-buy {
@@ -93,12 +93,12 @@
     .steel-buy:disabled { opacity: 0.4; cursor: not-allowed; }
     .steel-buy .name { font-size: 12px; font-weight: 650; }
     .steel-buy .price { font-size: 18px; line-height: 1; font-weight: 650; margin-top: 4px; }
-    .steel-buy .unit { font-size: 10px; color: #9a9a9a; letter-spacing: 0.08em; text-transform: uppercase; }
+    .steel-buy .unit { font-size: 10px; color: #9a9a9a; }
     .steel-rate { font-size: 11px; color: #9a9a9a; margin: 6px 0 8px; }
     .bldg .title { font-size: 16px; font-weight: 650; color: #f2f2f2; }
     .bldg .blurb { font-size: 12px; color: #c8c8c8; margin-top: 4px; }
     .bldg .stat { margin-top: 12px; }
-    .bldg .stat .k { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #9a9a9a; }
+    .bldg .stat .k { font-size: 11px; color: #9a9a9a; }
     .bldg .stat .n { font-size: 32px; line-height: 0.95; font-weight: 650; color: #f2f2f2; }
     .bldg .stat .s { font-size: 12px; color: #c8c8c8; margin-top: 4px; }
     .bldg .wait { font-size: 12px; color: #c8c8c8; margin-top: 8px; }
@@ -111,7 +111,7 @@
     .bay-slot.empty .n { color: #444; }
     .bay-slot .top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
     .bay-slot .name { font-size: 14px; font-weight: 650; }
-    .bay-slot .where { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: #9a9a9a; }
+    .bay-slot .where { font-size: 10px; color: #9a9a9a; }
     .bay-slot .n { font-size: 26px; line-height: 1; font-weight: 650; margin-top: 6px; }
     .bay-slot .meter { height: 3px; background: #2a2a2a; margin-top: 8px; }
     .bay-slot .meter i { display: block; height: 100%; background: #f2f2f2; }
@@ -128,13 +128,13 @@
     .act.fire { border-color: #e07030; background: #160e0a; }
     .act.roll { border-color: #6a9a8a; background: #0e1412; }
     .sec { margin-top: 16px; }
-    .sec .k { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: #9a9a9a; }
+    .sec .k { font-size: 10px; color: #9a9a9a; }
     .facts { display: flex; gap: 16px; margin-top: 8px; }
     .facts b { display: block; font-size: 22px; line-height: 1; font-weight: 650; color: #f2f2f2; }
     .facts span { font-size: 11px; color: #9a9a9a; }
     .act .name { font-size: 14px; font-weight: 650; }
     .act .price { font-size: 26px; line-height: 1; font-weight: 650; margin-top: 6px; }
-    .act .unit { font-size: 11px; color: #9a9a9a; letter-spacing: 0.08em; text-transform: uppercase; }
+    .act .unit { font-size: 11px; color: #9a9a9a; }
     .act .line { font-size: 12px; color: #c8c8c8; margin-top: 8px; }
     #rocket-sheet {
       position: fixed; inset: 0; z-index: 40; display: none;
@@ -153,8 +153,7 @@
     .rocket-panel .total b { display: block; font-size: 48px; line-height: 0.85; font-weight: 650; }
     .rocket-panel .total.words b { font-size: 22px; line-height: 1.05; letter-spacing: 0; }
     .rocket-panel .total span {
-      display: block; margin-top: 6px; font-size: 11px; letter-spacing: 0.14em;
-      text-transform: uppercase; color: #9a9a9a; font-weight: 500;
+      display: block; margin-top: 6px; font-size: 11px; color: #9a9a9a; font-weight: 500;
     }
     .rocket-panel .total em { display: block; margin-top: 4px; font-style: normal; font-size: 12px; color: #c8c8c8; }
     .rocket-panel .total.low b { color: #e10600; }
@@ -163,8 +162,7 @@
     .rocket-panel .who b { font-size: 20px; }
     .rocket-panel .place { font-size: 12px; color: #9a9a9a; margin-top: 4px; }
     #rocket-close {
-      background: transparent; border: 0; color: #9a9a9a; cursor: pointer;
-      letter-spacing: 0.16em; text-transform: uppercase; font-size: 11px; padding-top: 8px;
+      background: transparent; border: 0; color: #9a9a9a; cursor: pointer; font-size: 11px; padding-top: 8px;
     }
     #rocket-close:hover { color: #f2f2f2; }
     .sheet-body { overflow-y: auto; padding: 12px 22px 22px; }
@@ -215,8 +213,7 @@
     .rocket-panel .counts b { display: block; font-size: 32px; line-height: 0.9; font-weight: 650; }
     .rocket-panel .counts .has { color: #e10600; }
     .rocket-panel .counts span {
-      display: block; margin-top: 4px; font-size: 11px; letter-spacing: 0.08em;
-      text-transform: uppercase; color: #9a9a9a; font-weight: 500;
+      display: block; margin-top: 4px; font-size: 11px; color: #9a9a9a; font-weight: 500;
     }
     .rocket-panel .call .act { margin-top: 10px; }
     .rocket-panel .call .act .line { margin-top: 6px; }
@@ -225,7 +222,7 @@
       margin-top: 18px; padding-top: 14px; border-top: 1px solid #2a2a2a;
     }
     .spec b { display: block; font-size: 15px; font-weight: 650; color: #f2f2f2; }
-    .spec span { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: #9a9a9a; }
+    .spec span { font-size: 10px; color: #9a9a9a; }
     .sheet-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 14px; }
     .sheet-actions .act { margin-top: 0; padding: 8px 10px; }
     .sheet-actions .act .name { font-size: 13px; }
@@ -249,7 +246,7 @@
     #job-note span { font-size: 12px; color: #f2f2f2; background: rgba(0,0,0,0.55); padding: 4px 8px; }
     #next-goal, #fleet-open, #wiki-open {
       background: #0e0e0e; border: 1px solid #8a8a8a; color: #e6e6e6; cursor: pointer;
-      font-size: 15px; font-weight: 650; letter-spacing: 0.22em; text-transform: uppercase;
+      font-size: 15px; font-weight: 650;
     }
     #next-goal, #fleet-open {
       display: block; width: calc(100% - 16px); margin: auto 8px 8px; padding: 12px 14px; text-align: center;
@@ -271,8 +268,8 @@
       background: #0a0a0a; color: #f2f2f2; padding: 16px 18px 12px;
     }
     .wiki-panel .top { display: flex; justify-content: space-between; align-items: center; }
-    .wiki-panel .left { font-size: 22px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 650; }
-    #wiki-close { background: transparent; border: 0; color: #9a9a9a; cursor: pointer; letter-spacing: 0.16em; text-transform: uppercase; font-size: 11px; }
+    .wiki-panel .left { font-size: 22px; font-weight: 650; }
+    #wiki-close { background: transparent; border: 0; color: #9a9a9a; cursor: pointer; font-size: 11px; }
     .wiki-split { display: flex; min-height: 0; flex: 1; margin-top: 12px; border-top: 1px solid #2a2a2a; }
     .wiki-nav { width: 210px; flex: 0 0 210px; overflow-y: auto; border-right: 1px solid #2a2a2a; padding: 6px 0; }
     .wiki-topic {
@@ -281,8 +278,7 @@
     }
     .wiki-topic.on, .wiki-topic:hover { border-left-color: #e10600; background: #161616; }
     .wiki-group {
-      padding: 12px 12px 2px; font-size: 11px; letter-spacing: 0.14em;
-      text-transform: uppercase; color: #9a9a9a;
+      padding: 12px 12px 2px; font-size: 11px; color: #9a9a9a;
     }
     .wiki-read { flex: 1; overflow-y: auto; padding: 4px 4px 12px 18px; }
     .wiki-read h2 { font-size: 22px; font-weight: 650; margin: 8px 0 12px; }
@@ -312,8 +308,8 @@
     .fleet-panel { width: min(440px, 100%); max-height: min(70vh, 560px); overflow-y: auto; background: #0a0a0a; color: #f2f2f2; padding: 28px 28px 22px; }
     .fleet-panel .top { display: flex; justify-content: space-between; align-items: flex-start; }
     .fleet-panel .left { font-size: 42px; line-height: 0.9; font-weight: 650; }
-    .fleet-panel .left span { display: block; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #9a9a9a; font-weight: 500; margin-top: 6px; }
-    #fleet-close { background: transparent; border: 0; color: #9a9a9a; cursor: pointer; letter-spacing: 0.16em; text-transform: uppercase; font-size: 11px; }
+    .fleet-panel .left span { display: block; font-size: 11px; color: #9a9a9a; font-weight: 500; margin-top: 6px; }
+    #fleet-close { background: transparent; border: 0; color: #9a9a9a; cursor: pointer; font-size: 11px; }
     #fleet-close:hover { color: #f2f2f2; }
     .fleet-row { display: block; width: 100%; text-align: left; background: transparent; border: 1px solid rgba(242, 242, 242, 0.55); color: #f2f2f2; cursor: pointer; margin-top: 10px; padding: 10px 12px; }
     .fleet-row .name { font-size: 18px; font-weight: 650; }
@@ -329,13 +325,13 @@
     .goal-panel { width: min(440px, 100%); background: #0a0a0a; border: 0; color: #f2f2f2; padding: 28px 28px 22px; }
     .goal-panel .top { display: flex; justify-content: space-between; align-items: flex-start; }
     .goal-panel .left { font-size: 42px; line-height: 0.9; font-weight: 650; }
-    .goal-panel .left span { display: block; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #9a9a9a; font-weight: 500; margin-top: 6px; }
-    #goal-close { background: transparent; border: 0; color: #9a9a9a; cursor: pointer; letter-spacing: 0.16em; text-transform: uppercase; font-size: 11px; }
+    .goal-panel .left span { display: block; font-size: 11px; color: #9a9a9a; font-weight: 500; margin-top: 6px; }
+    #goal-close { background: transparent; border: 0; color: #9a9a9a; cursor: pointer; font-size: 11px; }
     #goal-close:hover { color: #f2f2f2; }
     .goal-row { display: flex; gap: 14px; align-items: baseline; margin-top: 10px; padding: 10px 12px; border: 1px solid rgba(242, 242, 242, 0.55); }
     .goal-row .idx { font-size: 12px; color: #9a9a9a; width: 22px; }
     .goal-row .name { font-size: 14px; color: #c8c8c8; }
-    .goal-row .line { font-size: 11px; color: #9a9a9a; letter-spacing: 0.08em; text-transform: uppercase; margin-top: 2px; }
+    .goal-row .line { font-size: 11px; color: #9a9a9a; margin-top: 2px; }
     .goal-row.now { border-color: #f2f2f2; }
     .goal-row.now .name { font-size: 22px; font-weight: 650; color: #f2f2f2; }
     .goal-row.done { opacity: 0.4; }
@@ -350,7 +346,7 @@
     }
     #flight-panel.open { display: block; }
     #flight-panel .row { margin-top: 7px; }
-    #flight-panel .k { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: #9a9a9a; }
+    #flight-panel .k { font-size: 10px; color: #9a9a9a; }
     #flight-panel .n { font-size: 18px; line-height: 1.1; font-weight: 650; color: #f2f2f2; }
     #flight-panel .peak { margin-top: 10px; font-size: 11px; color: #c8c8c8; }
     #map-scale {
@@ -393,8 +389,7 @@
       background: #050505;
     }
     #event-stage .event-head h2 {
-      margin: 0; font-size: 0.95rem; letter-spacing: 0.08em;
-      text-transform: uppercase; color: #f5edd8;
+      margin: 0; font-size: 0.95rem; letter-spacing: 0.08em; text-transform: uppercase; color: #f5edd8;
     }
     #event-stage .event-phase {
       font-family: ui-monospace, Menlo, monospace; font-size: 0.8rem; color: var(--accent);
@@ -418,7 +413,7 @@
     .bar-mid { justify-self: center; }
     .bar-right { display: flex; width: 100%; justify-content: flex-end; align-items: flex-end; justify-self: stretch; }
     .sh {
-      color: #c4a15a; font: 600 11px ui-monospace, Menlo, monospace; letter-spacing: 0.14em; text-transform: uppercase;
+      color: #c4a15a; font: 600 11px ui-monospace, Menlo, monospace;
       border-bottom: 1px solid #333; margin: 0 0 8px; padding-bottom: 4px;
     }
     .sh.sub { margin-top: 14px; }
@@ -478,7 +473,7 @@
     }
     .upg .u .u-btn:hover:not(:disabled) { background: #161616; }
     .upg .u .u-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-      .ship .tag.sm { font-size: 9px; letter-spacing: 0.08em; }
+      .ship .tag.sm { font-size: 9px; }
     /* Top bar follows the locked topbar-mock.html: range left, inline gold counters centered, Day and a small Pause chip right. */
     .resource-bar { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; min-height: 56px; padding: 6px 12px; border-bottom: 1px solid #fff; font-size: 13px; }
     .resource-bar .bar-left { align-items: center; gap: 10px; }
@@ -493,18 +488,16 @@
     .resource-bar #ver-label { font-size: 10px; color: #666; }
     #day-pause { min-width: 0; border: 1px solid #fff; background: #0a0a0a; color: #fff; padding: 2px 7px; font-size: 12px; line-height: 1.25; margin: 0; }
     #day-pause:hover, #day-pause:focus { background: #1a1a1a; border-color: #fff; }
-    #day-speed-1, #day-speed-2, #day-speed-4, #day-skip {
+    #day-speed-1, #day-speed-3, #day-skip {
       min-width: 0; flex: none; cursor: pointer; font: inherit;
       border: 1px solid #fff; background: #0a0a0a; color: #fff;
       padding: 2px 7px; font-size: 12px; line-height: 1.25; margin: 0;
     }
     #day-speed-1:hover, #day-speed-1:focus,
-    #day-speed-2:hover, #day-speed-2:focus,
-    #day-speed-4:hover, #day-speed-4:focus,
+    #day-speed-3:hover, #day-speed-3:focus,
     #day-skip:hover, #day-skip:focus { background: #1a1a1a; border-color: #fff; outline: none; }
     #day-speed-1[aria-pressed="true"],
-    #day-speed-2[aria-pressed="true"],
-    #day-speed-4[aria-pressed="true"] { background: #1a1a1a; }
+    #day-speed-3[aria-pressed="true"] { background: #1a1a1a; }
     #day-restart { min-width: 0; border: 1px solid #fff; background: #0a0a0a; color: #fff; padding: 2px 7px; font-size: 12px; line-height: 1.25; margin: 0; cursor: pointer; }
     #day-restart:hover, #day-restart:focus { background: #1a1a1a; border-color: #fff; }
     #restart-ask {
@@ -523,6 +516,136 @@
       font: inherit; font-size: 13px; line-height: 1.25; padding: 6px 10px; cursor: pointer;
     }
     .restart-acts button:hover, .restart-acts button:focus { background: #1a1a1a; }
+
+    /* 0.17.0-tidy: outside the top bar the page uses 16, 14, 12, and 11 px, all in sentence case. */
+    #land, #readout { line-height: 1.25; }
+    .sh { font: 600 12px ui-monospace, Menlo, monospace; margin: 0 0 6px; padding-bottom: 3px; }
+    .sh.sub { margin-top: 12px; }
+    #land-scroll, #insp-scroll { padding: 8px 10px; }
+    .steel-row { gap: 5px; }
+    .steel-buy { display: flex; justify-content: space-between; align-items: baseline; padding: 3px 7px; font-size: 14px; font-weight: 650; }
+    .steel-buy b { font: 650 14px ui-monospace, Menlo, monospace; color: #c8c8c8; }
+    .steel-rate { font-size: 12px; margin: 4px 0 2px; }
+    .plot-card { padding: 5px 8px; margin-bottom: 5px; border-color: #bbb; }
+    .plot-card .l1, .act .l1 { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 14px; font-weight: 650; }
+    .act .l1 span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .plot-card .l1 b, .act .l1 b { font: 650 14px ui-monospace, Menlo, monospace; white-space: nowrap; }
+    .plot-card .l1 small, .act .l1 small { font: 400 12px system-ui, sans-serif; color: #9a9a9a; }
+    .plot-card .l2, .act .l2 { font-size: 12px; color: #9a9a9a; }
+    .own-card { padding: 5px 8px; margin-bottom: 5px; }
+    .own-card .name { font-size: 14px; }
+    .own-card .line { font-size: 12px; margin-top: 0; }
+    .plot-owned { font-size: 12px; }
+    .plot-owned b { font-size: 14px; }
+    .bldg .tl { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+    .wl {
+      background: none; border: 0; padding: 0; cursor: pointer; font: 400 12px system-ui, sans-serif; color: #9a9a9a;
+      text-decoration: underline; text-underline-offset: 2px; text-decoration-color: #555;
+    }
+    .wl:hover, .wl:focus { color: #f2f2f2; outline: none; }
+    .bldg .blurb { margin: 2px 0 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .bldg .desc { border-bottom: 0; padding-bottom: 0; }
+    .bldg .row { padding: 1px 0; font-size: 14px; border-bottom: 1px solid #1c1c1c; }
+    .bldg .row b { font: 650 14px ui-monospace, Menlo, monospace; }
+    .bldg .row b small { font: 400 12px system-ui, sans-serif; color: #9a9a9a; margin-left: 4px; }
+    .bldg .wait { font-size: 12px; margin: 6px 0 0; }
+    .bldg .stat .k { font-size: 12px; }
+    .bldg .stat .n { font-size: 16px; }
+    .bay-slot .where { font-size: 12px; }
+    .bay-slot .n { font-size: 14px; }
+    .facts b { font-size: 14px; }
+    .facts span { font-size: 12px; }
+    .slot { grid-template-columns: 1fr auto 82px; padding: 4px 7px; font-size: 14px; white-space: nowrap; }
+    .slot .pc { font-size: 14px; }
+    .slot .pc.w { font: 400 12px system-ui, sans-serif; color: #c8c8c8; }
+    .slot .pl { font-size: 12px; }
+    .upg { border-top: 0; margin-top: 0; padding-top: 0; }
+    .upg .sh { margin-top: 12px; }
+    .upg .u { gap: 8px; border: 0; border-bottom: 1px solid #1c1c1c; padding: 2px 0; margin-top: 0; font-size: 14px; color: #c8c8c8; }
+    .upg .u .c { font: 650 14px ui-monospace, Menlo, monospace; color: #f2f2f2; margin-left: auto; }
+    .upg .u .u-btn { font-size: 12px; padding: 1px 7px; line-height: 1.4; white-space: nowrap; }
+    .act .price { font-size: 14px; }
+    .act .unit { font-size: 12px; }
+    #insp-acts { padding: 4px 10px 6px; }
+    #insp-acts .act, #insp-acts .act.open { margin-top: 4px; padding: 3px 7px; }
+    #insp-acts .act .name { font-size: 14px; }
+    #insp-acts .act .line { margin-top: 0; font-size: 12px; }
+    #insp-acts .duo { gap: 4px; margin-top: 0; }
+    #insp-acts .duo .act { margin-top: 4px; padding: 3px 7px; }
+    #insp-acts .duo.wide { grid-template-columns: 3fr 2fr; }
+    #next-goal, #fleet-open, #wiki-open { font-size: 14px; }
+    #next-goal, #fleet-open { margin: 6px 8px 8px; padding: 6px 12px; }
+    #next-goal { margin-top: auto; }
+    #wiki-open { padding: 6px 14px; }
+    #wiki-close, #fleet-close, #goal-close { font-size: 12px; }
+    .wiki-panel .left { font-size: 16px; }
+    .wiki-group { font-size: 12px; }
+    .wiki-read h2 { font-size: 16px; }
+    .wiki-read p { font-size: 14px; }
+    .wiki-facts b { font-size: 14px; }
+    .wiki-real h3 { font-size: 14px; }
+    .fleet-panel .left, .goal-panel .left { font-size: 16px; line-height: 1.2; }
+    .fleet-panel .left span, .goal-panel .left span { font-size: 12px; margin-top: 2px; }
+    .fleet-row .name { font-size: 14px; }
+    .goal-row .line { font-size: 12px; }
+    .goal-row.now .name { font-size: 16px; }
+    #flight-panel .k { font-size: 11px; }
+    #flight-panel .n { font-size: 16px; }
+    #map-scale { font-size: 11px; }
+    #event-stage .event-phase, #event-stage .event-foot { font-size: 12px; }
+    .restart-card p, .restart-acts button { font-size: 14px; }
+    /* Rocket window: one parts table beside a 0.7 drawing, sized to fit 1280 by 800. */
+    .rocket-panel { width: min(860px, 100%); }
+    .rocket-panel .top { align-items: baseline; gap: 12px; padding: 10px 16px; }
+    .rocket-panel .top .nm { font-size: 16px; font-weight: 650; }
+    .rocket-panel .top .place { font-size: 12px; margin-top: 0; }
+    .rocket-panel .top .miss { font-size: 12px; color: #e10600; margin-top: 0; }
+    #rocket-close { margin-left: auto; font-size: 12px; padding-top: 0; }
+    .sheet-body { padding: 12px 16px 6px; }
+    .plate { grid-template-columns: 112px 1fr; gap: 0 18px; align-items: start; }
+    .ship { width: 112px; height: 294px; min-height: 0; }
+    /* The drawing shows at 0.7, so these sizes read at 12 px and 11 px on screen. */
+    .ship .tag { font-size: 17.1429px; }
+    .ship .tag.unt, .ship .tag.sm { font-size: 15.7143px; }
+    .empty-row {
+      display: grid; grid-template-columns: 1fr auto; align-items: center; padding: 5px 8px; margin-bottom: 8px;
+      border: 1px solid #444; box-shadow: inset 3px 0 #e10600; font-size: 14px;
+    }
+    .empty-row b { font: 650 14px ui-monospace, Menlo, monospace; margin-left: 8px; }
+    .empty-row small { font-size: 12px; color: #9a9a9a; margin-left: 4px; }
+    .sbtn {
+      border: 1px solid #f2f2f2; background: #0a0a0a; color: #f2f2f2; font: inherit; font-size: 12px;
+      padding: 1px 7px; line-height: 1.4; white-space: nowrap; cursor: pointer;
+    }
+    .sbtn:hover:not(:disabled) { background: #161616; }
+    .sbtn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .sbtn + .sbtn { margin-left: 4px; }
+    table.parts { width: 100%; border-collapse: collapse; font-size: 14px; }
+    table.parts th { font-size: 12px; font-weight: 400; color: #9a9a9a; text-align: left; padding: 0 8px 4px 0; border-bottom: 1px solid #333; }
+    table.parts td { padding: 9px 8px 9px 0; border-bottom: 1px solid #1f1f1f; vertical-align: middle; }
+    table.parts td.p { font-weight: 650; width: 132px; }
+    table.parts td.p span { display: block; font-size: 12px; font-weight: 400; color: #9a9a9a; }
+    table.parts td.n { font: 650 16px ui-monospace, Menlo, monospace; white-space: nowrap; width: 92px; }
+    table.parts td.n.short { color: #e10600; }
+    table.parts td.n.dim { font: 400 12px system-ui, sans-serif; color: #9a9a9a; }
+    table.parts td.b { width: 112px; }
+    table.parts td.j { font-size: 12px; color: #9a9a9a; white-space: nowrap; }
+    table.parts td.j.off { color: #5a5a5a; }
+    table.parts td.k { text-align: right; white-space: nowrap; width: 128px; }
+    table.parts tr.hot td.p { box-shadow: inset 3px 0 #e10600; padding-left: 8px; }
+    .meter, .band { position: relative; height: 6px; width: 100px; background: #2a2a2a; }
+    .meter i { display: block; height: 100%; }
+    .band i { position: absolute; top: 0; bottom: 0; background: #c4a15a; }
+    .meter em, .band em { position: absolute; top: -3px; bottom: -3px; width: 2px; margin-left: -1px; background: #e10600; }
+    .rocket-panel .up { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; align-items: center; margin-top: 10px; padding-top: 7px; border-top: 1px solid #333; }
+    .rocket-panel .up .l1 { font-size: 14px; font-weight: 650; }
+    .rocket-panel .up .l1 b { font: 650 14px ui-monospace, Menlo, monospace; margin-left: 8px; }
+    .rocket-panel .up .l1 small { font-size: 12px; color: #9a9a9a; font-weight: 400; margin-left: 6px; }
+    .rocket-panel .up .l2 { grid-column: 1 / -1; font-size: 12px; color: #9a9a9a; }
+    .rocket-panel .wait { font-size: 12px; color: #c8c8c8; margin: 8px 0 0; }
+    .strip { display: flex; flex-wrap: wrap; gap: 4px 14px; padding: 7px 16px 9px; border-top: 1px solid #2a2a2a; font-size: 12px; color: #9a9a9a; }
+    .strip b { font: 650 12px ui-monospace, Menlo, monospace; color: #f2f2f2; margin-left: 4px; }
+    .strip .wl { margin-left: auto; }
   </style>
 </head>
 <body class="flex flex-col h-full">
@@ -543,13 +666,12 @@
         <span class="ctr">LOX <b id="res-lox" class="tabular-nums">0</b></span>
         <span class="ctr">Fleet <b id="res-fleet" class="tabular-nums">0</b></span>
       </div>
-      <div id="ver-label">0.16.0-bay</div>
+      <div id="ver-label">0.17.0-tidy</div>
     </div>
     <div class="bar-right">
       <span class="ctr"><span id="day-run">Day</span> <b id="day-label" class="tabular-nums">1</b></span>
       <button type="button" id="day-speed-1" aria-pressed="true">1x</button>
-      <button type="button" id="day-speed-2" aria-pressed="false">2x</button>
-      <button type="button" id="day-speed-4" aria-pressed="false">4x</button>
+      <button type="button" id="day-speed-3" aria-pressed="false">3x</button>
       <button type="button" id="day-skip">Skip</button>
       <button type="button" id="day-pause">Pause</button>
       <button type="button" id="day-restart">Restart</button>
@@ -586,7 +708,6 @@
 
     <aside id="readout" class="ui-panel flex flex-col shrink-0 border-y-0 border-r-0 min-h-0">
       <div id="insp-scroll">
-        <div class="sh">Inspector</div>
         <div id="inspector"></div>
       </div>
       <div id="insp-acts"></div>
@@ -641,14 +762,12 @@
 (() => {
   "use strict";
 
-  const VERSION = "0.16.0-bay";
+  const VERSION = "0.17.0-tidy";
   const CELL = 32, MAP_W = 40, MAP_H = 30;
   // ?test is a normal open with a short day. The purse, the tanks, and the yard start the same.
   const TEST = new URLSearchParams(location.search).has("test");
   const MS_PER_DAY = TEST ? 500 : 4000;
-  // The raise and the lower are the picture on the pad. Two seconds, not a fire rule.
-  const LIFT_SEC = 2;
-  // The pad load is the same length. Days keep moving during those two seconds.
+  // The pad load keeps real seconds. The day holds while it runs.
   const FILL_SEC = 2;
   const ZOOM_MIN = 0.22, ZOOM_MAX = 2.4;
   const PAD_LAT = 25.997, PAD_LON = -97.157;
@@ -776,10 +895,12 @@
     PAD_THRUST_L2: 2600,
     BAY_MAX: 4,
     BAY_SLOT_COST: 30,
-    ROLLOUT_PX_PER_SEC: 52,
-    ROLLOUT_MIN_SEC: 2.0,
-    ROLLOUT_MAX_SEC: 14,
-    RETURN_PX_PER_SEC: 56,
+    // The road and the lift run on the day clock, so a trip costs the same days at every speed.
+    ROLLOUT_PX_PER_DAY: 728,
+    ROLLOUT_MIN_DAYS: 0.5,
+    ROLLOUT_MAX_DAYS: 1,
+    RETURN_PX_PER_DAY: 784,
+    LIFT_DAYS: 0.5,
     // Game drag for the climb still in the code. The hop replaces it.
     DRAG_CD: 0.35,
     FRONT_AREA_M2: 2.27,
@@ -969,8 +1090,8 @@
   const ROCKET_DEFS = {
     article: {
       id: "article",
-      name: "Test article",
-      short: "TA",
+      name: "Starhopper",
+      short: "Starhopper",
       steelCost: 28,
       engines: 1,
       sfStyle: "raptor_single",
@@ -1028,7 +1149,7 @@
       footprint: { w: 4, h: 3 },
       maxCount: 1,
       zoneHint: "production",
-      blurb: "Builds one vehicle from steel. It stays here until you roll it to Mega Bay.",
+      blurb: "Builds one vehicle from steel.",
     },
     mega_bay: {
       id: "mega_bay",
@@ -1038,7 +1159,7 @@
       footprint: { w: 4, h: 3 },
       maxCount: 1,
       zoneHint: "production",
-      blurb: "Houses the fleet. The rocket sheet refurbs one part at a time.",
+      blurb: "Houses the fleet.",
     },
     pad_orbital: {
       id: "pad_orbital",
@@ -1050,7 +1171,7 @@
       zoneHint: "launch",
       maxLevel: 2,
       upgradeVisual: { 2: "Widen flame trench and raise the mount" },
-      blurb: "Holds one vehicle for a cryo proof, then a tanking run, then a static fire. The hop comes later.",
+      blurb: "Holds one vehicle for its pad tests.",
     },
   };
 
@@ -1214,8 +1335,9 @@
   function wholeSeed(value) {
     return typeof value === "number" && Number.isInteger(value) && value >= 0 && value <= 4294967295;
   }
+  // Old 2x and 4x saves land on 3x, the only fast speed left.
   function legalSpeed(value) {
-    return value === 2 || value === 4 ? value : 1;
+    return value === 2 || value === 3 || value === 4 ? 3 : 1;
   }
   function dayMs() {
     return MS_PER_DAY / legalSpeed(G.speed);
@@ -1298,6 +1420,13 @@
   }
   function motionKind(kind) {
     return G.rollouts.find((r) => r.kind === kind) || null;
+  }
+  // The day clock holds while a fill, a fire, or a flight runs.
+  function dayHeld() {
+    return !!(motionKind("fill") || motionKind("fire") || motionKind("fly"));
+  }
+  function dayWord(days) {
+    return `${days.toFixed(1)} ${days === 1 ? "day" : "days"}`;
   }
   function setMotion(m) {
     const i = G.rollouts.findIndex((r) => r.vehicleId === m.vehicleId);
@@ -1681,7 +1810,7 @@
     fundGoal("refurb");
   }
 
-  // Article n takes part (n - 1) % 3 of this seed's order. articleN is that count, not the TA serial.
+  // Article n takes part (n - 1) % 3 of this seed's order. articleN is that count, not the number in the name.
   function applyNewArticle(v) {
     G.builtArticles += 1;
     const order = defectOrder();
@@ -1750,7 +1879,7 @@
     const a = buildingAnchor(factory);
     const v = {
       id: G.nextId++,
-      name: `${r.short}-${n}`,
+      name: `${r.name} ${n}`,
       rocketId: r.id,
       buildingId: factory.id,
       status: "at_factory",
@@ -1823,9 +1952,9 @@
       log(`Mega Bay is full. It holds ${cap}.`, "bad");
       return;
     }
-    const dur = beginRoad(v, factory, bay, "bay", "in_bay", TUNING.ROLLOUT_PX_PER_SEC, slot);
+    const dur = beginRoad(v, factory, bay, "bay", "in_bay", TUNING.ROLLOUT_PX_PER_DAY, slot);
     G.selectedVehicleId = v.id;
-    log(`${v.name} rolls to Mega Bay · ${dur.toFixed(1)}s`, "info");
+    log(`${v.name} rolls to Mega Bay · ${dayWord(dur)}`, "info");
     renderChrome();
   }
 
@@ -1864,12 +1993,16 @@
   }
 
   // The factory trip uses this too. It does not ask for the pad.
-  function beginRoad(v, fromB, toB, destKind, destStatus, speed, slot) {
+  function roadDays(len, pxPerDay) {
+    return clamp(len / pxPerDay, TUNING.ROLLOUT_MIN_DAYS, TUNING.ROLLOUT_MAX_DAYS);
+  }
+  // The trip length is in game days.
+  function beginRoad(v, fromB, toB, destKind, destStatus, pxPerDay, slot) {
     const fromA = { x: v.wx, y: v.wy };
     const toA = buildingAnchor(toB, slot || 0);
     const pts = roadPath(fromA, toA, fromB, toB);
     const metrics = pathMetrics(pts);
-    const duration = clamp(metrics.totalLen / speed, TUNING.ROLLOUT_MIN_SEC, TUNING.ROLLOUT_MAX_SEC);
+    const duration = roadDays(metrics.totalLen, pxPerDay);
     v.buildingId = null;
     v.status = "rolling";
     v.baySlot = slot || 0;
@@ -1913,8 +2046,8 @@
     if (destKind === "pad") {
       if (v.status !== "in_bay") { log("Only bay-ready vehicles roll to pad", "warn"); return; }
       if (padHold() || padBusy()) { log("Pad occupied — one stack on OLM", "warn"); return; }
-      const dur = beginRoad(v, bay, pad, "pad", "on_pad", TUNING.ROLLOUT_PX_PER_SEC, 0);
-      log(`${v.name} rollout to pad · ${dur.toFixed(1)}s`, "info");
+      const dur = beginRoad(v, bay, pad, "pad", "on_pad", TUNING.ROLLOUT_PX_PER_DAY, 0);
+      log(`${v.name} rolls to the Orbital Pad · ${dayWord(dur)}`, "info");
       renderChrome();
       return;
     }
@@ -1935,14 +2068,14 @@
       kind: "lower",
       vehicleId: v.id,
       t: 0,
-      duration: LIFT_SEC,
+      duration: TUNING.LIFT_DAYS,
       destKind: "bay",
       destId: bay.id,
       destStatus: "in_bay",
       baySlot: slot,
       flatHeading: pathHeading(back),
     });
-    log(`${v.name} lowers onto the transporter · ${LIFT_SEC.toFixed(1)}s`, "info");
+    log(`${v.name} lowers onto the transporter · ${dayWord(TUNING.LIFT_DAYS)}`, "info");
     renderChrome();
   }
 
@@ -1959,8 +2092,8 @@
     const pad = buildingOfType("pad_orbital");
     const bay = buildingById(r.destId);
     if (!pad || !bay) { clearMotion(v.id); return; }
-    const dur = beginRoad(v, pad, bay, "bay", r.destStatus, TUNING.RETURN_PX_PER_SEC, r.baySlot || 0);
-    log(`${v.name} return to bay · ${dur.toFixed(1)}s`, "info");
+    const dur = beginRoad(v, pad, bay, "bay", r.destStatus, TUNING.RETURN_PX_PER_DAY, r.baySlot || 0);
+    log(`${v.name} returns to Mega Bay · ${dayWord(dur)}`, "info");
     renderChrome();
   }
 
@@ -1972,7 +2105,7 @@
         kind: "raise",
         vehicleId: v.id,
         t: 0,
-        duration: LIFT_SEC,
+        duration: TUNING.LIFT_DAYS,
         destKind: "pad",
         destId: r.destId,
         destStatus: "on_pad",
@@ -1993,7 +2126,7 @@
     renderChrome();
   }
 
-  function updateRollout(dt) {
+  function updateRollout(dt, held) {
     // A copy, so one arrival can replace its own motion without skipping the next rocket.
     const list = G.rollouts.slice();
     for (const r of list) {
@@ -2012,7 +2145,8 @@
         updateFill(r, dt);
         continue;
       }
-      r.t += dt;
+      // A road or a lift moves on the day clock, so it holds with the day.
+      if (!held) r.t += (dt * 1000) / dayMs();
       if (r.kind === "raise" || r.kind === "lower") {
         if (r.t < r.duration) continue;
         if (r.kind === "raise") finishRaise(v, r);
@@ -2035,7 +2169,7 @@
 
   // The header speed divides the day only. The fraction already spent stays spent.
   function setSpeed(n) {
-    const next = n === 2 || n === 4 ? n : 1;
+    const next = legalSpeed(n);
     const prevLen = dayMs();
     const frac = prevLen > 0 ? G.dayAcc / prevLen : 0;
     G.speed = next;
@@ -2051,12 +2185,27 @@
     renderChrome();
   }
 
+  // Skip lands every road and lift first. The clock still pays the days those trips take.
+  function finishTrips() {
+    for (let guard = 0; guard < 12; guard++) {
+      const trips = G.rollouts.filter((r) => r.kind === "roll" || r.kind === "raise" || r.kind === "lower");
+      if (!trips.length) return;
+      const step = Math.max(0, Math.min(...trips.map((r) => r.duration - r.t)));
+      G.dayAcc += step * dayMs();
+      const span = dayMs();
+      while (G.dayAcc >= span - 1e-9) { G.dayAcc = Math.max(0, G.dayAcc - span); dayTick(); }
+      for (const r of trips) r.t = Math.min(r.duration, r.t + step);
+      updateRollout(0, false);
+    }
+  }
+
   // Header Skip moves the day. It does not finish a fire picture. Escape still does that.
   function skipToEvent() {
     if (G.paused) { log("The day is paused.", "warn"); return 0; }
     if (motionKind("fill")) { log("The tanks are still loading.", "warn"); return 0; }
     if (motionKind("fire")) { log("The static fire is still burning.", "warn"); return 0; }
     if (motionKind("fly")) { log("The rocket is still in flight.", "warn"); return 0; }
+    finishTrips();
 
     const closed = rangeClosed();
     const windLimit = padLimits(buildingOfType("pad_orbital")).wind;
@@ -3134,7 +3283,7 @@
     if (run) run.textContent = G.paused ? "Paused" : "Day";
     if (pauseBtn) pauseBtn.textContent = G.paused ? "Resume" : "Pause";
     const speed = legalSpeed(G.speed);
-    for (const n of [1, 2, 4]) {
+    for (const n of [1, 3]) {
       const btn = document.getElementById(`day-speed-${n}`);
       if (btn) btn.setAttribute("aria-pressed", speed === n ? "true" : "false");
     }
@@ -3143,7 +3292,7 @@
   function ownedLine(b) {
     if (b.type === "starfactory") {
       if (G.factoryJob) return `Busy · ${dayCount(G.factoryJob.daysLeft)} left`;
-      return factoryHold() ? "Holds a finished rocket" : "Builds a test article";
+      return factoryHold() ? "Holds a finished rocket" : "Builds a Starhopper";
     }
     if (b.type === "mega_bay") {
       const cap = bayCapacity(b);
@@ -3159,10 +3308,8 @@
     const offers = Object.keys(PLOTS).filter((id) => !G.plots[id]).map((id) => {
       const plot = PLOTS[id];
       return `<button type="button" class="plot-card" data-plot="${id}">
-        <div class="name">${esc(plot.name)}</div>
-        <div class="price">${plot.cost}</div>
-        <div class="unit">steel</div>
-        <div class="line">${esc(plot.line)}</div>
+        <div class="l1"><span>${esc(plot.name)}</span><b>${plot.cost} <small>steel</small></b></div>
+        <div class="l2">${esc(plot.line)}</div>
       </button>`;
     }).join("");
     const typeOrder = { starfactory: 0, mega_bay: 1, pad_orbital: 2 };
@@ -3179,10 +3326,8 @@
     ];
     const steelRow = packs.map(([steel, cost]) => {
       const off = G.money < cost ? " disabled" : "";
-      return `<button type="button" class="steel-buy" data-steel="${steel}" data-cost="${cost}"${off}>
-        <div class="name">Buy ${steel}</div>
-        <div class="price">${cost}</div>
-        <div class="unit">money</div>
+      return `<button type="button" class="steel-buy" data-steel="${steel}" data-cost="${cost}" title="${cost} money"${off}>
+        <span>Buy ${steel}</span><b>${cost}</b>
       </button>`;
     }).join("");
     // Land order is locked: steel buys, then owned buildings, then free plots last.
@@ -3228,7 +3373,7 @@
     return wikiGo(type, label);
   }
 
-  // Thrust, propellant, and the engine pages stay hidden until the test article is on.
+  // Thrust, propellant, and the engine pages stay hidden until the first Starhopper is on.
   function wikiPageLink(id, label) {
     if (id !== "time" && !wikiVehicleOn()) return label;
     return wikiGo(id, label);
@@ -3287,7 +3432,7 @@
         `The cryo proof finds Structure. The tanking run finds the fuel lines. A fail on those tests names the part and damages nothing. The bay restores it in the days and the steel prices that already exist. You can skip a cryo proof or a tanking run. The part stays as it is. An untested part reads not tested.`,
         `A fire that lights can miss on Structure or the fuel lines. A short pad or a short engine still lights, and that fire is a miss. A fail names the part. A closed range or a short tank does not light. A scrub damages nothing.`,
       ]) + wikiFacts([
-        { value: `${rocket.steelCost} steel`, label: "Steel for a test article" },
+        { value: `${rocket.steelCost} steel`, label: "Steel for a Starhopper" },
         { value: daySpan(TUNING.BUILD_DAYS_MIN, TUNING.BUILD_DAYS_MAX), label: "Days to build" },
         { value: `${TUNING.PROOF_COST} money`, label: "Cryo proof cost, a game number" },
         { value: `${TUNING.PROOF_BAR} bar`, label: "Proof pressure, the SN4 figure" },
@@ -3316,7 +3461,7 @@
       body: wikiParas([
         `This version does not fly. A ready rocket stays on the mount, and the pad says the hop comes later.`,
         `Liftoff comes with the hop. The hop is a short rise and a landing nearby, not a climb to orbit.`,
-        `A test article carries no payload. The sheet keeps stage dry mass and liftoff mass as game numbers until that hop.`,
+        `Starhopper carries no payload. The rocket window keeps stage dry mass and liftoff mass as game numbers until that hop.`,
       ]) + wikiFacts([
         { value: `${RAPTOR_REFS.hopM.n} m`, label: "Hop height in 2019 and 2020" },
         { value: "1", label: "Raptors on those hops" },
@@ -3378,16 +3523,16 @@
       title: "The rocket equation",
       body: wikiParas([
         `The rocket equation ties the change in speed to the exhaust speed and to how much of the rocket is propellant.`,
-        `A test article carries no payload. Liftoff comes with the hop, so this page does not print a payload.`,
+        `Starhopper carries no payload. Liftoff comes with the hop, so this page does not print a payload.`,
         `Stage dry mass starts at ${TUNING.STAGE_DRY_KG} kg. Liftoff mass on the sheet is ${TUNING.STRUCT_LIMIT_KG} kg. Both are game numbers until the hop.`,
         `The dry-mass cut waits until a flight uses dry mass. That button is off the sheet.`,
       ]) + wikiFacts([
         { value: `${TUNING.STAGE_DRY_KG} kg`, label: "Stage dry mass" },
         { value: `${TUNING.STRUCT_LIMIT_KG} kg`, label: "Liftoff mass" },
         { value: "Off the sheet", label: "The dry-mass cut waits until a flight uses dry mass" },
-        { value: "None", label: "A test article carries no payload." },
+        { value: "None", label: "Starhopper carries no payload." },
       ]) + wikiReal([
-        `Starhopper, SN5, and SN6 were test articles. They hopped. They did not carry a payload to orbit. The ${wikiSource("vehicles")} lists those vehicles.`,
+        `Starhopper, SN5, and SN6 were test vehicles. They hopped. They did not carry a payload to orbit. The ${wikiSource("vehicles")} lists those vehicles.`,
       ]),
     };
   }
@@ -3402,7 +3547,8 @@
         `A static fire loads ${TUNING.SF_CH4_KG} kg of methane and ${TUNING.SF_LOX_KG} kg of liquid oxygen. Raptor 2 uses the same load. That fixed load is a game number.`,
         `The methane tank holds ${TUNING.CH4_CAP} kg. The liquid oxygen tank holds ${TUNING.LOX_CAP} kg. Each tank holds two static-fire loads. Both tanks start empty. After a fill to the cap, a tanking run boils off ${TUNING.TANKING_CH4_LOSS_KG} kg of methane and ${TUNING.TANKING_LOX_LOSS_KG} kg of liquid oxygen. The tanks then hold ${TUNING.CH4_CAP - TUNING.TANKING_CH4_LOSS_KG} kg and ${TUNING.LOX_CAP - TUNING.TANKING_LOX_LOSS_KG} kg. The first fire still fits. They are short of a second fire by ${TUNING.TANKING_CH4_LOSS_KG} kg and ${TUNING.TANKING_LOX_LOSS_KG} kg, so the tanks are filled again before a second fire.`,
         `The methane tank buy costs ${TUNING.CH4_TANK_COST} steel and raises the cap to ${TUNING.CH4_CAP_L2} kg. The oxygen tank buy costs ${TUNING.LOX_TANK_COST} steel and raises the cap to ${TUNING.LOX_CAP_L2} kg.`,
-        `The pad fills the methane tank or the liquid oxygen tank for ${TUNING.FLUID_FILL_COST} money. One press fills that tank.`,
+        `The pad fills the methane tank or the liquid oxygen tank for ${TUNING.FLUID_FILL_COST} money. One press fills that tank. The Methane / LOX row shows both pad tanks. LOX is liquid oxygen.`,
+        padTestCountLine(),
       ]) + wikiFacts([
         { value: `${TUNING.SF_CH4_KG} kg`, label: "Methane for a static fire" },
         { value: `${TUNING.SF_LOX_KG} kg`, label: "Liquid oxygen for a static fire" },
@@ -3433,7 +3579,7 @@
         `Pad level 1 holds ${TUNING.PAD_THRUST_L1} kN. Pad level 2 holds ${TUNING.PAD_THRUST_L2} kN. The engine floor is ${TUNING.SF_THRUST_BAR_KN} kN. Those three are game numbers.`,
         `Structure is a fixed number you have to measure. The factory rolls it when the job ends. Check Structure takes 1 day and no money. The first reading is about 30 wide. The second is about 10 wide. Only the pad writes the exact number. Each found and fixed Structure fault raises the Structure floor by ${TUNING.STRUCT_FLOOR_STEP}. Fuel lines can still leave at ${TUNING.DEFECT_LINES_S} seconds. Thrust can still leave at ${TUNING.DEFECT_THRUST_KN} kN. The cryo proof finds Structure. The tanking run finds the fuel lines. The static fire also reads both. A fire that lights can miss on either part. A fail names the part. A scrub damages nothing. An untested part reads not tested.`,
         `Burns is ${TUNING.ENGINE_RESTARTS}. Engine life starts at ${TUNING.ENGINE_FIRE_LIMIT_S} seconds. A lit static fire spends 5. Burns and the engine life are game numbers.`,
-        `Stage dry mass is ${TUNING.STAGE_DRY_KG} kg. Liftoff mass is ${TUNING.STRUCT_LIMIT_KG} kg. Both are game numbers until the hop. A test article carries no payload.`,
+        `Stage dry mass is ${TUNING.STAGE_DRY_KG} kg. Liftoff mass is ${TUNING.STRUCT_LIMIT_KG} kg. Both are game numbers until the hop. Starhopper carries no payload.`,
       ]) + wikiFacts([
         { value: wikiNum(TUNING.LOX_PER_CH4, 1), label: "Liquid oxygen per kg of methane" },
         { value: `${TUNING.SF_CH4_KG} kg`, label: "Methane for a static fire" },
@@ -3492,6 +3638,12 @@
     };
   }
 
+  // The road span in words, so half a day does not round to 1.
+  function roadSpanText() {
+    const word = (n) => (n === 0.5 ? "half a day" : n === 1 ? "1 day" : `${n} days`);
+    return `${word(TUNING.ROLLOUT_MIN_DAYS)} to ${word(TUNING.ROLLOUT_MAX_DAYS)}`;
+  }
+
   function wikiTime() {
     const seconds = dayMs() / 1000;
     const dayLen = wikiNum(seconds, 3) === "1" ? "1 second" : `${wikiNum(seconds, 3)} seconds`;
@@ -3500,17 +3652,17 @@
       title: "Time at Starbase",
       body: wikiParas([
         `One game day lasts ${dayLen}. Builds, refurbs, and upgrades wait in those days.`,
-        `1x, 2x, and 4x divide that day. The road, the fill, the fire, and the flight do not.`,
-        `${wikiPlace("starfactory", "Starfactory")} builds a test article in ${daySpan(TUNING.BUILD_DAYS_MIN, TUNING.BUILD_DAYS_MAX)}.`,
+        `1x and 3x divide that day. The road and the lift run on the day too, so they cost the same days at either speed.`,
+        `${wikiPlace("starfactory", "Starfactory")} builds a Starhopper in ${daySpan(TUNING.BUILD_DAYS_MIN, TUNING.BUILD_DAYS_MAX)}.`,
         `Raise Raptor thrust takes ${daySpan(TUNING.ENGINE_UP_DAYS_MIN, TUNING.ENGINE_UP_DAYS_MAX)}. The dry-mass cut waits until a flight uses dry mass. That button is off the sheet.`,
         `After a clean fire the rocket stays on the mount for ${dayCount(TUNING.INSPECT_DAYS)} of data review. Refurb the engine takes ${dayCount(TUNING.REFURB_OK_DAYS)}. Inspect the fuel lines takes ${dayCount(TUNING.INSPECT_DAYS)}. Refurb the structure takes ${daySpan(TUNING.REFURB_FAIL_MIN, TUNING.REFURB_FAIL_MAX)}.`,
-        `Days keep moving while the tanks load or the engine burns. The purse does not grow on the day. Investors pay when a goal is finished. Pause stops the day and the burn. A roll, a raise, and a lower leave the day running.`,
-        `The rollout along the yard road is counted in seconds. That is the short wait on the road between ${wikiPlace("mega_bay", "Mega Bay")} and the ${wikiPlace("pad_orbital", "Orbital Pad")}.`,
+        `The day holds while the tanks load, while the engine burns, and during a flight. Those keep their real seconds. The purse does not grow on the day. Investors pay when a goal is finished. Pause stops the day and the burn.`,
+        `The rollout along the yard road takes ${roadSpanText()} between ${wikiPlace("mega_bay", "Mega Bay")} and the ${wikiPlace("pad_orbital", "Orbital Pad")}. A raise or a lower on the mount takes half a day. The road length is a game number. A real rollout takes a few hours.`,
       ]) + wikiFacts([
         { value: dayLen, label: "One game day" },
         { value: daySpan(TUNING.BUILD_DAYS_MIN, TUNING.BUILD_DAYS_MAX), labelHtml: `Build at ${wikiPlace("starfactory", "Starfactory")}` },
         { value: dayCount(TUNING.INSPECT_DAYS), label: "Data review on the mount" },
-        { value: wikiSpan(TUNING.ROLLOUT_MIN_SEC, TUNING.ROLLOUT_MAX_SEC, "second", "seconds"), label: "Rollout on the road" },
+        { value: roadSpanText(), label: "Rollout on the road" },
       ]) + wikiReal([
         `A calendar day is 24 hours. A day here lasts ${dayLen} so a session stays short.`,
       ]),
@@ -3525,9 +3677,11 @@
       title: "Starfactory",
       body: wikiParas([
         `Starfactory builds a ${rocket.name} from steel. It holds the finished rocket until you roll it to ${wikiPlace("mega_bay", "Mega Bay")}.`,
-        `Build ${rocket.name} costs ${rocket.steelCost} steel and takes ${daySpan(TUNING.BUILD_DAYS_MIN, TUNING.BUILD_DAYS_MAX)}. Roll to ${wikiPlace("mega_bay", "Mega Bay")} spends no steel and no propellant, and the day keeps running.`,
+        `Build ${rocket.name} costs ${rocket.steelCost} steel and takes ${daySpan(TUNING.BUILD_DAYS_MIN, TUNING.BUILD_DAYS_MAX)}. Roll to ${wikiPlace("mega_bay", "Mega Bay")} spends no steel and no propellant. The road takes ${roadSpanText()}.`,
         `Structure is a fixed number you have to measure. The card names the Structure floor and the step of ${TUNING.STRUCT_FLOOR_STEP}. Fuel lines can leave at ${TUNING.DEFECT_LINES_S} seconds. Thrust can leave at ${TUNING.DEFECT_THRUST_KN} kN. Those shorts are game numbers.`,
         `Raise Raptor thrust costs ${TUNING.ENGINE_UP_COST} steel and takes ${daySpan(TUNING.ENGINE_UP_DAYS_MIN, TUNING.ENGINE_UP_DAYS_MAX)}. The dry-mass cut waits until a flight uses dry mass. That button is off the sheet.`,
+        `Bigger vehicles come later.`,
+        `Raise Raptor thrust runs here. Open a rocket to start it.`,
         `Starfactory cannot be upgraded.`,
         `The next building is ${wikiPlace("mega_bay", "Mega Bay")}. ${wikiPageLink("thrust", "Thrust")} and the stage change while this factory is busy.`,
       ]) + wikiFacts([
@@ -3536,13 +3690,13 @@
         { value: `${TUNING.ENGINE_UP_COST} steel`, label: "Raise Raptor thrust" },
         { value: "Off the sheet", label: "The dry-mass cut waits until a flight uses dry mass" },
       ]) + wikiReal([
-        `Starhopper, SN5, and SN6 were built at Boca Chica and each flew with one Raptor. This game builds the test article at Starbase. The ${wikiSource("vehicles")} lists those vehicles.`,
+        `Starhopper, SN5, and SN6 were built at Boca Chica and each flew with one Raptor. This game builds Starhopper at Starbase. The ${wikiSource("vehicles")} lists those vehicles.`,
       ]),
     };
   }
 
   function wikiBay() {
-    const roll = wikiSpan(TUNING.ROLLOUT_MIN_SEC, TUNING.ROLLOUT_MAX_SEC, "second", "seconds");
+    const roll = roadSpanText();
     return {
       id: "mega_bay",
       group: "Buildings",
@@ -3715,32 +3869,35 @@
 
   function motionLine(m, v) {
     const name = v ? v.name : "Vehicle";
-    const left = Math.max(0, m.duration - m.t).toFixed(0);
-    if (m.kind === "raise") return `${name} is raising onto the mount · ${left} s left`;
-    if (m.kind === "lower") return `${name} is lowering onto the transporter · ${left} s left`;
-    if (m.kind === "fill") return `${name} is loading methane and liquid oxygen · ${left} s left`;
+    const rest = Math.max(0, m.duration - m.t);
+    const left = m.kind === "fill" ? `${rest.toFixed(0)} s` : dayWord(rest);
+    if (m.kind === "raise") return `${name} is raising onto the mount · ${left} left`;
+    if (m.kind === "lower") return `${name} is lowering onto the transporter · ${left} left`;
+    if (m.kind === "fill") return `${name} is loading methane and liquid oxygen · ${left} left`;
     if (m.kind === "fly") return `${name} is in flight`;
     const dest = m.destKind === "pad" ? "the Orbital Pad" : "Mega Bay";
-    return `${name} is rolling to ${dest} · ${left} s left`;
+    return `${name} is rolling to ${dest} · ${left} left`;
   }
 
+  // The price sits on the name line. A pair of loads shares it. The fact line is the second line.
   function actCard(cls, id, extra, name, price, unit, line, price2, unit2) {
     const idAttr = id ? ` id="${id}"` : "";
+    const small = (u) => (u ? ` <small>${u}</small>` : "");
     let priceHtml = "";
     if (price != null && price2 != null) {
-      priceHtml = `<div class="pair"><div><div class="price">${price}</div><div class="unit">${unit}</div></div><div><div class="price">${price2}</div><div class="unit">${unit2}</div></div></div>`;
+      priceHtml = `<b>${price}${small(unit)} ${price2}${small(unit2)}</b>`;
     } else if (price != null) {
-      priceHtml = `<div class="price">${price}</div><div class="unit">${unit}</div>`;
+      priceHtml = `<b>${price}${small(unit)}</b>`;
     }
-    const lineHtml = line ? `<div class="line">${line}</div>` : "";
+    const lineHtml = line ? `<div class="l2">${line}</div>` : "";
     return `<button type="button" class="act ${cls}"${idAttr}${extra || ""}>
-      <div class="name">${name}</div>${priceHtml}${lineHtml}
+      <div class="l1"><span>${name}</span>${priceHtml}</div>${lineHtml}
     </button>`;
   }
 
   function slotRow(v, extra) {
     const pct = rocketPct(v);
-    const tone = pct == null ? "" : lifeTone(pct);
+    const tone = pct == null ? "w" : lifeTone(pct);
     const sel = v.id === G.selectedVehicleId ? " sel" : "";
     const shown = pct == null ? "not tested" : `${pct}%`;
     return `<button type="button" class="slot${sel}" data-slot="${v.id}"${extra || ""}>
@@ -3752,15 +3909,15 @@
     return `<div class="row"><span>${k}</span><b>${n}</b></div>`;
   }
 
-  // The button names the action. Short steel names the cost, and a busy tank keeps the action name.
+  // The price is its own number. Short steel names the cost, and a busy tank keeps the action name.
   function upgradeRow(id, label, cost, action, busy) {
     const steelShort = G.steel < cost;
     const dis = steelShort || busy ? " disabled" : "";
-    const text = steelShort ? `Need ${cost} steel.` : action;
-    return `<div class="u"><span>${esc(label)} · ${cost} steel</span><button type="button" class="u-btn" id="${id}"${dis}>${esc(text)}</button></div>`;
+    const text = steelShort ? `Need ${cost} steel` : action;
+    return `<div class="u"><span>${esc(label)}</span><span class="c">${cost}</span><button type="button" class="u-btn" id="${id}"${dis}>${esc(text)}</button></div>`;
   }
 
-  // Description, data, and Upgrade scroll. Do-now actions sit pinned under them.
+  // The building name heads the column. Data and Upgrade scroll, and the do-now actions sit pinned under them.
   function renderInspector() {
     const box = el.inspector;
     const actsBox = document.getElementById("insp-acts");
@@ -3789,7 +3946,7 @@
       return;
     }
     const d = defOf(b.type);
-    let html = `<div class="bldg"><div class="desc"><div class="title">${esc(d.name)}</div><p class="blurb">${esc(d.blurb)}</p></div>`;
+    let html = `<div class="bldg"><div class="desc"><div class="title tl">${esc(d.name)}<button type="button" class="wl" data-wiki="${esc(b.type)}">Wiki</button></div><p class="blurb">${esc(d.blurb)}</p></div>`;
     let upgrade = "";
     const openCard = (v) => actCard("open quiet", "btn-open", ` data-open="${v.id}"`, `Open ${esc(v.name)}`, null, "", "");
 
@@ -3798,7 +3955,8 @@
       html += `<div class="sh sub">Data</div>`;
       html += inspRow("Holding", `${hold ? 1 : 0} of 1`);
       if (wholeSeed(G.seed)) {
-        html += `<p class="wait">Structure floor ${G.structFloor}. Each found and fixed Structure fault raises it by ${TUNING.STRUCT_FLOOR_STEP}.</p>`;
+        html += inspRow("Structure floor", G.structFloor);
+        html += `<p class="wait">Each found and fixed Structure fault raises the floor by ${TUNING.STRUCT_FLOOR_STEP}.</p>`;
       }
       if (G.factoryJob) {
         const pct = 1 - G.factoryJob.daysLeft / G.factoryJob.totalDays;
@@ -3809,8 +3967,7 @@
         const r = rocketOf("article");
         const busy = !!(factoryHold() || G.event);
         acts += actCard("build", "", ` data-rocket="article"${busy ? " disabled" : ""}`,
-          "Build Test article", r.steelCost, "steel", `${daySpan(TUNING.BUILD_DAYS_MIN, TUNING.BUILD_DAYS_MAX)}. A static fire loads ${TUNING.SF_CH4_KG} kg of methane and ${TUNING.SF_LOX_KG} kg of liquid oxygen.`);
-        html += `<p class="wait">Bigger vehicles come later.</p>`;
+          `Build ${esc(r.name)}`, r.steelCost, "steel", `${daySpan(TUNING.BUILD_DAYS_MIN, TUNING.BUILD_DAYS_MAX)}. A static fire loads ${TUNING.SF_CH4_KG} kg of methane and ${TUNING.SF_LOX_KG} kg of LOX.`);
       }
       if (hold) {
         html += slotRow(hold);
@@ -3819,11 +3976,10 @@
           const held = returnClaim(bay) > 0 && bayLoad(bay) < bayCapacity(bay);
           html += `<p class="wait">${held ? "Leave a bay slot open. A rocket outside the bay still has to come home." : "Mega Bay is full."}</p>`;
         } else {
-          acts += actCard("roll", "btn-stage", "", "Roll to Mega Bay", null, "", "The vehicle leaves the factory.");
+          acts += actCard("roll", "btn-stage", ` title="The vehicle leaves the factory."`, "Roll to Mega Bay", null, "", "");
         }
         acts += openCard(hold);
       }
-      html += `<p class="wait">Raise Raptor thrust runs here. Open a rocket to start it. The dry-mass cut waits until a flight uses dry mass. That button is off the sheet.</p>`;
     }
 
     if (b.type === "mega_bay") {
@@ -3851,7 +4007,7 @@
         if (padHold() || padBusy()) {
           html += `<p class="wait">The pad holds one rocket.</p>`;
         } else {
-          acts += actCard("roll", "btn-topad", "", `Roll ${esc(v.name)} to the pad`, null, "", "The vehicle leaves the bay.");
+          acts += actCard("roll", "btn-topad", ` title="The vehicle leaves the bay."`, `Roll ${esc(v.name)} to the pad`, null, "", "");
         }
         acts += openCard(v);
       } else if (v && v.status === "refurb" && v.buildingId === b.id) {
@@ -3873,15 +4029,18 @@
     if (b.type === "pad_orbital") {
       const limits = padLimits(b);
       const on = padHold();
-      // Short Data only: level, tanks, Mount.
       html += `<div class="sh sub">Data</div>`;
       html += inspRow("Pad level", b.level || 1);
-      html += inspRow("Thrust limit", `${limits.thrust} kN`);
-      html += inspRow("Wind limit", `${limits.wind} kn`);
-      html += inspRow("CH4 / LOX", `${Math.floor(G.ch4)} / ${Math.floor(G.lox)} kg`);
+      html += inspRow("Thrust limit", `${limits.thrust}<small>kN</small>`);
+      html += inspRow("Wind limit", `${limits.wind}<small>kn</small>`);
+      html += inspRow("Methane / LOX", `${Math.floor(G.ch4)} / ${Math.floor(G.lox)}<small>kg</small>`);
+      const fire = padFireRows();
+      html += inspRow("Fires, last 30 days", fire.count);
+      html += inspRow("Last fire", fire.last);
       html += on ? slotRow(on) : `<div class="slot empty"><span>Mount</span><span class="pc">—</span><span class="pl">Empty</span></div>`;
       const moving = on ? motionFor(on.id) : null;
       const inbound = G.rollouts.find((r) => r.kind === "roll" && r.destKind === "pad");
+      let back = "";
       if (moving && (moving.kind === "raise" || moving.kind === "lower" || moving.kind === "fill")) {
         html += `<p class="wait">${esc(motionLine(moving, on))}</p>`;
       } else if (moving && moving.kind === "fire") {
@@ -3891,13 +4050,15 @@
       } else if (on && on.status === "on_pad") {
         const proofReady = proofSettled(on);
         const tankReady = tankSettled(on);
-        if (!proofReady) html += `<p class="wait">Cryo proof, then tanking, then a static fire.</p>`;
+        // One status sentence, and a closed range takes its place while a cold test can still run.
+        const rangeNote = rangeClosed() && openPadTest(on) === "proof" ? "The range is closed. The cryo proof can still run."
+          : rangeClosed() && openPadTest(on) === "tank" ? "The range is closed. The tanking run can still run." : "";
+        if (rangeNote) html += `<p class="wait">${rangeNote}</p>`;
+        else if (!proofReady) html += `<p class="wait">Cryo proof, then tanking, then a static fire.</p>`;
         else if (!tankReady) html += `<p class="wait">${on.proofDone ? "Cryo proof done. Tanking next." : "Cryo proof skipped. Tanking next."}</p>`;
         else if (on.proofDone && on.tankingDone) html += `<p class="wait">Cryo proof and tanking are done. Static fire next.</p>`;
         else html += `<p class="wait">Ready for the static fire.</p>`;
         if (on.needsDetank) html += `<p class="wait">Open the rocket and empty the tanks.</p>`;
-        if (rangeClosed() && openPadTest(on) === "proof") html += `<p class="wait">The range is closed. The cryo proof can still run.</p>`;
-        if (rangeClosed() && openPadTest(on) === "tank") html += `<p class="wait">The range is closed. The tanking run can still run.</p>`;
         if (!proofReady) {
           const proofLine = G.money < TUNING.PROOF_COST
             ? `Liquid nitrogen to ${TUNING.PROOF_BAR} bar. Need ${TUNING.PROOF_COST} money.`
@@ -3910,7 +4071,7 @@
           if (shorts.length) {
             acts += actCard("quiet", "btn-tank", " disabled", "Try tanking", null, "", shorts.join(" "));
           } else {
-            acts += actCard("", "btn-tank", "", "Tanking", TUNING.SF_CH4_KG, "kg CH4", `${TUNING.TANKING_CH4_LOSS_KG} kg of methane and ${TUNING.TANKING_LOX_LOSS_KG} kg of liquid oxygen boil off.`, TUNING.SF_LOX_KG, "kg LOX");
+            acts += actCard("", "btn-tank", "", "Tanking", TUNING.SF_CH4_KG, "kg CH4", `${TUNING.TANKING_CH4_LOSS_KG} kg of methane and ${TUNING.TANKING_LOX_LOSS_KG} kg of LOX boil off.`, TUNING.SF_LOX_KG, "kg LOX");
           }
           acts += actCard("quiet", "btn-skip-tank", "", "Skip the tanking run", null, "", `Fuel lines need ${TUNING.TANKING_LINES_MIN} seconds. A skip leaves them untested.`);
         } else {
@@ -3922,30 +4083,35 @@
             acts += actCard("quiet", "btn-sf", " disabled", "Try static fire", null, "", fireLine);
           }
         }
-        acts += actCard("quiet roll", "btn-return", "", "Return to Mega Bay", null, "", "The rocket leaves the mount.");
+        back = "The rocket leaves the mount.";
       } else if (on && (on.status === "proof" || on.status === "tanking")) {
         const name = on.status === "proof" ? "Cryo proof" : "Tanking";
         html += `<p class="wait">${name}, ${dayCount(on.testLeft)} left.</p>`;
       } else if (on && on.status === "inspect") {
         html += `<p class="wait">Data review, ${dayCount(on.inspectLeft)} left.</p>`;
       } else if (on && on.status === "ready") {
-        if (on.needsDetank) html += `<p class="wait">Open the rocket and empty the tanks.</p>`;
         html += `<p class="wait">The hop comes later.</p>`;
-        acts += actCard("quiet roll", "btn-return", "", "Return to Mega Bay", null, "", "The rocket leaves the mount.");
+        if (on.needsDetank) html += `<p class="wait">Open the rocket and empty the tanks.</p>`;
+        back = "The rocket leaves the mount.";
       } else if (on && on.status === "needs_return") {
-        acts += actCard("quiet roll", "btn-return", "", "Return to Mega Bay", null, "", "The rocket parks in the bay.");
+        back = "The rocket parks in the bay.";
       } else if (inbound) {
         html += `<p class="wait">${esc(motionLine(inbound, vehicleById(inbound.vehicleId)))}</p>`;
       } else {
         html += `<p class="wait">The pad is empty. Roll a vehicle here from the bay.</p>`;
       }
-      cadenceLines().forEach((line) => { html += `<p class="wait">${esc(line)}</p>`; });
       {
         const ch4Full = G.ch4 >= ch4Cap();
         const loxFull = G.lox >= loxCap();
-        acts += `<div class="duo">${actCard("quiet", "btn-buy-ch4", ch4Full ? " disabled" : "", "Load methane", ch4Full ? null : TUNING.FLUID_FILL_COST, ch4Full ? "" : "money", ch4Full ? "Tank is full." : `Fills to ${ch4Cap()} kg.`)}${actCard("quiet", "btn-buy-lox", loxFull ? " disabled" : "", "Load LOX", loxFull ? null : TUNING.FLUID_FILL_COST, loxFull ? "" : "money", loxFull ? "Tank is full." : `Fills to ${loxCap()} kg.`)}</div>`;
+        const cost = ` title="${TUNING.FLUID_FILL_COST} money"`;
+        acts += `<div class="duo">${actCard("quiet", "btn-buy-ch4", ch4Full ? " disabled" : cost, "Load methane", ch4Full ? null : TUNING.FLUID_FILL_COST, "", ch4Full ? "Tank is full." : `Fills to ${ch4Cap()} kg.`)}${actCard("quiet", "btn-buy-lox", loxFull ? " disabled" : cost, "Load LOX", loxFull ? null : TUNING.FLUID_FILL_COST, "", loxFull ? "Tank is full." : `Fills to ${loxCap()} kg.`)}</div>`;
       }
-      if (on) acts += openCard(on);
+      // Return and Open share a row on the pad. The mount row above already names the rocket.
+      if (back && on) {
+        acts += `<div class="duo wide">${actCard("quiet roll", "btn-return", ` title="${back}"`, "Return to Mega Bay", null, "", "")}${actCard("open quiet", "btn-open", ` data-open="${on.id}" title="Open ${esc(on.name)}" aria-label="Open ${esc(on.name)}"`, "Open", null, "", "")}</div>`;
+      } else if (on) {
+        acts += openCard(on);
+      }
       const tankBusy = !!(G.event || fluidsMoving());
       if (b.level < 2) {
         upgrade += upgradeRow("btn-up", "Pad level 2", TUNING.PAD_L2_COST, "Raise to level 2", false);
@@ -3975,6 +4141,9 @@
 
     finish(html);
     const root = document.getElementById("readout");
+    root.querySelectorAll("[data-wiki]").forEach((btn) => {
+      btn.onclick = () => { G.wikiPage = btn.getAttribute("data-wiki"); G.wikiSheet = true; renderWiki(); };
+    });
     root.querySelectorAll("[data-rocket]").forEach((btn) => {
       btn.onclick = () => startBuildRocket(btn.getAttribute("data-rocket"));
     });
@@ -4010,16 +4179,15 @@
     on("#btn-buy-lox", buyLox);
   }
 
-  function cadenceLines() {
-    const n = G.fireDays.filter((d) => G.day - d < 30).length;
-    const fires = n === 1 ? "1 fire in the last 30 days." : `${n} fires in the last 30 days.`;
-    const lines = [];
-    if (!G.fireDays.length) lines.push(fires, "No fire yet.");
-    else {
-      const ago = G.day - G.fireDays[G.fireDays.length - 1];
-      const since = ago === 1 ? "1 day since the last fire." : `${ago} days since the last fire.`;
-      lines.push(fires, since);
-    }
+  // The pad cadence as two Data rows. The proof and tanking counts live on the pad wiki page.
+  function padFireRows() {
+    const count = G.fireDays.filter((d) => G.day - d < 30).length;
+    if (!G.fireDays.length) return { count, last: "none" };
+    const ago = G.day - G.fireDays[G.fireDays.length - 1];
+    return { count, last: ago <= 0 ? "today" : ago === 1 ? "1 day ago" : `${ago} days ago` };
+  }
+
+  function padTestCountLine() {
     const recent = G.testDays.filter((row) => G.day - row.day < 30);
     const proofs = recent.filter((row) => row.kind === "proof").length;
     const tanks = recent.filter((row) => row.kind === "tanking").length;
@@ -4028,9 +4196,9 @@
     else if (proofs > 1) bits.push(`${proofs} cryo proofs`);
     if (tanks === 1) bits.push("1 tanking run");
     else if (tanks > 1) bits.push(`${tanks} tanking runs`);
-    if (bits.length === 1) lines.push(`${bits[0]} in the last 30 days.`);
-    else if (bits.length > 1) lines.push(`${bits[0]} and ${bits[1]} in the last 30 days.`);
-    return lines;
+    if (bits.length === 1) return `This pad ran ${bits[0]} in the last 30 days.`;
+    if (bits.length > 1) return `This pad ran ${bits[0]} and ${bits[1]} in the last 30 days.`;
+    return "This pad ran no cryo proof and no tanking run in the last 30 days.";
   }
 
   function buyRp1Tank() {
@@ -4116,11 +4284,14 @@
         const phase = m.phases[m.phaseIdx];
         const left = phase ? Math.max(0, phase.dur - m.phaseT) : 0;
         lines.push(`${v ? v.name : "Rocket"} · static fire · ${left.toFixed(0)} s left`);
+        lines.push("The day holds while the engine burns");
       } else if (m.kind === "fly") {
         const v = vehicleById(m.vehicleId);
         lines.push(`${v ? v.name : "Rocket"} · in flight · ${wikiNum(m.h / 1000, 1)} km`);
+        lines.push("The day holds during the flight");
       } else {
         lines.push(motionLine(m, vehicleById(m.vehicleId)));
+        if (m.kind === "fill") lines.push("The day holds while the tanks fill");
       }
     }
     for (const v of liveFleet()) {
@@ -4235,22 +4406,15 @@
     renderChrome();
   }
 
-  function partJobLine(v, key) {
-    if (v.refurbPart === key) return `${partName(key)} · ${dayCount(v.refurbLeft)} left`;
-    if (key === "engine") return `Refurb the engine · ${dayCount(engineRefurbDays())} · ${TUNING.ENGINE_REFURB_COST} steel`;
-    if (key === "fitting") return `Inspect the fuel lines · ${dayCount(TUNING.INSPECT_DAYS)} · no steel`;
-    return `Refurb the structure · ${daySpan(TUNING.REFURB_FAIL_MIN, TUNING.REFURB_FAIL_MAX)} · no steel`;
-  }
-
   function partHasText(v, key) {
     if (key === "engine") return `${engineNowKn(v)} kN`;
-    if (key === "fitting") return `${Math.round(partLifeValue(v, key))} seconds`;
+    if (key === "fitting") return `${Math.round(partLifeValue(v, key))} s`;
     return String(Math.round(partLifeValue(v, key)));
   }
 
   function partNeedText(key) {
     if (key === "engine") return `${TUNING.SF_THRUST_BAR_KN} kN`;
-    if (key === "fitting") return `${TUNING.TANKING_LINES_MIN} seconds`;
+    if (key === "fitting") return `${TUNING.TANKING_LINES_MIN} s`;
     return String(TUNING.PROOF_STRUCT_MIN);
   }
 
@@ -4282,11 +4446,6 @@
       if (key == null || lives[part] < lives[key]) key = part;
     }
     return key;
-  }
-
-  function partCountsHtml(v, key) {
-    const hasCls = partIsShort(v, key) ? " has" : "";
-    return `<div class="counts"><div><b class="${hasCls.trim()}">${esc(partHasText(v, key))}</b><span>Has</span></div><div><b>${esc(partNeedText(key))}</b><span>Needed</span></div></div>`;
   }
 
   function partFixName(key) {
@@ -4334,9 +4493,13 @@
       const fade = opacity == null ? "" : ` fill-opacity="${opacity}"`;
       return `<g clip-path="url(#${clip})"><rect class="life ${lifeTone(pct)}" x="${x}" y="${box.y}" width="${w}" height="${box.h}" fill="${lifeFill(pct)}"${fade}/></g>`;
     };
-    const cutTag = (key, x, y, ink) => {
-      if (!partTested(v, key)) return `<text class="tag unt" text-anchor="middle" x="${x}" y="${y}" fill="#f2f2f2">not tested</text>`;
-      return `<text class="tag" text-anchor="middle" x="${x}" y="${y}" fill="${ink}">${lifePct(v, key)}%</text>`;
+    // The picked ink goes in style, because the .ship .tag CSS fill would beat a fill attribute.
+    // The stage fill is see-through over the dark hull, so its tag stays light.
+    const cutTag = (key, x, y, ink, at) => {
+      const u = at && at.unt ? at.unt : { x, y };
+      if (!partTested(v, key)) return `<text class="tag unt" text-anchor="middle" x="${u.x}" y="${u.y}" style="fill:#f2f2f2">not tested</text>`;
+      const p = at && at.tag ? at.tag : { x, y, anchor: "middle" };
+      return `<text class="tag" text-anchor="${p.anchor}" x="${p.x}" y="${p.y}" style="fill:${ink}">${lifePct(v, key)}%</text>`;
     };
     const hull = "80,14 104,92 104,262 56,262 56,92";
     const thrust = "56,262 104,262 100,316 60,316";
@@ -4371,8 +4534,8 @@
       <polygon points="${thrust}" fill="none" stroke="${stroke("fitting")}" stroke-width="1.6"/>
       <polygon points="${bell}" fill="none" stroke="${stroke("engine")}" stroke-width="1.6"/>
       <path d="M60 352 H100 M54 382 H106" fill="none" stroke="#f2f2f2" stroke-opacity="0.22"/>
-      ${cutTag("stage", 80, 214, partTested(v, "stage") ? inkOn(lifePct(v, "stage"), 210, 14, 262) : "#f2f2f2")}
-      ${cutTag("fitting", 94, 296, "#f2f2f2")}
+      ${cutTag("stage", 80, 228, "#f2f2f2")}
+      ${cutTag("fitting", 94, 296, "#f2f2f2", { tag: { x: 87, y: 305, anchor: "start" }, unt: { x: 80, y: 318 } })}
       ${cutTag("engine", 80, 372, partTested(v, "engine") ? inkOn(lifePct(v, "engine"), 368, 316, 408) : "#f2f2f2")}
       <rect class="hit" data-part="stage" x="20" y="12" width="120" height="250" fill="transparent"/>
       <rect class="hit" data-part="fitting" x="18" y="262" width="122" height="54" fill="transparent"/>
@@ -4380,72 +4543,82 @@
     </svg>`;
   }
 
-  function structBandHtml(v) {
-    const lo = v.structReadLo;
-    const hi = v.structReadHi;
-    const x0 = 8;
-    const span = 304;
-    const x = (n) => x0 + (n - TUNING.SCRAP_FLOOR) / (100 - TUNING.SCRAP_FLOOR) * span;
-    const xLo = x(lo);
-    const xHi = x(hi);
-    const xNeed = x(TUNING.PROOF_STRUCT_MIN);
-    return `<div class="scale"><svg viewBox="0 0 320 54" role="img" aria-label="Structure reading ${lo} to ${hi}, proof at ${TUNING.PROOF_STRUCT_MIN}">
-      <rect x="8" y="18" width="304" height="10" fill="#1a1a1a" stroke="#444"/>
-      <rect x="${xLo.toFixed(1)}" y="18" width="${Math.max(1, xHi - xLo).toFixed(1)}" height="10" fill="#c4a15a"/>
-      <line x1="${xNeed.toFixed(1)}" y1="12" x2="${xNeed.toFixed(1)}" y2="40" stroke="#e10600" stroke-width="2"/>
-      <text x="8" y="12" fill="#9a9a9a" font-size="9">${TUNING.SCRAP_FLOOR}</text>
-      <text x="${xLo.toFixed(0)}" y="12" fill="#f2f2f2" font-size="9">${lo}</text>
-      <text x="${(xNeed - 8).toFixed(0)}" y="10" fill="#e10600" font-size="9">${TUNING.PROOF_STRUCT_MIN}</text>
-      <text x="${xHi.toFixed(0)}" y="12" fill="#f2f2f2" font-size="9">${hi}</text>
-      <text x="292" y="12" fill="#9a9a9a" font-size="9">100</text>
-      <text x="${xNeed.toFixed(1)}" y="52" fill="#e10600" font-size="9" text-anchor="middle">proof</text>
-    </svg><div class="read">${lo} to ${hi} · the proof needs ${TUNING.PROOF_STRUCT_MIN}</div></div>`;
+  // The margin bar's full width is the healthy number for the part. Needs is the red tick.
+  function partScale(v, key) {
+    if (key === "engine") return { full: engineFreshKn(v), need: TUNING.SF_THRUST_BAR_KN, has: engineNowKn(v) };
+    if (key === "fitting") return { full: TUNING.FITTING_LIFE_S, need: TUNING.TANKING_LINES_MIN, has: partLifeValue(v, key) };
+    return { full: 100, need: TUNING.PROOF_STRUCT_MIN, has: partLifeValue(v, key) };
   }
 
-  function checkButtonHtml(v) {
-    if (!wholeSeed(G.seed) || (v.structChecks || 0) >= 2 || partTested(v, "stage")) return "";
-    const running = v.refurbPart === "check";
+  function barPct(n, full) {
+    return Math.max(0, Math.min(100, (n / full) * 100));
+  }
+
+  function marginHtml(v, key) {
+    const s = partScale(v, key);
+    const tick = `<em style="left:${barPct(s.need, s.full).toFixed(1)}%"></em>`;
+    const needText = partNeedText(key);
+    if (key === "stage" && !partTested(v, key) && v.structReadLo != null && v.structReadHi != null) {
+      const lo = barPct(v.structReadLo, s.full);
+      const hi = barPct(v.structReadHi, s.full);
+      return `<div class="band" title="Reads ${v.structReadLo} to ${v.structReadHi} against Needs ${needText}, out of ${s.full}"><i style="left:${lo.toFixed(1)}%;width:${Math.max(1, hi - lo).toFixed(1)}%"></i>${tick}</div>`;
+    }
+    const fullText = key === "stage" ? "100" : key === "fitting" ? `${s.full} s` : `${s.full} kN`;
+    if (!partTested(v, key)) return `<div class="meter" title="Needs ${needText}. Not tested.">${tick}</div>`;
+    const color = s.has < s.need ? "#e10600" : "#f2f2f2";
+    return `<div class="meter" title="Has ${partHasText(v, key)} against Needs ${needText}, out of ${fullText}"><i style="width:${barPct(s.has, s.full).toFixed(1)}%;background:${color}"></i>${tick}</div>`;
+  }
+
+  function partShortVerb(key) {
+    return key === "fitting" ? "Inspect" : "Refurb";
+  }
+
+  function partCellHtml(v, key) {
+    if (key === "engine") return `Engine<span>Raptor</span>`;
+    if (key === "stage" && !partTested(v, key) && v.structReadLo != null && v.structReadHi != null) {
+      return `Structure<span>${(v.structChecks || 0) >= 2 ? "second check" : "first check"}</span>`;
+    }
+    return esc(partName(key));
+  }
+
+  // One row per part. The short verb keeps the full name in its title and aria label.
+  function partRowHtml(v, key, inBay, worst) {
+    const tested = partTested(v, key);
+    const pct = tested ? lifePct(v, key) : null;
+    const band = key === "stage" && !tested && v.structReadLo != null && v.structReadHi != null;
+    const hot = key === "stage"
+      ? partIsShort(v, "stage") || (tested && (v.refurbPart === "stage" || (!v.refurbPart && worst === "stage" && pct < 100)))
+      : tested && (v.refurbPart === key || key === namedShort(v) || (!v.refurbPart && key === worst && pct < 100));
+    let has = `<td class="n dim">not tested</td>`;
+    if (tested) has = `<td class="n${partIsShort(v, key) ? " short" : ""}">${esc(partHasText(v, key))}</td>`;
+    else if (band) has = `<td class="n${partIsShort(v, key) ? " short" : ""}">${v.structReadLo} to ${v.structReadHi}</td>`;
     const busy = !!(v.refurbPart || bayPartBusy(v.id));
-    const line = running ? `Check Structure · ${dayCount(v.refurbLeft)} left` : "1 day · no money";
-    return `<button type="button" class="act gold" id="btn-check-stage"${busy ? " disabled" : ""}><div class="name">Check Structure</div><div class="line">${line}</div></button>`;
+    let job = partFixDetail(v, key);
+    let buttons = "";
+    if (key === "stage") {
+      const canCheck = wholeSeed(G.seed) && (v.structChecks || 0) < 2 && !tested;
+      if (v.refurbPart === "check") job = `${dayCount(v.refurbLeft)} left`;
+      else if (canCheck && v.refurbPart !== "stage") job = "1 day · no money";
+      if (canCheck) {
+        buttons += `<button type="button" class="sbtn" id="btn-check-stage" title="Check Structure" aria-label="Check Structure"${busy ? " disabled" : ""}>Check</button>`;
+      }
+      const off = !partFixAllowed(v, "stage") || busy;
+      buttons += `<button type="button" class="sbtn" id="btn-part-stage" title="${partFixName("stage")}" aria-label="${partFixName("stage")}"${off ? " disabled" : ""}>Refurb</button>`;
+    } else {
+      const off = !tested || busy;
+      buttons = `<button type="button" class="sbtn" id="btn-part-${key}" title="${partFixName(key)}" aria-label="${partFixName(key)}"${off ? " disabled" : ""}>${partShortVerb(key)}</button>`;
+    }
+    // On the pad the window starts no job, so the button cell stays empty.
+    if (!inBay) buttons = "";
+    return `<tr class="${hot ? "hot" : ""}"><td class="p">${partCellHtml(v, key)}</td>${has}<td class="n">${esc(partNeedText(key))}</td>`
+      + `<td class="b">${marginHtml(v, key)}</td><td class="j${inBay ? "" : " off"}">${esc(job)}</td><td class="k">${buttons}</td></tr>`;
   }
 
-  function structFixButtonHtml(v) {
-    const busy = !!(v.refurbPart || bayPartBusy(v.id));
-    const off = !partFixAllowed(v, "stage") || busy;
-    return `<button type="button" class="act" id="btn-part-stage"${off ? " disabled" : ""}><div class="name">${esc(partFixName("stage"))}</div><div class="line">${esc(partFixDetail(v, "stage"))}</div></button>`;
-  }
-
-  function stageCallHtml(v, inBay, worst) {
-    const tested = partTested(v, "stage");
-    const pct = tested ? lifePct(v, "stage") : null;
-    const hot = partIsShort(v, "stage") || (tested && (v.refurbPart === "stage" || (!v.refurbPart && worst === "stage" && pct < 100)));
-    const cls = ["call", "stage", hot ? "hot" : ""].filter(Boolean).join(" ");
-    const title = `<b>${esc(partName("stage"))}</b>`;
-    const band = v.structReadLo != null && v.structReadHi != null;
-    const read = tested ? partCountsHtml(v, "stage") : (band ? structBandHtml(v) : `<em>not tested</em>`);
-    if (!inBay) return `<div class="${cls}">${title}${read}</div>`;
-    return `<div class="${cls}">${title}${read}<div class="jobs">${checkButtonHtml(v)}${structFixButtonHtml(v)}</div></div>`;
-  }
-
-  function rocketCalls(v) {
+  function partsTableHtml(v) {
     const inBay = v.status === "in_bay" || v.status === "refurb";
     const worst = worstPart(v);
-    return ["stage", "fitting", "engine"].map((key) => {
-      if (key === "stage") return stageCallHtml(v, inBay, worst);
-      const tested = partTested(v, key);
-      const pct = tested ? lifePct(v, key) : null;
-      const hot = tested && (v.refurbPart === key || key === namedShort(v) || (!v.refurbPart && key === worst && pct < 100));
-      const cls = ["call", key, hot ? "hot" : ""].filter(Boolean).join(" ");
-      const title = `<b>${esc(partName(key))}</b>`;
-      const read = tested ? partCountsHtml(v, key) : `<em>not tested</em>`;
-      if (!inBay) return `<div class="${cls}">${title}${read}</div>`;
-      if (!tested) {
-        return `<button type="button" class="${cls}" id="btn-part-${key}" disabled>${title}${read}<div class="job">${esc(partJobLine(v, key))}</div></button>`;
-      }
-      const off = !!(v.refurbPart || bayPartBusy(v.id));
-      return `<div class="${cls}">${title}${read}<button type="button" class="act" id="btn-part-${key}"${off ? " disabled" : ""}><div class="name">${esc(partFixName(key))}</div><div class="line">${esc(partFixDetail(v, key))}</div></button></div>`;
-    }).join("");
+    const rows = ["stage", "fitting", "engine"].map((key) => partRowHtml(v, key, inBay, worst)).join("");
+    return `<table class="parts"><thead><tr><th>Part</th><th>Has</th><th>Needs</th><th>Margin</th><th>Bay job</th><th></th></tr></thead><tbody>${rows}</tbody></table>`;
   }
 
   let rocketSheetDraw = "";
@@ -4463,50 +4636,50 @@
     const engineJob = G.factoryJob && G.factoryJob.kind === "engine" && G.factoryJob.vehicleId === v.id ? G.factoryJob : null;
     const structureJob = G.factoryJob && G.factoryJob.kind === "structure" && G.factoryJob.vehicleId === v.id ? G.factoryJob : null;
     const dry = stageDryKg(v);
-    let action = "";
-    if (v.needsDetank) {
-      action += actCard("up wide", "btn-empty", "", "Empty the tanks", Math.floor(G.ch4), "kg CH4",
-        "The scrubbed load leaves the tanks.", Math.floor(G.lox), "kg LOX");
-    }
-    if (engineJob) action += `<p class="wait">Raptor thrust · ${dayCount(engineJob.daysLeft)} left</p>`;
+    // Empty the tanks blocks every pad test, so it sits above the table.
+    const empty = v.needsDetank
+      ? `<div class="empty-row"><span>Empty the tanks<b>${Math.floor(G.ch4)}</b><small>kg CH4</small><b>${Math.floor(G.lox)}</b><small>kg LOX</small></span><button type="button" class="sbtn" id="btn-empty" title="Empty the tanks. The scrubbed load leaves the tanks." aria-label="Empty the tanks">Empty</button></div>`
+      : "";
+    let under = "";
+    if (engineJob) under += `<p class="wait">Raptor thrust · ${dayCount(engineJob.daysLeft)} left</p>`;
     else if ((v.engineTier || 1) < 2) {
       const pad = buildingOfType("pad_orbital");
       const lim = padLimits(pad);
       let line = partTested(v, "engine")
-        ? `${daySpan(TUNING.ENGINE_UP_DAYS_MIN, TUNING.ENGINE_UP_DAYS_MAX)}. Raptor 1 at ${engineNowKn(v)} kN becomes Raptor 2 at ${TUNING.ENGINE_2_KN} kN. Mass drops from ${TUNING.ENGINE_MASS_KG} kg to ${TUNING.ENGINE_2_MASS_KG} kg.`
-        : `${daySpan(TUNING.ENGINE_UP_DAYS_MIN, TUNING.ENGINE_UP_DAYS_MAX)}. This rocket becomes Raptor 2 at ${TUNING.ENGINE_2_KN} kN. Thrust is not tested. Mass drops from ${TUNING.ENGINE_MASS_KG} kg to ${TUNING.ENGINE_2_MASS_KG} kg.`;
+        ? `Raptor 1 at ${engineNowKn(v)} kN becomes Raptor 2 at ${TUNING.ENGINE_2_KN} kN. Mass drops from ${TUNING.ENGINE_MASS_KG} kg to ${TUNING.ENGINE_2_MASS_KG} kg.`
+        : `This rocket becomes Raptor 2 at ${TUNING.ENGINE_2_KN} kN. Thrust is not tested. Mass drops from ${TUNING.ENGINE_MASS_KG} kg to ${TUNING.ENGINE_2_MASS_KG} kg.`;
       if (lim.thrust < TUNING.ENGINE_2_KN) {
         const level = pad && pad.level >= 2 ? pad.level : 1;
-        line += ` Pad level ${level} holds ${lim.thrust} kN. Raptor 2 is ${TUNING.ENGINE_2_KN} kN.`;
+        line += ` Pad level ${level} holds ${lim.thrust} kN.`;
       }
-      action += actCard("up", "btn-engine", G.steel < TUNING.ENGINE_UP_COST ? " disabled" : "",
-        "Raise Raptor thrust", TUNING.ENGINE_UP_COST, "steel", line);
+      const short = G.steel < TUNING.ENGINE_UP_COST;
+      under += `<div class="up"><div class="l1">Raise Raptor thrust<b>${TUNING.ENGINE_UP_COST}</b><small>steel · ${daySpan(TUNING.ENGINE_UP_DAYS_MIN, TUNING.ENGINE_UP_DAYS_MAX)}</small></div>`
+        + `<button type="button" class="sbtn" id="btn-engine" title="Raise Raptor thrust" aria-label="Raise Raptor thrust"${short ? " disabled" : ""}>${short ? `Need ${TUNING.ENGINE_UP_COST} steel` : "Raise"}</button>`
+        + `<div class="l2">${line}</div></div>`;
     }
     // The dry-mass cut stays in the code. The sheet hides it until a flight uses dry mass.
-    if (structureJob) action += `<p class="wait">Stage dry mass · ${dayCount(structureJob.daysLeft)} left</p>`;
+    if (structureJob) under += `<p class="wait">Stage dry mass · ${dayCount(structureJob.daysLeft)} left</p>`;
     const thrustLabel = partTested(v, "engine") ? `${engineNowKn(v)} kN` : "not tested";
     const shortKey = namedShort(v);
-    const miss = shortKey ? `<div class="miss">${esc(partName(shortKey))}</div>` : "";
+    const miss = shortKey ? `<span class="miss">${esc(partName(shortKey))} is short</span>` : "";
     const html = `<div class="top">
-        <div class="who"><b>${esc(v.name)}</b><div class="place">${esc(placeLabel(v))}</div>${miss}</div>
+        <span class="nm">${esc(v.name)}</span><span class="place">${esc(placeLabel(v))}</span>${miss}
         <button type="button" id="rocket-close">Close</button>
       </div>
       <div class="sheet-body">
         <div class="plate${v.status === "in_bay" || v.status === "refurb" ? "" : " look"}">
           ${rocketCutaway(v)}
-          <div class="calls">${rocketCalls(v)}</div>
+          <div>${empty}${partsTableHtml(v)}${under}</div>
         </div>
-        <div class="spec">
-          <div><b>${thrustLabel}</b><span>Thrust</span></div>
-          <div><b>${engineIspS(v)} s</b><span>Specific impulse</span></div>
-          <div><b>${engineMassKg(v)} kg</b><span>Engine mass</span></div>
-          <div><b>${TUNING.ENGINE_RESTARTS}</b><span>Burns</span></div>
-          <div><b>${dry} kg</b><span>Stage dry mass</span></div>
-          <div><b>${TUNING.STRUCT_LIMIT_KG} kg</b><span>Liftoff mass</span></div>
-          <div><b>A test article carries no payload.</b><span></span></div>
-        </div>
-        <p class="wait">Liftoff comes with the hop.</p>
-        ${action ? `<div class="sheet-actions">${action}</div>` : ""}
+      </div>
+      <div class="strip">
+        <span>Thrust<b>${thrustLabel}</b></span>
+        <span>Specific impulse<b>${engineIspS(v)} s</b></span>
+        <span>Engine mass<b>${engineMassKg(v)} kg</b></span>
+        <span>Burns<b>${TUNING.ENGINE_RESTARTS}</b></span>
+        <span>Stage dry mass<b>${dry} kg</b></span>
+        <span>Liftoff mass<b>${TUNING.STRUCT_LIMIT_KG} kg</b></span>
+        <button type="button" class="wl" data-wiki="flight">Payload and liftoff in the wiki</button>
       </div>`;
     sheet.classList.add("open");
     sheet.setAttribute("aria-hidden", "false");
@@ -4518,8 +4691,11 @@
     const body = panel.querySelector(".sheet-body");
     if (body) body.scrollTop = scroll;
     panel.querySelector("#rocket-close").onclick = () => { G.rocketSheet = null; renderRocketSheet(); };
-    const empty = panel.querySelector("#btn-empty");
-    if (empty) empty.onclick = () => emptyTanks(v.id);
+    panel.querySelectorAll("[data-wiki]").forEach((btn) => {
+      btn.onclick = () => { G.wikiPage = btn.getAttribute("data-wiki"); G.wikiSheet = true; renderWiki(); };
+    });
+    const emptyBtn = panel.querySelector("#btn-empty");
+    if (emptyBtn) emptyBtn.onclick = () => emptyTanks(v.id);
     const eng = panel.querySelector("#btn-engine");
     if (eng) eng.onclick = () => startEngineUpgrade(v.id);
     const structure = panel.querySelector("#btn-structure");
@@ -5703,8 +5879,7 @@
     renderResources();
   });
   document.getElementById("day-speed-1").addEventListener("click", () => setSpeed(1));
-  document.getElementById("day-speed-2").addEventListener("click", () => setSpeed(2));
-  document.getElementById("day-speed-4").addEventListener("click", () => setSpeed(4));
+  document.getElementById("day-speed-3").addEventListener("click", () => setSpeed(3));
   document.getElementById("day-skip").addEventListener("click", () => { skipToEvent(); });
   const SAVE_KEY = "starbase-save";
   const TEST_SAVE_KEY = "starbase-save-test";
@@ -5776,6 +5951,7 @@
       vehicleId: r.vehicleId,
       t: r.t || 0,
       duration: r.duration,
+      unit: "day",
       destKind: r.destKind,
       destId: r.destId,
       destStatus: r.destStatus,
@@ -5803,7 +5979,7 @@
     for (const key of Object.keys(G.objectives)) objectives[key] = !!G.objectives[key];
     return {
       version: 1,
-      label: "0.16.0-bay",
+      label: "0.17.0-tidy",
       seed: wholeSeed(G.seed) ? G.seed : null,
       structFloor: clampStructFloor(G.structFloor),
       speed: legalSpeed(G.speed),
@@ -5849,6 +6025,11 @@
     if (fluidsMoving()) return;
     writeGameSave(SAVE_KEY);
   }
+  // Old saves say TA-1 and Test article. Every build is now Starhopper and a number.
+  function starhopperName(text) {
+    return text.replace(/\bTA-(\d+)\b/g, "Starhopper $1").replace(/\bTest article\b/g, "Starhopper");
+  }
+
   function applySave(data) {
     const buildings = [];
     for (const b of Array.isArray(data.buildings) ? data.buildings : []) {
@@ -5866,7 +6047,7 @@
       if (!v || v.id == null) continue;
       fleet.push({
         id: finite(v.id, 0),
-        name: v.name ? String(v.name) : "TA",
+        name: v.name ? starhopperName(String(v.name)) : "Starhopper",
         rocketId: v.rocketId || "article",
         buildingId: v.buildingId == null ? null : finite(v.buildingId, null),
         status: v.status || "in_bay",
@@ -5906,6 +6087,21 @@
     for (const r of Array.isArray(data.rollouts) ? data.rollouts : []) {
       const plain = rolloutSave(r);
       if (!plain || !ids.has(plain.vehicleId)) continue;
+      // An old save holds the trip in seconds. Keep the share driven and redo the trip in days.
+      if (!r || r.unit !== "day") {
+        const share = plain.duration > 0 ? clamp((plain.t || 0) / plain.duration, 0, 1) : 0;
+        if (plain.kind === "roll") {
+          const pad = buildings.find((b) => b.type === "pad_orbital");
+          const start = plain.pts[0];
+          const a = pad ? buildingAnchor(pad) : null;
+          const back = plain.destKind === "bay" && a && Math.hypot(start.x - a.x, start.y - a.y) < 40;
+          const px = back ? TUNING.RETURN_PX_PER_DAY : TUNING.ROLLOUT_PX_PER_DAY;
+          plain.duration = roadDays(plain.totalLen || 1, px);
+        } else {
+          plain.duration = TUNING.LIFT_DAYS;
+        }
+        plain.t = share * plain.duration;
+      }
       rollouts.push(plain);
     }
     let job = null;
@@ -5965,7 +6161,7 @@
     G.factoryJob = job;
     G.rollouts = rollouts;
     G.log = (Array.isArray(data.log) ? data.log : []).slice(0, 45).map((row) => ({
-      msg: row && row.msg != null ? String(row.msg) : "",
+      msg: row && row.msg != null ? starhopperName(String(row.msg)) : "",
       kind: row && row.kind ? String(row.kind) : "info",
     }));
     if (seedNote) log(seedNote, "bad");
@@ -6093,11 +6289,14 @@
     const dt = Math.min(0.05, (now - last) / 1000);
     last = now;
     if (!G.paused) {
-      // Days keep moving during a fill, a fire, and a flight. Pause still holds both clocks.
-      G.dayAcc += dt * 1000;
-      const span = dayMs();
-      while (G.dayAcc >= span) { G.dayAcc -= span; dayTick(); }
-      updateRollout(dt);
+      // From 0.17.0-tidy the day holds during a fill, a fire, and a flight. Pause still holds both clocks.
+      const held = dayHeld();
+      if (!held) {
+        G.dayAcc += dt * 1000;
+        const span = dayMs();
+        while (G.dayAcc >= span) { G.dayAcc -= span; dayTick(); }
+      }
+      updateRollout(dt, held);
     }
     if (!G.paused && (G.rollouts.length || G.factoryJob)) {
       inspAcc += dt;

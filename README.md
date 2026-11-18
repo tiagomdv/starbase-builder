@@ -18,7 +18,7 @@ The sites, the engines, and the propellants follow real SpaceX hardware. The gam
 
 ## Status
 
-Live release: `0.16.0-bay`. Next row: `0.18.0-hop`. Structure is a fixed number you have to measure. The factory rolls it when the job ends and stores it. Check Structure in Mega Bay costs 1 day and no money. The first reading is about 30 wide. The second is about 10 wide. Only the pad writes the exact number. Each found and fixed Structure fault raises the factory floor by 8. Fuel lines and thrust keep their fixed shorts. The cryo proof, the tanking run, and the static fire stay on the pad.
+Live release: `0.17.0-tidy`. Next row: `0.18.0-hop`. The screen uses four type sizes, and the rocket window is one parts table. The road and the lift run in game days, the day holds during a fill, a fire, and a flight, the speeds are 1x and 3x, and every build is named Starhopper and a number. Structure is a fixed number you have to measure. The factory rolls it when the job ends and stores it. Check Structure in Mega Bay costs 1 day and no money. The first reading is about 30 wide. The second is about 10 wide. Only the pad writes the exact number. Each found and fixed Structure fault raises the factory floor by 8. Fuel lines and thrust keep their fixed shorts. The cryo proof, the tanking run, and the static fire stay on the pad.
 
 ## Where it's headed
 
