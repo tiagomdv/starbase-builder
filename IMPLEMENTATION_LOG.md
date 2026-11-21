@@ -386,3 +386,17 @@ History of what **shipped**, keyed by **version**.
 - Every build is named Starhopper and a number. The first is Starhopper 1 and the next is Starhopper 2. An old TA-1 loads as Starhopper 1, and old log lines read the same way. An old road keeps its share of the trip and finishes in game days.
 - With seed 11 in `?test`, building the first Starhopper, rolling it out, and raising it puts it on the Orbital Pad on day 13 or 14 when the build takes 10 days. The build length is not seeded and runs 8 to 12 days, so across runs the pad day falls between 12 and 16. With a 10-day build, the raise ends just after day 14 begins, so a run with almost no delay ends on day 13. Day 13 has 24 kn of wind, and the range is closed. Day 14 is Clear, with 12 kn, and the range is open. The fixed path here ended at day 14.0.
 - Save stays version 1. The label is `0.17.0-tidy`. The previous live file is `archive/index-0.16.0-bay.html`. The design page is `design-docs/0.17.0-tidy-design.html`.
+
+## `0.18.0-hop` — 2026-11-19
+
+**Version:** `0.18.0-hop`
+
+- A ready Starhopper hops 25 m, 50 m, or 150 m from the Orbital Pad. The burns are 8, 14, and 22 seconds. Dry mass is 102000 kg, including the Raptor. The landing margin is 1.45.
+- A clean landing cuts Structure by 4, 6, or 10. A hard landing cuts 40, leaves Structure at 20 at worst, and the rocket needs Mega Bay. A hard landing clears the cryo proof and the tanking run. A soft landing keeps them.
+- The day holds while the tanks load, during the T-10 count, and during the burn. Skip during the fill says the tanks are still loading. Skip during the count or the burn says the rocket is still in flight. The speeds stay 1x and 3x. There is no sound.
+- Unused propellant goes back to the pad tanks. A scrub spends nothing. A short pad still lights and counts as a miss. A closed range or a short tank scrubs.
+- The rocket rolls back to the mount in half a day to 1 day, then sits 1 day for inspection. The landing mark is about 100 m east of the mount, on land. It is not a buy. The camera holds a 400 m frame until the burn ends.
+- The hop countdown sits on the left of the map and the height sits on the right. The day-holds line sits at the bottom. The scale bar names the meters it covers, and the frame is labeled 400 m.
+- A hop does not save in the middle of the burn. A reload shows the rocket ready on the mount, and the tanks are not drained.
+- Every 30 days the review pays 12 money for each clean test in the window. Land a hop. pays 60 money once.
+- Save stays version 1. The label is `0.18.0-hop`. A missing hops count loads as 0. A missing review day loads as 0. A missing hop goal stays open. The previous live file is `archive/index-0.17.0-tidy.html`. The design page is `design-docs/0.18.0-hop-design.html`.

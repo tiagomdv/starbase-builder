@@ -26,3 +26,4 @@
 | index-0.14.2-seed.html | 0.14.2-seed | Playable site before the rocket window names the short part and the fix. |
 | index-0.15.0-sheet.html | 0.15.0-sheet | Playable site before Check Structure reads a band in Mega Bay, and the factory stores a rolled Structure number. |
 | index-0.16.0-bay.html | 0.16.0-bay | Playable site before the screen drops to four type sizes, the road and the lift run in game days, the day holds during a fill, a fire, and a flight, the speeds are 1x and 3x, and every build is named Starhopper. |
+| index-0.17.0-tidy.html | 0.17.0-tidy | Playable site before the hop, the 25, 50, and 150 m burns, and the 30 day review. |

@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>0.18.0-hop · design — starbase-builder</title>
+  <style>
+    :root {
+      --bg: #1c2118; --panel: #2a2218; --panel2: #221c14; --border: #5a4830;
+      --text: #e8d9b0; --muted: #a89878; --accent: #d4a84b; --link: #e8c56a; --code: #c4e08a;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; line-height: 1.55; }
+    .wrap { max-width: 1340px; margin: 0 auto; padding: 1.5rem 1.25rem 4rem; }
+    .doc-hero { background: var(--panel); border: 1px solid var(--border); border-radius: 0.85rem; padding: 1.15rem 1.25rem 1.25rem; margin-bottom: 1.25rem; }
+    .doc-hero h1 { font-size: 1.55rem; font-weight: 650; color: #f5edd8; margin: 0.35rem 0 0.4rem; }
+    .doc-hero .lede { margin: 0; font-size: 0.9rem; color: var(--muted); max-width: 62rem; }
+    .role {
+      margin: 0 0 12px; padding: 12px 14px; background: #24180f; color: #f4ead8;
+      border-left: 6px solid #c45c26; font: 15px/1.45 system-ui, sans-serif;
+    }
+    .meta-row { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+    .tag { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 999px; background: #3a2e20; color: #e8c56a; border: 1px solid #6a5638; }
+    .tag.muted { background: #1e1a14; color: var(--muted); border-color: #4a3c28; }
+    .toc { background: var(--panel); border: 1px solid var(--border); border-radius: 0.65rem; padding: 0.6rem 0.85rem; margin-bottom: 1rem; font-size: 0.8rem; }
+    .toc a { color: var(--link); text-decoration: none; margin-right: 0.85rem; white-space: nowrap; }
+    h2 { font-size: 1.12rem; color: #f5edd8; margin: 1.7rem 0 0.65rem; padding-bottom: 0.35rem; border-bottom: 1px solid var(--border); scroll-margin-top: 0.75rem; }
+    h3 { font-size: 0.95rem; color: var(--accent); margin: 0.4rem 0 0.45rem; }
+    p, li { font-size: 0.9rem; max-width: 62rem; }
+    p { margin: 0.45rem 0 0.7rem; }
+    ul, ol { margin: 0.35rem 0 0.75rem; padding-left: 1.35rem; }
+    li { margin: 0.28rem 0; }
+    code { font-family: ui-monospace, Menlo, monospace; color: var(--code); font-size: 0.86em; }
+    pre { background: var(--panel2); border: 1px solid var(--border); padding: 0.8rem 0.9rem; overflow-x: auto; font-size: 0.78rem; line-height: 1.45; max-width: 62rem; }
+    pre code { color: var(--text); }
+    strong { color: #f5edd8; }
+    table.doc { width: 100%; max-width: 62rem; border-collapse: collapse; font-size: 0.84rem; margin: 0.45rem 0 0.9rem; }
+    table.doc th, table.doc td { border: 1px solid var(--border); padding: 0.4rem 0.55rem; text-align: left; vertical-align: top; }
+    table.doc th { background: var(--panel2); color: var(--muted); font-size: 12px; font-weight: 600; }
+    table.doc td { background: rgba(42,34,24,0.45); }
+    figure.look { margin: 0 0 1.3rem; }
+    figcaption { font-size: 0.82rem; color: var(--muted); margin-top: 0.45rem; max-width: 62rem; }
+    figcaption p { margin: 0.28rem 0; }
+    .footer-note { color: var(--muted); font-size: 0.82rem; margin-top: 2rem; max-width: 62rem; }
+    .shot { overflow-x: auto; margin: 0.4rem 0 0.2rem; }
+
+    .g { background: #0a0a0a; color: #f2f2f2; font-family: system-ui, sans-serif; line-height: 1.3; }
+    .g * { box-sizing: border-box; }
+    .screen { width: 1280px; height: 800px; position: relative; overflow: hidden; display: flex; flex-direction: column; border: 1px solid #333; }
+    .bar { height: 56px; flex: none; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 6px 12px; border-bottom: 1px solid #fff; font: 13px ui-monospace, Menlo, monospace; background: #050505; }
+    .bar .lamp { width: 12px; height: 12px; border-radius: 50%; background: #3dd68c; box-shadow: 0 0 8px #3dd68c; display: inline-block; vertical-align: middle; margin-right: 10px; }
+    .bar .sky { display: inline-block; vertical-align: middle; }
+    .bar .sky b { display: block; font-size: 15px; line-height: 1.1; }
+    .bar .sky i { display: block; font-style: normal; font-size: 11px; color: #c8c8c8; }
+    .bar .mid { text-align: center; }
+    .bar .ctr { color: #c8c8c8; margin: 0 7px; }
+    .bar .ctr b { color: #c4a15a; font-size: 15px; margin-left: 4px; }
+    .bar .ver { font-size: 10px; color: #666; }
+    .bar .right { display: flex; justify-content: flex-end; align-items: center; gap: 6px; }
+    .bar .chip { border: 1px solid #fff; padding: 2px 7px; font-size: 12px; }
+    .bar .chip.on { background: #1a1a1a; }
+    .main { flex: 1; display: flex; min-height: 0; }
+    .land { width: 216px; flex: none; display: flex; flex-direction: column; border-right: 1px solid #2a2a2a; }
+    .land .in, .insp .in { flex: 1; padding: 10px; overflow: hidden; }
+    .map { flex: 1; position: relative; background: #0f4a57; overflow: hidden; }
+    .map .sand { position: absolute; left: 0; top: 0; bottom: 0; width: 72%; background: #e2cb9b; clip-path: polygon(0 62%, 6% 54%, 30% 46%, 45% 39%, 53% 26%, 57% 0, 100% 0, 92% 30%, 90% 100%, 0 100%); }
+    .map .chips { position: absolute; left: 10px; top: 10px; display: flex; gap: 6px; }
+    .map .chips span, .map .zoom span { background: #0a0a0a; border: 1px solid #333; font-size: 12px; padding: 3px 8px; border-radius: 3px; }
+    .map .zoom { position: absolute; right: 10px; top: 10px; display: flex; gap: 6px; }
+    .map .bldg { position: absolute; border: 1px solid #222; background: #c9c9c9; font-size: 11px; color: #111; padding: 1px 3px; }
+    .map .count { position: absolute; left: 16px; top: 52px; font: 650 16px/1.2 ui-monospace, Menlo, monospace; color: #1a140e; }
+    .map .count small, .map .alt small { display: block; margin-top: 2px; font: 400 12px/1.3 system-ui, sans-serif; color: #3a3228; }
+    .map .alt { position: absolute; right: 16px; top: 52px; text-align: right; font: 650 16px/1.2 ui-monospace, Menlo, monospace; color: #1a140e; }
+    .map .scale { position: absolute; left: 16px; bottom: 14px; font-size: 11px; color: #1a140e; }
+    .map .hold { position: absolute; left: 16px; bottom: 32px; font-size: 12px; color: #1a140e; background: rgba(226,203,155,0.9); padding: 2px 6px; }
+    .padmark { position: absolute; width: 36px; height: 10px; background: #5c5148; }
+    .padmark i { position: absolute; left: 12px; top: -28px; width: 12px; height: 28px; background: #d7d2c8; border: 1px solid #1a140e; }
+    .padmark span { position: absolute; top: 14px; left: -8px; width: 72px; font-size: 12px; color: #1a140e; }
+    .hopper { position: absolute; width: 28px; height: 46px; }
+    .hopper .flame { position: absolute; left: 8px; bottom: -28px; width: 12px; height: 28px; background: linear-gradient(#fff2b0, #ffb03a 45%, rgba(255,80,20,0)); clip-path: polygon(50% 100%, 0 0, 100% 0); }
+    .insp { width: 280px; flex: none; display: flex; flex-direction: column; border-left: 1px solid #2a2a2a; }
+    .sh { color: #c4a15a; font: 600 12px ui-monospace, Menlo, monospace; border-bottom: 1px solid #333; margin: 0 0 6px; padding-bottom: 3px; }
+    .sh.sub { margin-top: 12px; }
+    .title { font-size: 16px; font-weight: 650; }
+    .blurb { font-size: 12px; color: #c8c8c8; margin: 2px 0 0; }
+    .wl { font-size: 12px; color: #9a9a9a; text-decoration: underline; text-underline-offset: 2px; }
+    .tl { display: flex; justify-content: space-between; align-items: baseline; }
+    .r { display: flex; justify-content: space-between; align-items: baseline; padding: 1px 0; font-size: 14px; color: #c8c8c8; border-bottom: 1px solid #1c1c1c; }
+    .r b { font: 650 14px ui-monospace, Menlo, monospace; color: #f2f2f2; }
+    .r b small { font: 400 12px system-ui, sans-serif; color: #9a9a9a; margin-left: 4px; }
+    .slot { display: grid; grid-template-columns: 1fr auto 72px; gap: 6px; align-items: baseline; border: 1px solid #f2f2f2; box-shadow: inset 3px 0 #e10600; padding: 4px 7px; margin-top: 5px; font-size: 14px; white-space: nowrap; }
+    .slot .pc { font: 400 12px system-ui, sans-serif; color: #c8c8c8; text-align: right; }
+    .slot .pc.hot { font: 650 14px ui-monospace, Menlo, monospace; color: #e10600; }
+    .slot .pl { color: #c4a15a; font-size: 12px; text-align: right; }
+    .now { font-size: 12px; color: #c8c8c8; margin: 6px 0 0; }
+    .u { display: flex; justify-content: space-between; align-items: center; padding: 2px 0; font-size: 14px; color: #c8c8c8; border-bottom: 1px solid #1c1c1c; }
+    .u .c { font: 650 14px ui-monospace, Menlo, monospace; color: #f2f2f2; margin-left: auto; margin-right: 8px; }
+    .btn { border: 1px solid #f2f2f2; background: #0a0a0a; color: #f2f2f2; font-size: 12px; padding: 1px 7px; line-height: 1.4; }
+    .btn.off { opacity: 0.4; }
+    .acts { border-top: 1px solid #f2f2f2; padding: 4px 10px 6px; }
+    .a { display: block; border: 1px solid #444; padding: 3px 7px; margin-top: 4px; background: #0a0a0a; color: #f2f2f2; text-align: left; }
+    .a .l1 { display: flex; justify-content: space-between; align-items: baseline; font-size: 14px; font-weight: 650; }
+    .a .l1 b { font: 650 14px ui-monospace, Menlo, monospace; }
+    .a .l1 b small { font: 400 12px system-ui, sans-serif; color: #9a9a9a; }
+    .a .l2 { font-size: 12px; color: #9a9a9a; }
+    .a.go { border-color: #f2f2f2; }
+    .a.on { border-color: #f2f2f2; box-shadow: inset 0 -2px 0 #e07030; }
+    .duo { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+    .trio { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; }
+    .duo .a, .trio .a { margin-top: 4px; }
+    .foot { border: 1px solid #8a8a8a; background: #0e0e0e; color: #e6e6e6; font-size: 14px; font-weight: 650; text-align: center; padding: 6px 12px; margin: 6px 8px; }
+    .land .foot, .insp .foot { margin-top: auto; }
+    .footer { height: 112px; flex: none; border-top: 1px solid #2a2a2a; display: flex; align-items: stretch; }
+    .footer .foot { align-self: center; padding: 6px 14px; margin: 0; }
+    .log { padding: 6px 12px; overflow: hidden; font: 11px/1.35 ui-monospace, Menlo, monospace; color: #9a9a9a; }
+    .own { border: 1px solid #555; padding: 5px 8px; margin-bottom: 5px; }
+    .own.sel { border-color: #e10600; box-shadow: inset 3px 0 #e10600; }
+    .own .name { font-size: 14px; font-weight: 650; }
+    .own .line { font-size: 12px; color: #c8c8c8; }
+    .steel { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; font-size: 14px; }
+    .steel b { font: 650 14px ui-monospace, Menlo, monospace; margin-left: 6px; }
+    .rate { font-size: 12px; color: #9a9a9a; margin: 4px 0 8px; }
+
+    .rw { position: absolute; left: 16px; top: 68px; width: 760px; background: #0a0a0a; border: 1px solid #333; z-index: 2; }
+    .rw .hd { display: flex; align-items: baseline; gap: 12px; padding: 10px 16px; border-bottom: 1px solid #2a2a2a; }
+    .rw .hd .nm { font-size: 16px; font-weight: 650; }
+    .rw .hd .pl, .rw .hd .x { font-size: 12px; color: #9a9a9a; }
+    .rw .hd .ms { font-size: 12px; color: #e10600; }
+    .rw .hd .x { margin-left: auto; }
+    .rw .bd { display: grid; grid-template-columns: 112px 1fr; gap: 0 16px; padding: 12px 16px 6px; align-items: start; }
+    .rw svg.ship { width: 112px; height: 294px; display: block; }
+    .rw .ship .tag { font: 650 16.8px system-ui, sans-serif; fill: #f2f2f2; }
+    .rw .ship .tag.s { font-size: 15.4px; }
+    table.parts { width: 100%; border-collapse: collapse; font-size: 14px; }
+    table.parts th { font-size: 12px; font-weight: 400; color: #9a9a9a; text-align: left; padding: 0 8px 4px 0; border-bottom: 1px solid #333; }
+    table.parts td { padding: 8px 8px 8px 0; border-bottom: 1px solid #1f1f1f; vertical-align: middle; }
+    table.parts td.p { font-weight: 650; }
+    table.parts td.n { font: 650 16px ui-monospace, Menlo, monospace; white-space: nowrap; }
+    table.parts td.n.short { color: #e10600; }
+    table.parts td.j { font-size: 12px; color: #9a9a9a; }
+    table.parts tr.hot td.p { box-shadow: inset 3px 0 #e10600; padding-left: 8px; }
+    .meter { position: relative; height: 6px; background: #2a2a2a; width: 88px; }
+    .meter i { display: block; height: 100%; }
+    .meter em { position: absolute; top: -3px; bottom: -3px; width: 2px; margin-left: -1px; background: #e10600; }
+    .strip { display: flex; flex-wrap: wrap; gap: 4px 14px; padding: 7px 16px 9px; border-top: 1px solid #2a2a2a; font-size: 12px; color: #9a9a9a; }
+    .strip b { font: 650 12px ui-monospace, Menlo, monospace; color: #f2f2f2; margin-left: 4px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="doc-hero">
+      <div class="meta-row">
+        <span class="tag">0.18.0-hop</span>
+        <span class="tag">Revised · 2026-11-18</span>
+        <span class="tag muted">Waits for 0.17.0-tidy</span>
+      </div>
+      <h1>One Raptor, a short hop, a nearby mark</h1>
+      <p class="lede">
+        This row lets Starhopper 1 lift, hover, and land.
+        You pick 25 m, 50 m, or 150 m.
+        The numbers below are initial balance. A later sitting can move them.
+        <code>0.17.0-tidy</code> already names the rocket and draws the parts table. This page uses that name, that table, and the Margin bar. It does not design the tidy row.
+      </p>
+    </header>
+    <div class="role">
+      Starhopper 1 is ready on the mount. Thrust is 1814 kN. You pick 150 m. The parts table asks for a 22 second burn. The landing floor is 1555 kN. The flight mass is 109286 kg.
+    </div>
+    <nav class="toc">
+      <a href="#see">What you see</a>
+      <a href="#looks">The look</a>
+      <a href="#shape">Shape and mass</a>
+      <a href="#flight">The flight</a>
+      <a href="#land">The landing</a>
+      <a href="#again">The next hop</a>
+      <a href="#pay">Review and goal</a>
+      <a href="#stays">What stays</a>
+      <a href="#life">Real life</a>
+      <a href="#seed">Seed 11</a>
+      <a href="#save">The save</a>
+      <a href="#hooks">Test hooks</a>
+      <a href="#out">Out of scope</a>
+      <a href="#check-list">Acceptance</a>
+      <a href="#docs">Docs after ship</a>
+      <a href="#decided">Decided</a>
+      <a href="#pick">The lock</a>
+    </nav>
+
+    <h2 id="see">What you see</h2>
+    <p>You finish the cryo proof, the tanking run, and a clean static fire. The data review takes 1 day. The pad then says the rocket is ready. The line that said the hop comes later is gone.</p>
+    <p>You pick a height in the pinned actions. The chips are 25 m, 50 m, and 150 m. One fact line under them names the load. The parts table moves its Needs cells to that burn and that landing floor.</p>
+    <p>The tanks load on their own clock. The day holds. The camera then locks a frame about 400 m wide. A countdown runs from T-10 on the screen. There is no sound. The hopper rises, holds the height, and comes down on a mark about 100 m east of the mount.</p>
+    <p>A soft landing rolls back to the mount. That roll is a road of 0.5 to 1 day. An inspection then takes 1 day on the mount. A hard landing names the short part. You press Return to Mega Bay. A scrub leaves the rocket ready and spends nothing.</p>
+    <p>The same rocket can hop again when the inspection is done, the lines and the engine still have the seconds, the tanks hold the load, and Structure is still at least 70.</p>
+
+    <h2 id="looks">The look</h2>
+    <p>These three pictures are the whole screen at 1280 by 800. The first is the ready pad with a height picked. The second is the hop you watch. The third is the hard landing. The type outside the top bar is 11, 12, 14, or 16 px. The top bar stays the locked bar from tidy.</p>
+
+    <figure class="look">
+      <h3>The height, on the pad</h3>
+      <div class="shot"><div class="g screen" id="hop-ready">
+        <div class="bar">
+          <div><span class="lamp"></span><span class="sky"><b>Range open</b><i>clear 8 kn</i></span></div>
+          <div class="mid"><span class="ctr">Money<b>136</b></span><span class="ctr">Steel<b>4</b></span><span class="ctr">CH4<b>4029</b></span><span class="ctr">LOX<b>14502</b></span><span class="ctr">Fleet<b>1</b></span><div class="ver">0.18.0-hop. Test start.</div></div>
+          <div class="right"><span class="ctr">Day<b>18</b></span><span class="chip on">1x</span><span class="chip">3x</span><span class="chip">Skip</span><span class="chip">Pause</span><span class="chip">Restart</span></div>
+        </div>
+        <div class="main">
+          <div class="land"><div class="in">
+            <div class="sh">Land</div>
+            <div class="steel"><div>Buy 10 <b>10</b></div><div>Buy 50 <b>50</b></div></div>
+            <p class="rate">1 money buys 1 steel.</p>
+            <div class="sh sub">Buildings</div>
+            <div class="own"><div class="name">Starfactory</div><div class="line">Builds a Starhopper</div></div>
+            <div class="own"><div class="name">Mega Bay</div><div class="line">0 of 1 slot used</div></div>
+            <div class="own sel"><div class="name">Orbital Pad</div><div class="line">Pad level 1</div></div>
+          </div><div class="foot">Goals</div></div>
+          <div class="map">
+            <div class="sand"></div>
+            <div class="chips"><span>World</span><span>Region</span><span>Site</span><span style="border-color:#e10600">Work</span></div>
+            <div class="zoom"><span>Zoom in</span><span>Zoom out</span></div>
+            <div class="bldg" style="left:150px;top:430px">Factory</div>
+            <div class="bldg" style="left:300px;top:400px">Bay</div>
+            <div class="bldg" style="left:470px;top:300px">Pad</div>
+          </div>
+          <div class="insp">
+            <div class="in">
+              <div class="title tl">Orbital Pad<span class="wl">Wiki</span></div>
+              <p class="blurb">Holds one vehicle for its pad tests.</p>
+              <div class="sh sub">Data</div>
+              <div class="r"><span>Pad level</span><b>1</b></div>
+              <div class="r"><span>Thrust limit</span><b>2000<small>kN</small></b></div>
+              <div class="r"><span>Wind limit</span><b>20<small>kn</small></b></div>
+              <div class="r"><span>Methane / LOX</span><b>4029 / 14502<small>kg</small></b></div>
+              <div class="r"><span>Fires, last 30 days</span><b>1</b></div>
+              <div class="r"><span>Last fire</span><b>1 day</b></div>
+              <div class="slot"><span>Starhopper 1</span><span class="pc">ready</span><span class="pl">On the pad</span></div>
+              <p class="now">Starhopper 1 is ready.</p>
+              <div class="sh sub">Upgrade</div>
+              <div class="u"><span>Pad level 2</span><span class="c">40</span><span class="btn off">Need 40 steel</span></div>
+              <p class="now">The methane tank holds 4029 kg.</p>
+              <p class="now">The LOX tank holds 14502 kg.</p>
+            </div>
+            <div class="acts">
+              <div class="trio">
+                <button type="button" class="a"><div class="l1">25 m</div></button>
+                <button type="button" class="a"><div class="l1">50 m</div></button>
+                <button type="button" class="a on"><div class="l1">150 m</div></button>
+              </div>
+              <p class="now">150 m. 1584 kg of methane and 5702 kg of oxygen. 22 seconds.</p>
+              <button type="button" class="a go"><div class="l1">Hop</div><div class="l2">22 seconds. No money.</div></button>
+              <div class="duo">
+                <div class="a"><div class="l1">Load methane</div><div class="l2">Tank is full.</div></div>
+                <div class="a"><div class="l1">Load LOX</div><div class="l2">Tank is full.</div></div>
+              </div>
+              <div class="duo">
+                <div class="a"><div class="l1">Return to Mega Bay</div></div>
+                <div class="a" title="Open Starhopper 1"><div class="l1">Open</div></div>
+              </div>
+            </div>
+            <div class="foot">Fleet</div>
+          </div>
+        </div>
+        <div class="footer"><div class="foot">Wiki</div><div class="log">Starhopper 1 is ready on the mount.<br>Data review ends.<br>Starhopper 1 held the static fire.<br>This game uses seed 11.</div></div>
+        <div class="rw" aria-label="Rocket window for a ready 150 m hop">
+          <div class="hd"><span class="nm">Starhopper 1</span><span class="pl">On the pad</span><span class="x">Close</span></div>
+          <div class="bd">
+            <svg class="ship" viewBox="0 0 160 420" aria-label="Starhopper 1">
+              <polygon points="80,14 104,92 104,262 56,262 56,92" fill="#141414" stroke="#e10600" stroke-width="1.6"/>
+              <polygon points="56,262 104,262 100,316 60,316" fill="#555" stroke="#f2f2f2" stroke-width="1.6"/>
+              <polygon points="70,316 90,316 116,408 44,408" fill="#f2f2f2" stroke="#f2f2f2" stroke-width="1.6"/>
+              <polygon points="56,200 24,276 56,262" fill="#cfcfcf"/>
+              <polygon points="104,200 136,276 104,262" fill="#cfcfcf"/>
+              <text class="tag" text-anchor="middle" x="80" y="150">100%</text>
+              <text class="tag s" text-anchor="middle" x="80" y="296" fill="#141414">100%</text>
+              <text class="tag s" text-anchor="middle" x="80" y="372" fill="#141414">100%</text>
+            </svg>
+            <table class="parts">
+              <thead><tr><th>Part</th><th>Has</th><th>Needs</th><th>Margin</th><th>Bay job</th></tr></thead>
+              <tbody>
+                <tr><td class="p">Structure</td><td class="n">100</td><td class="n">70</td><td><div class="meter" title="Has 100 against Needs 70, out of 100"><i style="width:100%;background:#f2f2f2"></i><em style="left:70%"></em></div></td><td class="j">On the pad</td></tr>
+                <tr><td class="p">Fuel lines</td><td class="n">40 s</td><td class="n">22 s</td><td><div class="meter" title="Has 40 s against Needs 22 s, out of 40 s"><i style="width:100%;background:#f2f2f2"></i><em style="left:55%"></em></div></td><td class="j">On the pad</td></tr>
+                <tr><td class="p">Engine</td><td class="n">1814 kN</td><td class="n">1555 kN</td><td><div class="meter" title="Has 1814 kN against Needs 1555 kN, out of 1814 kN"><i style="width:100%;background:#f2f2f2"></i><em style="left:85.7%"></em></div></td><td class="j">On the pad</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="strip"><span>Dry mass<b>102000 kg</b></span><span>Flight mass<b>109286 kg</b></span><span>Thrust<b>1814 kN</b></span><span>Specific impulse<b>330 s</b></span></div>
+        </div>
+      </div></div>
+      <figcaption>
+        <p>This is the Orbital Pad when Starhopper 1 is ready and 150 m is selected. You pick the height, then you press Hop.</p>
+        <p>The chips and the fact line sit in the pinned actions, at 14 px and 12 px. The Fuel lines Needs cell is 22 seconds. The Engine Needs cell is 1555 kN. Structure Needs stays 70. The Margin tick sits on those Needs.</p>
+        <p>The rocket window is open beside the column, so both fit on the 1280 by 800 screen. It is the tidy parts table. It is not a second poster.</p>
+      </figcaption>
+    </figure>
+
+    <figure class="look">
+      <h3>The hop you watch</h3>
+      <div class="shot"><div class="g screen" id="hop-watch">
+        <div class="bar">
+          <div><span class="lamp"></span><span class="sky"><b>Range open</b><i>clear 8 kn</i></span></div>
+          <div class="mid"><span class="ctr">Money<b>136</b></span><span class="ctr">Steel<b>4</b></span><span class="ctr">CH4<b>2445</b></span><span class="ctr">LOX<b>8800</b></span><span class="ctr">Fleet<b>1</b></span><div class="ver">0.18.0-hop. Test start.</div></div>
+          <div class="right"><span class="ctr">Day<b>18</b></span><span class="chip on">1x</span><span class="chip">3x</span><span class="chip">Skip</span><span class="chip">Pause</span><span class="chip">Restart</span></div>
+        </div>
+        <div class="main">
+          <div class="land"><div class="in">
+            <div class="sh">Land</div>
+            <div class="steel"><div>Buy 10 <b>10</b></div><div>Buy 50 <b>50</b></div></div>
+            <p class="rate">1 money buys 1 steel.</p>
+            <div class="sh sub">Buildings</div>
+            <div class="own"><div class="name">Starfactory</div><div class="line">Builds a Starhopper</div></div>
+            <div class="own"><div class="name">Mega Bay</div><div class="line">0 of 1 slot used</div></div>
+            <div class="own sel"><div class="name">Orbital Pad</div><div class="line">Pad level 1</div></div>
+          </div><div class="foot">Goals</div></div>
+          <div class="map">
+            <div class="sand"></div>
+            <div class="chips"><span>World</span><span>Region</span><span>Site</span><span style="border-color:#e10600">Work</span></div>
+            <div class="count">T+8<small>150 m burn</small></div>
+            <div class="alt">150 m<small>Height</small></div>
+            <div class="hold">The day holds during the hop.</div>
+            <div class="scale">400 m</div>
+            <div class="padmark" style="left:180px;bottom:150px"><i></i><span>Mount</span></div>
+            <div class="hopper" style="left:300px;bottom:280px" aria-hidden="true">
+              <svg viewBox="0 0 28 46" width="28" height="46">
+                <rect x="6" y="2" width="16" height="28" fill="#e6e0d4" stroke="#1a140e"/>
+                <polygon points="8,30 20,30 24,44 4,44" fill="#2a2a30"/>
+              </svg>
+              <i class="flame"></i>
+            </div>
+            <div class="padmark" style="left:400px;bottom:150px"><i></i><span>Landing mark</span></div>
+          </div>
+          <div class="insp">
+            <div class="in">
+              <div class="title tl">Orbital Pad<span class="wl">Wiki</span></div>
+              <p class="blurb">Holds one vehicle for its pad tests.</p>
+              <div class="sh sub">Data</div>
+              <div class="r"><span>Pad level</span><b>1</b></div>
+              <div class="r"><span>Thrust limit</span><b>2000<small>kN</small></b></div>
+              <div class="r"><span>Wind limit</span><b>20<small>kn</small></b></div>
+              <div class="r"><span>Methane / LOX</span><b>2445 / 8800<small>kg</small></b></div>
+              <div class="slot"><span>Starhopper 1</span><span class="pc">in flight</span><span class="pl">On the pad</span></div>
+              <p class="now">The day holds during the hop.</p>
+            </div>
+            <div class="acts">
+              <div class="a"><div class="l1">Hop</div><div class="l2">The rocket is still in flight.</div></div>
+            </div>
+            <div class="foot">Fleet</div>
+          </div>
+        </div>
+        <div class="footer"><div class="foot">Wiki</div><div class="log">Starhopper 1 is in flight.<br>The countdown reached T-0.<br>The day holds during the hop.<br>This game uses seed 11.</div></div>
+      </div></div>
+      <figcaption>
+        <p>This is the hop on the map, 8 seconds into the 150 m burn. The countdown ran from T-10 to T-0 before this frame.</p>
+        <p>The countdown and the height are 16 px. The day number is the same number it showed when the fill started. You cannot pan. The camera stays on this 400 m frame until the hop clock ends.</p>
+        <p>The landing mark is on land, about 100 m from the mount. The flame is the thrust that holds the weight. The old close-up stage stays closed, as it does for a static fire.</p>
+      </figcaption>
+    </figure>
+
+    <figure class="look">
+      <h3>The hard landing</h3>
+      <div class="shot"><div class="g screen" id="hop-hard">
+        <div class="bar">
+          <div><span class="lamp"></span><span class="sky"><b>Range open</b><i>clear 8 kn</i></span></div>
+          <div class="mid"><span class="ctr">Money<b>196</b></span><span class="ctr">Steel<b>4</b></span><span class="ctr">CH4<b>1149</b></span><span class="ctr">LOX<b>4135</b></span><span class="ctr">Fleet<b>1</b></span><div class="ver">0.18.0-hop. Test start.</div></div>
+          <div class="right"><span class="ctr">Day<b>22</b></span><span class="chip on">1x</span><span class="chip">3x</span><span class="chip">Skip</span><span class="chip">Pause</span><span class="chip">Restart</span></div>
+        </div>
+        <div class="main">
+          <div class="land"><div class="in">
+            <div class="sh">Land</div>
+            <div class="steel"><div>Buy 10 <b>10</b></div><div>Buy 50 <b>50</b></div></div>
+            <p class="rate">1 money buys 1 steel.</p>
+            <div class="sh sub">Buildings</div>
+            <div class="own"><div class="name">Starfactory</div><div class="line">Builds a Starhopper</div></div>
+            <div class="own"><div class="name">Mega Bay</div><div class="line">0 of 1 slot used</div></div>
+            <div class="own sel"><div class="name">Orbital Pad</div><div class="line">Pad level 1</div></div>
+          </div><div class="foot">Goals</div></div>
+          <div class="map"><div class="sand"></div>
+            <div class="chips"><span>World</span><span>Region</span><span>Site</span><span style="border-color:#e10600">Work</span></div>
+            <div class="bldg" style="left:470px;top:300px">Pad</div>
+          </div>
+          <div class="insp">
+            <div class="in">
+              <div class="title tl">Orbital Pad<span class="wl">Wiki</span></div>
+              <p class="blurb">Holds one vehicle for its pad tests.</p>
+              <div class="sh sub">Data</div>
+              <div class="r"><span>Pad level</span><b>1</b></div>
+              <div class="r"><span>Thrust limit</span><b>2000<small>kN</small></b></div>
+              <div class="r"><span>Methane / LOX</span><b>1149 / 4135<small>kg</small></b></div>
+              <div class="slot"><span>Starhopper 1</span><span class="pc hot">50</span><span class="pl">On the pad</span></div>
+              <p class="now">The fuel lines are short. Return to Mega Bay.</p>
+            </div>
+            <div class="acts">
+              <div class="duo">
+                <div class="a"><div class="l1">Load methane <b>6</b></div><div class="l2">Fills to 4029 kg.</div></div>
+                <div class="a"><div class="l1">Load LOX <b>6</b></div><div class="l2">Fills to 14502 kg.</div></div>
+              </div>
+              <div class="duo">
+                <button type="button" class="a go"><div class="l1">Return to Mega Bay</div></button>
+                <div class="a" title="Open Starhopper 1"><div class="l1">Open</div></div>
+              </div>
+            </div>
+            <div class="foot">Fleet</div>
+          </div>
+        </div>
+        <div class="footer"><div class="foot">Wiki</div><div class="log">The fuel lines are short. They had 18 seconds. The hop needs 22.<br>Starhopper 1 needs Mega Bay. Structure is 50.<br>This game uses seed 11.</div></div>
+        <div class="rw" aria-label="Rocket window after a hard landing">
+          <div class="hd"><span class="nm">Starhopper 1</span><span class="pl">On the pad</span><span class="ms">The fuel lines are short</span><span class="x">Close</span></div>
+          <div class="bd">
+            <svg class="ship" viewBox="0 0 160 420" aria-label="Starhopper 1">
+              <polygon points="80,14 104,92 104,262 56,262 56,92" fill="#141414" stroke="#e10600" stroke-width="1.6"/>
+              <polygon points="56,262 104,262 100,316 60,316" fill="#555" stroke="#f2f2f2" stroke-width="1.6"/>
+              <polygon points="70,316 90,316 116,408 44,408" fill="#f2f2f2" stroke="#f2f2f2" stroke-width="1.6"/>
+              <text class="tag" text-anchor="middle" x="80" y="150">50%</text>
+              <text class="tag s" text-anchor="middle" x="80" y="296" fill="#141414">45%</text>
+              <text class="tag s" text-anchor="middle" x="80" y="372" fill="#141414">100%</text>
+            </svg>
+            <table class="parts">
+              <thead><tr><th>Part</th><th>Has</th><th>Needs</th><th>Margin</th><th>Bay job</th></tr></thead>
+              <tbody>
+                <tr><td class="p">Structure</td><td class="n short">50</td><td class="n">70</td><td><div class="meter" title="Has 50 against Needs 70, out of 100"><i style="width:50%;background:#e10600"></i><em style="left:70%"></em></div></td><td class="j">On the pad</td></tr>
+                <tr class="hot"><td class="p">Fuel lines</td><td class="n short">18 s</td><td class="n">22 s</td><td><div class="meter" title="Has 18 s against Needs 22 s, out of 40 s"><i style="width:45%;background:#e10600"></i><em style="left:55%"></em></div></td><td class="j">On the pad</td></tr>
+                <tr><td class="p">Engine</td><td class="n">1814 kN</td><td class="n">1555 kN</td><td><div class="meter" title="Has 1814 kN against Needs 1555 kN, out of 1814 kN"><i style="width:100%;background:#f2f2f2"></i><em style="left:85.7%"></em></div></td><td class="j">On the pad</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="strip"><span>Dry mass<b>102000 kg</b></span><span>Flight mass<b>109286 kg</b></span><span>Thrust<b>1814 kN</b></span></div>
+        </div>
+      </div></div>
+      <figcaption>
+        <p>This is the pad after a second 150 m try. The lines had 18 seconds. The hop needed 22. The burn lasted 18 seconds and the landing was hard.</p>
+        <p>Before that press, the same Margin bar already showed 18 against 22, and Hop stayed on. After the landing the Fuel lines row is still short. Structure is 50 against 70. You press Return to Mega Bay. That button was already on the pad.</p>
+        <p>The window starts no bay job, as the sheet row locked. This picture is the parts table. It is not a wide slip.</p>
+      </figcaption>
+    </figure>
+
+    <h2 id="shape">The shape and the mass</h2>
+    <p><code>0.17.0-tidy</code> names every build Starhopper and a number. Starhopper 1, then Starhopper 2. There is no short serial. SH stays free for Super Heavy at <code>0.20.0-stack</code>. This row keeps that name. It writes no name of its own.</p>
+    <p>The map draws a short steel tank. It is 9 m across, with legs and one Raptor, and with no nose. The long body stays in the file for a later ship. This row does not call the art pass. The rocket window keeps the tidy drawing.</p>
+    <p>Dry mass is 102000 kg. That number includes the 2080 kg Raptor. It is a game number. No public page prints a Starhopper weight this row can copy. The strip shows that dry mass. The 1080 kg line leaves. The 27572 kg line leaves. Flight mass for the selected height is the hop figure on the strip.</p>
+    <p>The 169 second line leaves the hop path. A hop does not call <code>startLaunch</code> or <code>launchFarmReady</code>. That path still burns RP-1, and it still requires both tanks at level 2. Those two rules would block the 25 m hop and the 50 m hop.</p>
+    <p>Raise Raptor thrust does not change this table in this row. The printed loads are the Raptor 1 loads. The ship pass updates the wiki lines that still say the hop comes later, and the line that still quotes 169 seconds.</p>
+    <p>Steel stays 28. The build stays 8 to 12 days. The seed does not pick that span. It still uses <code>Math.random</code>, as it does today.</p>
+
+    <h2 id="flight">The flight</h2>
+    <p>The hop uses the Raptor you already have. Full thrust is 1814 kN. Specific impulse is 330 seconds. Gravity is <code>FLIGHT_G</code>, which is 9.81. The hidden launch stays hidden. A hop does not lose the rocket at sea.</p>
+    <p>The burn holds the weight. Hover throttle is the weight divided by 1814 kN. It is 56.5 percent at 25 m, 57.6 percent at 50 m, and 59.1 percent at 150 m. The flame length follows the thrust the engine is using. A 1400 kN engine at full thrust draws a shorter flame than a 1814 kN engine at full thrust.</p>
+    <p>Propellant for a full burn follows from that hover. Flow at hover is the flight mass divided by 330. The load below is that flow for the whole burn, split by the 3.6 mix, and rounded to the nearest kg.</p>
+    <pre><code>const HOP_DRY_KG = 102000;
+const HOP_ISP_S = 330;
+const HOP_LAND_TWR = 1.45;
+const HOP_G = 9.81;
+
+function hopProp(burnS) {
+  const x = burnS / HOP_ISP_S;
+  const prop = HOP_DRY_KG * x / (1 - x);
+  const ch4 = Math.round(prop / 4.6);
+  const lox = Math.round(ch4 * 3.6);
+  return { ch4, lox, flightKg: HOP_DRY_KG + ch4 + lox };
+}
+function hopFloorKn(flightKg) {
+  return Math.round(flightKg * HOP_G * HOP_LAND_TWR / 1000);
+}</code></pre>
+    <p>The picture splits the burn into a climb, a hover, and a descent. The flow stays at the hover rate for the whole burn, so the tank math stays one formula. The 25 m hover is 2 seconds. The 50 m hover is 4 seconds. The 150 m hover is 8 seconds.</p>
+    <table class="doc">
+      <thead>
+        <tr><th>Height</th><th>Burn</th><th>Climb, hover, descent</th><th>Methane</th><th>Oxygen</th><th>Flight mass</th><th>Floor</th><th>Structure, clean</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>25 m</td><td>8 s</td><td>3 s, 2 s, 3 s</td><td>551 kg</td><td>1984 kg</td><td>104535 kg</td><td>1487 kN</td><td>4</td></tr>
+        <tr><td>50 m</td><td>14 s</td><td>5 s, 4 s, 5 s</td><td>982 kg</td><td>3535 kg</td><td>106517 kg</td><td>1515 kN</td><td>6</td></tr>
+        <tr><td>150 m</td><td>22 s</td><td>7 s, 8 s, 7 s</td><td>1584 kg</td><td>5702 kg</td><td>109286 kg</td><td>1555 kN</td><td>10</td></tr>
+      </tbody>
+    </table>
+    <p>These three rows are initial balance. A full small tank holds 1218 kg of methane and 4386 kg of oxygen. The 25 m load and the 50 m load fit in that full tank. The 150 m load needs the level 2 tanks, which hold 4029 kg and 14502 kg.</p>
+    <p>A tanking run boils off 61 kg of methane and 219 kg of oxygen. The fire then takes 609 kg and 2193 kg. If the fire starts from what the boil-off left, the tanks hold 548 kg and 1974 kg. The 25 m load is short by 3 kg and 10 kg.</p>
+    <p>The seed path refills both tanks after the tanking run. Each refill costs 6 money. The fire then starts full. It leaves 609 kg and 2193 kg, and the 25 m load fits. The 50 m load still needs another refill. The hop itself costs no money.</p>
+    <p>While a height is selected, the Fuel lines Needs cell is that burn. That is 8, 14, or 22 seconds. The Engine Needs cell is that landing floor. Structure Needs stays 70. The Margin tick moves with those Needs. The bar's full width stays 100 for Structure, 40 seconds for the lines, and 1814 kN for Raptor 1.</p>
+    <p>The fill uses the same 2 second load as a static fire. The countdown is 10 seconds and starts when the load is aboard. The burn then runs on its own clock. The fill, the T-10 count, and the burn keep real seconds. The day holds for all three. Header speed does not shorten them. The speeds stay 1x and 3x.</p>
+    <p>A 150 m watch is 2 seconds of fill, 10 seconds of count, and 22 seconds of burn. A day is 4 seconds at 1x and 0.5 seconds in <code>?test</code>. If the day moved, that watch would spend 8.5 days at 1x and 68 days in <code>?test</code>. At 3x in <code>?test</code> it would spend 204 days. The day holds, so the day number stays put. The factory countdown and any road stay put with it.</p>
+    <p>Skip during the fill logs "The tanks are still loading." and does not jump. Skip during the count or the burn logs "The rocket is still in flight." and does not jump. Those are the lines a fill and a flight log today.</p>
+    <p>The camera stores the view, then frames the mount and the landing mark. The frame is about 400 m wide. It stays on that frame until the hop clock ends. Then it gives the old view back. You cannot pan during the lock. The hopper sprite rises on the screen as the height rises, and a 16 px number shows the meters.</p>
+    <p>The landing mark sits about 100 m east of the mount. It is on land. It is not a building you buy. If that edge of the work view is water, the mark flips to the land side.</p>
+
+    <h2 id="land">The landing</h2>
+    <p>The landing reads the thrust, the fuel lines, the engine seconds, and the pad. The same numbers always end the same way. A closed range or a short tank still scrubs. The rocket stays ready. No propellant leaves. No life is spent. Nothing is spent.</p>
+    <p>A short pad lights. The log names the pad. Structure loses 40 and stays at 20 or more. The rocket needs Mega Bay. It is not scrap. It is a miss, the same as a short pad on a static fire. Raptor 2 is 2256 kN. Pad level 1 holds 2000 kN, so this case is reachable without a test hook. The proof and the tanking run clear.</p>
+    <p>The floor on the parts table is the soft-landing line. A landing is soft when the thrust is at least that floor. A healthy Raptor at 1814 kN clears every floor. Thrust at 1400 kN clears none of them. It also fails the static fire floor of 1500 kN, so the player meets that case through <code>setThrust</code>. The log names the engine and prints both numbers.</p>
+    <p>The tooth in a normal game is the fuel lines. Healthy lines are 40 seconds. One 150 m hop leaves 18 seconds. The next 150 m burn needs 22. The Margin bar shows 18 against 22 before the press. Hop stays on. The burn lasts the seconds the lines or the engine still have. A short burn lands hard.</p>
+    <p>Under 2 seconds of burn, the rocket does not leave the mount. The engine did light. Structure loses 40 and stays at 20 or more. The rocket needs Mega Bay. It is not scrap.</p>
+    <p>If it leaves and the burn ends early, or the thrust is under the floor, the landing is hard. Structure loses 40 and stays at 20 or more. The rocket needs Mega Bay. It is not scrap. The log names every short part. A clean hop cuts Structure by 4, 6, or 10, from the table.</p>
+    <p>Propellant used is the load times the seconds burned, divided by the full burn, rounded to the nearest kg. The unused share goes back to the pad tanks. A full burn uses the whole load. A second 150 m hop that burns 18 seconds uses 1296 kg of methane and 4665 kg of oxygen. The other 288 kg and 1037 kg go back.</p>
+    <p>Engine seconds and line seconds fall by the seconds burned. A fire still spends 5 engine seconds and does not spend the lines. The hop does not call <code>afterFireLives</code>.</p>
+    <p>A hard landing clears the cryo proof and the tanking run, the same way a lit miss does. A soft landing keeps them. Structure under 70 blocks the button. The line names Structure, the number it has, and 70. That press does not start a fill.</p>
+    <p>An engine with 0 seconds does not light. The pad names the engine. The rocket stays as it is.</p>
+
+    <h2 id="again">The next hop</h2>
+    <p>A soft landing rolls the rocket from the landing mark back to the mount. That roll is the return road from tidy. Its length over 784 px per day is held between 0.5 day and 1 day. The same road costs the same days at 1x, at 3x, and in <code>?test</code>.</p>
+    <p>Skip in the middle of that road finishes the road, then jumps. The days are paid. The arrival matches a waited road within 0.05 day. A hard landing does not start the roll.</p>
+    <p>The inspection then takes 1 day on the mount. It reuses the mount wait the data review already uses. The wait line says inspection. It does not pay the refurb goal. The hop button stays off until that day ends. A hard landing does not start the inspection.</p>
+    <p>After the inspection the rocket is ready again. You pick the next height. The parts table uses the life, the tanks, and the thrust that are left. After a hard landing you press Return to Mega Bay and use the bay jobs you already have.</p>
+    <p>Bay prices stay as they are. Check Structure is 1 day and no money. Refurb the structure is 4 to 5 days and no steel. Inspect the fuel lines is 1 day and no steel. Refurb the engine is 24 steel and 2 days, or 1 day at pad level 2. The refurb goal stays 40. A hop does not pay it.</p>
+    <p>A hop does not raise the Structure floor. The floor still rises by 8 only when a short that was stored at build is found and then fixed. That rule is <code>0.16.0-bay</code>. This row does not make a new article safe. The high hop is still <code>0.19.0-high-hop</code>.</p>
+
+    <h2 id="pay">The review and the goal</h2>
+    <p>Every 30 days the program review pays 12 money for each clean test in that window. The review runs once inside the day change, when the new day is 30, 60, or 90. <code>setDay</code> does not pay. A later frame on that same day does not pay again.</p>
+    <p>The window is the clean rows whose day is after <code>lastReviewDay</code> and on or before the review day. A clean test is a cryo proof that held, a tanking run that held, a static fire that held, or a hop that landed soft. A skip, a scrub, a miss, and a hard landing pay nothing. The log says how much the review added. A quiet window says that no clean test is in it.</p>
+    <p>The goals sheet in <code>index.html</code> is a fixed list of seven. Those seven pays sum to 360. The sheet gains a row, "Land a hop.", for 60. That 60 sits level with the static fire goal. The pay never shows on the sheet unless that row is added. The first soft landing pays it once. A hard landing does not pay it. The seven goals stay. <code>6.1.0-rounds</code> rebalances the review later.</p>
+    <p>A proof, a tanking run, a static fire, or a hop writes <code>result</code> <code>clean</code> or <code>miss</code> when it ends. A static fire today is stored in <code>fireDays</code>, not in <code>testDays</code>. It also writes a <code>testDays</code> row with that result, so the review can see it. <code>fireDays</code> stays for the cadence count. A failed proof today writes <code>kind: "proof"</code> with no pass flag. This row adds the result. A skip stays unpaid. A scrub writes no clean row. A row with no <code>result</code> pays nothing, including every row already in an old save.</p>
+    <p>The pad record can add a hop count for the last 30 days. The header cadence number still waits for <code>0.18.1-pipeline</code>.</p>
+
+    <h2 id="stays">What stays</h2>
+    <ul>
+      <li>The cryo proof still costs 20 money, takes 1 day, and passes at 70. It still writes the exact Structure number.</li>
+      <li>The tanking run and the static fire stay on the pad. A lit miss still takes up to 40 off Structure and leaves it at 20 at worst.</li>
+      <li>Fuel lines still leave at 0 seconds or 40. Thrust still leaves at 1400 kN or 1814 kN.</li>
+      <li>A closed range or a short tank still scrubs a burn. A scrub does not damage the rocket. A short pad still lights and is a miss.</li>
+      <li><code>mix32</code> and <code>roll</code> stay as they are. The hop does not add a salt. The result comes from the numbers on the parts table.</li>
+      <li>Save version stays 1. <code>?test</code> still uses seed 11. The tidy rename still runs. The road <code>unit</code> mark stays.</li>
+      <li>The speeds stay 1x and 3x. They speed the day only. The fill, the count, and the burn keep real seconds, and the day holds. Skip during those three logs the line it logs today and does not jump.</li>
+    </ul>
+
+    <h2 id="life">Real life</h2>
+    <p>Starhopper flew at Boca Chica on one Raptor. Wikipedia's list of Starship flight tests records two tethered hops. On 3 April 2019 it rose under 0.3 m for about 3 seconds. On 5 April 2019 it rose about 1 m for about 5 seconds and hit the tether limits.</p>
+    <p>On 25 July 2019 it flew free for about 22 seconds and reached about 20 m. That same list calls the height 20 m. NASASpaceflight's 27 August account calls the July hop about 18 m. The 25 m button and the 50 m button are game choices.</p>
+    <p>On 27 August 2019 Starhopper flew to 150 m in 57 seconds and landed about 100 m from the launch pad. The flight list gives the height and the 57 seconds. The vehicle list gives the distance. Scientific American describes the separate landing pad and the 57 seconds. An attempt on 26 August shut down at ignition. The plan had been near 200 m. The FAA ceiling for the flight was 150 m. NASASpaceflight wrote that up on 27 August 2019.</p>
+    <p>The game burn stays 22 seconds. A 57 second burn at this dry mass asks for 4630 kg of methane and 16668 kg of oxygen. The level 2 tanks hold 4029 kg and 14502 kg, so that load does not fit. The real 57 seconds stay in this section.</p>
+    <p>SN5 hopped 150 m on 4 August 2020. The flight list times that hop at about 51 seconds. SN6 hopped 150 m on 3 September 2020 and landed on the pad beside the stand. Each of those flights used one Raptor. Everyday Astronaut's SN6 page is the plan for that hop.</p>
+
+    <h2 id="seed">Seed 11</h2>
+    <p>A test start uses seed 11. Day 1 is Clear, wind 8 kn. The pad wind limit is 20 kn, so the range is open. The defect order is stage, then fitting, then engine. <code>mix32</code> and <code>roll</code> are unchanged. The hop adds no roll.</p>
+    <p>The sky repeats every 10 days. Day 1 Clear 8. Day 2 Storm 36. Day 3 Wind 24. Day 4 Clear 12. Day 5 Clear 10. Day 6 Clear 6. Day 7 Storm 32. Day 8 Wind 22. Day 9 Wind 26. Day 10 Clear 14. A Wind or a Storm closes the range. A hop on day 2 scrubs.</p>
+    <p>Starhopper 1 stores Structure 58, lines 40 seconds, and thrust 1814 kN. Engine life starts at 180 seconds. The first bay reading is 52 to 82. The second is 50 to 60. The cryo proof fails. The log says Structure needs 70 and has 58. You cannot hop.</p>
+    <p>You refurb the structure. Structure becomes 100. The factory floor becomes 28. That refurb pays 40 once. You pass the proof, the tanking run, and the static fire. The fire spends 5 engine seconds, so life is 175. The lines stay 40. Structure stays 100. The data review takes 1 day. Then the height chips are on.</p>
+    <p>The seed path refills both tanks after the tanking run. Each refill costs 6 money. The fire starts from a full small tank, 1218 kg and 4386 kg, and leaves 609 kg and 2193 kg. The 25 m hop fits. It burns 8 seconds. Structure becomes 96. Engine life becomes 167. Lines become 32. Investors add 60 once. The roll back takes 0.5 to 1 day. The inspection then takes 1 day. The goal does not pay again.</p>
+    <p>A second 25 m hop leaves Structure 92, engine life 159, and lines 24. A 150 m try with 18 seconds on the lines burns 18 seconds and lands hard. Structure loses 40 and stays at or above 20. The log names the fuel lines. The rocket needs Mega Bay. It is not scrap.</p>
+    <p>The build span is still 8 to 12 days, and the structure refurb span is still 4 to 5 days. Those two spans are not seed 11 numbers. The acceptance checks read <code>snap</code> after Skip, not a fixed calendar day for the factory.</p>
+
+    <h2 id="save">The save</h2>
+    <p>The key stays <code>starbase-save</code>. The test key stays <code>starbase-save-test</code>. Version stays 1. The next write sets <code>label</code> to <code>0.18.0-hop</code>. A missing field does not reject the yard. A file whose version is not 1 stays on disk and does not load.</p>
+    <pre><code>{
+  version: 1,
+  label: "0.18.0-hop",
+  seed: 11,
+  lastReviewDay: 0,
+  objectives: { hop: false },
+  testDays: [{ day: 12, kind: "hop", result: "clean" }],
+  fleet: [{ name: "Starhopper 1", hops: 1, stageLife: 96, engineLifeS: 167, fittingLifeS: 32 }],
+  rollouts: [{ kind: "roll", unit: "day" }]
+}</code></pre>
+    <p>A missing <code>hops</code> loads as 0. A missing <code>lastReviewDay</code> loads as 0. A missing hop goal loads as open. A test row with no <code>result</code> does not pay. <code>applySave</code> does not roll Structure again.</p>
+    <p>The tidy rename still runs. This row does not put TA or SH back. A stored Starhopper 1 stays Starhopper 1. A file that still says TA-1 has already become Starhopper 1 before this row reads it. The road <code>unit</code> mark from tidy is kept.</p>
+    <p>A hop in progress is not saved, the same way a fill, a fire, and a flight are not saved. <code>fluidsMoving</code> in <code>index.html</code> is only those three kinds. The count and the burn have to join it. <code>autosave</code> and <code>pagehide</code> already return when fluids are moving. A save written during the burn does not hold the hop motion, so a load does not start inside the burn.</p>
+
+    <h2 id="hooks">Test hooks</h2>
+    <p><code>window.__sb</code> exists only on <code>?test</code>. Keep every hook that is already there. <code>snap</code>, <code>setDay</code>, <code>skipToEvent</code>, and <code>startBayCheck</code> are already there.</p>
+    <ul>
+      <li><code>startHop(name, meters)</code> starts the hop for "Starhopper 1". It returns false when the rocket is not ready, the height is not 25, 50, or 150, or a fill, a fire, or a hop is already running.</li>
+      <li><code>setThrust(name, kn)</code> writes <code>thrustKn</code> on that rocket. It is how the 1400 kN landing is reached, because a short engine never gets a clean fire.</li>
+      <li><code>snap.fleet[].hops</code>, <code>engineLifeS</code>, <code>fittingLifeS</code>, <code>stageLife</code>, and <code>thrustKn</code> stay readable.</li>
+      <li><code>snap.testDays</code> includes <code>kind</code> and <code>result</code>. <code>snap.lastReviewDay</code> is the last review day.</li>
+    </ul>
+
+    <h2 id="out">Out of scope</h2>
+    <ul>
+      <li>The build-during-test pipeline and the header cadence count. Those are <code>0.18.1-pipeline</code>.</li>
+      <li>The flip and the high landing. Those are <code>0.19.0-high-hop</code>. SN serials start there.</li>
+      <li>The CSS split, sound, and the tower. SH stays free for Super Heavy at <code>0.20.0-stack</code>.</li>
+      <li>The road in game days, the day hold, the 1x and 3x speeds, the Starhopper name, and the parts table. Those are <code>0.17.0-tidy</code>. This row waits for that row. It does not write a name.</li>
+      <li>A new money price on a bay job, a fail roll, or a change to the 70 line.</li>
+      <li>A save version bump. Version stays 1.</li>
+      <li>Editing <code>index.html</code> in this design session.</li>
+    </ul>
+
+    <h2 id="check-list">Acceptance</h2>
+    <p>Tiago runs these in the browser after the implementation. The test file is <code>index.html?test</code>. Seed 11. The window is 1280 by 800. Read <code>snap</code> in the same turn as the action. Day plus share means <code>snap().day</code> plus <code>snap().dayAcc / dayMs()</code>. The fresh build reads Starhopper 1 because tidy set that name.</p>
+    <ol>
+      <li>Build Starhopper 1 and let the factory finish. <code>stageLife</code> is 58. <code>articleN</code> is 1. <code>fittingLifeS</code> is 40. <code>thrustKn</code> is 1814. <code>engineLifeS</code> is 180. <code>structBuiltShort</code> is true. <code>hops</code> is 0. The name is Starhopper 1. No SH serial appears on screen, in the log, or in the save. Investors add 20 for the first rocket. Steel is down by 28.</li>
+      <li>The cryo proof fails. The log says Structure needs 70 and has 58. The hop button is off. Structure is still 58.</li>
+      <li>Run both bay checks. The bands are 52 to 82, then 50 to 60. Refurb the structure. Structure is 100. <code>structFloor</code> is 28. That refurb pays 40 once. The checks do not pay it.</li>
+      <li>Pass the proof, the tanking run, and the static fire. After the tanking run, refill both tanks. Each refill costs 6 money. The fire starts full and leaves 609 kg of methane and 2193 kg of oxygen. Skip the data review. The rocket is ready. Engine life is 175. Lines are 40. Structure is 100. The tests stay passed.</li>
+      <li>The pad offers 25, 50, and 150. At 25 m the load is 551 kg and 1984 kg, the floor is 1487 kN, and the flight mass is 104535 kg. That hop fits the 609 kg and 2193 kg left after the fire. At 50 m the load is 982 kg and 3535 kg. The leftover methane is short, so that hop needs another refill. At 150 m the load is 1584 kg and 5702 kg, the floor is 1555 kN, and the flight mass is 109286 kg. The small tank cannot hold it. The level 2 tanks hold 4029 kg and 14502 kg, and that load fits.</li>
+      <li>Start the 25 m hop. Day plus share is the same before and after the fill, the T-10 count, and the burn, at 1x and at 3x. Skip during the fill logs that the tanks are still loading and does not finish the hop. The countdown is on screen from T-10. There is no sound control and no tone. Skip during the count logs that the rocket is still in flight and does not jump. Skip during the burn logs that same kind of line and does not jump. Header speed does not shorten the 10 second count or the 8 second burn. The camera stays on the 400 m frame until the hop clock ends.</li>
+      <li>The landing is soft. Structure is 96. Engine life is 167. Lines are 32. <code>hops</code> is 1. The rocket landed on the mark about 100 m east, on land. The roll back is a road of 0.5 to 1 day. Then the status is the 1 day inspection. The wait line says inspection. The proof and the tanking run stay passed. The hop spent no money. Investors add 60 once. The goals sheet shows "Land a hop." The record has a hop with result clean.</li>
+      <li>During the roll and the inspection the hop button is off. The roll takes 0.5 to 1 day at 1x and at 3x. Skip halfway through the roll finishes the road, then jumps, and that arrival matches a waited roll within 0.05 day. Skip to the end of the inspection day. The rocket is ready. A second 25 m hop leaves Structure 92, engine life 159, and lines 24. The goal does not pay again.</li>
+      <li>On a new ready Starhopper 1, fit the level 2 tanks and fill them. Hop 150 m. The landing is soft. Structure is 90. Engine life is 153. Lines are 18. Investors add 60 if this is the first soft landing. Skip the inspection. The Fuel lines Margin bar shows 18 against 22 before the second press, and Hop stays on. Hop 150 m again. It burns 18 seconds. The landing is hard. The log names the fuel lines. Structure is 50. The rocket needs Mega Bay. It is not scrap. The proof and the tanking run are cleared. The record result is miss. Methane used on that second hop is 1296 kg. Oxygen used is 4665 kg. The rest of that load is back in the tanks. Return to Mega Bay is the button that was already on the pad.</li>
+      <li>On a ready rocket, call the hop on day 2. The sky is Storm, wind 36. The hop scrubs. The log says the range is closed. Structure, engine life, lines, and the tanks are unchanged. Nothing is spent.</li>
+      <li>With the tanks short of the 25 m load, the hop scrubs. The log says the methane or the oxygen is short. Nothing is spent.</li>
+      <li><code>setThrust</code> to 1400 on a ready Starhopper 1 and hop 25 m. The floor is 1487 kN. The landing is hard. The log names the engine and shows 1400 against 1487. Structure stays at or above 20. The rocket needs Mega Bay. A healthy 1814 kN clears that floor. The 1400 kN case also fails the static fire floor of 1500 kN, so this check uses <code>setThrust</code>.</li>
+      <li>Put two clean tests and one miss in the record, set the day to 29, and finish a 1 day inspection so the next day is 30. The review adds 24 money. A skip in that window adds nothing. A later frame that stays on day 30 does not pay again. <code>setDay</code> to 30 does not pay. <code>lastReviewDay</code> is 30. The window is clean rows whose day is after <code>lastReviewDay</code> and on or before the review day.</li>
+      <li>Load a version 1 file that has no <code>hops</code>, no <code>lastReviewDay</code>, and no hop goal. The yard continues. Hops read 0. The review day reads 0. The hop goal is open. A stored Starhopper 1 stays Starhopper 1. A file that still says TA-1 has already become Starhopper 1. This row does not put TA or SH back. The road <code>unit</code> mark from tidy is kept. A test row with no result does not pay. <code>applySave</code> does not roll Structure again. Version stays 1.</li>
+      <li>A hop never cuts Structure below 20. A third Structure check still does not start. Refurb prices are unchanged. The refurb goal is still 40. <code>structFloor</code> does not rise because of a hop.</li>
+      <li>The hop does not call <code>startLaunch</code> or <code>launchFarmReady</code>. A soft hop does not destroy the rocket and does not log a loss at sea. The hidden launch stays hidden.</li>
+      <li>On a ready Starhopper 1 at pad level 1, raise Raptor thrust to 2256 kN. The pad holds 2000 kN. Hop. The hop lights. The log names the pad. Structure loses 40 and stays at 20 or more. The rocket needs Mega Bay. It is not scrap. The proof and the tanking run clear. The record result is miss. A closed range or a short tank still scrubs and spends nothing.</li>
+      <li>With the hop actions up, the pad column and the rocket window do not scroll at 1280 by 800. <code>#insp-scroll</code> and <code>.sheet-body</code> have <code>scrollHeight &lt;= clientHeight</code>. Outside the top bar and outside SVG text, the type sizes stay inside 11, 12, 14, and 16 px. The countdown and the height number are 16 px or under.</li>
+      <li>A save written during the burn does not load inside the burn. The count and the burn join <code>fluidsMoving</code>, with the fill, the fire, and the flight. A reload does not resume the hop, and it does not leave the tanks drained from a burn the save lost.</li>
+    </ol>
+
+    <h2 id="docs">Docs after ship</h2>
+    <p>These updates happen in the ship pass, after the browser checks. This design session does not do them. Tiago commits. This session does not open a pull request.</p>
+    <ul>
+      <li><code>VERSION</code> becomes <code>0.18.0-hop</code>. The header version follows it.</li>
+      <li>README live-release line. This row is live. The next row is <code>0.18.1-pipeline</code>.</li>
+      <li>One new section in <code>IMPLEMENTATION_LOG.md</code>.</li>
+      <li>The wiki flight page describes the hop, the three heights, and the landing floor.</li>
+      <li>The wiki lines that still say the hop comes later are updated. The line that still quotes 169 seconds is updated. The strip no longer says 1080 kg or 27572 kg.</li>
+      <li><code>design-docs/site-objects-design.html</code> gains one line for the landing mark. It sits about 100 m east of the mount, on land. It is not a buy.</li>
+      <li>Archive the previous <code>index.html</code> and append <code>archive/MANIFEST.md</code>.</li>
+    </ul>
+
+    <h2 id="decided">Tiago decided on 2026-11-18</h2>
+    <ol>
+      <li>Keep this sitting. Dry mass is 102000 kg. The burns are 8, 14, and 22 seconds. The clean cuts are 4, 6, and 10. The hard cut is 40. The landing margin is 1.45. The review pays 12. The first hop pays 60. A clean fire at 1814 kN clears the thrust floor. The lines are the tooth. The 25 m seed path refills after tanking.</li>
+      <li>The Hop button stays on when the lines are short. The Margin bar shows the short before the press. The burn lasts the seconds that remain. A short burn lands hard.</li>
+      <li>A hard landing clears the cryo proof and the tanking run, the same way a lit miss does.</li>
+      <li>Keep the 22 second burn. A 57 second burn at this dry mass does not fit the level 2 tanks. The real 57 seconds stay in the life section.</li>
+      <li>The landing mark sits about 100 m east of the mount, on land. It is not a buy. If that edge of the work view is water, the mark flips to the land side.</li>
+      <li>The camera stays on the 400 m frame until the hop clock ends. Then it gives the old view back.</li>
+      <li>The unused share of the load goes back to the pad tanks. A scrub spends nothing.</li>
+      <li>A pad that cannot hold the thrust lights and counts as a miss. A closed range or a short tank scrubs.</li>
+      <li>Closed by tidy. This row waits for tidy. It does not write a name.</li>
+    </ol>
+    <p>No question is open.</p>
+
+    <h2 id="pick">The lock</h2>
+    <p>The height chips, the map countdown, and the parts table are the pictures. The chips are where you pick the height. The countdown has no sound. The flame follows the thrust in use. A hard landing uses the Return button that is already on the pad, and the Margin bar shows the short.</p>
+    <p>The dry mass, the three burns, the three loads, the three floors, the Structure cuts, the 12 money review, and the 60 money goal are initial balance. Hover throttle is 56.5 percent, 57.6 percent, and 59.1 percent. A healthy Raptor clears every floor. The lines are the tooth. One 150 m hop leaves 18 seconds, and the next 150 m burn needs 22. Seed 11 does not roll the hop. Starhopper 1 still stores Structure 58 until you refurb it.</p>
+    <p>The day holds for the fill, the count, and the burn. The speeds stay 1x and 3x. The roll back is a road of 0.5 to 1 day. This row waits for tidy and writes no name. Phase 0 stays near 90 minutes at 1x. At 3x it is shorter. This row adds the countdown and the burn, which are a few minutes of watching across several hops, and the choices around height, tanks, and a hard landing. Skip still removes the waiting days.</p>
+
+    <p class="footer-note">Revised 2026-11-18 after the critic. Tiago locked the nine answers the same day. Seed 11, Starhopper 1, Structure 58, then 100 after the fix. A 25 m hop is 551 kg of methane, 1984 kg of oxygen, floor 1487 kN, flight mass 104535 kg, burn 8 seconds. A 50 m hop is 982 kg, 3535 kg, floor 1515 kN, flight mass 106517 kg, burn 14 seconds. A 150 m hop is 1584 kg, 5702 kg, floor 1555 kN, flight mass 109286 kg, burn 22 seconds. A clean test pays 12. The first soft landing pays 60. No question is open.</p>
+  </div>
+</body>
+</html>

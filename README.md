@@ -10,7 +10,7 @@ Open `index.html` in a browser. There is no build step. Open `index.html?test` f
 
 ## How to play
 
-Buy steel and plots on Land. Build a rocket at Starfactory. Roll it to Mega Bay, then roll it to the Orbital Pad. Run a cryo proof, load methane and LOX, run a tanking run, then a static fire, then send the rocket home. The hop comes later. Parts wear out: Structure, Fuel lines, and Engine (Raptor). Goals, Wiki, and Fleet sit on the screen. The Wiki reads the live numbers, and a note says In real life when the game and the sources differ.
+Buy steel and plots on Land. Build a rocket at Starfactory. Roll it to Mega Bay, then roll it to the Orbital Pad. Run a cryo proof, load methane and LOX, run a tanking run, then a static fire. A ready rocket hops 25 m, 50 m, or 150 m, then rolls back for inspection. Parts wear out: Structure, Fuel lines, and Engine (Raptor). Goals, Wiki, and Fleet sit on the screen. The Wiki reads the live numbers, and a note says In real life when the game and the sources differ.
 
 ## What's real
 
@@ -18,7 +18,7 @@ The sites, the engines, and the propellants follow real SpaceX hardware. The gam
 
 ## Status
 
-Live release: `0.17.0-tidy`. Next row: `0.18.0-hop`. The screen uses four type sizes, and the rocket window is one parts table. The road and the lift run in game days, the day holds during a fill, a fire, and a flight, the speeds are 1x and 3x, and every build is named Starhopper and a number. Structure is a fixed number you have to measure. The factory rolls it when the job ends and stores it. Check Structure in Mega Bay costs 1 day and no money. The first reading is about 30 wide. The second is about 10 wide. Only the pad writes the exact number. Each found and fixed Structure fault raises the factory floor by 8. Fuel lines and thrust keep their fixed shorts. The cryo proof, the tanking run, and the static fire stay on the pad.
+Live release: `0.18.0-hop`. Next row: `0.18.1-pipeline`. A ready rocket hops 25 m, 50 m, or 150 m. The day holds during the fill, the count, and the burn. The review pays 12 money for each clean test every 30 days, and the first soft landing pays 60. The screen uses four type sizes, and the rocket window is one parts table. The road and the lift run in game days, the speeds are 1x and 3x, and every build is named Starhopper and a number. Structure is a fixed number you have to measure. The factory rolls it when the job ends and stores it. Check Structure in Mega Bay costs 1 day and no money. The first reading is about 30 wide. The second is about 10 wide. Only the pad writes the exact number. Each found and fixed Structure fault raises the factory floor by 8. Fuel lines and thrust keep their fixed shorts. The cryo proof, the tanking run, and the static fire stay on the pad.
 
 ## Where it's headed
 
