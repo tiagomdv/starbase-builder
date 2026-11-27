@@ -11,7 +11,7 @@ This applies to the whole project. Chat, the game, design docs, the log, commit 
 
 Write short sentences, about twenty-five words or fewer. Use everyday words and the active voice. Say who does what. "The pad holds the rocket" is clearer than "The rocket is held by the pad." Stay in the present tense. Use numerals for counts, days, and costs.
 
-Name buttons, buildings, and files as they appear on screen: Starfactory, Mega Bay, Orbital Pad, `index.html`. If a technical word is required, explain it once in plain words the first time it appears. Thrust, specific impulse, and pad level are fine after that explanation. A stack of undefined abbreviations is not.
+Name buttons, buildings, and files as they appear on screen: Starfactory, Mid Bay, Orbital Pad, `index.html`. If a technical word is required, explain it once in plain words the first time it appears. Thrust, specific impulse, and pad level are fine after that explanation. A stack of undefined abbreviations is not.
 
 In the game, a label says what the player can do or what just happened. "Static fire" and "Falcon 9 needs pad level 2" are enough. Do not write "simply," "just," "easily," or "obviously." Do not use slogans, exclamation marks, or a joke in place of the fact. A failure names the part that was short.
 
@@ -21,7 +21,7 @@ Keep the hardware honest. If a real pad would only abort, the game aborts. It do
 
 A closed range or a short tank cannot light a real burn. The attempt may run. The log names every short part, not only the first check. The player then opens the rocket sheet and empties the tanks. The game does not dump them by itself. The rocket keeps its condition and stays where it is.
 
-A burn that does light can fail. A short engine or a short pad may cut condition and send the rocket to Mega Bay. A launch that leaves the pad can be lost at sea. A scrub cannot.
+A burn that does light can fail. A short engine or a short pad may cut condition and send the rocket to Mid Bay. A launch that leaves the pad can be lost at sea. A scrub cannot.
 
 Do not add a hidden chance, a percent, or a punishment the hardware would not do. A number the player sees has to be a tank, a thrust, a wind, a day, or a life.
 
@@ -107,7 +107,7 @@ Out-of-scope ideas → offer to append to `FUTURE_FEATURES.md`. Keep the current
 
 | Phase | Name | Focus |
 |-------|------|-------|
-| 0 | Starbase | Starship development in Texas: Raptor and methane, prototype tests, defects, hop, high hop, stack and tower, suborbital test, orbit. Then tracking, pictures, and the final motion pass |
+| 0 | Starbase | Starship development in Texas: Raptor and methane, prototype tests, defects, the hopper in the Mid Bay, the tank hop, the 10 km nose article in the High Bay, a ship in the High Bay and a booster in Mega Bay, the stack, a suborbital test, orbit. Then tracking, pictures, and the final motion pass |
 | 1 | Recovery and catch | Bring the booster home, the tower catch, refurb with defect checks, factory rate |
 | 2 | Starlink | Your own satellites. Branch choice, any order after phase 1 |
 | 3 | Moon and Mars | Orbit depot, then a Moon site, then a Mars site. Branch choice, needs the catch |
@@ -122,7 +122,7 @@ Out-of-scope ideas → offer to append to `FUTURE_FEATURES.md`. Keep the current
 
 ## Object record
 
-`design-docs/site-objects-design.html` is the list of what a building is. It names Starfactory, Mega Bay, and the Orbital Pad, and the parts that arrive with each one. Later sites go on that same page.
+`design-docs/site-objects-design.html` is the list of what a building is. It names Starfactory, Mid Bay, and the Orbital Pad, and the parts that arrive with each one. Later sites go on that same page.
 
 When a part is added, dropped, renamed, or locked, update that page in the same pass. Keep one part on one line: its name, where it sits, and its job. Do not open a second object list. Do not write the change into `design-docs/field-iterations.html` or `design-docs/field-and-control.html`. Those pages are closed with the field version.
 

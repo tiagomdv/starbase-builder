@@ -5,6 +5,20 @@ History of what **shipped**, keyed by **version**.
 
 ---
 
+## 2026-11-27 — prototype campaign before the tower (docs only, no version bump)
+
+**Version:** stays `0.19.0-high-hop` · docs only
+
+- Tiago asked the rest of phase 0 to follow the real prototype order. The same rocket does not climb every height. A soft landing writes one reading on the sheet and on the factory card. The next height stays off until that reading is there. The rocket that flew stays as it is. A bay fix repairs that rocket only. The factory moves only after a clean hop. Each landing closes half the gap to that hop's cap. A 25 m landing moves thrust toward 1600 kN. A 50 m landing moves fuel lines toward 20 seconds. A 150 m landing moves thrust toward 1814 kN, fuel lines toward 40 seconds, and the Structure floor toward 60. These caps are game numbers. A new shape starts again at 1400 kN, 0 seconds, and a Structure floor of 20. A miss does not move the numbers.
+- A 25 m landing writes that the engine landed, and that lets you try 150 m. A 150 m hopper landing opens the tank SN at `0.20.0-tank`. A 150 m tank landing opens the nose article at `0.21.0-nose`. A 10 km landing opens the booster and the ship at `0.22.0-stages`. Pass a booster and Pass a ship each write a reading, and the tower waits for both. The 50 m hop stays off until the 25 m reading is there. It does not open a vehicle.
+- A line can say In real life. That is what SpaceX flew. Your serial is the rocket you built.
+- The live hall is called Mega Bay. `0.20.0-tank` renames it Mid Bay. The hopper and the tank SN use it. The bay check stays a window, and the cryo proof writes the real Structure. A bigger hall is a buy. The hopper and the tank SN fit the Mid Bay. `0.21.0-nose` lets you buy the High Bay, and the nose article will not start without it. The ship fits the High Bay. `0.22.0-stages` lets you buy Mega Bay, and the booster will not start without it. `1.4.0-halls` is another buy. None of these halls appear when a goal is done. SN5 and SN6 rolled out of the Mid Bay while the High Bay was still going up. Mega Bay came later for the boosters. Source: NASASpaceflight Boca Chica clips, August and September 2020.
+- The tower moves to `0.23.0-stack`. The suborbital test moves to `0.24.0-suborbital`. Orbit moves to `0.25.0-orbit`. Tracking, the building pictures, and the final motion pass move to `0.26.0-tracking`, `0.27.0-picture`, and `0.28.0-motion-final`. Tiago dropped `0.19.1-split`.
+- The real order is Starhopper's short hop on 25 July 2019 and its 150 m hop on 27 August 2019, then retirement. SN5 hopped 150 m on 4 August 2020. SN6 hopped 150 m on 3 September 2020. SN8 flew 12.5 km on 9 December 2020 with three Raptors and was lost when the methane header tank lost pressure. Later ships in that series flew 10 km. The game keeps one high hop at 10 km. BN1 was scrapped and never flew. Ship 20 sat on Booster 4 for a fit check on 6 August 2021, and that pair did not fly. Sources: NASASpaceflight, 27 August 2019, 4 August 2020, and 28 August 2021; Wikipedia, List of Starship upper stage flight tests, and List of Super Heavy boosters. Vehicle heights in meters are not locked. The design page for `0.20.0-tank` draws the shapes.
+- The 2026-11-12 log keeps the old later names. No game code changed. `index.html` and `VERSION` did not change.
+
+---
+
 ## 2026-11-27 — pipeline merged into the high hop (docs only, no version bump)
 
 **Version:** stays `0.18.0-hop` · docs only
@@ -423,3 +437,17 @@ History of what **shipped**, keyed by **version**.
 - The factory hold stays one. Once the article has left, the next build can start. The land line reads Building SN 2. The Now row reads that name. Days left use whole days.
 - The header shows Fires. The number matches the pad row for the last 30 days. A static fire that lights joins it. A hop does not.
 - `setLines(name, seconds)` stores fuel-line seconds. `selectHop` and `startHop` accept 10000 for an SN and return false for a Starhopper. Save stays version 1. The label is `0.19.0-high-hop`. A hop in the middle of the watch does not resume on reload. The previous live file is `archive/index-0.18.0-hop.html`. The design page is `design-docs/0.19.0-high-hop-design.html`.
+
+## `0.20.0-tank` — 2026-11-27
+
+**Version:** `0.20.0-tank`
+
+- The hall you already bought is Mid Bay. The rename spends nothing. High Bay and Mega Bay stay off the map. The hopper and the tank rocket both use Mid Bay.
+- A clean hop is the only thing that moves the factory. The rocket that flew stays as it is. A bay fix repairs that rocket only. A crash does not move the factory. A scrub spends nothing and does not damage the rocket.
+- Each clean landing closes half the gap toward that hop's cap, from either side. A 25 m landing moves thrust toward 1600 kN. From 1400 the steps are 1500, then 1550, then 1575. A factory at 1700 kN reads 1650 kN after a 25 m landing. Fuel lines and the Structure floor stay put on that hop. 50 m and 150 m stay off until a 25 m hop has landed. A 50 m landing moves fuel lines toward 20 seconds. From 0 the steps are 10, then 15, then 17. 50 m does not open a vehicle. A 150 m landing moves thrust toward 1814 kN, fuel lines toward 40 seconds, and the Structure floor toward 60. The floor still starts at 20. The cryo proof still wants 70.
+- The hop leaves the fuel lines on the rocket that flew. A scrapped serial stays taken. The next build uses the next free number. A failed cryo on the tank rocket scraps that rocket. The wiki says that.
+- After a 25 m landing, 1500 kN is the next hopper. The yard still shows Starfactory, Mid Bay, and the Orbital Pad. The hopper rolls back and waits out the 1 day inspection.
+- A soft 150 m landing on the hopper opens the tank rocket. It has its own card and its own build. It starts at 1400 kN, 0 seconds, and a floor of 20. It is a full-width tank with a hat and one Raptor. 150 m is its only hop. Its own clean 150 m hops use the same half-gap rule.
+- The bay check stays a window, about 30 wide and then about 10. It does not roll again. The cryo proof writes the real Structure. A window that still reaches 70 is not marked short. A failed cryo on the hopper sends it back to Mid Bay. A failed cryo on the tank rocket scraps that rocket. Land a tank hop stays open. The static fire still wants 1500 kN. Tanking still wants 5 seconds. Raptor 2 stays the lab button on one rocket.
+- The first soft landing pays Land a hop, 60, and Land a 25 m hop, 20, together. Land a 50 m hop pays 40. Land a 150 m hop pays 60. Land a tank hop pays 80. House 2 vehicles says Mid Bay and still pays 70. The open count matches the open rows. The highlighted row is the first open goal.
+- The 10 km hop stays off the pad. The nose rocket, the High Bay, the booster, the ship, and the tower stay off this row. Save stays version 1. The previous live file is `archive/index-0.19.0-high-hop.html`. The design page is `design-docs/0.20.0-tank-design.html`.
