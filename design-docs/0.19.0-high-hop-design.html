@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>0.19.0-high-hop · design — starbase-builder</title>
+  <style>
+    :root {
+      --bg: #1c2118; --panel: #2a2218; --panel2: #221c14; --border: #5a4830;
+      --text: #e8d9b0; --muted: #a89878; --accent: #d4a84b; --link: #e8c56a; --code: #c4e08a;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; line-height: 1.55; }
+    .wrap { max-width: 1340px; margin: 0 auto; padding: 1.5rem 1.25rem 4rem; }
+    .doc-hero { background: var(--panel); border: 1px solid var(--border); border-radius: 0.85rem; padding: 1.15rem 1.25rem 1.25rem; margin-bottom: 1.25rem; }
+    .doc-hero h1 { font-size: 1.55rem; font-weight: 650; color: #f5edd8; margin: 0.35rem 0 0.4rem; }
+    .doc-hero .lede { margin: 0; font-size: 0.9rem; color: var(--muted); max-width: 62rem; }
+    .role { margin: 0 0 12px; padding: 12px 14px; background: #24180f; color: #f4ead8; border-left: 6px solid #c45c26; font: 15px/1.45 system-ui, sans-serif; }
+    .meta-row { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+    .tag { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 999px; background: #3a2e20; color: #e8c56a; border: 1px solid #6a5638; }
+    .tag.muted { background: #1e1a14; color: var(--muted); border-color: #4a3c28; }
+    .toc { background: var(--panel); border: 1px solid var(--border); border-radius: 0.65rem; padding: 0.6rem 0.85rem; margin-bottom: 1rem; font-size: 0.8rem; }
+    .toc a { color: var(--link); text-decoration: none; margin-right: 0.85rem; white-space: nowrap; }
+    h2 { font-size: 1.12rem; color: #f5edd8; margin: 1.7rem 0 0.65rem; padding-bottom: 0.35rem; border-bottom: 1px solid var(--border); scroll-margin-top: 0.75rem; }
+    h3 { font-size: 0.95rem; color: var(--accent); margin: 0.4rem 0 0.45rem; }
+    p, li { font-size: 0.9rem; max-width: 62rem; }
+    p { margin: 0.45rem 0 0.7rem; }
+    ul, ol { margin: 0.35rem 0 0.75rem; padding-left: 1.35rem; }
+    li { margin: 0.28rem 0; }
+    code { font-family: ui-monospace, Menlo, monospace; color: var(--code); font-size: 0.86em; }
+    pre { background: var(--panel2); border: 1px solid var(--border); padding: 0.8rem 0.9rem; overflow-x: auto; font-size: 0.78rem; line-height: 1.45; max-width: 62rem; }
+    pre code { color: var(--text); }
+    strong { color: #f5edd8; }
+    table.doc { width: 100%; max-width: 62rem; border-collapse: collapse; font-size: 0.84rem; margin: 0.45rem 0 0.9rem; }
+    table.doc th, table.doc td { border: 1px solid var(--border); padding: 0.4rem 0.55rem; text-align: left; vertical-align: top; }
+    table.doc th { background: var(--panel2); color: var(--muted); font-size: 12px; font-weight: 600; }
+    table.doc td { background: rgba(42,34,24,0.45); }
+    figure.look { margin: 0 0 1.3rem; }
+    figcaption { font-size: 0.82rem; color: var(--muted); margin-top: 0.45rem; max-width: 62rem; }
+    figcaption p { margin: 0.28rem 0; }
+    .footer-note { color: var(--muted); font-size: 0.82rem; margin-top: 2rem; max-width: 62rem; }
+    .shot { overflow-x: auto; margin: 0.4rem 0 0.2rem; }
+    .g { background: #0a0a0a; color: #f2f2f2; font-family: system-ui, sans-serif; line-height: 1.3; }
+    .screen { width: 1280px; height: 800px; position: relative; overflow: hidden; display: flex; flex-direction: column; border: 1px solid #333; }
+    .bar { height: 56px; flex: none; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 6px 12px; border-bottom: 1px solid #fff; font: 13px ui-monospace, Menlo, monospace; background: #050505; }
+    .bar .lamp { width: 12px; height: 12px; border-radius: 50%; background: #3dd68c; box-shadow: 0 0 8px #3dd68c; display: inline-block; vertical-align: middle; margin-right: 10px; }
+    .bar .sky { display: inline-block; vertical-align: middle; }
+    .bar .sky b { display: block; font-size: 15px; line-height: 1.1; }
+    .bar .sky i { display: block; font-style: normal; font-size: 11px; color: #c8c8c8; }
+    .bar .mid { text-align: center; }
+    .bar .ctr { color: #c8c8c8; margin: 0 7px; }
+    .bar .ctr b { color: #c4a15a; font-size: 15px; margin-left: 4px; }
+    .bar .ver { font-size: 10px; color: #666; }
+    .bar .right { display: flex; justify-content: flex-end; align-items: center; gap: 6px; }
+    .bar .chip { border: 1px solid #fff; padding: 2px 7px; font-size: 12px; }
+    .bar .chip.on { background: #1a1a1a; }
+    .main { flex: 1; display: flex; min-height: 0; }
+    .land { width: 216px; flex: none; display: flex; flex-direction: column; border-right: 1px solid #2a2a2a; }
+    .land .in, .insp .in { flex: 1; padding: 10px; overflow: hidden; }
+    .map { flex: 1; position: relative; background: #0f4a57; overflow: hidden; }
+    .map .sand { position: absolute; left: 0; top: 0; bottom: 0; width: 72%; background: #e2cb9b; clip-path: polygon(0 62%, 6% 54%, 30% 46%, 45% 39%, 53% 26%, 57% 0, 100% 0, 92% 30%, 90% 100%, 0 100%); }
+    .map .chips { position: absolute; left: 10px; top: 10px; display: flex; gap: 6px; }
+    .map .chips span { background: #0a0a0a; border: 1px solid #333; font-size: 12px; padding: 3px 8px; border-radius: 3px; }
+    .map .bldg { position: absolute; border: 1px solid #222; background: #c9c9c9; font-size: 11px; color: #111; padding: 1px 3px; }
+    .map .count { position: absolute; left: 16px; top: 52px; font: 650 16px/1.2 ui-monospace, Menlo, monospace; color: #1a140e; }
+    .map .count small, .map .alt small { display: block; margin-top: 2px; font: 400 12px/1.3 system-ui, sans-serif; color: #3a3228; }
+    .map .alt { position: absolute; right: 16px; top: 52px; text-align: right; font: 650 16px/1.2 ui-monospace, Menlo, monospace; color: #1a140e; }
+    .map .scale { position: absolute; left: 16px; bottom: 14px; font-size: 11px; color: #1a140e; }
+    .map .hold { position: absolute; left: 16px; bottom: 32px; font-size: 12px; color: #1a140e; background: rgba(226,203,155,0.9); padding: 2px 6px; }
+    .insp { width: 300px; flex: none; display: flex; flex-direction: column; border-left: 1px solid #2a2a2a; }
+    .sh { color: #c4a15a; font: 600 12px ui-monospace, Menlo, monospace; border-bottom: 1px solid #333; margin: 0 0 6px; padding-bottom: 3px; }
+    .sh.sub { margin-top: 12px; }
+    .title { font-size: 16px; font-weight: 650; }
+    .blurb { font-size: 12px; color: #c8c8c8; margin: 2px 0 0; }
+    .r { display: flex; justify-content: space-between; align-items: baseline; padding: 1px 0; font-size: 14px; color: #c8c8c8; border-bottom: 1px solid #1c1c1c; }
+    .r b { font: 650 14px ui-monospace, Menlo, monospace; color: #f2f2f2; }
+    .r b small { font: 400 12px system-ui, sans-serif; color: #9a9a9a; margin-left: 4px; }
+    .slot { display: grid; grid-template-columns: 1fr auto 72px; gap: 6px; align-items: baseline; border: 1px solid #f2f2f2; box-shadow: inset 3px 0 #e10600; padding: 4px 7px; margin-top: 5px; font-size: 14px; }
+    .slot .pl { color: #c4a15a; font-size: 12px; text-align: right; }
+    .now { font-size: 12px; color: #c8c8c8; margin: 6px 0 0; }
+    .acts { border-top: 1px solid #f2f2f2; padding: 4px 10px 6px; }
+    .a { display: block; border: 1px solid #444; padding: 3px 7px; margin-top: 4px; background: #0a0a0a; color: #f2f2f2; text-align: left; }
+    .a .l1 { display: flex; justify-content: space-between; font-size: 14px; font-weight: 650; }
+    .a .l2 { font-size: 12px; color: #9a9a9a; }
+    .a.on { border-color: #f2f2f2; box-shadow: inset 0 -2px 0 #e07030; }
+    .quad { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 4px; }
+    .quad .a { margin-top: 4px; }
+    .foot { border: 1px solid #8a8a8a; background: #0e0e0e; color: #e6e6e6; font-size: 14px; font-weight: 650; text-align: center; padding: 6px 12px; margin: 6px 8px; }
+    .land .foot, .insp .foot { margin-top: auto; }
+    .footer { height: 112px; flex: none; border-top: 1px solid #2a2a2a; display: flex; }
+    .log { padding: 6px 12px; overflow: hidden; font: 11px/1.35 ui-monospace, Menlo, monospace; color: #9a9a9a; }
+    .own { border: 1px solid #555; padding: 5px 8px; margin-bottom: 5px; }
+    .own.sel { border-color: #e10600; box-shadow: inset 3px 0 #e10600; }
+    .own .name { font-size: 14px; font-weight: 650; }
+    .own .line { font-size: 12px; color: #c8c8c8; }
+    .body { position: absolute; width: 54px; height: 18px; background: #d7d2c8; border: 1px solid #1a140e; }
+    .body i { position: absolute; right: -16px; top: 2px; width: 16px; height: 14px; background: #f2f2f2; clip-path: polygon(0 20%, 100% 0, 100% 100%, 0 80%); }
+    .body b { position: absolute; left: -10px; top: -6px; width: 8px; height: 8px; background: #ffb03a; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="doc-hero">
+      <div class="meta-row">
+        <span class="tag">0.19.0-high-hop</span>
+        <span class="tag">Design · 2026-11-27</span>
+        <span class="tag muted">Merges the dropped 0.18.1-pipeline row</span>
+      </div>
+      <h1>A 10 km hop, and the next article while you test</h1>
+      <p class="lede">
+        This row is the high hop. The two light rules from the dropped pipeline row ride here.
+        The factory may start the next article once the first has left the hold. The header shows the fire count the pad already has.
+        The numbers below are initial balance. A later sitting can move them.
+      </p>
+    </header>
+    <div class="role">
+      SN 1 is ready on the mount. You pick 10 km. The climb is 12 seconds, the belly is 8, the flip is 3, and the landing burn is 6. The engine is off for the belly and the flip. The landing floor is 1535 kN. The flight mass is 107883 kg.
+    </div>
+    <nav class="toc">
+      <a href="#see">What you see</a>
+      <a href="#looks">The look</a>
+      <a href="#name">The name</a>
+      <a href="#flight">The flight</a>
+      <a href="#factory">The factory</a>
+      <a href="#header">The header</a>
+      <a href="#stays">What stays</a>
+      <a href="#life">Real life</a>
+      <a href="#save">The save</a>
+      <a href="#hooks">Test hooks</a>
+      <a href="#out">Out of scope</a>
+      <a href="#check-list">Acceptance</a>
+      <a href="#decided">Decided</a>
+      <a href="#after">After the review</a>
+      <a href="#build-review">Build review</a>
+    </nav>
+
+    <h2 id="see">What you see</h2>
+    <p>A new build is named SN 1, SN 2, and so on. A Starhopper already in the save keeps that name. It keeps 25 m, 50 m, and 150 m. It does not get the 10 km chip.</p>
+    <p>SN 1 keeps those three hops and adds one chip, 10 km. You finish the same cryo proof, tanking run, static fire, and 1 day data review. Then you pick the height and press Hop. The tanks load. The day holds. The camera locks a frame about 800 m wide.</p>
+    <p>The body climbs nose up, turns onto its belly, flips back, and lands on the same mark the low hop uses, about 100 m east of the mount. A soft landing rolls home and takes the same 1 day inspection. A hard landing names the short part. A scrub spends nothing.</p>
+    <p>While SN 1 is on the pad, the Starfactory can build SN 2. The factory hold stays one. Mega Bay still keeps a slot open for the rocket that has to come home. The header shows Fires and the same count the pad calls Fires, last 30 days.</p>
+
+    <h2 id="looks">The look</h2>
+    <p>These three pictures are the whole screen at 1280 by 800. The first is the ready pad with 10 km picked. The second is the belly, engine off. The third is the factory building the next article while the first is in test. The type outside the top bar stays 11, 12, 14, or 16 px.</p>
+
+    <figure class="look">
+      <h3>10 km, on the pad</h3>
+      <div class="shot"><div class="g screen">
+        <div class="bar">
+          <div><span class="lamp"></span><span class="sky"><b>Range open</b><i>clear 8 kn</i></span></div>
+          <div class="mid"><span class="ctr">Money<b>136</b></span><span class="ctr">Steel<b>4</b></span><span class="ctr">CH4<b>4029</b></span><span class="ctr">LOX<b>14502</b></span><span class="ctr">Fleet<b>1</b></span><span class="ctr">Fires<b>1</b></span><div class="ver">0.19.0-high-hop. Test start.</div></div>
+          <div class="right"><span class="ctr">Day<b>22</b></span><span class="chip on">1x</span><span class="chip">3x</span><span class="chip">Skip</span><span class="chip">Pause</span><span class="chip">Restart</span></div>
+        </div>
+        <div class="main">
+          <div class="land"><div class="in">
+            <div class="sh">Land</div>
+            <div class="sh sub">Buildings</div>
+            <div class="own"><div class="name">Starfactory</div><div class="line">Builds an SN</div></div>
+            <div class="own"><div class="name">Mega Bay</div><div class="line">0 of 1 slot used</div></div>
+            <div class="own sel"><div class="name">Orbital Pad</div><div class="line">Pad level 1</div></div>
+          </div><div class="foot">Goals</div></div>
+          <div class="map"><div class="sand"></div>
+            <div class="chips"><span>World</span><span>Region</span><span>Site</span><span style="border-color:#e10600">Work</span></div>
+            <div class="bldg" style="left:150px;top:430px">Factory</div>
+            <div class="bldg" style="left:300px;top:400px">Bay</div>
+            <div class="bldg" style="left:470px;top:300px">Pad</div>
+          </div>
+          <div class="insp">
+            <div class="in">
+              <div class="title">Orbital Pad</div>
+              <p class="blurb">Holds one vehicle for its pad tests.</p>
+              <div class="sh sub">Data</div>
+              <div class="r"><span>Fires, last 30 days</span><b>1</b></div>
+              <div class="slot"><span>SN 1</span><span>ready</span><span class="pl">On the pad</span></div>
+              <p class="now">SN 1 is ready.</p>
+            </div>
+            <div class="acts">
+              <div class="quad">
+                <button type="button" class="a"><div class="l1">25 m</div></button>
+                <button type="button" class="a"><div class="l1">50 m</div></button>
+                <button type="button" class="a"><div class="l1">150 m</div></button>
+                <button type="button" class="a on"><div class="l1">10 km</div></button>
+              </div>
+              <p class="now">10 km. 1279 kg of methane and 4604 kg of oxygen. 18 seconds lit.</p>
+              <button type="button" class="a on"><div class="l1">Hop</div><div class="l2">18 seconds lit. No money.</div></button>
+            </div>
+            <div class="foot">Fleet</div>
+          </div>
+        </div>
+        <div class="footer"><div class="log">SN 1 is ready on the mount.<br>Data review ends.<br>SN 1 held the static fire.</div></div>
+      </div></div>
+      <figcaption>
+        <p>This is the Orbital Pad when SN 1 is ready and 10 km is selected. The header Fires number matches the pad row. Both read 1.</p>
+        <p>The four chips sit in the pinned actions. 10 km is the new one. The fact line names the methane, the oxygen, and the lit seconds.</p>
+      </figcaption>
+    </figure>
+
+    <figure class="look">
+      <h3>Belly first</h3>
+      <div class="shot"><div class="g screen">
+        <div class="bar">
+          <div><span class="lamp"></span><span class="sky"><b>Range open</b><i>clear 8 kn</i></span></div>
+          <div class="mid"><span class="ctr">Money<b>136</b></span><span class="ctr">Steel<b>4</b></span><span class="ctr">CH4<b>2750</b></span><span class="ctr">LOX<b>9898</b></span><span class="ctr">Fleet<b>1</b></span><span class="ctr">Fires<b>1</b></span><div class="ver">0.19.0-high-hop. Test start.</div></div>
+          <div class="right"><span class="ctr">Day<b>22</b></span><span class="chip on">1x</span><span class="chip">3x</span><span class="chip">Skip</span><span class="chip">Pause</span><span class="chip">Restart</span></div>
+        </div>
+        <div class="main">
+          <div class="land"><div class="in"><div class="sh">Land</div><div class="own sel"><div class="name">Orbital Pad</div><div class="line">Pad level 1</div></div></div><div class="foot">Goals</div></div>
+          <div class="map"><div class="sand"></div>
+            <div class="count">T+16<small>Belly</small></div>
+            <div class="alt">10 km<small>Height</small></div>
+            <div class="hold">The day holds during the hop.</div>
+            <div class="scale">800 m</div>
+            <div class="body" style="left:420px;top:180px"><i></i></div>
+          </div>
+          <div class="insp"><div class="in">
+            <div class="title">Orbital Pad</div>
+            <div class="slot"><span>SN 1</span><span>in flight</span><span class="pl">10 km</span></div>
+            <p class="now">The engine is off. The body is belly first.</p>
+          </div><div class="foot">Fleet</div></div>
+        </div>
+        <div class="footer"><div class="log">SN 1 is belly first. The engine is off.</div></div>
+      </div></div>
+      <figcaption>
+        <p>This is the belly. The body lies on its side in an 800 m frame. The height number says 10 km. The engine is off, so there is no flame.</p>
+        <p>The climb before this is nose up, with a flame. The flip after this turns the nose up again, still with the engine off. The landing burn then lights under the body.</p>
+      </figcaption>
+    </figure>
+
+    <figure class="look">
+      <h3>The next article, during the test</h3>
+      <div class="shot"><div class="g screen">
+        <div class="bar">
+          <div><span class="lamp"></span><span class="sky"><b>Range open</b><i>clear 8 kn</i></span></div>
+          <div class="mid"><span class="ctr">Money<b>136</b></span><span class="ctr">Steel<b>0</b></span><span class="ctr">CH4<b>4029</b></span><span class="ctr">LOX<b>14502</b></span><span class="ctr">Fleet<b>1</b></span><span class="ctr">Fires<b>1</b></span><div class="ver">0.19.0-high-hop. Test start.</div></div>
+          <div class="right"><span class="ctr">Day<b>20</b></span><span class="chip on">1x</span><span class="chip">3x</span><span class="chip">Skip</span><span class="chip">Pause</span><span class="chip">Restart</span></div>
+        </div>
+        <div class="main">
+          <div class="land"><div class="in">
+            <div class="sh">Land</div>
+            <div class="own sel"><div class="name">Starfactory</div><div class="line">Building SN 2</div></div>
+            <div class="own"><div class="name">Mega Bay</div><div class="line">0 of 1 slot used</div></div>
+            <div class="own"><div class="name">Orbital Pad</div><div class="line">SN 1 on the pad</div></div>
+          </div><div class="foot">Goals</div></div>
+          <div class="map"><div class="sand"></div>
+            <div class="bldg" style="left:150px;top:430px">Factory</div>
+            <div class="bldg" style="left:300px;top:400px">Bay</div>
+            <div class="bldg" style="left:470px;top:300px">Pad</div>
+          </div>
+          <div class="insp"><div class="in">
+            <div class="title">Starfactory</div>
+            <p class="blurb">Builds one article. Holds one finished article.</p>
+            <div class="r"><span>Now</span><b>SN 2</b></div>
+            <div class="r"><span>Days left</span><b>6.0</b></div>
+            <p class="now">Leave a bay slot open. A rocket outside the bay still has to come home.</p>
+          </div><div class="foot">Fleet</div></div>
+        </div>
+        <div class="footer"><div class="log">Starfactory · building SN · −28 steel · 9.0 days<br>SN 1 is on the Orbital Pad.</div></div>
+      </div></div>
+      <figcaption>
+        <p>SN 1 is already on the pad. The factory hold is empty, so the build of SN 2 can start. The hold does not become two.</p>
+        <p>The bay line stays. One slot is still reserved for SN 1. SN 2 cannot roll into that slot until SN 1 is home or the bay has another free slot.</p>
+      </figcaption>
+    </figure>
+
+    <h2 id="name">The name</h2>
+    <p>The article on the roadmap is still one Raptor vehicle. Its screen name for a new build becomes SN. The first new build is SN 1. The count is how many live vehicles already use that SN name. A stored Starhopper does not take a number.</p>
+    <p>An old save that says Starhopper 1 still says Starhopper 1. The low hop chips stay on it. The 10 km chip is absent. The factory card says Builds an SN.</p>
+    <p>SH stays free for Super Heavy at <code>0.20.0-stack</code>. This row does not write SH.</p>
+
+    <h2 id="flight">The flight</h2>
+    <p>The 10 km hop uses the same propellant formula as the low hop. Dry mass stays 102000 kg. Specific impulse stays 330 seconds. The mix stays 3.6 kg of liquid oxygen for each kg of methane. Lit time is 18 seconds. That is the climb plus the landing burn.</p>
+    <table class="doc">
+      <thead><tr><th>Piece</th><th>Seconds</th><th>Engine</th><th>What you see</th></tr></thead>
+      <tbody>
+        <tr><td>Count</td><td>10</td><td>Off</td><td>T-10 on the left of the map. No sound.</td></tr>
+        <tr><td>Climb</td><td>12</td><td>On</td><td>Nose up. The height number climbs to 10 km. The flame grows with thrust.</td></tr>
+        <tr><td>Belly</td><td>8</td><td>Off</td><td>The body lies on its side. The read says Belly. The height stays 10 km.</td></tr>
+        <tr><td>Flip</td><td>3</td><td>Off</td><td>The nose comes back up. The height stays 10 km.</td></tr>
+        <tr><td>Landing burn</td><td>6</td><td>On</td><td>The flame returns. The height falls to the mark.</td></tr>
+      </tbody>
+    </table>
+    <p>The load is 1279 kg of methane and 4604 kg of oxygen. The flight mass is 107883 kg. The landing floor is 1535 kN. That is flight mass times 9.81 times 1.45, rounded, the same floor rule as the low hop. Structure Needs stays 70. Fuel lines Needs is 18 seconds, the lit time.</p>
+    <p>The engine seconds and the fuel-line seconds fall only while the engine is on. The belly and the flip spend none. A low hop still spends its whole burn, because that burn never turns the engine off in the middle.</p>
+    <p>The landing check runs at the start of the landing burn. It reads thrust against 1535 kN and fuel lines against the seconds still needed. A short names the part. A hard landing cuts 40 off Structure, leaves it at 20 at worst, clears the cryo proof and the tanking run, and the rocket needs Mega Bay. A soft landing keeps the tests. A soft 10 km landing pays Land a hop once, if that goal is still open. The low hop already pays that goal. This row does not add a second goal.</p>
+    <p>A closed range or a short tank scrubs before the fill. Nothing is spent. Skip during the count, the climb, the belly, the flip, or the landing burn does not jump. The log says the rocket is still in flight. The day holds for the whole watch.</p>
+    <p>The frame is about 800 m, centered on the mount and the landing mark. The height number is the 10 km read. The picture does not zoom out to 10 km. The low hop frame stays 400 m.</p>
+
+    <h2 id="factory">The factory</h2>
+    <p>The factory hold is still one finished article. You cannot start a build while a finished article sits there. Once that article has left, you can start the next build while it is in the bay or on the pad. <code>startBuildRocket</code> already works this way. This row does not add a second hold. It keeps the path, and the factory card shows the build while the pad card shows the article in test.</p>
+    <p>The day hold still stops the factory countdown during a fill, a fire, a low hop, and the 10 km hop. The build resumes from the same days left when the hold ends.</p>
+    <p><code>returnClaim</code> stays. A rocket on the pad, or on the way to the pad, still owns a bay slot. The log stays "Leave a bay slot open. A rocket outside the bay still has to come home." A second slot, bought for 30 steel, is the way to house both.</p>
+
+    <h2 id="header">The header</h2>
+    <p>The header gains one counter, Fires, in the same row as Money, Steel, CH4, LOX, and Fleet. The number is <code>fireDays</code> whose day is inside the last 30 days. That is the same count as the pad row Fires, last 30 days. A static fire that lights joins it, as it does today. A hop does not join it. A 10 km hop does not join it. A scrub does not join it.</p>
+
+    <h2 id="stays">What stays</h2>
+    <ul>
+      <li>One Raptor. Thrust stays 1814 kN when the article is healthy, and 1400 kN when the build stored that short.</li>
+      <li>Dry mass stays 102000 kg. Steel for a build stays 28. The build stays 8 to 12 days.</li>
+      <li>The 25 m, 50 m, and 150 m profiles stay. Their frames stay 400 m.</li>
+      <li>The cryo proof, the tanking run, the static fire, and the 1 day data review stay in front of every hop.</li>
+      <li>The review still pays 12 money for each clean test every 30 days. A soft hop is still a clean test.</li>
+      <li>Save version stays 1. There is no sound.</li>
+    </ul>
+
+    <h2 id="life">Real life</h2>
+    <p>Starhopper flew 150 m on 27 August 2019 with one Raptor. SN5 and SN6 flew the same height in August 2020. SN8 flew 12.5 km on 9 December 2020 and was lost on the landing. SN9, SN10, and SN15 flew 10 km. SN15 landed on 5 May 2021. Those flights used three Raptors, a header tank, and a flip with the engines lit.</p>
+    <p>This row keeps one Raptor and the dry mass you already have. The 10 km read is the height those later flights used. The watch is compressed, the same way the 150 m hop is a 22 second burn. The engine stays off through the flip so the landing burn is the check on the parts table. A later sitting can light the flip.</p>
+
+    <h2 id="save">The save</h2>
+    <p>Save version stays 1. The label is <code>0.19.0-high-hop</code>. A vehicle with no stored name pattern loads as it does today. <code>hopMeters</code> may be 25, 50, 150, or 10000. Any other stored height loads as null. <code>fireDays</code> loads as it does today. A hop in the middle of the watch does not save. A reload shows the rocket ready on the mount, and the tanks are not drained. That is the low hop rule, and this row uses it.</p>
+
+    <h2 id="hooks">Test hooks</h2>
+    <p><code>window.__sb</code> keeps the hooks it has. <code>startHop(name, meters)</code> accepts 10000 for an SN. It returns false for 10000 on a Starhopper. <code>snap.headerFires</code> is the header count. <code>snap.factoryJob</code> stays readable while a vehicle is on the pad.</p>
+
+    <h2 id="out">Out of scope</h2>
+    <ul>
+      <li>A second or third Raptor, a header tank, and flaps as a part on the sheet. The belly is a pose, not a new row.</li>
+      <li>A 12.5 km chip. SN8 flew that height. This row has one high hop.</li>
+      <li>Lighting the engine for the flip. The real flights did. This watch does not.</li>
+      <li>Counting a hop inside <code>fireDays</code>. The header matches the pad row, and the pad row does not count hops today.</li>
+      <li>A second factory hold, a faster build, and a new goal pay. The faster build is <code>1.3.0-rate</code>.</li>
+      <li>Sound, the tower, and the CSS split. The split stays <code>0.19.1-split</code>.</li>
+      <li>Editing <code>index.html</code> in this design pass. <code>VERSION</code> stays <code>0.18.0-hop</code> until the row ships.</li>
+    </ul>
+
+    <h2 id="check-list">Acceptance</h2>
+    <ol>
+      <li>A new game builds SN 1. The pad shows 25 m, 50 m, 150 m, and 10 km. A loaded Starhopper 1 shows the first three only.</li>
+      <li>10 km, healthy SN 1, level 2 tanks. The watch runs count, climb, belly, flip, and landing burn. The belly and the flip have no flame. The landing is soft. Land a hop pays once if it is still open.</li>
+      <li>Thrust 1400 kN. The landing burn names the engine. Structure falls by 40. The rocket needs Mega Bay.</li>
+      <li>Fuel lines at 0 seconds. The landing burn names Fuel lines.</li>
+      <li>Small tanks, 1218 kg of methane. The 10 km hop scrubs. Nothing is spent.</li>
+      <li>SN 1 on the pad, factory hold empty, 28 steel. The factory starts SN 2. During the 10 km watch the days left do not move. They move again when the hop ends.</li>
+      <li>One bay slot, SN 1 on the pad. SN 2 cannot roll into the bay. The log tells you to leave the slot open.</li>
+      <li>The header Fires number equals the pad row after a static fire, and it does not rise after a hop.</li>
+    </ol>
+
+    <h2 id="decided">Decided</h2>
+    <p>Tiago asked on 2026-11-27 to merge <code>0.18.1-pipeline</code> into <code>0.19.0-high-hop</code>. The pipeline row leaves the table. The high hop keeps the name. The design page is this file.</p>
+
+    <h2 id="after">After the review</h2>
+    <p>The builder follows this section where an earlier sentence on this page differs. The pictures stay a layout. Money 136, Steel 4, Day 20, and Day 22 are not results from seed 11.</p>
+
+    <h3>The watch</h3>
+    <p>The watch always plays five pieces. The count is 10 seconds. The climb is 12. The belly is 8. The flip is 3. The landing burn is 6. The flame is on for the climb and the landing burn. The belly and the flip stay dark.</p>
+    <p>Engine seconds and fuel-line seconds fall only while the flame is on. The height number follows the clock. It rises in a straight line to 10 km during the climb. It stays at 10 km for the belly and the flip. It falls to the mark during the landing burn.</p>
+    <p>The check runs at the start of the landing burn. It names every short part. Thrust under 1535 kN names the engine. Thrust over the pad limit names the pad. Pad level 1 holds 2000 kN. Fewer than 6 seconds of fuel lines names Fuel lines. Fewer than 6 seconds of engine life names the engine.</p>
+    <p>A hard landing cuts 40 off Structure and leaves it at 20 or more. It clears the cryo proof and the tanking run. The rocket needs Mega Bay. A soft landing cuts 0 off Structure. That 0 is initial balance. The soft landing keeps the tests. Land a hop pays 60 once if that goal is still open.</p>
+    <p>A hop with 0 seconds of engine life does not start. A hop with 0 seconds of fuel lines still starts, and the landing burn names Fuel lines. The day holds for the whole watch. Skip during the watch does not jump. The log says the rocket is still in flight.</p>
+
+    <h3>The name and the seed</h3>
+    <p>The test file is <code>index.html?test</code>. The seed is 11. SN 1 is article 1. <code>articleN</code> stays the build count. The SN number counts live vehicles whose names start with SN. A destroyed vehicle leaves that count. A stored Starhopper keeps its name. The loader copies the stored name.</p>
+    <p>On seed 11, SN 1 stores Structure 58, fuel lines at 40 seconds, thrust 1814 kN, and engine life 180 seconds. That is the same body Starhopper 1 stores today. The engine check calls <code>setThrust("SN 1", 1400)</code> after the rocket is ready, because seed 11 is born at 1814 kN.</p>
+    <p>The builder adds <code>setLines(name, seconds)</code> beside <code>setThrust</code>. It stores the seconds on the fuel lines and returns true when the vehicle exists. The fuel-line check calls <code>setLines("SN 1", 0)</code> before the hop.</p>
+    <p><code>selectHop</code> accepts 10000 for an SN and returns false for a Starhopper. <code>startHop</code> does the same. Every place that stores <code>hopMeters</code> keeps 10000. Every place that reads it keeps 10000. Any other stored height loads as null. Save version stays 1.</p>
+
+    <h3>The factory card</h3>
+    <p>While SN 2 is still building, the land line reads Building SN 2. The inspector Now row reads SN 2. The pad land line stays Pad level 1. The factory log uses whole days. A 9 day build reads 9 days. The card reads 6 days when 6 days remain. The build span stays 8 to 12 days, and that span is not a seed 11 number.</p>
+    <p>The bay warning waits until SN 2 is finished and the roll is blocked. The finished SN 2 sits in the factory hold. The Build button stays off until that article rolls. The bay land line stays 0 of 1 slot used, because the housed count leaves out the reserved slot. The roll log reads "Leave a bay slot open. A rocket outside the bay still has to come home."</p>
+    <p>The live snap field is <code>factoryDays</code>. The builder reads that field. It stays put during the 10 km watch, and it moves again when the hop ends. <code>snap.headerFires</code> is the header count.</p>
+
+    <h3>The header</h3>
+    <p>The header label is Fires. The number is the pad row Fires, last 30 days. A window with no fires shows 0. The pad row Last fire still reads none. A static fire that lights joins the count. The hidden launch joins it, as it does today. A cryo proof, a tanking run, a hop, and a scrub stay off the count.</p>
+
+    <h3>The other pages</h3>
+    <p>In <code>design-docs/program-roadmap-design.html</code>, the live-release paragraph still says the next row is <code>0.18.1-pipeline</code>. The builder changes that sentence. The next row is <code>0.19.0-high-hop</code>. <code>0.19.1-split</code> comes after it.</p>
+    <p>In <code>FUTURE_FEATURES.md</code>, the yard paragraph still opens with the factory building one article at a time. The builder splits that claim. The hold stays one finished article. From this row the next build starts once that article has left the hold.</p>
+    <p>In the same file, the test-campaign paragraph says the cryo proof and the tanking run join the fire record, and that each flight joins it later. The builder changes that sentence so it matches the header rule above.</p>
+
+    <h3>The checks</h3>
+    <p>The builder runs this list in <code>index.html?test</code> with seed 11. The window is 1280 by 800. Read <code>snap</code> in the same turn as the action.</p>
+    <ol>
+      <li>Build SN 1. <code>articleN</code> is 1. Structure is 58. Fuel lines are 40 seconds. Thrust is 1814 kN. Engine life is 180 seconds. The name is SN 1. The pad shows 25 m, 50 m, 150 m, and 10 km.</li>
+      <li>Load a save that says Starhopper 1. The name stays Starhopper 1. The pad shows 25 m, 50 m, and 150 m. The 10 km chip is absent. <code>startHop</code> and <code>selectHop</code> return false for 10000.</li>
+      <li>Healthy SN 1. Level 2 tanks are full at 4029 kg of methane and 14502 kg of oxygen. Hop 10 km. The watch runs 10, 12, 8, 3, and 6 seconds. The belly and the flip have no flame. The landing is soft. Structure stays the same. Engine life falls by 18. Fuel lines fall by 18. Land a hop pays 60 once if it is still open.</li>
+      <li>On a ready SN 1, call <code>setThrust("SN 1", 1400)</code>. Hop 10 km. The landing burn names the engine. Structure falls by 40 and stays at 20 or more. The rocket needs Mega Bay. The cryo proof and the tanking run are cleared.</li>
+      <li>On a ready SN 1 at pad level 1, set thrust above 2000 kN. The hop lights. The log names the pad. Structure falls by 40 and stays at 20 or more. The rocket needs Mega Bay.</li>
+      <li>On a ready SN 1, call <code>setLines("SN 1", 0)</code>. Hop 10 km. The hop starts. The landing burn names Fuel lines. The hard-landing rules apply.</li>
+      <li>Level 1 tanks are full at 1218 kg of methane and 4386 kg of oxygen. The 10 km hop scrubs. The log names methane. Nothing is spent.</li>
+      <li>SN 1 is on the pad. The factory hold is empty. Steel is at least 28. The factory starts SN 2. The land line reads Building SN 2. The Now row reads SN 2. The log uses whole days. <code>factoryDays</code> does not move during the watch. It moves again when the hop ends.</li>
+      <li>One bay slot. SN 1 is on the pad. The bay land line reads 0 of 1 slot used. The finished SN 2 sits in the factory hold. The Build button stays off. The roll is blocked. The log tells you to leave the slot open.</li>
+      <li>After a static fire that lights, header Fires equals the pad row. A hop does not raise it. A new game with no fires shows 0. Last fire reads none.</li>
+      <li>Save version stays 1. <code>hopMeters</code> 10000 survives a save and a load for an SN. Any other stored height loads as null. A hop in the middle of the watch does not save. A reload shows the rocket ready on the mount, and the tanks are not drained.</li>
+    </ol>
+
+    <h2 id="build-review">Build review</h2>
+    <p>This is the build review of the dirty <code>0.19.0-high-hop</code> checkout, read on 2026-11-27. I did not change any files. This section records that review. It does not replace After the review. The same text was mailed to tiago.a.vieira@accenture.com.</p>
+    <p>GO WITH CHANGES.</p>
+    <p>Seed 11 in <code>index.html?test</code> at 1280 by 800 passed the birth stats, the five-part watch, the soft and hard landings, the factory card, the bay gate, and the header fire count. Three holes remain. Two of them sit under checks that only look at one log line or at the tanks.</p>
+    <ol>
+      <li>In <code>index.html</code>, <code>savePayload</code> rewinds a live hop to ready and puts the pre-hop tanks back, and it leaves the engine life and the fuel lines at the spent values. A save during the belly reloaded ready, with methane 4029 kg and oxygen 14502 kg, while the engine had fallen from 175 seconds to 163 and the fuel lines from 40 seconds to 28. The climb had already spent those 12 seconds. Copy <code>hop.preEngine</code> onto <code>engineLifeS</code> and <code>hop.preLines</code> onto <code>fittingLifeS</code> in that same rewrite.</li>
+      <li>In <code>index.html</code>, <code>startHop</code> logs methane and returns before it looks at oxygen. Full level 1 tanks are 1218 kg of methane and 4386 kg of oxygen. The 10 km hop needs 1279 kg and 4604 kg. The log was only "Methane is short. This hop needs 1279 kg. Nothing is spent." Nothing was spent. Name both short tanks in that one scrub, and do not start the hop.</li>
+      <li>In <code>index.html</code>, the engines wiki still says a hop spends 8, 14, or 22 seconds and that a short set ends the burn early. The low hops still spend 8, 14, and 22. The 10 km hop spends 18 seconds of engine life and fuel lines, and only while the flame is on. The belly and the flip spend none. A hop with 0 seconds of fuel lines still runs the whole watch, and the landing burn names Fuel lines. Rewrite those two sentences.</li>
+      <li>In <code>FUTURE_FEATURES.md</code>, the yard paragraph still says this row does not write a name and that the player picks 25 m, 50 m, or 150 m. The same paragraph later says a new build is named SN 1 and adds 10 km. Rewrite the older sentences so a new build is SN, a stored Starhopper keeps its name and the three low hops, and an SN also hops 10 km.</li>
+    </ol>
+    <h3>Open question</h3>
+    <p><code>design-docs/program-roadmap-design.html</code> still opens with the live release as <code>0.18.0-hop</code> and still says every build is named Starhopper. The next-row sentence already says <code>0.19.0-high-hop</code>. Do you want those live sentences changed before you ship, or only in the ship commit?</p>
+    <p>REVIEW FINISHED</p>
+
+    <p class="footer-note">Design only. <code>index.html</code> is unchanged. The live release stays <code>0.18.0-hop</code>. The builder follows After the review where an earlier sentence differs.</p>
+  </div>
+</body>
+</html>

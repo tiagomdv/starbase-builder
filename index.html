@@ -582,6 +582,9 @@
     #insp-acts .trio { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; }
     #insp-acts .trio .act { margin-top: 4px; padding: 3px 4px; }
     #insp-acts .trio .act .l1 { justify-content: center; }
+    #insp-acts .quad { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 4px; }
+    #insp-acts .quad .act { margin-top: 4px; padding: 3px 4px; }
+    #insp-acts .quad .act .l1 { justify-content: center; }
     #insp-acts .act.on { border-color: #e10600; background: #140a0a; }
     #insp-acts .hop-fact { font-size: 12px; color: #9a9a9a; margin: 4px 0 0; line-height: 1.25; }
     #hop-count {
@@ -693,8 +696,9 @@
         <span class="ctr">CH4 <b id="res-ch4" class="tabular-nums">0</b></span>
         <span class="ctr">LOX <b id="res-lox" class="tabular-nums">0</b></span>
         <span class="ctr">Fleet <b id="res-fleet" class="tabular-nums">0</b></span>
+        <span class="ctr">Fires <b id="res-fires" class="tabular-nums">0</b></span>
       </div>
-      <div id="ver-label">0.18.0-hop</div>
+      <div id="ver-label">0.19.0-high-hop</div>
     </div>
     <div class="bar-right">
       <span class="ctr"><span id="day-run">Day</span> <b id="day-label" class="tabular-nums">1</b></span>
@@ -794,7 +798,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "0.18.0-hop";
+  const VERSION = "0.19.0-high-hop";
   const CELL = 32, MAP_W = 40, MAP_H = 30;
   // ?test is a normal open with a short day. The purse, the tanks, and the yard start the same.
   const TEST = new URLSearchParams(location.search).has("test");
@@ -1278,6 +1282,7 @@
     ch4: document.getElementById("res-ch4"),
     lox: document.getElementById("res-lox"),
     fleet: document.getElementById("res-fleet"),
+    fires: document.getElementById("res-fires"),
     day: document.getElementById("day-label"),
     log: document.getElementById("log"),
     inspector: document.getElementById("inspector"),
@@ -1435,6 +1440,29 @@
   function vehicleById(id) { return G.fleet.find((v) => v.id === id) || null; }
   function selectedVehicle() { return vehicleById(G.selectedVehicleId); }
   function liveFleet() { return G.fleet.filter((v) => v.status !== "destroyed"); }
+  // The SN number is the smallest free serial among live SN names. A destroyed vehicle leaves its number.
+  function snNumber(name) {
+    const m = /^SN (\d+)$/.exec(String(name || ""));
+    return m ? Number(m[1]) : 0;
+  }
+  function isSnName(name) { return snNumber(name) > 0; }
+  function nextSnName() {
+    const used = new Set();
+    for (const v of liveFleet()) {
+      const n = snNumber(v.name);
+      if (n) used.add(n);
+    }
+    if (G.factoryJob && G.factoryJob.vehicleName) {
+      const n = snNumber(G.factoryJob.vehicleName);
+      if (n) used.add(n);
+    }
+    let n = 1;
+    while (used.has(n)) n += 1;
+    return `SN ${n}`;
+  }
+  function isHopKind(kind) {
+    return kind === "count" || kind === "burn" || kind === "climb" || kind === "belly" || kind === "flip" || kind === "land";
+  }
   function vehiclesAt(buildingId) { return liveFleet().filter((v) => v.buildingId === buildingId); }
   function bayCount() {
     const bay = buildingOfType("mega_bay");
@@ -1458,9 +1486,9 @@
   function motionKind(kind) {
     return G.rollouts.find((r) => r.kind === kind) || null;
   }
-  // The day clock holds while a fill, a fire, a flight, a hop count, or a hop burn runs.
+  // The day clock holds while a fill, a fire, a flight, or any hop piece runs.
   function dayHeld() {
-    return !!(motionKind("fill") || motionKind("fire") || motionKind("fly") || motionKind("count") || motionKind("burn"));
+    return G.rollouts.some((r) => r.kind === "fill" || r.kind === "fire" || r.kind === "fly" || isHopKind(r.kind));
   }
   function dayWord(days) {
     return `${days.toFixed(1)} ${days === 1 ? "day" : "days"}`;
@@ -1499,7 +1527,7 @@
       const m = motionFor(v.id);
       if (m && m.destKind === "bay" && m.destId === bay.id) continue;
       if (v.status === "at_factory") continue;
-      if (m && (m.destKind === "pad" || m.kind === "raise" || m.kind === "fill" || m.kind === "fire" || m.kind === "fly" || m.kind === "count" || m.kind === "burn")) n++;
+      if (m && (m.destKind === "pad" || m.kind === "raise" || m.kind === "fill" || m.kind === "fire" || m.kind === "fly" || isHopKind(m.kind))) n++;
       else if (v.status === "on_pad" || v.status === "proof" || v.status === "tanking" || v.status === "inspect" || v.status === "ready" || v.status === "flying" || v.status === "needs_return") n++;
     }
     return n;
@@ -1509,10 +1537,10 @@
   }
   // The pad is busy while a rocket is coming in, or while one is rising, lowering, loading, burning, or flying.
   function padBusy() {
-    return G.rollouts.some((r) => r.kind === "raise" || r.kind === "lower" || r.kind === "fill" || r.kind === "fire" || r.kind === "fly" || r.kind === "count" || r.kind === "burn" || (r.kind === "roll" && r.destKind === "pad"));
+    return G.rollouts.some((r) => r.kind === "raise" || r.kind === "lower" || r.kind === "fill" || r.kind === "fire" || r.kind === "fly" || isHopKind(r.kind) || (r.kind === "roll" && r.destKind === "pad"));
   }
   function fluidsMoving() {
-    return G.rollouts.some((r) => r.kind === "fill" || r.kind === "fire" || r.kind === "fly" || r.kind === "count" || r.kind === "burn");
+    return G.rollouts.some((r) => r.kind === "fill" || r.kind === "fire" || r.kind === "fly" || isHopKind(r.kind));
   }
   // Left in place. The day no longer refills the tanks, so this check no longer gates a refill.
   function farmHeld() {
@@ -1737,7 +1765,7 @@
       if (G.factoryJob.daysLeft <= 0) finishFactoryJob();
       else if (!skipQuiet && G.factoryJob.kind === "engine") log(`Raptor thrust · ${dayCount(G.factoryJob.daysLeft)} left`, "info");
       else if (!skipQuiet && G.factoryJob.kind === "structure") log(`Stage dry mass · ${dayCount(G.factoryJob.daysLeft)} left`, "info");
-      else if (!skipQuiet) log(`Starfactory · building ${rocketOf(G.factoryJob.rocketId).name} · ${dayCount(G.factoryJob.daysLeft)} left`, "info");
+      else if (!skipQuiet) log(`Starfactory · building ${G.factoryJob.vehicleName || rocketOf(G.factoryJob.rocketId).name} · ${dayCount(G.factoryJob.daysLeft)} left`, "info");
     }
 
     for (const v of liveFleet()) {
@@ -1934,11 +1962,10 @@
       return;
     }
     const r = rocketOf(job.rocketId);
-    const n = liveFleet().filter((item) => item.rocketId === r.id).length + 1;
     const a = buildingAnchor(factory);
     const v = {
       id: G.nextId++,
-      name: `${r.name} ${n}`,
+      name: job.vehicleName || nextSnName(),
       rocketId: r.id,
       buildingId: factory.id,
       status: "at_factory",
@@ -1987,8 +2014,9 @@
     if (G.steel < r.steelCost) { log(`Need ${r.steelCost} steel.`, "bad"); return; }
     G.steel -= r.steelCost;
     const buildDays = spanDays(TUNING.BUILD_DAYS_MIN, TUNING.BUILD_DAYS_MAX);
-    G.factoryJob = { kind: "rocket", rocketId: r.id, daysLeft: buildDays, totalDays: buildDays };
-    log(`Starfactory · building ${r.name} · −${r.steelCost} steel · ${dayCount(buildDays)}`, "good");
+    const vehicleName = nextSnName();
+    G.factoryJob = { kind: "rocket", rocketId: r.id, daysLeft: buildDays, totalDays: buildDays, vehicleName };
+    log(`Starfactory · building ${vehicleName} · −${r.steelCost} steel · ${dayCount(buildDays)}`, "good");
     renderChrome();
   }
 
@@ -2228,6 +2256,10 @@
         updateHopBurn(r, dt);
         continue;
       }
+      if (r.kind === "climb" || r.kind === "belly" || r.kind === "flip" || r.kind === "land") {
+        updateHopPhase(r, dt);
+        continue;
+      }
       // A road or a lift moves on the day clock, so it holds with the day.
       if (!held) {
         const add = (dt * 1000) / dayMs();
@@ -2296,7 +2328,7 @@
     if (G.paused) { log("The day is paused.", "warn"); return 0; }
     if (motionKind("fill")) { log("The tanks are still loading.", "warn"); return 0; }
     if (motionKind("fire")) { log("The static fire is still burning.", "warn"); return 0; }
-    if (motionKind("fly") || motionKind("count") || motionKind("burn")) { log("The rocket is still in flight.", "warn"); return 0; }
+    if (G.rollouts.some((r) => r.kind === "fly" || isHopKind(r.kind))) { log("The rocket is still in flight.", "warn"); return 0; }
     finishTrips();
 
     const closed = rangeClosed();
@@ -2728,15 +2760,29 @@
     25: { burn: 8, climb: 3, hover: 2, descent: 3, cut: 4 },
     50: { burn: 14, climb: 5, hover: 4, descent: 5, cut: 6 },
     150: { burn: 22, climb: 7, hover: 8, descent: 7, cut: 10 },
+    // Lit time is the climb plus the landing burn. The belly and the flip stay dark.
+    10000: { burn: 18, climb: 12, hover: 0, descent: 0, cut: 0, belly: 8, flip: 3, land: 6, high: true },
   };
   function hopLoad(meters) {
     const profile = HOP_PROFILE[meters];
     if (!profile) return null;
     const prop = hopProp(profile.burn);
     return {
-      meters, burn: profile.burn, climb: profile.climb, hover: profile.hover, descent: profile.descent, cut: profile.cut,
+      meters, burn: profile.burn, climb: profile.climb, hover: profile.hover || 0, descent: profile.descent || 0, cut: profile.cut,
+      belly: profile.belly || 0, flip: profile.flip || 0, land: profile.land || 0, high: !!profile.high,
       ch4: prop.ch4, lox: prop.lox, flightKg: prop.flightKg, floor: hopFloorKn(prop.flightKg),
     };
+  }
+  function hopMetersOk(v, meters) {
+    const n = Number(meters);
+    if (n === 25 || n === 50 || n === 150) return true;
+    return n === 10000 && !!(v && isSnName(v.name));
+  }
+  function storedHopMeters(name, meters) {
+    const n = Number(meters);
+    if (n === 25 || n === 50 || n === 150) return n;
+    if (n === 10000 && isSnName(name)) return 10000;
+    return null;
   }
   function hopSelection(v) {
     if (!v || v.hopMeters == null) return null;
@@ -2744,7 +2790,7 @@
     return hopLoad(Number(v.hopMeters));
   }
   function hopLive() {
-    return G.rollouts.find((r) => r.kind === "count" || r.kind === "burn" || (r.kind === "fill" && r.purpose === "hop")) || null;
+    return G.rollouts.find((r) => isHopKind(r.kind) || (r.kind === "fill" && r.purpose === "hop")) || null;
   }
   function mPerDegLon() { return 111320 * Math.cos(PAD_LAT * Math.PI / 180); }
   function mPerDegLat() { return 110540; }
@@ -2797,7 +2843,9 @@
     const geo = worldToLonLat(mount.x, mount.y);
     G.lon = (geo.lon + mark.lon) / 2;
     G.lat = (geo.lat + mark.lat) / 2;
-    G.span = 400 / mPerDegLon();
+    const live = hopLive();
+    const wide = live && Number(live.meters) === 10000;
+    G.span = (wide ? 800 : 400) / mPerDegLon();
   }
   function lockHopCam() {
     if (!G.hopView) G.hopView = { lon: G.lon, lat: G.lat, span: G.span };
@@ -2829,16 +2877,24 @@
     if (!countEl || !altEl) return;
     const count = motionKind("count");
     const burn = motionKind("burn");
-    const on = !!(count || burn);
+    const high = G.rollouts.find((r) => r.kind === "climb" || r.kind === "belly" || r.kind === "flip" || r.kind === "land");
+    const on = !!(count || burn || high);
     countEl.hidden = !on;
     altEl.hidden = !on;
     if (holdEl) holdEl.hidden = !on;
     if (frameEl) frameEl.hidden = !on;
     if (!on) return;
+    const wide = (count && count.meters === 10000) || (burn && burn.meters === 10000) || !!high;
+    if (frameEl) frameEl.textContent = wide ? "800 m" : "400 m";
     if (count) {
       const left = Math.max(0, Math.ceil(count.duration - count.t - 1e-6));
       countEl.textContent = `T-${left}`;
       altEl.textContent = "";
+      return;
+    }
+    if (high) {
+      countEl.innerHTML = `T+${Math.floor(highHopClock(high))}<small>${highPhaseLabel(high.kind)}</small>`;
+      altEl.innerHTML = `${hopHeightLabel(highHopAlt(high))}<small>Height</small>`;
       return;
     }
     const alt = hopAlt(burn.meters, burn.burned, Math.min(burn.t, burn.duration));
@@ -2848,8 +2904,8 @@
   function startHop(name, meters) {
     const v = G.fleet.find((item) => item.name === name);
     if (!v || v.status !== "ready") return false;
-    if (meters !== 25 && meters !== 50 && meters !== 150) return false;
-    if (motionKind("fill") || motionKind("fire") || motionKind("fly") || motionKind("count") || motionKind("burn")) return false;
+    if (!hopMetersOk(v, meters)) return false;
+    if (G.rollouts.some((r) => r.kind === "fill" || r.kind === "fire" || r.kind === "fly" || isHopKind(r.kind))) return false;
     if (G.paused) { log("The day is paused.", "warn"); return false; }
     v.hopMeters = meters;
     const load = hopLoad(meters);
@@ -2873,13 +2929,11 @@
       renderChrome();
       return true;
     }
-    if (G.ch4 + 0.5 < load.ch4) {
-      log(`${v.name} scrubs the hop. Methane is short. This hop needs ${load.ch4} kg. Nothing is spent.`, "bad");
-      renderChrome();
-      return true;
-    }
-    if (G.lox + 0.5 < load.lox) {
-      log(`${v.name} scrubs the hop. Liquid oxygen is short. This hop needs ${load.lox} kg. Nothing is spent.`, "bad");
+    const shortTanks = [];
+    if (G.ch4 + 0.5 < load.ch4) shortTanks.push(`Methane is short. This hop needs ${load.ch4} kg.`);
+    if (G.lox + 0.5 < load.lox) shortTanks.push(`Liquid oxygen is short. This hop needs ${load.lox} kg.`);
+    if (shortTanks.length) {
+      log(`${v.name} scrubs the hop. ${shortTanks.join(" ")} Nothing is spent.`, "bad");
       renderChrome();
       return true;
     }
@@ -2962,7 +3016,8 @@
     if (r.t + 1e-4 < r.duration) return;
     const v = vehicleById(r.vehicleId);
     if (!v) { clearMotion(r.vehicleId); unlockHopCam(); return; }
-    beginHopBurn(v, r);
+    if (r.meters === 10000) beginHighPhase(v, r, "climb");
+    else beginHopBurn(v, r);
   }
   function updateHopBurn(r, dt) {
     r.t += dt;
@@ -2975,6 +3030,163 @@
     paintHopRead();
     if (r.t + 1e-4 < r.duration) return;
     finishHop(r);
+  }
+  function highHopClock(r) {
+    const load = hopLoad(10000);
+    const t = Math.min(r.t, r.duration);
+    if (r.kind === "climb") return t;
+    if (r.kind === "belly") return load.climb + t;
+    if (r.kind === "flip") return load.climb + load.belly + t;
+    if (r.kind === "land") return load.climb + load.belly + load.flip + t;
+    return 0;
+  }
+  function highHopAlt(r) {
+    const load = hopLoad(10000);
+    const t = Math.min(r.t, r.duration);
+    if (r.kind === "climb") return 10000 * (t / Math.max(load.climb, 1e-6));
+    if (r.kind === "belly" || r.kind === "flip") return 10000;
+    if (r.kind === "land") return Math.max(0, 10000 * (1 - t / Math.max(load.land, 1e-6)));
+    return 0;
+  }
+  function highPhaseLabel(kind) {
+    if (kind === "climb") return "Climb";
+    if (kind === "belly") return "Belly";
+    if (kind === "flip") return "Flip";
+    if (kind === "land") return "Landing";
+    return "";
+  }
+  function hopHeightLabel(alt) {
+    if (alt >= 9999.5) return "10 km";
+    if (alt >= 100) return `${(alt / 1000).toFixed(1)} km`;
+    return `${Math.round(alt)} m`;
+  }
+  function hopFlameOn(m) {
+    if (!m) return false;
+    if (m.kind === "burn") return m.t < m.duration;
+    return m.kind === "climb" || m.kind === "land";
+  }
+  function hopCarry(src) {
+    return {
+      vehicleId: src.vehicleId,
+      meters: src.meters,
+      preCh4: src.preCh4,
+      preLox: src.preLox,
+      preWx: src.preWx,
+      preWy: src.preWy,
+      homeId: src.homeId,
+      preEngine: src.preEngine,
+      preLines: src.preLines,
+      litSpent: src.litSpent || 0,
+    };
+  }
+  // A lit piece spends the shorter of the clock, the engine life, and the fuel lines.
+  function spendHopLit(r) {
+    const v = vehicleById(r.vehicleId);
+    if (!v) return;
+    const lines = Math.max(0, v.fittingLifeS || 0);
+    const eng = Math.max(0, v.engineLifeS || 0);
+    const spent = Math.min(r.duration, eng, lines);
+    v.engineLifeS = eng - spent;
+    v.fittingLifeS = lines - spent;
+    r.litSpent = (r.litSpent || 0) + spent;
+  }
+  function placeHighHop(v, r) {
+    const load = hopLoad(10000);
+    const clock = highHopClock(r);
+    const total = load.climb + load.belly + load.flip + load.land;
+    const u = clamp(clock / Math.max(total, 1e-6), 0, 1);
+    v.wx = r.fromX + (r.toX - r.fromX) * u;
+    v.wy = r.fromY + (r.toY - r.fromY) * u;
+  }
+  function beginHighPhase(v, prev, kind) {
+    const load = hopLoad(10000);
+    const dur = kind === "climb" ? load.climb : kind === "belly" ? load.belly : kind === "flip" ? load.flip : load.land;
+    const pad = buildingOfType("pad_orbital");
+    const mount = pad ? buildingAnchor(pad, 0) : { x: prev.preWx, y: prev.preWy };
+    const mark = hopMark();
+    const pack = hopCarry(prev);
+    pack.kind = kind;
+    pack.t = 0;
+    pack.duration = dur;
+    pack.fromX = mount.x;
+    pack.fromY = mount.y;
+    pack.toX = mark ? mark.x : mount.x;
+    pack.toY = mark ? mark.y : mount.y;
+    pack.hard = !!prev.hard;
+    pack.miss = prev.miss || [];
+    if (kind === "land") {
+      const thrust = engineNowKn(v);
+      const limitKn = pad ? padLimits(pad).thrust : 0;
+      const linesNow = Math.max(0, v.fittingLifeS || 0);
+      const engNow = Math.max(0, v.engineLifeS || 0);
+      const msgs = [];
+      if (thrust + 1e-6 < load.floor) msgs.push(`The engine is short. It has ${Math.round(thrust)} kN. The landing needs ${load.floor} kN.`);
+      if (thrust > limitKn) msgs.push(`The pad is short. It holds ${limitKn} kN. The hop asks for ${Math.round(thrust)} kN.`);
+      if (linesNow + 1e-6 < load.land) msgs.push(`Fuel lines are short. They have ${Math.round(linesNow)} seconds. The landing burn needs ${load.land}.`);
+      if (engNow + 1e-6 < load.land) msgs.push(`The engine is short. It has ${Math.round(engNow)} seconds. The landing burn needs ${load.land}.`);
+      pack.hard = msgs.length > 0;
+      pack.miss = msgs;
+      msgs.forEach((line) => log(line, "bad"));
+    }
+    setMotion(pack);
+    if (kind === "belly") log(`${v.name} is belly first. The engine is off.`, "info");
+    if (kind === "flip") log(`${v.name} flips. The engine is off.`, "info");
+    paintHopRead();
+  }
+  function updateHopPhase(r, dt) {
+    r.t += dt;
+    const v = vehicleById(r.vehicleId);
+    if (v) placeHighHop(v, r);
+    paintHopRead();
+    if (r.t + 1e-4 < r.duration) return;
+    if (r.kind === "climb" || r.kind === "land") spendHopLit(r);
+    if (!v) { clearMotion(r.vehicleId); unlockHopCam(); return; }
+    if (r.kind === "land") { finishHighHop(r); return; }
+    const next = r.kind === "climb" ? "belly" : r.kind === "belly" ? "flip" : "land";
+    beginHighPhase(v, r, next);
+  }
+  function finishHighHop(r) {
+    const v = vehicleById(r.vehicleId);
+    const pad = buildingOfType("pad_orbital");
+    const load = hopLoad(10000);
+    if (!v || !pad || !load) { clearMotion(r.vehicleId); unlockHopCam(); return; }
+    const lit = Math.max(0, r.litSpent || 0);
+    const usedCh4 = Math.round(load.ch4 * lit / load.burn);
+    const usedLox = Math.round(load.lox * lit / load.burn);
+    G.ch4 = r.preCh4 - usedCh4;
+    G.lox = r.preLox - usedLox;
+    const hard = !!r.hard;
+    unlockHopCam();
+    clearMotion(v.id);
+    if (!hard) {
+      v.stageLife = Math.max(TUNING.SCRAP_FLOOR, (v.stageLife || 0) - load.cut);
+      v.hops = (v.hops || 0) + 1;
+      v.hopNote = "";
+      G.testDays.push({ day: G.day, kind: "hop", result: "clean" });
+      log(`${v.name} landed the 10 km hop. Structure is ${Math.round(v.stageLife)}.`, "good");
+      fundGoal("hop");
+      const mark = hopMark();
+      v.wx = mark ? mark.x : r.toX;
+      v.wy = mark ? mark.y : r.toY;
+      v.buildingId = null;
+      startHopReturn(v, pad);
+      renderChrome();
+      return;
+    }
+    v.stageLife = Math.max(TUNING.SCRAP_FLOOR, (v.stageLife || 0) - TUNING.SF_MISS_CONDITION);
+    if (Math.round(v.stageLife) < TUNING.PROOF_STRUCT_MIN) v.structFound = true;
+    v.proofDone = false;
+    v.tankingDone = false;
+    v.proofSkipped = false;
+    v.tankingSkipped = false;
+    v.status = "needs_return";
+    v.inspectKind = null;
+    v.inspectLeft = 0;
+    parkVehicle(v, pad.id, 0);
+    v.hopNote = (r.miss || []).join(" ");
+    G.testDays.push({ day: G.day, kind: "hop", result: "miss" });
+    log(`${v.name} needs Mega Bay. Structure is ${Math.round(v.stageLife)}.`, "bad");
+    renderChrome();
   }
   function hopMissLines(thrust, limitKn, load, preLines, preEngine) {
     const msgs = [];
@@ -3717,6 +3929,7 @@
     el.ch4.textContent = Math.floor(G.ch4);
     el.lox.textContent = Math.floor(G.lox);
     el.fleet.textContent = liveFleet().length;
+    if (el.fires) el.fires.textContent = String(padFireRows().count);
     el.day.textContent = String(G.day);
     const run = document.getElementById("day-run");
     const pauseBtn = document.getElementById("day-pause");
@@ -3731,8 +3944,9 @@
 
   function ownedLine(b) {
     if (b.type === "starfactory") {
+      if (G.factoryJob && G.factoryJob.kind === "rocket" && G.factoryJob.vehicleName) return `Building ${G.factoryJob.vehicleName}`;
       if (G.factoryJob) return `Busy · ${dayCount(G.factoryJob.daysLeft)} left`;
-      return factoryHold() ? "Holds a finished rocket" : "Builds a Starhopper";
+      return factoryHold() ? "Holds a finished rocket" : "Builds an SN";
     }
     if (b.type === "mega_bay") {
       const cap = bayCapacity(b);
@@ -3857,7 +4071,7 @@
       id: "launch",
       title: "How a test works",
       body: wikiParas([
-        `You spend steel at ${wikiPlace("starfactory", "Starfactory")}. The factory builds a ${rocket.name} and holds it until you roll it to ${wikiPlace("mega_bay", "Mega Bay")}.`,
+        `You spend steel at ${wikiPlace("starfactory", "Starfactory")}. The factory builds an SN and holds one finished rocket. The next build can start once that rocket has left the hold.`,
         `${wikiPlace("mega_bay", "Mega Bay")} houses the rocket. Roll to the ${wikiPlace("pad_orbital", "Orbital Pad")} moves it along the yard road and sets it on the mount.`,
         `The first test is a cryo proof. Liquid nitrogen is the cold liquid used for the proof. It does not burn. The test buys it. The game keeps no nitrogen tank.`,
         `The proof takes the tanks to ${TUNING.PROOF_BAR} bar. That figure is a label, not a check. The proof passes when Structure is ${TUNING.PROOF_STRUCT_MIN} or more. Structure is a fixed number you have to measure. The ${TUNING.PROOF_COST} money, the ${dayCount(TUNING.PROOF_DAYS)}, and the proof line of ${TUNING.PROOF_STRUCT_MIN} are game numbers.`,
@@ -3872,7 +4086,7 @@
         `The cryo proof finds Structure. The tanking run finds the fuel lines. A fail on those tests names the part and damages nothing. The bay restores it in the days and the steel prices that already exist. You can skip a cryo proof or a tanking run. The part stays as it is. An untested part reads not tested.`,
         `A fire that lights can miss on Structure or the fuel lines. A short pad or a short engine still lights, and that fire is a miss. A fail names the part. A closed range or a short tank does not light. A scrub damages nothing.`,
       ]) + wikiFacts([
-        { value: `${rocket.steelCost} steel`, label: "Steel for a Starhopper" },
+        { value: `${rocket.steelCost} steel`, label: "Steel for an SN" },
         { value: daySpan(TUNING.BUILD_DAYS_MIN, TUNING.BUILD_DAYS_MAX), label: "Days to build" },
         { value: `${TUNING.PROOF_COST} money`, label: "Cryo proof cost, a game number" },
         { value: `${TUNING.PROOF_BAR} bar`, label: "Proof pressure, the SN4 figure" },
@@ -3899,10 +4113,10 @@
       id: "flight",
       title: "Flight",
       body: wikiParas([
-        `A ready rocket hops 25 m, 50 m, or 150 m from the Orbital Pad. The burns are 8, 14, and 22 seconds.`,
-        `The day holds while the tanks load, during the count, and during the burn. The countdown has no sound.`,
+        `A ready rocket hops 25 m, 50 m, or 150 m from the Orbital Pad. An SN also hops 10 km. The low burns are 8, 14, and 22 seconds. The 10 km hop is lit for 18 seconds.`,
+        `The day holds while the tanks load and during the hop. The countdown has no sound.`,
         `Dry mass is 102000 kg, and that includes the Raptor. The window shows the flight mass of the height you pick.`,
-        `A clean landing cuts Structure by 4, 6, or 10. A hard landing cuts 40 and leaves it at 20 at worst. The rocket then needs Mega Bay.`,
+        `A clean low hop cuts Structure by 4, 6, or 10. A soft 10 km landing cuts 0. A hard landing cuts 40 and leaves it at 20 at worst. The rocket then needs Mega Bay.`,
         `A short pad or a short engine still lights. A closed range or a short tank scrubs, and nothing is spent.`,
         `The landing mark sits about 100 m east of the mount, on land. The rocket rolls back, then waits 1 day for inspection.`,
       ]) + wikiFacts([
@@ -3912,6 +4126,9 @@
         { value: "1515 kN", label: "50 m landing floor" },
         { value: "1584 kg / 5702 kg", label: "150 m load, methane and oxygen" },
         { value: "1555 kN", label: "150 m landing floor" },
+        { value: "1279 kg / 4604 kg", label: "10 km load, methane and oxygen" },
+        { value: "1535 kN", label: "10 km landing floor" },
+        { value: "107883 kg", label: "Flight mass at 10 km" },
         { value: "102000 kg", label: "Dry mass, including the Raptor" },
         { value: `${RAPTOR_REFS.hopM.n} m`, label: "Hop height in 2019 and 2020" },
         { value: "1", label: "Raptors on those hops" },
@@ -3974,13 +4191,14 @@
       body: wikiParas([
         `The rocket equation ties the change in speed to the exhaust speed and to how much of the rocket is propellant.`,
         `Starhopper carries no payload. The hop is a short rise and a landing nearby, not a climb to orbit.`,
-        `Dry mass is 102000 kg. That figure includes the Raptor. A 25 m hop flies at 104535 kg. A 50 m hop flies at 106517 kg. A 150 m hop flies at 109286 kg.`,
-        `The dry-mass cut stays off the sheet. The hop cuts Structure, not that mass.`,
+        `Dry mass is 102000 kg. That figure includes the Raptor. A 25 m hop flies at 104535 kg. A 50 m hop flies at 106517 kg. A 150 m hop flies at 109286 kg. A 10 km hop flies at 107883 kg.`,
+        `The dry-mass cut stays off the sheet. The hop cuts Structure, not that mass. A soft 10 km landing cuts no Structure.`,
       ]) + wikiFacts([
         { value: "102000 kg", label: "Dry mass, including the Raptor" },
         { value: "104535 kg", label: "Flight mass at 25 m" },
         { value: "106517 kg", label: "Flight mass at 50 m" },
         { value: "109286 kg", label: "Flight mass at 150 m" },
+        { value: "107883 kg", label: "Flight mass at 10 km" },
         { value: "None", label: "Starhopper carries no payload." },
       ]) + wikiReal([
         `Starhopper, SN5, and SN6 were test vehicles. They hopped. They did not carry a payload to orbit. The ${wikiSource("vehicles")} lists those vehicles.`,
@@ -4030,7 +4248,7 @@
         `Pad level 1 holds ${TUNING.PAD_THRUST_L1} kN. Pad level 2 holds ${TUNING.PAD_THRUST_L2} kN. The engine floor is ${TUNING.SF_THRUST_BAR_KN} kN. Those three are game numbers.`,
         `Structure is a fixed number you have to measure. The factory rolls it when the job ends. Check Structure takes 1 day and no money. The first reading is about 30 wide. The second is about 10 wide. Only the pad writes the exact number. Each found and fixed Structure fault raises the Structure floor by ${TUNING.STRUCT_FLOOR_STEP}. Fuel lines can still leave at ${TUNING.DEFECT_LINES_S} seconds. Thrust can still leave at ${TUNING.DEFECT_THRUST_KN} kN. The cryo proof finds Structure. The tanking run finds the fuel lines. The static fire also reads both. A fire that lights can miss on either part. A fail names the part. A scrub damages nothing. An untested part reads not tested.`,
         `Burns is ${TUNING.ENGINE_RESTARTS}. Engine life starts at ${TUNING.ENGINE_FIRE_LIMIT_S} seconds. A lit static fire spends 5. Burns and the engine life are game numbers.`,
-        `A hop uses a dry mass of 102000 kg, including the Raptor. The 25 m flight mass is 104535 kg. The 50 m flight mass is 106517 kg. The 150 m flight mass is 109286 kg. Starhopper carries no payload.`,
+        `A hop uses a dry mass of 102000 kg, including the Raptor. The 25 m flight mass is 104535 kg. The 50 m flight mass is 106517 kg. The 150 m flight mass is 109286 kg. The 10 km flight mass is 107883 kg. The rocket carries no payload.`,
       ]) + wikiFacts([
         { value: wikiNum(TUNING.LOX_PER_CH4, 1), label: "Liquid oxygen per kg of methane" },
         { value: `${TUNING.SF_CH4_KG} kg`, label: "Methane for a static fire" },
@@ -4070,7 +4288,7 @@
       body: wikiParas([
         `A static fire is a burn on the pad. It reads ${wikiGo("thrust", "thrust")}, Structure, and the fuel lines. A fire that lights can miss on Structure or the fuel lines. A fail names the part. A scrub damages nothing.`,
         `The rocket window paints Structure, Fuel lines, and Engine (Raptor) on the rocket, top to bottom. An untested part reads not tested, with no figure. A bay check draws a band on the Structure row. The hull stays not tested until the pad writes the number. After that, the line shows the number the rocket has and the number the test needed. The top bar keeps the name and the place. It names Structure short only when the band is under ${TUNING.PROOF_STRUCT_MIN}, or the pad wrote a number under ${TUNING.PROOF_STRUCT_MIN}. The engine bar stays on the seconds still left, out of ${TUNING.ENGINE_FIRE_LIMIT_S}. After the engine is tested, the line shows the thrust the rocket has. A lit static fire spends 5 seconds. A short engine also sets the seconds to 0. A short pad spends the 5 second hold. Life stops at 0. The ${TUNING.ENGINE_FIRE_LIMIT_S} seconds are a game number.`,
-        `The fuel lines carry methane and liquid oxygen from the tanks to the engine. A new article can leave with ${TUNING.DEFECT_LINES_S} seconds. A healthy article has ${TUNING.FITTING_LIFE_S} seconds out of ${TUNING.FITTING_LIFE_S}. A static fire does not spend those seconds. A hop spends the seconds it burns, 8, 14, or 22. A short set still lights, and the burn ends early. Inspect the fuel lines sets them to ${TUNING.FITTING_LIFE_S}. That job also retires the fuel-line short for later articles, even on a healthy article. The hidden launch still asks for ${TUNING.FITTING_BURN_S} seconds.`,
+        `The fuel lines carry methane and liquid oxygen from the tanks to the engine. A new article can leave with ${TUNING.DEFECT_LINES_S} seconds. A healthy article has ${TUNING.FITTING_LIFE_S} seconds out of ${TUNING.FITTING_LIFE_S}. A static fire does not spend those seconds. The low hops spend 8, 14, and 22 seconds. The 10 km hop spends 18 seconds of engine life and fuel lines, and only while the flame is on. The belly and the flip spend none. A hop with 0 seconds of fuel lines still runs the whole watch, and the landing burn names Fuel lines. Inspect the fuel lines sets them to ${TUNING.FITTING_LIFE_S}. That job also retires the fuel-line short for later articles, even on a healthy article. The hidden launch still asks for ${TUNING.FITTING_BURN_S} seconds.`,
         `Structure is a fixed number you have to measure. It is rolled when the factory job ends. A bay check reads a band and does not write that number. A lit miss takes up to ${TUNING.SF_MISS_CONDITION} off Structure and leaves it at ${TUNING.SCRAP_FLOOR} at worst. A fire cut does not raise the Structure floor. The floor rises by ${TUNING.STRUCT_FLOOR_STEP} only when a short stored at build was found and then fixed.`,
         `Refurb the engine costs ${TUNING.ENGINE_REFURB_COST} steel and takes ${dayCount(TUNING.REFURB_OK_DAYS)}. Pad level 2 cuts one day from that job only. It restores a short thrust to the healthy thrust for that tier, and the seconds to ${TUNING.ENGINE_FIRE_LIMIT_S}. Refurb the structure takes ${daySpan(TUNING.REFURB_FAIL_MIN, TUNING.REFURB_FAIL_MAX)} and no steel.`,
         `The bay runs one part at a time. Raise Raptor thrust spends ${TUNING.ENGINE_UP_COST} steel. Raptor 1 at ${TUNING.ENGINE_THRUST_KN} kN becomes Raptor 2 at ${TUNING.ENGINE_2_KN} kN. Mass drops from ${TUNING.ENGINE_MASS_KG} kg to ${TUNING.ENGINE_2_MASS_KG} kg. It does not build a second engine.`,
@@ -4104,10 +4322,10 @@
       body: wikiParas([
         `One game day lasts ${dayLen}. Builds, refurbs, and upgrades wait in those days.`,
         `1x and 3x divide that day. The road and the lift run on the day too, so they cost the same days at either speed.`,
-        `${wikiPlace("starfactory", "Starfactory")} builds a Starhopper in ${daySpan(TUNING.BUILD_DAYS_MIN, TUNING.BUILD_DAYS_MAX)}.`,
+        `${wikiPlace("starfactory", "Starfactory")} builds an SN in ${daySpan(TUNING.BUILD_DAYS_MIN, TUNING.BUILD_DAYS_MAX)}.`,
         `Raise Raptor thrust takes ${daySpan(TUNING.ENGINE_UP_DAYS_MIN, TUNING.ENGINE_UP_DAYS_MAX)}. The dry-mass cut waits until a flight uses dry mass. That button is off the sheet.`,
         `After a clean fire the rocket stays on the mount for ${dayCount(TUNING.INSPECT_DAYS)} of data review. Refurb the engine takes ${dayCount(TUNING.REFURB_OK_DAYS)}. Inspect the fuel lines takes ${dayCount(TUNING.INSPECT_DAYS)}. Refurb the structure takes ${daySpan(TUNING.REFURB_FAIL_MIN, TUNING.REFURB_FAIL_MAX)}.`,
-        `The day holds while the tanks load, during a hop count, during a burn, and during a flight. Those keep their real seconds. The purse does not grow on the day. Investors pay when a goal is finished. Every 30 days the review pays 12 money for each clean test. Pause stops the day and the burn.`,
+        `The day holds while the tanks load, during a hop, and during a flight. Those keep their real seconds. The purse does not grow on the day. Investors pay when a goal is finished. Every 30 days the review pays 12 money for each clean test. Pause stops the day and the burn.`,
         `The rollout along the yard road takes ${roadSpanText()} between ${wikiPlace("mega_bay", "Mega Bay")} and the ${wikiPlace("pad_orbital", "Orbital Pad")}. A raise or a lower on the mount takes half a day. The road length is a game number. A real rollout takes a few hours.`,
       ]) + wikiFacts([
         { value: dayLen, label: "One game day" },
@@ -4127,8 +4345,8 @@
       group: "Buildings",
       title: "Starfactory",
       body: wikiParas([
-        `Starfactory builds a ${rocket.name} from steel. It holds the finished rocket until you roll it to ${wikiPlace("mega_bay", "Mega Bay")}.`,
-        `Build ${rocket.name} costs ${rocket.steelCost} steel and takes ${daySpan(TUNING.BUILD_DAYS_MIN, TUNING.BUILD_DAYS_MAX)}. Roll to ${wikiPlace("mega_bay", "Mega Bay")} spends no steel and no propellant. The road takes ${roadSpanText()}.`,
+        `Starfactory builds an SN from steel. It holds one finished rocket. The next build can start once that rocket has left the hold.`,
+        `Build SN costs ${rocket.steelCost} steel and takes ${daySpan(TUNING.BUILD_DAYS_MIN, TUNING.BUILD_DAYS_MAX)}. Roll to ${wikiPlace("mega_bay", "Mega Bay")} spends no steel and no propellant. The road takes ${roadSpanText()}.`,
         `Structure is a fixed number you have to measure. The card names the Structure floor and the step of ${TUNING.STRUCT_FLOOR_STEP}. Fuel lines can leave at ${TUNING.DEFECT_LINES_S} seconds. Thrust can leave at ${TUNING.DEFECT_THRUST_KN} kN. Those shorts are game numbers.`,
         `Raise Raptor thrust costs ${TUNING.ENGINE_UP_COST} steel and takes ${daySpan(TUNING.ENGINE_UP_DAYS_MIN, TUNING.ENGINE_UP_DAYS_MAX)}. The dry-mass cut waits until a flight uses dry mass. That button is off the sheet.`,
         `Bigger vehicles come later.`,
@@ -4136,12 +4354,12 @@
         `Starfactory cannot be upgraded.`,
         `The next building is ${wikiPlace("mega_bay", "Mega Bay")}. ${wikiPageLink("thrust", "Thrust")} and the stage change while this factory is busy.`,
       ]) + wikiFacts([
-        { value: `${rocket.steelCost} steel`, label: `Steel for a ${rocket.name}` },
+        { value: `${rocket.steelCost} steel`, label: "Steel for an SN" },
         { value: daySpan(TUNING.BUILD_DAYS_MIN, TUNING.BUILD_DAYS_MAX), label: "Days to build" },
         { value: `${TUNING.ENGINE_UP_COST} steel`, label: "Raise Raptor thrust" },
         { value: "Off the sheet", label: "The dry-mass cut waits until a flight uses dry mass" },
       ]) + wikiReal([
-        `Starhopper, SN5, and SN6 were built at Boca Chica and each flew with one Raptor. This game builds Starhopper at Starbase. The ${wikiSource("vehicles")} lists those vehicles.`,
+        `Starhopper, SN5, and SN6 were built at Boca Chica and each flew with one Raptor. This game builds an SN at Starbase. The ${wikiSource("vehicles")} lists those vehicles.`,
       ]),
     };
   }
@@ -4208,7 +4426,7 @@
       ]) + wikiReal([
         `SN4 passed a cryo proof at ${RAPTOR_REFS.proofBar.n} bar in late April 2020, then a second proof at ${RAPTOR_REFS.proofBar2.n} bar on 10 May 2020. The ${wikiSource("sn4")} and the ${wikiSource("sn4hw")} record those tests.`,
         `The SN7 test tank reached ${RAPTOR_REFS.sn7Bar.n} bar on liquid nitrogen, then sprang a leak. The second test came apart. The ${wikiSource("sn7")} is that account.`,
-        `SN5 passed its cryo proof, static-fired on 30 July 2020, and hopped on 4 August. The ${wikiSource("sn5")} and the ${wikiSource("vehicles")} cover that run. This pad stands at Starbase. A hop here is 25 m, 50 m, or 150 m.`,
+        `SN5 passed its cryo proof, static-fired on 30 July 2020, and hopped on 4 August. The ${wikiSource("sn5")} and the ${wikiSource("vehicles")} cover that run. This pad stands at Starbase. A hop here is 25 m, 50 m, 150 m, or 10 km on an SN.`,
       ]),
     };
   }
@@ -4303,7 +4521,7 @@
     if (m && m.kind === "raise") return "Raising onto the mount";
     if (m && m.kind === "lower") return "Lowering onto the transporter";
     if (m && m.kind === "fill") return "Loading methane and liquid oxygen";
-    if (m && (m.kind === "fly" || m.kind === "count" || m.kind === "burn")) return "In flight";
+    if (m && (m.kind === "fly" || isHopKind(m.kind))) return "In flight";
     if (v.status === "in_bay") return `Bay slot ${(v.baySlot || 0) + 1}`;
     if (v.status === "at_factory") return "At the factory";
     if (v.status === "proof") return `Cryo proof · ${dayCount(v.testLeft)} left`;
@@ -4326,7 +4544,7 @@
     if (m.kind === "raise") return `${name} is raising onto the mount · ${left} left`;
     if (m.kind === "lower") return `${name} is lowering onto the transporter · ${left} left`;
     if (m.kind === "fill") return `${name} is loading methane and liquid oxygen · ${left} left`;
-    if (m.kind === "fly" || m.kind === "count" || m.kind === "burn") return `${name} is in flight`;
+    if (m.kind === "fly" || isHopKind(m.kind)) return `${name} is in flight`;
     const dest = m.destKind === "pad" ? "the Orbital Pad" : "Mega Bay";
     return `${name} is rolling to ${dest} · ${left} left`;
   }
@@ -4412,14 +4630,20 @@
       }
       if (G.factoryJob) {
         const pct = 1 - G.factoryJob.daysLeft / G.factoryJob.totalDays;
-        const label = G.factoryJob.kind === "engine" ? "Raptor thrust" : G.factoryJob.kind === "structure" ? "Stage dry mass" : rocketOf(G.factoryJob.rocketId).name;
-        html += `<p class="wait">${esc(label)} · ${dayCount(G.factoryJob.daysLeft)} left</p>
-          <div class="bar-track"><i style="width:${Math.round(pct * 100)}%"></i></div>`;
+        const job = G.factoryJob;
+        if (job.kind === "rocket") {
+          html += inspRow("Now", esc(job.vehicleName || "SN"));
+          html += inspRow("Days left", dayCount(job.daysLeft));
+        } else {
+          const label = job.kind === "engine" ? "Raptor thrust" : "Stage dry mass";
+          html += `<p class="wait">${esc(label)} · ${dayCount(job.daysLeft)} left</p>`;
+        }
+        html += `<div class="bar-track"><i style="width:${Math.round(pct * 100)}%"></i></div>`;
       } else {
         const r = rocketOf("article");
         const busy = !!(factoryHold() || G.event);
         acts += actCard("build", "", ` data-rocket="article"${busy ? " disabled" : ""}`,
-          `Build ${esc(r.name)}`, r.steelCost, "steel", `${daySpan(TUNING.BUILD_DAYS_MIN, TUNING.BUILD_DAYS_MAX)}. A static fire loads ${TUNING.SF_CH4_KG} kg of methane and ${TUNING.SF_LOX_KG} kg of LOX.`);
+          "Build SN", r.steelCost, "steel", `${daySpan(TUNING.BUILD_DAYS_MIN, TUNING.BUILD_DAYS_MAX)}. A static fire loads ${TUNING.SF_CH4_KG} kg of methane and ${TUNING.SF_LOX_KG} kg of LOX.`);
       }
       if (hold) {
         html += slotRow(hold);
@@ -4493,8 +4717,8 @@
       const moving = on ? motionFor(on.id) : null;
       const inbound = G.rollouts.find((r) => r.kind === "roll" && r.destKind === "pad");
       let back = "";
-      const hopClock = moving && (moving.kind === "count" || moving.kind === "burn" || (moving.kind === "fill" && moving.purpose === "hop"));
-      if (hopClock && (moving.kind === "count" || moving.kind === "burn")) {
+      const hopClock = moving && (isHopKind(moving.kind) || (moving.kind === "fill" && moving.purpose === "hop"));
+      if (hopClock && isHopKind(moving.kind)) {
         html += `<p class="wait">${esc(on.name)} is in flight.</p>`;
         html += `<p class="wait">The day holds during the hop.</p>`;
         acts += actCard("quiet", "btn-hop", " disabled", "Hop", null, "", "The rocket is still in flight.");
@@ -4557,11 +4781,15 @@
         if (struct < TUNING.PROOF_STRUCT_MIN) html += `<p class="wait">Structure needs ${TUNING.PROOF_STRUCT_MIN} and has ${struct}.</p>`;
         if (on.needsDetank) html += `<p class="wait">Open the rocket and empty the tanks.</p>`;
         const picked = hopSelection(on);
-        acts += `<div class="trio">${[25, 50, 150].map((m) => actCard(on.hopMeters === m ? "quiet on" : "quiet", "", ` data-hop="${m}"`, `${m} m`, null, "", "")).join("")}</div>`;
+        const heights = isSnName(on.name) ? [25, 50, 150, 10000] : [25, 50, 150];
+        const grid = heights.length === 4 ? "quad" : "trio";
+        acts += `<div class="${grid}">${heights.map((m) => actCard(on.hopMeters === m ? "quiet on" : "quiet", "", ` data-hop="${m}"`, m === 10000 ? "10 km" : `${m} m`, null, "", "")).join("")}</div>`;
         if (picked) {
-          acts += `<p class="hop-fact">${picked.meters} m. ${picked.ch4} kg of methane and ${picked.lox} kg of oxygen. ${picked.burn} seconds.</p>`;
+          const height = picked.high ? "10 km" : `${picked.meters} m`;
+          const lit = picked.high ? `${picked.burn} seconds lit` : `${picked.burn} seconds`;
+          acts += `<p class="hop-fact">${height}. ${picked.ch4} kg of methane and ${picked.lox} kg of oxygen. ${lit}.</p>`;
           const blocked = struct < TUNING.PROOF_STRUCT_MIN;
-          acts += actCard(blocked ? "quiet" : "fire", "btn-hop", blocked ? " disabled" : "", "Hop", null, "", blocked ? `Structure needs ${TUNING.PROOF_STRUCT_MIN} and has ${struct}.` : `${picked.burn} seconds. No money.`);
+          acts += actCard(blocked ? "quiet" : "fire", "btn-hop", blocked ? " disabled" : "", "Hop", null, "", blocked ? `Structure needs ${TUNING.PROOF_STRUCT_MIN} and has ${struct}.` : `${lit}. No money.`);
         } else {
           acts += actCard("quiet", "btn-hop", " disabled", "Hop", null, "", "Pick a height.");
         }
@@ -4651,7 +4879,9 @@
       btn.onclick = () => {
         const hopV = padHold();
         if (!hopV || hopV.status !== "ready") return;
-        hopV.hopMeters = Number(btn.getAttribute("data-hop"));
+        const meters = Number(btn.getAttribute("data-hop"));
+        if (!hopMetersOk(hopV, meters)) return;
+        hopV.hopMeters = meters;
         renderChrome();
       };
     });
@@ -4762,7 +4992,7 @@
         const v = vehicleById(job.vehicleId);
         lines.push(`${v ? v.name : "Rocket"} · Stage dry mass · ${days(job.daysLeft)}`);
       } else {
-        lines.push(`Starfactory · building ${rocketOf(job.rocketId).name} · ${days(job.daysLeft)}`);
+        lines.push(`Starfactory · building ${job.vehicleName || rocketOf(job.rocketId).name} · ${days(job.daysLeft)}`);
       }
     }
     for (const m of G.rollouts) {
@@ -4776,7 +5006,7 @@
         const v = vehicleById(m.vehicleId);
         lines.push(`${v ? v.name : "Rocket"} · in flight · ${wikiNum(m.h / 1000, 1)} km`);
         lines.push("The day holds during the flight");
-      } else if (m.kind === "count" || m.kind === "burn") {
+      } else if (isHopKind(m.kind)) {
         // The countdown sits on the map, so this note stays clear of it.
       } else {
         lines.push(motionLine(m, vehicleById(m.vehicleId)));
@@ -5316,7 +5546,7 @@
     if (G.hopView) drawHopMark();
     for (const v of liveFleet()) {
       const m = motionFor(v.id);
-      if (m && (m.kind === "count" || m.kind === "burn")) {
+      if (m && isHopKind(m.kind)) {
         drawHopper(v, m);
         continue;
       }
@@ -6158,44 +6388,59 @@
     ctx.fill();
     ctx.restore();
   }
+  function hopperReadAlt(m) {
+    if (m.kind === "burn") return hopAlt(m.meters, m.burned, Math.min(m.t, m.duration));
+    if (m.kind === "climb" || m.kind === "belly" || m.kind === "flip" || m.kind === "land") return highHopAlt(m);
+    return 0;
+  }
+  function hopperPose(m) {
+    if (m.kind === "belly") return 0;
+    if (m.kind === "flip") return clamp(m.t / Math.max(m.duration, 1e-6), 0, 1);
+    return 1;
+  }
   function drawHopper(v, m) {
-    const alt = m.kind === "burn" ? hopAlt(m.meters, m.burned, Math.min(m.t, m.duration)) : 0;
+    const read = hopperReadAlt(m);
+    const high = m.kind === "climb" || m.kind === "belly" || m.kind === "flip" || m.kind === "land";
+    const alt = high ? (read / 10000) * 220 : read;
     const mPerY = (GEO_N - GEO_S) * mPerDegLat() / (MAP_H * CELL);
     const mPerX = (GEO_E - GEO_W) * mPerDegLon() / (MAP_W * CELL);
     const x = v.wx;
     const y = v.wy - alt / mPerY;
     const w = 9 / mPerX;
     const h = 14 / mPerX;
+    const pose = hopperPose(m);
     ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate((1 - pose) * Math.PI / 2);
     ctx.fillStyle = "#d9d3c7";
     ctx.strokeStyle = "#1a140e";
     ctx.lineWidth = 1 / Math.max(0.2, G.cam.zoom);
-    ctx.fillRect(x - w / 2, y - h, w, h);
-    ctx.strokeRect(x - w / 2, y - h, w, h);
+    ctx.fillRect(-w / 2, -h, w, h);
+    ctx.strokeRect(-w / 2, -h, w, h);
     ctx.beginPath();
-    ctx.moveTo(x - w / 2, y);
-    ctx.lineTo(x - w, y + h * 0.45);
-    ctx.moveTo(x + w / 2, y);
-    ctx.lineTo(x + w, y + h * 0.45);
+    ctx.moveTo(-w / 2, 0);
+    ctx.lineTo(-w, h * 0.45);
+    ctx.moveTo(w / 2, 0);
+    ctx.lineTo(w, h * 0.45);
     ctx.stroke();
     ctx.fillStyle = "#2a2a30";
     ctx.beginPath();
-    ctx.moveTo(x - w * 0.22, y);
-    ctx.lineTo(x + w * 0.22, y);
-    ctx.lineTo(x + w * 0.46, y + h * 0.38);
-    ctx.lineTo(x - w * 0.46, y + h * 0.38);
+    ctx.moveTo(-w * 0.22, 0);
+    ctx.lineTo(w * 0.22, 0);
+    ctx.lineTo(w * 0.46, h * 0.38);
+    ctx.lineTo(-w * 0.46, h * 0.38);
     ctx.closePath();
     ctx.fill();
-    if (m.kind === "burn" && m.t < m.duration) {
+    if (hopFlameOn(m)) {
       const load = hopLoad(m.meters);
-      const weight = load.flightKg * FLIGHT_G / 1000;
+      const weight = load ? load.flightKg * FLIGHT_G / 1000 : TUNING.ENGINE_THRUST_KN;
       const used = Math.min(engineNowKn(v), weight);
       const reach = (36 * used / TUNING.ENGINE_THRUST_KN) / Math.max(0.2, G.cam.zoom);
       ctx.fillStyle = "rgba(255,140,40,0.9)";
       ctx.beginPath();
-      ctx.moveTo(x - 3 / G.cam.zoom, y + h * 0.38);
-      ctx.lineTo(x, y + h * 0.38 + reach);
-      ctx.lineTo(x + 3 / G.cam.zoom, y + h * 0.38);
+      ctx.moveTo(-3 / G.cam.zoom, h * 0.38);
+      ctx.lineTo(0, h * 0.38 + reach);
+      ctx.lineTo(3 / G.cam.zoom, h * 0.38);
       ctx.fill();
     }
     ctx.restore();
@@ -6513,7 +6758,7 @@
       inspectLeft: v.inspectLeft || 0,
       inspectKind: v.inspectKind === "hop" ? "hop" : null,
       hops: Math.max(0, Math.round(v.hops || 0)),
-      hopMeters: v.hopMeters === 25 || v.hopMeters === 50 || v.hopMeters === 150 ? v.hopMeters : null,
+      hopMeters: storedHopMeters(v.name, v.hopMeters),
       hopNote: v.hopNote ? String(v.hopNote) : "",
       baySlot: v.baySlot || 0,
       wx: v.wx,
@@ -6548,6 +6793,7 @@
     const out = { kind: job.kind, daysLeft: job.daysLeft, totalDays: job.totalDays };
     if (job.rocketId) out.rocketId = job.rocketId;
     if (job.vehicleId != null) out.vehicleId = job.vehicleId;
+    if (job.vehicleName) out.vehicleName = String(job.vehicleName);
     return out;
   }
   function savePayload() {
@@ -6564,11 +6810,14 @@
       row.buildingId = hop.homeId == null ? null : hop.homeId;
       row.inspectLeft = 0;
       row.inspectKind = null;
+      // The climb already spent its seconds. A reload must put the pre-hop life back.
+      row.engineLifeS = hop.preEngine;
+      row.fittingLifeS = hop.preLines;
       return row;
     });
     return {
       version: 1,
-      label: "0.18.0-hop",
+      label: VERSION,
       seed: wholeSeed(G.seed) ? G.seed : null,
       structFloor: clampStructFloor(G.structFloor),
       speed: legalSpeed(G.speed),
@@ -6619,7 +6868,7 @@
     if (fluidsMoving()) return;
     writeGameSave(SAVE_KEY);
   }
-  // Old saves say TA-1 and Test article. Every build is now Starhopper and a number.
+  // Old saves say TA-1 and Test article. Those load as Starhopper. A stored SN name stays.
   function starhopperName(text) {
     return text.replace(/\bTA-(\d+)\b/g, "Starhopper $1").replace(/\bTest article\b/g, "Starhopper");
   }
@@ -6673,7 +6922,7 @@
         inspectLeft: finite(v.inspectLeft, 0),
         inspectKind: v.inspectKind === "hop" ? "hop" : null,
         hops: Math.max(0, Math.round(finite(v.hops, 0))),
-        hopMeters: v.hopMeters === 25 || v.hopMeters === 50 || v.hopMeters === 150 ? v.hopMeters : null,
+        hopMeters: storedHopMeters(v.name ? starhopperName(String(v.name)) : "Starhopper", v.hopMeters),
         hopNote: v.hopNote ? String(v.hopNote) : "",
         baySlot: finite(v.baySlot, 0),
         wx: finite(v.wx, 0),
@@ -6894,7 +7143,7 @@
     const dt = Math.min(0.05, (now - last) / 1000);
     last = now;
     if (!G.paused) {
-      // The day holds during a fill, a fire, a flight, a hop count, and a hop burn. Pause still holds both clocks.
+      // The day holds during a fill, a fire, a flight, and a hop. Pause still holds both clocks.
       const held = dayHeld();
       if (!held) {
         G.dayAcc += dt * 1000;
@@ -6961,10 +7210,17 @@
         renderChrome();
         return true;
       },
-      selectHop(name, meters) {
+      setLines(name, seconds) {
         const v = G.fleet.find((item) => item.name === name);
         if (!v) return false;
-        v.hopMeters = meters === 25 || meters === 50 || meters === 150 ? meters : null;
+        v.fittingLifeS = Number(seconds);
+        renderChrome();
+        return true;
+      },
+      selectHop(name, meters) {
+        const v = G.fleet.find((item) => item.name === name);
+        if (!v || !hopMetersOk(v, meters)) return false;
+        v.hopMeters = Number(meters);
         renderChrome();
         return true;
       },
@@ -7038,6 +7294,13 @@
             engine: !!G.defectRestored.engine,
           },
           factoryDays: G.factoryJob ? G.factoryJob.daysLeft : null,
+          factoryJob: G.factoryJob ? {
+            kind: G.factoryJob.kind,
+            daysLeft: G.factoryJob.daysLeft,
+            totalDays: G.factoryJob.totalDays,
+            vehicleName: G.factoryJob.vehicleName || "",
+          } : null,
+          headerFires: padFireRows().count,
           motions: G.rollouts.map((r) => ({
             kind: r.kind,
             t: r.t,
@@ -7091,8 +7354,8 @@
           hop: (() => {
             const r = hopLive();
             if (!r) return null;
-            const alt = r.kind === "burn" ? hopAlt(r.meters, r.burned, Math.min(r.t, r.duration)) : 0;
-            return { phase: r.kind, t: r.t, alt, meters: r.meters || null };
+            const alt = r.kind === "burn" ? hopAlt(r.meters, r.burned, Math.min(r.t, r.duration)) : hopperReadAlt(r);
+            return { phase: r.kind, t: r.t, alt, meters: r.meters || null, duration: r.duration, flame: hopFlameOn(r) };
           })(),
           rangeClosed: rangeClosed(),
           padBusy: padBusy(),

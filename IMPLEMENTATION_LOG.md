@@ -5,6 +5,16 @@ History of what **shipped**, keyed by **version**.
 
 ---
 
+## 2026-11-27 — pipeline merged into the high hop (docs only, no version bump)
+
+**Version:** stays `0.18.0-hop` · docs only
+
+- Tiago asked to merge `0.18.1-pipeline` into `0.19.0-high-hop`. The pipeline row leaves the table. The high hop keeps the name.
+- A new build is named SN 1 and adds a 10 km hop. The factory may start the next article once the first has left the hold. The header shows the pad's fire count.
+- The design page is `design-docs/0.19.0-high-hop-design.html`. No game code changed. `index.html` and `VERSION` did not change.
+
+---
+
 ## 2026-11-09 — roadmap restructure (docs only, no version bump)
 
 **Version:** stays `0.11.0-screen` · docs only
@@ -400,3 +410,16 @@ History of what **shipped**, keyed by **version**.
 - A hop does not save in the middle of the burn. A reload shows the rocket ready on the mount, and the tanks are not drained.
 - Every 30 days the review pays 12 money for each clean test in the window. Land a hop. pays 60 money once.
 - Save stays version 1. The label is `0.18.0-hop`. A missing hops count loads as 0. A missing review day loads as 0. A missing hop goal stays open. The previous live file is `archive/index-0.17.0-tidy.html`. The design page is `design-docs/0.18.0-hop-design.html`.
+
+## `0.19.0-high-hop` — 2026-11-27
+
+**Version:** `0.19.0-high-hop`
+
+- A new build is named SN 1, SN 2, and so on. The number is the smallest free serial among live SN names, and the factory locks it when the build starts. A stored Starhopper keeps that name. It keeps the 25 m, 50 m, and 150 m hops. An SN adds 10 km.
+- The 10 km watch is a 10 second count, a 12 second climb, an 8 second belly, a 3 second flip, and a 6 second landing burn. The flame is on for the climb and the landing burn. Lit time is 18 seconds. The load is 1279 kg of methane and 4604 kg of oxygen. The flight mass is 107883 kg. The landing floor is 1535 kN.
+- The landing check runs at the start of the landing burn. Thrust under 1535 kN names the engine. Thrust over the pad limit names the pad. Fewer than 6 seconds of fuel lines names Fuel lines. Fewer than 6 seconds of engine life names the engine. A hard landing cuts 40 off Structure and leaves it at 20 or more. It clears the cryo proof and the tanking run. A soft 10 km landing cuts 0. Land a hop pays 60 once if that goal is still open.
+- A hop with 0 seconds of engine life does not start. A hop with 0 seconds of fuel lines still starts. The day holds for the whole watch. Skip during the watch says the rocket is still in flight.
+- The 10 km frame is 800 m. The height number is the read. The low hop frame stays 400 m.
+- The factory hold stays one. Once the article has left, the next build can start. The land line reads Building SN 2. The Now row reads that name. Days left use whole days.
+- The header shows Fires. The number matches the pad row for the last 30 days. A static fire that lights joins it. A hop does not.
+- `setLines(name, seconds)` stores fuel-line seconds. `selectHop` and `startHop` accept 10000 for an SN and return false for a Starhopper. Save stays version 1. The label is `0.19.0-high-hop`. A hop in the middle of the watch does not resume on reload. The previous live file is `archive/index-0.18.0-hop.html`. The design page is `design-docs/0.19.0-high-hop-design.html`.
