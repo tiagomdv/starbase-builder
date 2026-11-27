@@ -56,7 +56,7 @@
       <div class="meta-row"><span class="tag">Live and planned</span><span class="tag muted">Parts are not in the game yet</span></div>
       <aside class="role">
         <b>What this page is</b>
-        Site objects is the record of the buildings. It lists Starfactory, Mega Bay, and the orbital pad, and the parts that should arrive with each one. The game does not build from this list yet. When a part is added, dropped, or locked, update this page in the same pass.
+        Site objects is the record of the buildings. It lists Starfactory, Mid Bay, and the orbital pad, and the parts that should arrive with each one. The game does not build from this list yet. When a part is added, dropped, or locked, update this page in the same pass.
         The game you play is <code>index.html</code>, at <code>0.2.1-field</code>. Pull request 4 is merged. It holds the gulf shore, the copper owned line, and the land column. This page is not in that pull request.
       </aside>
       <h1>Site objects</h1>
@@ -72,7 +72,7 @@
           <li><a href="#works">Infrastructure</a></li>
           <li><a href="#see">What you see</a></li>
           <li><a href="#factory">Starfactory</a></li>
-          <li><a href="#bay">Mega Bay</a></li>
+          <li><a href="#bay">Mid Bay</a></li>
           <li><a href="#pad">Orbital pad</a></li>
           <li><a href="#later">Later mains</a></li>
         </ol>
@@ -86,7 +86,7 @@
         <table class="doc">
           <thead><tr><th>Parcel</th><th>Cost</th><th>What it holds</th></tr></thead>
           <tbody>
-            <tr><td>Build site</td><td>90 steel</td><td>Starfactory and Mega Bay, on the seats the parcel already names.</td></tr>
+            <tr><td>Build site</td><td>90 steel</td><td>Starfactory and Mid Bay, on the seats the parcel already names.</td></tr>
             <tr><td>Pad site</td><td>50 steel</td><td>The Orbital Pad, on the seat the parcel already names.</td></tr>
           </tbody>
         </table>
@@ -100,13 +100,13 @@
           <thead><tr><th>Building</th><th>Cost</th><th>Footprint</th><th>What it does</th></tr></thead>
           <tbody>
             <tr><td>Starfactory</td><td>40 steel</td><td>4 by 3</td><td>Builds one test article and holds it until the bay takes it. Raise Raptor thrust on that article takes it from Raptor 1 to Raptor 2.</td></tr>
-            <tr><td>Mega Bay</td><td>50 steel</td><td>5 by 3</td><td>Houses the first stage and refurbishes it after a fire.</td></tr>
+            <tr><td>Mid Bay</td><td>50 steel</td><td>5 by 3</td><td>Houses the hopper and the tank rocket, and refurbishes a rocket after a fire.</td></tr>
             <tr><td>Orbital Pad</td><td>40 steel</td><td>3 by 4</td><td>Holds the cryo proof, the tanking run, the static fire, and the hop. Level 2 costs 40 steel. It widens the trench and raises the mount, accepts 2600 kN and 28 knots, and cuts one day off a clean refurb. Level 1 accepts 2000 kN and 20 knots. A landing mark sits about 100 m east of the mount, on land. It is not a buy.</td></tr>
           </tbody>
         </table>
 
         <h3>The vehicle</h3>
-        <p>The test article is its own object. It costs 28 steel. It is built at the factory, housed in the bay, rolled along the road, and fired on the pad. A ready rocket hops 25 m, 50 m, or 150 m and lands on a mark about 100 m east of the mount. Falcon 9, Falcon Heavy, and Starship stay locked names. They are not on the map. The rocket sheet lists Structure, Fuel lines, and Engine (Raptor), top to bottom. Each one has a life and its own refurb. The hull stays not tested until the pad writes the number. The Structure row can show the band after a bay check. After the pad writes Structure, that row paints as a percent. Fuel lines and the engine stay not tested until their own test or refurb, and then they paint as a percent. The big number is the lowest tested part. A static fire does not spend the fuel lines. A hop cuts Structure by 4, 6, 10, or 40, and leaves it at 20 at worst. A flight to sea still does not cut stage life until <code>1.0.0-recovery</code>.</p>
+        <p>The test article is its own object. It costs 28 steel. It is built at the factory, housed in the bay, rolled along the road, and fired on the pad. A ready hopper starts on Hop 25 m. After that landing, 50 m and 150 m open. The tank rocket hops 150 m only. The landing mark sits about 100 m east of the mount. Falcon 9, Falcon Heavy, and Starship stay locked names. They are not on the map. The rocket sheet lists Structure, Fuel lines, and Engine (Raptor), top to bottom. Each one has a life and its own refurb. The hull stays not tested until the pad writes the number. The Structure row can show the band after a bay check. After the pad writes Structure, that row paints as a percent. Fuel lines and the engine stay not tested until their own test or refurb, and then they paint as a percent. The big number is the lowest tested part. A static fire does not spend the fuel lines. A hop leaves those seconds where they were. A hop cuts Structure by 4, 6, 10, or 40, and leaves it at 20 at worst. A flight to sea still does not cut stage life until <code>1.0.0-recovery</code>.</p>
 
         <h2 id="rule">The rule</h2>
         <p>A main building is one object you buy. A part is also one object. It has its own id, its own place on that main, and its own job. It is not a caption painted near the building.</p>
@@ -125,7 +125,7 @@
           <thead><tr><th>When you place</th><th>The game also places</th></tr></thead>
           <tbody>
             <tr><td>Starfactory</td><td>Hall, crane, stack stand, a power plant, and a road to the hall.</td></tr>
-            <tr><td>Mega Bay</td><td>Hall, berth, service crane, and a road to the hall.</td></tr>
+            <tr><td>Mid Bay</td><td>Hall, berth, service crane, and a road to the hall.</td></tr>
             <tr><td>Orbital pad</td><td>Mount, flame trench, deluge plate, deluge pumps, water tank, and a road to the pad.</td></tr>
           </tbody>
         </table>
@@ -154,10 +154,10 @@
           </tbody>
         </table>
 
-        <h2 id="bay">Mega Bay</h2>
-        <p>You buy one bay. A second bay, the high bay, and the Sanchez yard are not parts of this one. They are later mains.</p>
+        <h2 id="bay">Mid Bay</h2>
+        <p>You buy one bay. The game calls it Mid Bay. The rename spent nothing. The High Bay is a later buy, at <code>0.21.0-nose</code>, and the nose article will not start without it. Mega Bay is a later buy, at <code>0.22.0-stages</code>, and the booster will not start without it. Another hall is a buy at <code>1.4.0-halls</code>. A finished goal does not place the hall.</p>
         <figure>
-          <img src="images/object-bay.jpg?v=2" alt="Top view of the mega bay, the berth, and the service crane." />
+          <img src="images/object-bay.jpg?v=2" alt="Top view of the mid bay, the berth, and the service crane." />
           <figcaption>Bay. Hall, berth, and service crane.</figcaption>
         </figure>
         <table class="doc">
@@ -205,11 +205,11 @@
           <img src="images/pad-tower.jpg?v=2" alt="Top view of the pad after the tower upgrade, with chopsticks and a ship arm." />
           <figcaption>Starship-tower upgrade. Tower, chopsticks, and ship arm. No tank farm in this picture.</figcaption>
         </figure>
-        <p>Adds the tower on the north side of the mount. The test article does not use it. The tower waits for <code>0.20.0-stack</code>.</p>
+        <p>Adds the tower on the north side of the mount. The test article does not use it. The tower waits for <code>0.23.0-stack</code>.</p>
         <table class="doc">
           <thead><tr><th>Part</th><th>Where it sits</th><th>Job</th></tr></thead>
           <tbody>
-            <tr><td>Tower</td><td>North of the mount</td><td>Goes up at <code>0.20.0-stack</code> and stacks the ship. Catches at <code>1.1.0-catch</code>.</td></tr>
+            <tr><td>Tower</td><td>North of the mount</td><td>Goes up at <code>0.23.0-stack</code> and stacks the ship. Catches at <code>1.1.0-catch</code>.</td></tr>
             <tr><td>Chopsticks</td><td>On the tower</td><td>Quiet until catch and lift.</td></tr>
             <tr><td>Ship arm</td><td>On the tower</td><td>Quiet until a ship is held at the tower.</td></tr>
           </tbody>

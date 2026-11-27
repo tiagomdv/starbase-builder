@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>0.20.0-tank · design — starbase-builder</title>
+  <style>
+    :root {
+      --bg: #1c2118; --panel: #2a2218; --panel2: #221c14; --border: #5a4830;
+      --text: #e8d9b0; --muted: #a89878; --accent: #d4a84b; --link: #e8c56a; --code: #c4e08a;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; line-height: 1.55; }
+    .wrap { max-width: 1340px; margin: 0 auto; padding: 1.5rem 1.25rem 4rem; }
+    .doc-hero { background: var(--panel); border: 1px solid var(--border); border-radius: 0.85rem; padding: 1.15rem 1.25rem 1.25rem; margin-bottom: 1.25rem; }
+    .doc-hero h1 { font-size: 1.55rem; font-weight: 650; color: #f5edd8; margin: 0.35rem 0 0.4rem; }
+    .doc-hero .lede { margin: 0; font-size: 0.9rem; color: var(--muted); max-width: 62rem; }
+    .role { margin: 0 0 12px; padding: 12px 14px; background: #24180f; color: #f4ead8; border-left: 6px solid #c45c26; font: 15px/1.45 system-ui, sans-serif; }
+    .meta-row { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+    .tag { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 999px; background: #3a2e20; color: #e8c56a; border: 1px solid #6a5638; }
+    .tag.muted { background: #1e1a14; color: var(--muted); border-color: #4a3c28; }
+    .toc { background: var(--panel); border: 1px solid var(--border); border-radius: 0.65rem; padding: 0.6rem 0.85rem; margin-bottom: 1rem; font-size: 0.8rem; }
+    .toc a { color: var(--link); text-decoration: none; margin-right: 0.85rem; white-space: nowrap; }
+    h2 { font-size: 1.12rem; color: #f5edd8; margin: 1.7rem 0 0.65rem; padding-bottom: 0.35rem; border-bottom: 1px solid var(--border); scroll-margin-top: 0.75rem; }
+    h3 { font-size: 0.95rem; color: var(--accent); margin: 0.2rem 0 0.45rem; }
+    p, li { font-size: 0.9rem; max-width: 62rem; }
+    p { margin: 0.45rem 0 0.7rem; }
+    ul { margin: 0.35rem 0 0.75rem; padding-left: 1.35rem; }
+    li { margin: 0.28rem 0; }
+    code { font-family: ui-monospace, Menlo, monospace; color: var(--code); font-size: 0.86em; }
+    strong { color: #f5edd8; }
+    figure.look { margin: 0 0 1.35rem; }
+    figcaption { font-size: 0.82rem; color: var(--muted); margin-top: 0.45rem; max-width: 68rem; }
+    figcaption p { margin: 0.28rem 0; }
+    .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+    @media (max-width: 980px) { .pair { grid-template-columns: 1fr; } }
+    .footer-note { color: var(--muted); font-size: 0.82rem; margin-top: 2rem; max-width: 62rem; }
+    .g { background: #0a0a0a; color: #f2f2f2; font-family: system-ui, sans-serif; line-height: 1.3; }
+    .screen { border: 1px solid #333; background: #0a0a0a; overflow: hidden; }
+    .bar { height: 44px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 4px 8px; border-bottom: 1px solid #fff; font: 11px ui-monospace, Menlo, monospace; background: #050505; }
+    .bar .lamp { width: 10px; height: 10px; border-radius: 50%; background: #3dd68c; display: inline-block; vertical-align: middle; margin-right: 6px; }
+    .bar .sky { display: inline-block; vertical-align: middle; }
+    .bar .sky b { display: block; font-size: 13px; }
+    .bar .sky i { display: block; font-style: normal; font-size: 10px; color: #c8c8c8; }
+    .bar .ctr { color: #c8c8c8; margin: 0 5px; }
+    .bar .ctr b { color: #c4a15a; margin-left: 3px; }
+    .bar .right { display: flex; justify-content: flex-end; align-items: center; gap: 4px; }
+    .bar .chip { border: 1px solid #fff; padding: 1px 5px; font-size: 11px; }
+    .main { display: flex; min-height: 460px; }
+    .land { width: 168px; flex: none; border-right: 1px solid #2a2a2a; display: flex; flex-direction: column; padding: 8px; }
+    .map { flex: 1; position: relative; background: #0f4a57; min-height: 460px; }
+    .map .sand { position: absolute; inset: 0; background: #e2cb9b; clip-path: polygon(0 58%, 18% 48%, 40% 40%, 58% 18%, 70% 0, 100% 0, 100% 100%, 0 100%); }
+    .map .bldg { position: absolute; border: 1px solid #222; background: #c9c9c9; font-size: 11px; color: #111; padding: 2px 4px; }
+    .insp { width: 280px; flex: none; border-left: 1px solid #2a2a2a; display: flex; flex-direction: column; }
+    .insp .in { padding: 10px; flex: 1; }
+    .sh { color: #c4a15a; font: 600 12px ui-monospace, Menlo, monospace; border-bottom: 1px solid #333; margin: 0 0 6px; padding-bottom: 3px; }
+    .title { font-size: 16px; font-weight: 650; }
+    .blurb { font-size: 12px; color: #c8c8c8; margin: 2px 0 8px; }
+    .r { display: flex; justify-content: space-between; gap: 8px; padding: 2px 0; font-size: 14px; color: #c8c8c8; border-bottom: 1px solid #1c1c1c; }
+    .r b { font: 650 14px ui-monospace, Menlo, monospace; color: #f2f2f2; }
+    .slot { display: grid; grid-template-columns: 1fr auto; border: 1px solid #f2f2f2; box-shadow: inset 3px 0 #e10600; padding: 4px 7px; margin-top: 8px; font-size: 14px; }
+    .now { font-size: 12px; color: #c8c8c8; margin: 8px 0 0; }
+    .acts { border-top: 1px solid #f2f2f2; padding: 6px 10px 8px; }
+    .a { display: block; width: 100%; border: 1px solid #444; padding: 6px 8px; margin-top: 6px; background: #0a0a0a; color: #f2f2f2; text-align: left; }
+    .a .l1 { display: flex; justify-content: space-between; font-size: 14px; font-weight: 650; }
+    .a .l2 { font-size: 12px; color: #9a9a9a; margin-top: 3px; }
+    .a.on { border-color: #f2f2f2; box-shadow: inset 0 -2px 0 #e07030; }
+    .a.fire { border-color: #e07030; background: #160e0a; }
+    .a.build { border-color: #6a8ab0; background: #101418; }
+    .trio { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; }
+    .trio .a { margin-top: 0; text-align: center; }
+    .trio .a .l1 { justify-content: center; }
+    .foot { border: 1px solid #8a8a8a; background: #0e0e0e; color: #e6e6e6; font-size: 14px; font-weight: 650; text-align: center; padding: 8px; margin-top: auto; }
+    .own { border: 1px solid #555; padding: 5px 7px; margin-bottom: 5px; }
+    .own.sel { border-color: #e10600; box-shadow: inset 3px 0 #e10600; }
+    .own .name { font-size: 14px; font-weight: 650; }
+    .own .line { font-size: 12px; color: #c8c8c8; }
+    .log { border-top: 1px solid #2a2a2a; padding: 6px 10px; font: 11px/1.4 ui-monospace, Menlo, monospace; color: #c8c8c8; min-height: 52px; }
+    .log .bad { color: #e10600; }
+    .goal-panel { background: #0a0a0a; color: #f2f2f2; padding: 22px 22px 16px; border: 1px solid #333; }
+    .goal-panel .top { display: flex; justify-content: space-between; align-items: flex-start; }
+    .goal-panel .left { font-size: 42px; line-height: 0.9; font-weight: 650; }
+    .goal-panel .left span { display: block; font-size: 11px; color: #9a9a9a; font-weight: 500; margin-top: 6px; }
+    .goal-panel .x { font-size: 12px; color: #9a9a9a; }
+    .goal-row { display: flex; gap: 12px; align-items: baseline; margin-top: 8px; padding: 8px 10px; border: 1px solid rgba(242,242,242,0.55); }
+    .goal-row .idx { font-size: 12px; color: #9a9a9a; width: 22px; }
+    .goal-row .name { font-size: 14px; color: #c8c8c8; }
+    .goal-row .line { font-size: 12px; color: #9a9a9a; margin-top: 2px; }
+    .goal-row.now { border-color: #f2f2f2; }
+    .goal-row.now .name { font-size: 16px; font-weight: 650; color: #f2f2f2; }
+    .goal-row.done { opacity: 0.4; }
+    .goal-row.done .name { text-decoration: line-through; }
+    .real { margin-top: 10px; padding: 8px 10px; border-left: 3px solid #e10600; background: #120a0a; font-size: 12px; color: #f2f2f2; }
+    .real b { display: block; margin-bottom: 4px; }
+    .camp { margin-top: 12px; border: 1px solid #f2f2f2; }
+    .camp .hd { display: flex; justify-content: space-between; align-items: baseline; padding: 8px 10px; border-bottom: 1px solid #333; }
+    .camp .hd b { font-size: 16px; }
+    .camp .hd span { font-size: 12px; color: #9a9a9a; }
+    .hop-line { display: grid; grid-template-columns: 28px 1fr auto; gap: 8px; align-items: center; padding: 8px 10px; border-bottom: 1px solid #1c1c1c; }
+    .hop-line .idx { font-size: 12px; color: #9a9a9a; }
+    .hop-line .name { font-size: 14px; }
+    .hop-line .pay { font: 650 22px/1 ui-monospace, Menlo, monospace; color: #c4a15a; }
+    .hop-line.on { background: #141414; }
+    .hop-line.on .name { font-weight: 650; }
+    .figs { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin: 8px 0; }
+    .figs div { background: #141414; border: 1px solid #333; padding: 8px 6px; text-align: center; }
+    .figs b { display: block; font: 650 22px/1 ui-monospace, Menlo, monospace; }
+    .figs span { display: block; margin-top: 4px; font-size: 11px; color: #9a9a9a; }
+    .sheet { background: #0a0a0a; border: 1px solid #333; color: #f2f2f2; }
+    .sheet .top { display: flex; gap: 10px; align-items: baseline; padding: 10px 12px; border-bottom: 1px solid #2a2a2a; }
+    .sheet .nm { font-size: 16px; font-weight: 650; }
+    .sheet .place { font-size: 12px; color: #9a9a9a; }
+    .sheet .miss { font-size: 12px; color: #e10600; }
+    .sheet .x { margin-left: auto; font-size: 12px; color: #9a9a9a; }
+    .sheet .body { display: grid; grid-template-columns: 120px 1fr; gap: 12px; padding: 12px; }
+    table.parts { width: 100%; border-collapse: collapse; font-size: 13px; }
+    table.parts th { font-size: 11px; font-weight: 400; color: #9a9a9a; text-align: left; padding-bottom: 4px; }
+    table.parts td { padding: 6px 6px 6px 0; border-top: 1px solid #1f1f1f; }
+    table.parts td.n { font: 650 14px ui-monospace, Menlo, monospace; }
+    table.parts tr.hot td:first-child { box-shadow: inset 3px 0 #e10600; padding-left: 6px; }
+    .scrap-note { margin: 0 12px 12px; padding: 8px 10px; border-left: 3px solid #e10600; font-size: 14px; }
+    .yard { position: relative; height: 280px; background: #0f4a57; border: 1px solid #333; overflow: hidden; }
+    .yard .sand { position: absolute; inset: 0; background: #e2cb9b; clip-path: polygon(0 62%, 22% 50%, 48% 42%, 62% 16%, 74% 0, 100% 0, 100% 100%, 0 100%); }
+    .pair-draw { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; background: #0a0a0a; border: 1px solid #333; padding: 12px; }
+    .pair-draw h4 { margin: 0 0 6px; font-size: 14px; color: #f2f2f2; font-weight: 650; }
+    .pair-draw p { margin: 4px 0 0; font-size: 12px; color: #9a9a9a; max-width: none; }
+    svg.veh { width: 100%; height: 220px; display: block; background: #e2cb9b; }
+    svg.cut { width: 100%; height: 240px; display: block; background: #0a0a0a; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="doc-hero">
+      <div class="meta-row">
+        <span class="tag">0.20.0-tank</span>
+        <span class="tag">Design · 2026-11-27</span>
+        <span class="tag muted">Pictures for the open screens</span>
+      </div>
+      <h1>The tank rocket, and a factory that learns from a clean hop</h1>
+      <p class="lede">The row is locked. The pictures stay so you can see what was picked and what was dropped. The build note at the end says what the game does.</p>
+    </header>
+    <div class="role">A clean hop is the only thing that makes the next rocket better. The rocket that flew stays as it is. The hall you already bought is Mid Bay. You do not pay again.</div>
+    <nav class="toc">
+      <a href="#pick">How to pick</a>
+      <a href="#locked">Locked</a>
+      <a href="#goals">Goals</a>
+      <a href="#factory">Factory card</a>
+      <a href="#pad">The pad</a>
+      <a href="#scrap">A scrapped tank</a>
+      <a href="#shape">The shape</a>
+      <a href="#out">Out of this page</a>
+      <a href="#critic">Critic</a>
+      <a href="#build">The build</a>
+    </nav>
+
+    <h2 id="pick">How to pick</h2>
+    <p>Pick one goals list, one factory card, one scrap screen, and one shape. The pad section is two moments of one screen. The pays on the goals lists are a proposal. They are not locked. Prices and the hop rules stay the same on both pictures in a section.</p>
+
+    <h2 id="locked">Locked</h2>
+    <p>The live hall is renamed Mid Bay. The plot you bought stays bought. High Bay and Mega Bay stay off the map. The hopper and the tank rocket both fit Mid Bay. Neither one asks for a new hall.</p>
+    <p>A soft 25 m landing writes that the engine landed. Until that reading is there, 50 m and 150 m stay off. 50 m does not open a new vehicle. A soft 150 m landing on the hopper opens the tank rocket. The tank rocket is a full-width tank with a hat and one Raptor. 150 m is its only hop. It starts again at 1400 kN, 0 seconds, and a Structure floor of 20.</p>
+    <p>Each clean landing closes half the gap to that hop's cap. The same hop again closes half of what is left. A 25 m landing moves thrust toward 1600 kN. From 1400 the steps are 1500, then 1550, then 1575. A 50 m landing moves fuel lines toward 20 seconds. From 0 the steps are 10, then 15, then 17. A 150 m landing moves thrust toward 1814 kN, fuel lines toward 40 seconds, and the Structure floor toward 60. The floor still starts at 20. The cryo proof still wants 70, so a floor of 60 can still fail. These caps are game numbers. Raptor 2 stays the lab button.</p>
+    <p>A bay fix repairs that rocket only. A crash does not move the factory. A miss does not move the numbers. The tank rocket uses the same half-gap rule on its own 150 m hops.</p>
+    <p>Cryo, tanking, and the static fire still come before a hop. The bay check still shows a window, about 30 wide and then about 10 wide. It does not roll the number again. The number was set at build. The cryo proof writes the real Structure. A reading that looks fine can still fail. A failed cryo on the tank rocket scraps that rocket. The sheet names the short part. There is no hidden roll. A failed cryo on the hopper still sends that hopper back to Mid Bay.</p>
+    <p>Land a hop still pays 60 once, on the first soft landing. The player's serial is the rocket they built. A goal line can say In real life. Starhopper flew a short hop on 25 July 2019 and 150 m on 27 August 2019. SN5 flew the tank hop on 4 August 2020. SN6 flew it on 3 September 2020.</p>
+
+    <h2 id="goals">Goals</h2>
+    <p>Both lists keep the pays you already have. Land a hop stays 60. The four new pays are 20, 40, 60, and 80. Those four numbers already sit on this list. The first soft landing is the 25 m hop, so that landing pays 60 and 20. The 150 m goal pays its own 60 on a later landing.</p>
+
+    <div class="pair">
+      <figure class="look">
+        <h3>Rows</h3>
+        <div class="goal-panel">
+          <div class="top"><div class="left">7<span>still open</span></div><div class="x">Close</div></div>
+          <div class="goal-row done"><div class="idx">01</div><div><div class="name">Buy the three plots.</div><div class="line">Done</div></div></div>
+          <div class="goal-row done"><div class="idx">02</div><div><div class="name">Build a rocket at Starfactory</div><div class="line">Done</div></div></div>
+          <div class="goal-row"><div class="idx">03</div><div><div class="name">House 2 vehicles in Mid Bay</div><div class="line">Investors pay 70</div></div></div>
+          <div class="goal-row done"><div class="idx">04</div><div><div class="name">Finish a static fire</div><div class="line">Done</div></div></div>
+          <div class="goal-row done"><div class="idx">05</div><div><div class="name">Land a hop.</div><div class="line">Done</div></div></div>
+          <div class="goal-row now"><div class="idx">06</div><div><div class="name">Land a 25 m hop.</div><div class="line">Investors pay 20</div></div></div>
+          <div class="goal-row"><div class="idx">07</div><div><div class="name">Land a 50 m hop.</div><div class="line">Investors pay 40</div></div></div>
+          <div class="goal-row"><div class="idx">08</div><div><div class="name">Land a 150 m hop.</div><div class="line">Investors pay 60</div></div></div>
+          <div class="goal-row"><div class="idx">09</div><div><div class="name">Land a tank hop.</div><div class="line">Investors pay 80</div></div></div>
+          <div class="goal-row"><div class="idx">10</div><div><div class="name">Hold a clean static fire</div><div class="line">Investors pay 80</div></div></div>
+          <div class="goal-row"><div class="idx">11</div><div><div class="name">Finish a refurb in the bay</div><div class="line">Investors pay 40</div></div></div>
+          <div class="goal-row"><div class="idx">12</div><div><div class="name">Raise the pad to level 2</div><div class="line">Investors pay 50</div></div></div>
+          <div class="real"><b>In real life</b>Starhopper flew a short hop on 25 July 2019 and 150 m on 27 August 2019. SN5 flew the tank hop on 4 August 2020. SN6 flew it on 3 September 2020. Your serial is the rocket you built.</div>
+        </div>
+        <figcaption>
+          <p>This is the Goals list you already open. Four hop rows sit under Land a hop. The current row is Land a 25 m hop. The In real life note sits once, under the list.</p>
+          <p>You read a short name, then the pay. The factory move stays off this list. The card on Starfactory carries those numbers.</p>
+        </figcaption>
+      </figure>
+
+      <figure class="look">
+        <h3>Campaign</h3>
+        <div class="goal-panel">
+          <div class="top"><div class="left">7<span>still open</span></div><div class="x">Close</div></div>
+          <div class="camp">
+            <div class="hd"><b>The hops</b><span>Land a hop is already paid, 60</span></div>
+            <div class="hop-line on"><div class="idx">06</div><div class="name">Land a 25 m hop. Thrust on the next hopper moves toward 1600 kN.</div><div class="pay">20</div></div>
+            <div class="hop-line"><div class="idx">07</div><div class="name">Land a 50 m hop. Fuel lines on the next hopper move toward 20 seconds.</div><div class="pay">40</div></div>
+            <div class="hop-line"><div class="idx">08</div><div class="name">Land a 150 m hop. The next hopper moves toward 1814 kN, 40 seconds, and a floor of 60.</div><div class="pay">60</div></div>
+            <div class="hop-line"><div class="idx">09</div><div class="name">Land a tank hop. The full tank lands.</div><div class="pay">80</div></div>
+            <div class="real"><b>In real life</b>Starhopper flew a short hop on 25 July 2019 and 150 m on 27 August 2019. SN5 flew the tank hop on 4 August 2020. SN6 flew it on 3 September 2020. Your serial is the rocket you built.</div>
+          </div>
+          <div class="goal-row done"><div class="idx">01</div><div><div class="name">Buy the three plots.</div><div class="line">Done</div></div></div>
+          <div class="goal-row"><div class="idx">03</div><div><div class="name">House 2 vehicles in Mid Bay</div><div class="line">Investors pay 70</div></div></div>
+          <div class="goal-row"><div class="idx">10</div><div><div class="name">Hold a clean static fire</div><div class="line">Investors pay 80</div></div></div>
+        </div>
+        <figcaption>
+          <p>This is the same Goals sheet. The four hops are one block at the top. The pay is a large number on the right. Each line says what that landing does to the next rocket.</p>
+          <p>The older goals stay in the quiet rows under the block. House 2 vehicles names Mid Bay. The pay on that row stays 70.</p>
+        </figcaption>
+      </figure>
+    </div>
+
+    <h2 id="factory">Factory card</h2>
+    <p>Both cards are Starfactory before the first build. Thrust is 1400 kN. Fuel lines are 0 seconds. The Structure floor is 20. The build still costs 28 steel and takes 8 to 12 days. After a clean 25 m landing, the next hopper card reads 1500 kN, 0 seconds, and a floor of 20. The tank rocket, once it is open, has its own 1400 kN, 0 seconds, and floor of 20.</p>
+
+    <div class="pair">
+      <figure class="look">
+        <h3>Three rows</h3>
+        <div class="g screen">
+          <div class="main" style="min-height:0">
+            <div class="land">
+              <div class="sh">Land</div>
+              <div class="own sel"><div class="name">Starfactory</div><div class="line">Builds an SN</div></div>
+              <div class="own"><div class="name">Mid Bay</div><div class="line">0 of 1 slot used</div></div>
+              <div class="own"><div class="name">Orbital Pad</div><div class="line">Pad level 1</div></div>
+              <div class="foot">Goals</div>
+            </div>
+            <div class="insp" style="width:100%;border-left:0">
+              <div class="in">
+                <div class="title">Starfactory</div>
+                <p class="blurb">Builds one vehicle from steel.</p>
+                <div class="sh">Data</div>
+                <div class="r"><span>Holding</span><b>0 of 1</b></div>
+                <div class="r"><span>Thrust</span><b>1400 kN</b></div>
+                <div class="r"><span>Fuel lines</span><b>0 s</b></div>
+                <div class="r"><span>Structure floor</span><b>20</b></div>
+                <p class="now">These three numbers are the next rocket. A clean hop is what moves them.</p>
+              </div>
+              <div class="acts">
+                <button type="button" class="a build"><div class="l1"><span>Build SN</span><span>28 steel</span></div><div class="l2">8 to 12 days. The hopper. One Raptor.</div></button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <figcaption>
+          <p>This is the Starfactory card, in the inspector you already use. Thrust, fuel lines, and the Structure floor are three data rows above the build button.</p>
+          <p>You read them, then you press Build SN. The map stays the yard. The button stays the build you already have.</p>
+        </figcaption>
+      </figure>
+
+      <figure class="look">
+        <h3>Three figures</h3>
+        <div class="g screen">
+          <div class="main" style="min-height:0">
+            <div class="land">
+              <div class="sh">Land</div>
+              <div class="own sel"><div class="name">Starfactory</div><div class="line">Builds an SN</div></div>
+              <div class="own"><div class="name">Mid Bay</div><div class="line">0 of 1 slot used</div></div>
+              <div class="foot">Goals</div>
+            </div>
+            <div class="insp" style="width:100%;border-left:0">
+              <div class="in">
+                <div class="title">Starfactory</div>
+                <p class="blurb">The next hopper, before you spend the steel.</p>
+                <div class="figs">
+                  <div><b>1400</b><span>kN thrust</span></div>
+                  <div><b>0</b><span>seconds of fuel lines</span></div>
+                  <div><b>20</b><span>Structure floor</span></div>
+                </div>
+                <p class="now">Holding 0 of 1. A clean hop moves the figure that hop owns.</p>
+              </div>
+              <div class="acts">
+                <button type="button" class="a build"><div class="l1"><span>Build SN</span><span>28 steel</span></div><div class="l2">8 to 12 days.</div></button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <figcaption>
+          <p>This is the same Starfactory stop. The three numbers are large figures, in a row, and the build button sits under them.</p>
+          <p>You see the thrust, the fuel lines, and the floor before the steel price. Holding stays a sentence under the figures.</p>
+        </figcaption>
+      </figure>
+    </div>
+
+    <h2 id="pad">The pad</h2>
+    <p>The hopper is ready. Cryo, tanking, and the static fire are already done. The first picture is the pad while 50 m and 150 m are off. The second picture is the same pad after the 25 m landing. The 10 km chip stays off this vehicle.</p>
+
+    <div class="pair">
+      <figure class="look">
+        <h3>Before the 25 m landing</h3>
+        <div class="g screen">
+          <div class="bar">
+            <div><span class="lamp"></span><span class="sky"><b>Range open</b><i>clear 8 kn</i></span></div>
+            <div><span class="ctr">Money<b>136</b></span><span class="ctr">Fleet<b>1</b></span></div>
+            <div class="right"><span class="ctr">Day<b>22</b></span><span class="chip">1x</span></div>
+          </div>
+          <div class="main">
+            <div class="land">
+              <div class="sh">Land</div>
+              <div class="own"><div class="name">Starfactory</div><div class="line">Builds an SN</div></div>
+              <div class="own"><div class="name">Mid Bay</div><div class="line">0 of 1 slot used</div></div>
+              <div class="own sel"><div class="name">Orbital Pad</div><div class="line">Pad level 1</div></div>
+              <div class="foot">Goals</div>
+            </div>
+            <div class="map"><div class="sand"></div>
+              <div class="bldg" style="left:24px;top:250px">Factory</div>
+              <div class="bldg" style="left:120px;top:210px">Mid Bay</div>
+              <div class="bldg" style="left:230px;top:150px">Pad</div>
+            </div>
+            <div class="insp">
+              <div class="in">
+                <div class="title">Orbital Pad</div>
+                <p class="blurb">Holds one vehicle for its pad tests.</p>
+                <div class="slot"><span>SN 1</span><span>ready</span></div>
+                <p class="now">SN 1 is ready. 50 m and 150 m stay off until a 25 m hop has landed.</p>
+              </div>
+              <div class="acts">
+                <button type="button" class="a fire"><div class="l1">Hop 25 m</div><div class="l2">551 kg of methane and 1984 kg of oxygen. 8 seconds. No money.</div></button>
+                <div class="a" style="opacity:0.85"><div class="l1">Return to Mid Bay</div></div>
+              </div>
+            </div>
+          </div>
+          <div class="log">SN 1 is ready on the mount.<br>Data review ends.</div>
+        </div>
+        <figcaption>
+          <p>This is the Orbital Pad with a ready hopper, and no 25 m landing on the sheet yet. The flight action is one button, Hop 25 m. The load and the 8 seconds sit on that button.</p>
+          <p>50 m and 150 m are a sentence on the card. They are not dim copies of the hop button. Return to Mid Bay stays under the hop.</p>
+        </figcaption>
+      </figure>
+
+      <figure class="look">
+        <h3>After the 25 m landing</h3>
+        <div class="g screen">
+          <div class="bar">
+            <div><span class="lamp"></span><span class="sky"><b>Range open</b><i>clear 8 kn</i></span></div>
+            <div><span class="ctr">Money<b>216</b></span><span class="ctr">Fleet<b>1</b></span></div>
+            <div class="right"><span class="ctr">Day<b>24</b></span><span class="chip">1x</span></div>
+          </div>
+          <div class="main">
+            <div class="land">
+              <div class="sh">Land</div>
+              <div class="own"><div class="name">Mid Bay</div><div class="line">0 of 1 slot used</div></div>
+              <div class="own sel"><div class="name">Orbital Pad</div><div class="line">SN 1 ready</div></div>
+              <div class="foot">Goals</div>
+            </div>
+            <div class="map"><div class="sand"></div>
+              <div class="bldg" style="left:200px;top:160px">Pad</div>
+              <div style="position:absolute;left:250px;top:120px;width:18px;height:28px;background:#d9d3c7;border:1px solid #1a140e"></div>
+            </div>
+            <div class="insp">
+              <div class="in">
+                <div class="title">Orbital Pad</div>
+                <div class="slot"><span>SN 1</span><span>ready</span></div>
+                <p class="now">The engine landed. 50 m and 150 m are open. The next hopper leaves at 1500 kN.</p>
+              </div>
+              <div class="acts">
+                <div class="trio">
+                  <button type="button" class="a"><div class="l1">25 m</div></button>
+                  <button type="button" class="a on"><div class="l1">50 m</div></button>
+                  <button type="button" class="a"><div class="l1">150 m</div></button>
+                </div>
+                <p class="now">50 m. 982 kg of methane and 3535 kg of oxygen. 14 seconds.</p>
+                <button type="button" class="a fire"><div class="l1">Hop</div><div class="l2">14 seconds. No money.</div></button>
+              </div>
+            </div>
+          </div>
+          <div class="log">SN 1 landed. The engine landed.<br>Land a hop pays 60. Land a 25 m hop pays 20.</div>
+        </div>
+        <figcaption>
+          <p>This is the same pad after that soft 25 m landing. Three height chips sit in the actions. 50 m is selected. The fact line names that load, and Hop is its own button.</p>
+          <p>The hopper on the mount is the short body. The factory line in the log is the next rocket, at 1500 kN. SN 1 itself stays at the thrust it flew.</p>
+        </figcaption>
+      </figure>
+    </div>
+
+    <h2 id="scrap">A scrapped tank</h2>
+    <p>SN 2 is the tank rocket. The bay check read Structure 55 to 85. That window is about 30 wide, and it still holds 70, so the bay looks fine. The cryo proof writes 58. The proof wants 70. The sheet already had the window. The fail scraps SN 2. The hopper does not use this screen.</p>
+
+    <div class="pair">
+      <figure class="look">
+        <h3>Empty mount</h3>
+        <div class="g screen">
+          <div class="bar">
+            <div><span class="lamp"></span><span class="sky"><b>Range open</b><i>clear 6 kn</i></span></div>
+            <div><span class="ctr">Money<b>96</b></span><span class="ctr">Fleet<b>1</b></span></div>
+            <div class="right"><span class="ctr">Day<b>41</b></span></div>
+          </div>
+          <div class="main">
+            <div class="land">
+              <div class="sh">Land</div>
+              <div class="own"><div class="name">Starfactory</div><div class="line">Builds an SN</div></div>
+              <div class="own"><div class="name">Mid Bay</div><div class="line">1 of 1 slot used</div></div>
+              <div class="own sel"><div class="name">Orbital Pad</div><div class="line">Pad level 1</div></div>
+              <div class="foot">Goals</div>
+            </div>
+            <div class="map"><div class="sand"></div>
+              <div class="bldg" style="left:210px;top:170px">Pad</div>
+            </div>
+            <div class="insp">
+              <div class="in">
+                <div class="title">Orbital Pad</div>
+                <p class="blurb">Holds one vehicle for its pad tests.</p>
+                <div class="slot" style="box-shadow:none;border-color:#333;color:#9a9a9a"><span>Mount</span><span>Empty</span></div>
+                <p class="now">SN 2 is scrap. Structure needs 70 and has 58. The bay reading was 55 to 85.</p>
+                <p class="now">Land a tank hop stays open. Build the next tank rocket.</p>
+              </div>
+            </div>
+          </div>
+          <div class="log"><span class="bad">SN 2 fails the cryo proof. Structure is short. It needs 70 and has 58. SN 2 is scrap.</span><br>SN 1 is in Mid Bay.</div>
+        </div>
+        <figcaption>
+          <p>This is the Orbital Pad when the cryo day ends. The mount is empty. Fleet still counts SN 1 in Mid Bay. The log names Structure, the 70 the proof wants, and the 58 the proof wrote.</p>
+          <p>You do not open SN 2 after this. The rocket is gone. The goal stays open. You build another tank rocket and try again.</p>
+        </figcaption>
+      </figure>
+
+      <figure class="look">
+        <h3>The sheet stays up</h3>
+        <div class="sheet">
+          <div class="top"><span class="nm">SN 2</span><span class="place">Scrap · Orbital Pad</span><span class="miss">Structure is short</span><span class="x">Close</span></div>
+          <div class="body">
+            <svg class="cut" viewBox="0 0 80 160" aria-label="SN 2, a tank with a hat">
+              <polygon points="28,18 52,18 58,36 58,118 22,118 22,36" fill="#141414" stroke="#e10600" stroke-width="1.4"/>
+              <polygon points="30,8 50,8 54,18 26,18" fill="#2a2a2a" stroke="#e10600" stroke-width="1.2"/>
+              <polygon points="30,118 50,118 62,148 18,148" fill="#120e0c" stroke="#f2f2f2" stroke-width="1.2"/>
+              <text x="40" y="78" text-anchor="middle" fill="#e10600" font-size="14" font-family="ui-monospace,monospace">58</text>
+            </svg>
+            <div>
+              <table class="parts">
+                <thead><tr><th>Part</th><th>Has</th><th>Needs</th></tr></thead>
+                <tbody>
+                  <tr class="hot"><td>Structure<br><span style="color:#9a9a9a">cryo proof</span></td><td class="n" style="color:#e10600">58</td><td class="n">70</td></tr>
+                  <tr><td>Fuel lines</td><td class="n" style="color:#9a9a9a">not tested</td><td class="n">5 s</td></tr>
+                  <tr><td>Engine<br><span style="color:#9a9a9a">Raptor</span></td><td class="n" style="color:#9a9a9a">not tested</td><td class="n">1500 kN</td></tr>
+                </tbody>
+              </table>
+              <p class="now">The bay read 55 to 85. The cryo proof writes 58.</p>
+            </div>
+          </div>
+          <div class="scrap-note">SN 2 is scrap. Close leaves the mount empty. There is no refurb on this sheet.</div>
+        </div>
+        <figcaption>
+          <p>This is the rocket sheet, still open, at the moment the proof fails. Structure is the red row. Has is 58. Needs is 70. The drawing is the tank with the hat, and the number sits on the tank.</p>
+          <p>Close is the only button. The rocket leaves the fleet when the sheet closes. You do not roll a scrap back to Mid Bay.</p>
+        </figcaption>
+      </figure>
+    </div>
+
+    <h2 id="shape">The shape</h2>
+    <p>The hopper is the short body with one Raptor. The tank rocket is a full-width tank with a hat and one Raptor. The sheet keeps Structure, Fuel lines, and Engine. The hat is the drawing. It is not a new part. No picture here locks a height in meters.</p>
+    <p>The list of Starship vehicles prints the flight dates and the flight heights. It prints about 20 m for the 25 July 2019 hop, and 150 m for the later hops. It does not print a height for the tank article beside the hopper. A National Space Society note of 8 August 2020 prints about 9 m and about 30 m. That note is not a spec. The game leaves the meters off the drawing.</p>
+
+    <div class="pair">
+      <figure class="look">
+        <h3>Same width</h3>
+        <div class="yard"><div class="sand"></div>
+          <svg viewBox="0 0 640 280" width="100%" height="280" style="position:relative">
+            <g transform="translate(150,40)">
+              <polygon points="20,70 70,70 78,150 12,150" fill="#d9d3c7" stroke="#1a140e"/>
+              <polygon points="18,150 80,150 92,210 6,210" fill="#2a2a30"/>
+              <path d="M24 150 L4 230 M66 150 L86 230 M40 150 L40 220" fill="none" stroke="#1a140e" stroke-width="3"/>
+              <text x="45" y="248" text-anchor="middle" font-size="14" fill="#1a140e">SN 1</text>
+            </g>
+            <g transform="translate(360,24)">
+              <polygon points="28,8 62,8 70,28 20,28" fill="#c5c0b6" stroke="#1a140e"/>
+              <polygon points="20,28 70,28 78,168 12,168" fill="#d7d2c8" stroke="#1a140e"/>
+              <polygon points="24,168 66,168 78,214 12,214" fill="#2a2a30"/>
+              <path d="M28 168 L22 210 M62 168 L68 210" fill="none" stroke="#1a140e" stroke-width="3"/>
+              <text x="45" y="248" text-anchor="middle" font-size="14" fill="#1a140e">SN 2</text>
+            </g>
+          </svg>
+        </div>
+        <div class="pair-draw" style="margin-top:8px">
+          <div>
+            <h4>SN 1 · hopper</h4>
+            <svg class="cut" viewBox="0 0 80 160">
+              <polygon points="22,48 58,48 64,118 16,118" fill="#141414" stroke="#f2f2f2"/>
+              <polygon points="26,118 54,118 68,152 12,152" fill="#120e0c" stroke="#f2f2f2"/>
+              <text x="40" y="88" text-anchor="middle" fill="#f2f2f2" font-size="11">LOX</text>
+              <text x="40" y="108" text-anchor="middle" fill="#f2f2f2" font-size="11">CH4</text>
+            </svg>
+            <p>Short body. Three long legs. No hat. One bell.</p>
+          </div>
+          <div>
+            <h4>SN 2 · tank</h4>
+            <svg class="cut" viewBox="0 0 80 160">
+              <polygon points="26,16 54,16 60,34 20,34" fill="#2a2a2a" stroke="#f2f2f2"/>
+              <polygon points="18,34 62,34 66,118 14,118" fill="#141414" stroke="#f2f2f2"/>
+              <polygon points="26,118 54,118 66,150 14,150" fill="#120e0c" stroke="#f2f2f2"/>
+              <text x="40" y="70" text-anchor="middle" fill="#f2f2f2" font-size="11">LOX</text>
+              <text x="40" y="98" text-anchor="middle" fill="#f2f2f2" font-size="11">CH4</text>
+            </svg>
+            <p>Same width. Taller tank. A small hat. Short feet. One bell.</p>
+          </div>
+        </div>
+        <figcaption>
+          <p>This is the yard and the sheet. Both rockets are the same width. SN 1 is short, with long legs and an open top. SN 2 is the tall tank, with a hat and short feet.</p>
+          <p>On the map you tell them apart by the height and the hat. On the sheet the cutaway matches that pair. The serial stays SN 1 and SN 2.</p>
+        </figcaption>
+      </figure>
+
+      <figure class="look">
+        <h3>Full width</h3>
+        <div class="yard"><div class="sand"></div>
+          <svg viewBox="0 0 640 280" width="100%" height="280">
+            <g transform="translate(140,70)">
+              <polygon points="28,40 52,40 56,130 24,130" fill="#cfc8bc" stroke="#1a140e"/>
+              <polygon points="30,130 50,130 58,176 22,176" fill="#2a2a30"/>
+              <path d="M32 130 L18 200 M48 130 L62 200" fill="none" stroke="#1a140e" stroke-width="3"/>
+              <text x="40" y="220" text-anchor="middle" font-size="14" fill="#1a140e">SN 1</text>
+            </g>
+            <g transform="translate(340,20)">
+              <polygon points="18,6 92,6 100,28 10,28" fill="#c5c0b6" stroke="#1a140e"/>
+              <polygon points="10,28 100,28 108,176 2,176" fill="#e4ddd0" stroke="#1a140e"/>
+              <polygon points="22,176 88,176 100,220 10,220" fill="#2a2a30"/>
+              <text x="55" y="248" text-anchor="middle" font-size="14" fill="#1a140e">SN 2</text>
+            </g>
+          </svg>
+        </div>
+        <div class="pair-draw" style="margin-top:8px">
+          <div>
+            <h4>SN 1 · hopper</h4>
+            <svg class="cut" viewBox="0 0 80 160">
+              <polygon points="30,36 50,36 54,118 26,118" fill="#141414" stroke="#f2f2f2"/>
+              <polygon points="32,118 48,118 56,152 24,152" fill="#120e0c" stroke="#f2f2f2"/>
+              <text x="40" y="84" text-anchor="middle" fill="#f2f2f2" font-size="10">LOX</text>
+              <text x="40" y="104" text-anchor="middle" fill="#f2f2f2" font-size="10">CH4</text>
+            </svg>
+            <p>Narrow body. Long legs. One small bell.</p>
+          </div>
+          <div>
+            <h4>SN 2 · tank</h4>
+            <svg class="cut" viewBox="0 0 80 160">
+              <polygon points="16,12 64,12 70,30 10,30" fill="#2a2a2a" stroke="#f2f2f2"/>
+              <polygon points="8,30 72,30 74,116 6,116" fill="#141414" stroke="#f2f2f2"/>
+              <polygon points="22,116 58,116 70,150 10,150" fill="#120e0c" stroke="#f2f2f2"/>
+              <text x="40" y="68" text-anchor="middle" fill="#f2f2f2" font-size="11">LOX</text>
+              <text x="40" y="96" text-anchor="middle" fill="#f2f2f2" font-size="11">CH4</text>
+            </svg>
+            <p>The wide tank. A hat across the top. One bell.</p>
+          </div>
+        </div>
+        <figcaption>
+          <p>This is the same yard and the same sheet. SN 1 is the narrow hopper. SN 2 is the wide tank, so full width is something you can see beside the hopper.</p>
+          <p>The hat runs the width of the tank. The bell stays one Raptor. The sheet rows stay Structure, Fuel lines, and Engine.</p>
+        </figcaption>
+      </figure>
+    </div>
+
+    <h2 id="out">Out of this page</h2>
+    <ul>
+      <li>The nose rocket, the High Bay buy, and the 10 km hop.</li>
+      <li>The booster, the ship, Mega Bay, and the tower.</li>
+      <li>A new price for Mid Bay. The rename spends nothing.</li>
+      <li>A meter height for either rocket.</li>
+      <li>A second roll on the cryo proof, and a percent that scraps the tank.</li>
+    </ul>
+    <p>The flight dates are the ones on the list of Starship vehicles. The 25 m hop stands in for the short hop of about 20 m. 25 m stays a game height. The half-gap caps stay game numbers. Raptor 1 at 1814 kN is the top of the hopper. The lab button still raises one rocket to Raptor 2.</p>
+    <p>Kerbal Space Program takes the vessel off the flight when it is lost. The scrap picture does that on the pad. The player has already seen Structure on the sheet. Mars Horizon shows a reliability percent and a hidden roll. This fail does not.</p>
+
+    <h2 id="critic">Critic, 2026-11-27</h2>
+    <p>This pass reads the page against the <code>0.20.0-tank</code> row and against the live hop, bay check, cryo, tanking, and static fire in <code>index.html</code>. The page is not ready for a builder. Where this page and the row disagree, the row wins. The pictures above stay until Tiago picks. This section is the list to clear first.</p>
+
+    <h3>Goals, Rows and Campaign</h3>
+    <p>Both pictures mark Land a hop as already paid, and both still leave Land a 25 m hop open. The first soft landing is that 25 m hop, and that landing pays 60 and 20 together. A player would collect 60 for a hop that has not happened, then still be asked to land 25 m. Rows says 7 still open and shows 8 open lines. House 2 vehicles is open above the highlighted row, so the highlighted row would be the bay. The live list highlights the first open goal.</p>
+    <p>Land a hop still pays 60 once. The live pays already include 20, 40, 60, and 80, so the four new amounts reuse those figures. They stay a proposal until Tiago locks them. House 2 vehicles pays 70. The live label still says Mega Bay. This row renames that line to Mid Bay.</p>
+
+    <h3>Factory card, Three rows and Three figures</h3>
+    <p>Three rows says a clean hop moves the three numbers. Three figures says a hop moves the one figure that hop owns. A 25 m landing moves thrust to 1500 kN and leaves the fuel lines at 0 and the floor at 20. A player on Three rows would expect the lines and the floor to move too. Neither card shows the tank rocket. After the hopper's 150 m landing, the player would still press one button that says the hopper.</p>
+    <p>The live build still costs 28 steel and takes 8 to 12 days. The bay starts at 1 slot. A found and fixed Structure fault still raises the live floor by 8. This row stops that. A clean hop is the only factory change. A bay fix repairs that rocket only. The next one can still come out weak.</p>
+
+    <h3>The pad, After the 25 m landing</h3>
+    <p>The line "The next hopper leaves at 1500 kN" sits under SN 1. The caption puts that number in the log. The log only shows the two pays. A player would read 1500 kN as the rocket on the mount. That rocket stays at the thrust it flew. The land list and the map drop Starfactory. A player would think the hop cleared the yard. This frame is already Ready, with 50 m selected. After a landing the live hopper rolls back and waits out a 1 day inspection before it is ready again. The yard keeps Starfactory, Mid Bay, and the Orbital Pad.</p>
+    <p>The live 25 m load is 551 kg of methane and 1984 kg of oxygen, for 8 seconds. The live 50 m load is 982 kg of methane and 3535 kg of oxygen, for 14 seconds. A clean low hop still cuts Structure. That cut is the rocket that flew. It is separate from the factory card. A short tank or a closed range scrubs the hop. Nothing is spent. A scrub does not damage the rocket. A lit miss can.</p>
+
+    <h3>The pad, and the tank rocket</h3>
+    <p>Neither pad picture is the tank rocket. Its only hop is 150 m. The only hop control drawn is the hopper's. A player would still see 25 m and 50 m on the tank. The live pad still offers 10 km on an SN. This row keeps that chip off the hopper and off the tank rocket. This page does not design the 10 km hop.</p>
+
+    <h3>A scrapped tank, Empty mount and The sheet stays up</h3>
+    <p>Empty mount keeps Land a tank hop open and tells you to build another. The sheet never says that. A player who closes the sheet would not know the goal is still there. Both pictures have to keep that goal open.</p>
+    <p>The live bay window always holds the stored Structure. The first reading is about 30 wide. The second is about 10 wide. A check does not roll the number again. A window that still reaches 70 is not marked short. A reading of 55 to 85 with a stored 58 is a legal first window, and the cryo proof can still fail it by writing 58. The proof still wants 70. A failed cryo on the hopper sets the return to Mid Bay. It does not scrap that hopper. The scrap is the tank rocket only. The sheet names Structure. There is no hidden roll and no percent. The live static-fire bar is 1500 kN. The live tanking run wants 5 seconds. Those two stay the needs on an untested engine and untested fuel lines.</p>
+
+    <h3>The shape, Same width</h3>
+    <p>The row locks a full-width tank, a hat, and one Raptor. Same width is a second choice, so the row wins. A player who takes Same width gets a tall hopper. Full width is the picture that stays. The shape text also retells the vehicle list and the National Space Society note of 8 August 2020. That research stays off the page. The meters stay off the drawing. 25 m stays a game height. The half-gap caps stay game numbers.</p>
+
+    <h3>Fix these before a builder starts</h3>
+    <ul>
+      <li>Land a hop and Land a 25 m hop pay on the same landing. The open count matches the open rows. The highlighted row is the first open goal.</li>
+      <li>Both factory pictures use the same hop rule. A 25 m landing changes thrust only. The tank rocket has its own card and its own build.</li>
+      <li>On the pad after 25 m, 1500 kN is the next hopper. SN 1 stays as it flew. The yard stays. The inspection finishes before the next hop.</li>
+      <li>Draw the tank on the pad with one hop, 150 m.</li>
+      <li>Both scrap pictures keep Land a tank hop open.</li>
+      <li>Drop Same width. The tank is full width. Take the height research off the page.</li>
+    </ul>
+    <p>Cryo, tanking, and the static fire still come before a hop. In real life stays a note. Starhopper flew a short hop on 25 July 2019 and 150 m on 27 August 2019. SN5 flew the tank hop on 4 August 2020. SN6 flew it on 3 September 2020. The player's serial is the rocket they built. The nose rocket, the High Bay buy, the 10 km hop, the booster, the ship, Mega Bay, and the tower stay off this page. Raptor 2 stays the lab button. High Bay and Mega Bay stay off the map. The rename to Mid Bay spends nothing.</p>
+
+    <h2 id="build">The build, 2026-11-27</h2>
+    <p>The critic list is in the game. The pictures stay on this page. The game does not copy a picture the critic rejected. The roadmap row for this version is marked shipped.</p>
+    <p>The hall on the map reads Mid Bay. The plot you already bought stays bought. The rename spends nothing. High Bay and Mega Bay stay off the map. The hopper and the tank rocket both use Mid Bay.</p>
+    <p>A new hopper leaves at 1400 kN and 0 seconds of fuel lines. The static fire still wants 1500 kN. Tanking still wants 5 seconds. A clean 25 m landing needs about 1487 kN. That first rocket fails those checks until Mid Bay puts the engine back to 1814 kN and the fuel lines back to 40 seconds. Those two fixes repair that rocket only. They do not write the Starfactory card.</p>
+    <p>After the clean 25 m landing, the next hopper card reads 1500 kN, 0 seconds, and a floor of 20. The rocket on the mount stays at the thrust it flew. The hop leaves its fuel lines where they were. It rolls back and waits out the 1 day inspection. A clean low hop still cuts Structure on the rocket that flew. That cut is not the factory card. A scrapped serial stays taken.</p>
+    <p>Half the gap moves toward the cap from either side. A factory at 1700 kN reads 1650 kN after a 25 m landing. From 1400 the thrust steps are 1500, then 1550, then 1575. From 0 seconds the fuel-line steps are 10, then 15, then 17. A 25 m landing does not move the lines or the floor. A 50 m landing does not open a vehicle.</p>
+    <p>One allowed height is one button. Before the first landing that button is Hop 25 m. On the tank rocket it is Hop 150 m. After the 25 m landing the hopper shows 25 m, 50 m, and 150 m. The 10 km chip is off both rockets. The old 10 km watch is still in the file. Nothing on the pad can start it.</p>
+    <p>The tank rocket opens after a soft 150 m landing on the hopper. Its own card starts at 1400 kN, 0 seconds, and a floor of 20. The build still costs 28 steel and takes 8 to 12 days. Its own clean 150 m hops use the same half-gap rule on that card only. The drawing is a full-width tank, a hat, and one bell. No height in meters is drawn on it. 25 m stays a game height on the hop button.</p>
+    <p>The bay check stays a window, about 30 wide and then about 10. It does not roll again. A window that still reaches 70 is not marked short. On seed 11, Structure 58 first read 52 to 82. That window reaches 70, so the bay looks fine. The cryo proof writes 58 and wants 70, so it fails. A failed cryo on the hopper sends it back to Mid Bay. A failed cryo on the tank rocket scraps that rocket. The sheet names Structure. Land a tank hop stays open on the sheet and on the empty pad. There is no hidden roll and no percent on that goal. A tested part's life mark still shows a percent. The unread Structure band does not.</p>
+    <p>The first soft landing pays Land a hop, 60, and Land a 25 m hop, 20, together. The log names those two pays. Land a 50 m hop pays 40. Land a 150 m hop pays 60 on the hopper only. Land a tank hop pays 80. House 2 vehicles in Mid Bay pays 70. The list has 12 rows. The open count matches the open rows. The highlighted row is the first open goal. In real life stays a note under the list. Your serial is the rocket you built.</p>
+    <p>Save stays version 1. An old save with no factory card loads the hopper at 1400 kN, 0 seconds, and the Structure floor already stored. If Land a hop was already done, 50 m and 150 m stay open. The tank rocket stays closed until a hopper lands 150 m in this version. Raptor 2 stays the lab button on one rocket.</p>
+    <p>A headless check ran the half-gap steps, the four pays, and the height gates. A miss left the factory put. A bay fix left the card put. The tank kept one hop. Hopper cryo sent the rocket back. Tank cryo scrapped that rocket. Mid Bay stayed on the yard. A save round-trip kept the two cards. Tiago still tests the empty yard, the road, the lift, the static fire, and the drawing in the browser.</p>
+
+    <h2 id="later">A later pass</h2>
+    <p>Five fixes landed after that build note. The version stays <code>0.20.0-tank</code>.</p>
+    <p>Half the gap moves toward the cap from either side. A factory at 1700 kN reads 1650 kN after a 25 m landing. 1657 kN reads 1629 kN. Fuel lines at 25 seconds read 23 after a 50 m landing. 21 seconds reads 20. From 1400 the thrust steps stay 1500, then 1550, then 1575. From 0 seconds the fuel-line steps stay 10, then 15, then 17. A 25 m landing still leaves the lines and the floor. A 50 m landing still leaves the thrust and the floor.</p>
+    <p>The hop leaves the fuel lines on the rocket that flew. Engine seconds still spend. A clean low hop still cuts Structure on that rocket by 4, 6, or 10. A hard landing still cuts 40 and leaves Structure at 20 at worst. A scrub still spends nothing.</p>
+    <p>A scrapped serial stays taken. The next build uses the next free number. Scrap SN 2 and the pad still names SN 2. The next rocket is SN 3.</p>
+    <p>How a test works says a failed cryo on the tank rocket scraps that rocket. A failed cryo on the hopper sends it back to Mid Bay. A failed tanking run sends the rocket back. The bay can restore that rocket. Land a tank hop stays open.</p>
+    <p>The vehicle paragraph on the object list matches the hop buttons. A ready hopper starts on Hop 25 m. After that landing, 50 m and 150 m open. The tank rocket hops 150 m only.</p>
+    <p>A headless check ran the half-gap steps both ways, including 1700 to 1650 and 25 seconds to 23. The page boots. Tiago still tests a hop, a scrap, and the Goals sheet in the browser.</p>
+
+    <p class="footer-note">The game is <code>0.20.0-tank</code>. The critic list of 2026-11-27 is in the game. The build note is the commentary on that pass. The later pass records the five fixes. Tiago tests it in the browser.</p>
+  </div>
+</body>
+</html>

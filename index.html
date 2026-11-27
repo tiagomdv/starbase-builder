@@ -336,6 +336,9 @@
     .goal-row.now .name { font-size: 22px; font-weight: 650; color: #f2f2f2; }
     .goal-row.done { opacity: 0.4; }
     .goal-row.done .name { text-decoration: line-through; }
+    .goal-panel { max-height: min(92vh, 760px); overflow: auto; }
+    .goal-real { margin-top: 16px; font-size: 12px; line-height: 1.45; color: #9a9a9a; }
+    .goal-real b { display: block; color: #f2f2f2; font-weight: 650; margin-bottom: 4px; }
     #map-zoom { right: 10px; top: 10px; }
     #flight-panel {
       position: absolute; left: 10px; top: 78px; z-index: 2; display: none;
@@ -698,7 +701,7 @@
         <span class="ctr">Fleet <b id="res-fleet" class="tabular-nums">0</b></span>
         <span class="ctr">Fires <b id="res-fires" class="tabular-nums">0</b></span>
       </div>
-      <div id="ver-label">0.19.0-high-hop</div>
+      <div id="ver-label">0.20.0-tank</div>
     </div>
     <div class="bar-right">
       <span class="ctr"><span id="day-run">Day</span> <b id="day-label" class="tabular-nums">1</b></span>
@@ -798,7 +801,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "0.19.0-high-hop";
+  const VERSION = "0.20.0-tank";
   const CELL = 32, MAP_W = 40, MAP_H = 30;
   // ?test is a normal open with a short day. The purse, the tanks, and the yard start the same.
   const TEST = new URLSearchParams(location.search).has("test");
@@ -827,7 +830,15 @@
       pad_l2: 50,
       clean_fire: 80,
       hop: 60,
+      hop_25: 20,
+      hop_50: 40,
+      hop_150: 60,
+      hop_tank: 80,
     },
+    // Half-gap caps. Game numbers. A 25 m landing moves thrust only. A 50 m landing moves fuel lines only.
+    HOP_THRUST_25: 1600,
+    HOP_LINES_50: 20,
+    HOP_FLOOR_150: 60,
     // A clean first stage reaches these. A short tank or a closed range falls short.
     LAUNCH_OK_KM: 89.2,
     LAUNCH_OK_MS: 1932,
@@ -923,7 +934,7 @@
     // First Structure reading in the bay. The second is narrower. A third check does not start. Initial balance.
     BAY_BAND_1: 30,
     BAY_BAND_2: 10,
-    // Added once when a short Structure was found and then fixed. Initial balance.
+    // Retired at 0.20.0-tank. A bay fix no longer moves the factory floor.
     STRUCT_FLOOR_STEP: 8,
     WIND_LIMIT_L1: 20,
     WIND_LIMIT_L2: 28,
@@ -1190,8 +1201,8 @@
     },
     mega_bay: {
       id: "mega_bay",
-      name: "Mega Bay",
-      short: "Bay",
+      name: "Mid Bay",
+      short: "Mid Bay",
       cost: 50,
       footprint: { w: 4, h: 3 },
       maxCount: 1,
@@ -1238,11 +1249,15 @@
     hopView: null,
     buildings: [],
     fleet: [],
-    // builtArticles counts new vehicles only. A null seed still retires a short. A seeded yard ignores that cliff for Structure.
+    // builtArticles counts new vehicles only. The factory card sets the next rocket.
     builtArticles: 0,
     defectRestored: { stage: false, fitting: false, engine: false },
-    // The Structure floor starts at the scrap floor. A found and fixed fault raises it.
+    // The hopper floor. The tank rocket keeps its own floor on factory.tank.
     structFloor: TUNING.SCRAP_FLOOR,
+    factory: null,
+    engineLanded: false,
+    tankOpen: false,
+    tankScrap: null,
     factoryJob: null,
     // Road rolls overlap. The pad still raises, lowers, loads, and burns one rocket.
     rollouts: [],
@@ -1270,6 +1285,10 @@
       pad_l2: false,
       clean_fire: false,
       hop: false,
+      hop_25: false,
+      hop_50: false,
+      hop_150: false,
+      hop_tank: false,
     },
   };
   let hiddenLaunchCalls = 0;
@@ -1296,7 +1315,7 @@
       const v = e.roll ? vehicleById(e.roll) : null;
       // The button shows only while that rocket still waits in the factory, so an old line cannot roll it twice.
       const btn = v && v.status === "at_factory"
-        ? ` <button type="button" class="log-roll" data-roll="${v.id}">Roll ${esc(v.name)} to Mega Bay</button>` : "";
+        ? ` <button type="button" class="log-roll" data-roll="${v.id}">Roll ${esc(v.name)} to Mid Bay</button>` : "";
       return `<div class="${e.kind}">${esc(e.msg)}${btn}</div>`;
     }).join("");
   }
@@ -1340,6 +1359,37 @@
   function readSalt(articleN, part, checkN) {
     if (checkN === 1) return 80 + articleN * 3 + partCode(part);
     return 140 + articleN * 3 + partCode(part);
+  }
+  function freshShape() {
+    return {
+      thrustKn: TUNING.DEFECT_THRUST_KN,
+      linesS: TUNING.DEFECT_LINES_S,
+      structFloor: TUNING.SCRAP_FLOOR,
+    };
+  }
+  function ensureFactory() {
+    if (!G.factory) G.factory = { hopper: freshShape(), tank: freshShape() };
+    if (!G.factory.hopper) G.factory.hopper = freshShape();
+    if (!G.factory.tank) G.factory.tank = freshShape();
+    return G.factory;
+  }
+  function shapeOf(v) {
+    return v && v.shape === "tank" ? "tank" : "hopper";
+  }
+  function factorySpec(shape) {
+    return ensureFactory()[shape === "tank" ? "tank" : "hopper"];
+  }
+  // Half of the gap toward the cap, from either side. The last point still closes.
+  function closeHalf(current, cap) {
+    const now = Math.round(Number(current));
+    const top = Math.round(Number(cap));
+    if (now === top) return now;
+    const step = Math.floor(Math.abs(top - now) / 2);
+    const move = step < 1 ? 1 : step;
+    return now < top ? now + move : now - move;
+  }
+  function syncHopperFloor() {
+    G.structFloor = factorySpec("hopper").structFloor;
   }
   function hiddenStruct(seed, articleN, floor) {
     const lo = Math.max(TUNING.SCRAP_FLOOR, floor);
@@ -1440,7 +1490,7 @@
   function vehicleById(id) { return G.fleet.find((v) => v.id === id) || null; }
   function selectedVehicle() { return vehicleById(G.selectedVehicleId); }
   function liveFleet() { return G.fleet.filter((v) => v.status !== "destroyed"); }
-  // The SN number is the smallest free serial among live SN names. A destroyed vehicle leaves its number.
+  // The SN number is the smallest free serial. A destroyed vehicle leaves its number.
   function snNumber(name) {
     const m = /^SN (\d+)$/.exec(String(name || ""));
     return m ? Number(m[1]) : 0;
@@ -1448,7 +1498,7 @@
   function isSnName(name) { return snNumber(name) > 0; }
   function nextSnName() {
     const used = new Set();
-    for (const v of liveFleet()) {
+    for (const v of G.fleet) {
       const n = snNumber(v.name);
       if (n) used.add(n);
     }
@@ -1817,6 +1867,8 @@
         v.proofDone = true;
         v.status = "on_pad";
         log(`${v.name} holds the cryo proof at ${TUNING.PROOF_BAR} bar.`, "good");
+      } else if (shapeOf(v) === "tank") {
+        scrapTank(v, have);
       } else {
         v.status = "needs_return";
         log(`${v.name} fails the cryo proof. Structure is short. It needs ${TUNING.PROOF_STRUCT_MIN} and has ${have}.`, "bad");
@@ -1842,11 +1894,26 @@
     return Math.max(TUNING.SCRAP_FLOOR, Math.min(100, value));
   }
 
-  // Once per article, and only for a short that was stored at build and then found.
+  // A bay fix repairs this rocket. It does not move the factory floor.
   function payStructFloor(v) {
-    if (!wholeSeed(G.seed) || !v || v.structFloorPaid || !v.structBuiltShort || !v.structFound) return;
-    G.structFloor = clampStructFloor((G.structFloor || TUNING.SCRAP_FLOOR) + TUNING.STRUCT_FLOOR_STEP);
-    v.structFloorPaid = true;
+    if (v) v.structFloorPaid = true;
+  }
+
+  function scrapTank(v, have) {
+    const lo = v.structReadLo;
+    const hi = v.structReadHi;
+    v.status = "destroyed";
+    v.buildingId = null;
+    G.tankScrap = {
+      name: v.name,
+      have,
+      lo: lo == null ? null : lo,
+      hi: hi == null ? null : hi,
+    };
+    log(`${v.name} fails the cryo proof. Structure is short. It needs ${TUNING.PROOF_STRUCT_MIN} and has ${have}. ${v.name} is scrap.`, "bad");
+    if (!G.objectives.hop_tank) log("Land a tank hop stays open.", "info");
+    G.selectedVehicleId = v.id;
+    G.rocketSheet = v.id;
   }
 
   function finishBayCheck(v) {
@@ -1887,9 +1954,6 @@
       v.structTested = true;
       payStructFloor(v);
     }
-    // Fuel lines and the engine still retire. Structure does that only on a null seed.
-    if (part === "fitting" || part === "engine") G.defectRestored[part] = true;
-    else if (part === "stage" && !wholeSeed(G.seed)) G.defectRestored.stage = true;
     v.refurbPart = null;
     v.refurbLeft = 0;
     v.status = "in_bay";
@@ -1897,40 +1961,27 @@
     fundGoal("refurb");
   }
 
-  // Article n takes part (n - 1) % 3 of this seed's order. articleN is that count, not the number in the name.
+  // The factory card is this rocket. A bay fix does not change the next one.
   function applyNewArticle(v) {
     G.builtArticles += 1;
-    const order = defectOrder();
-    const part = order[(G.builtArticles - 1) % 3];
+    const spec = factorySpec(shapeOf(v));
     v.proofSkipped = false;
     v.tankingSkipped = false;
     v.structTested = false;
     v.fittingTested = false;
     v.engineTested = false;
-    v.stageLife = 100;
-    v.fittingLifeS = TUNING.FITTING_LIFE_S;
-    v.thrustKn = TUNING.ENGINE_THRUST_KN;
     v.articleN = G.builtArticles;
     v.structChecks = 0;
     v.structReadLo = null;
     v.structReadHi = null;
-    v.structBuiltShort = false;
     v.structFound = false;
     v.structFloorPaid = false;
-    if (!wholeSeed(G.seed)) {
-      if (G.defectRestored[part]) return;
-      if (part === "stage") v.stageLife = TUNING.DEFECT_STRUCT;
-      else if (part === "fitting") v.fittingLifeS = TUNING.DEFECT_LINES_S;
-      else v.thrustKn = TUNING.DEFECT_THRUST_KN;
-      return;
-    }
-    v.stageLife = hiddenStruct(G.seed, v.articleN, G.structFloor || TUNING.SCRAP_FLOOR);
+    v.thrustKn = spec.thrustKn;
+    v.fittingLifeS = spec.linesS;
+    v.stageLife = wholeSeed(G.seed)
+      ? hiddenStruct(G.seed, v.articleN, spec.structFloor)
+      : spec.structFloor;
     v.structBuiltShort = v.stageLife < TUNING.PROOF_STRUCT_MIN;
-    if (part === "fitting") {
-      if (!G.defectRestored.fitting) v.fittingLifeS = TUNING.DEFECT_LINES_S;
-    } else if (part === "engine") {
-      if (!G.defectRestored.engine) v.thrustKn = TUNING.DEFECT_THRUST_KN;
-    }
   }
 
   function finishFactoryJob() {
@@ -1992,6 +2043,7 @@
       hops: 0,
       hopMeters: null,
       hopNote: "",
+      shape: job.shape === "tank" ? "tank" : "hopper",
       baySlot: 0,
       wx: a.x, wy: a.y,
     };
@@ -2003,26 +2055,29 @@
     renderChrome();
   }
 
-  function startBuildRocket(rocketId) {
+  function startBuildRocket(rocketId, shape) {
     const r = rocketOf(rocketId);
     if (!r.unlocked) { log("Not on roadmap yet", "warn"); return; }
+    const buildShape = shape === "tank" ? "tank" : "hopper";
+    if (buildShape === "tank" && !G.tankOpen) { log("Land a 150 m hop on the hopper first.", "warn"); return; }
     const factory = buildingById(G.selectedId);
     if (!factory || factory.type !== "starfactory") { log("Select Starfactory", "warn"); return; }
     if (G.factoryJob) { log("Factory already building", "warn"); return; }
-    if (factoryHold()) { log("Move finished vehicle to Mega Bay first (factory hold is 1)", "warn"); return; }
+    if (factoryHold()) { log("Move finished vehicle to Mid Bay first (factory hold is 1)", "warn"); return; }
     if (G.event) { log("Ops busy", "warn"); return; }
     if (G.steel < r.steelCost) { log(`Need ${r.steelCost} steel.`, "bad"); return; }
     G.steel -= r.steelCost;
     const buildDays = spanDays(TUNING.BUILD_DAYS_MIN, TUNING.BUILD_DAYS_MAX);
     const vehicleName = nextSnName();
-    G.factoryJob = { kind: "rocket", rocketId: r.id, daysLeft: buildDays, totalDays: buildDays, vehicleName };
-    log(`Starfactory · building ${vehicleName} · −${r.steelCost} steel · ${dayCount(buildDays)}`, "good");
+    G.factoryJob = { kind: "rocket", rocketId: r.id, daysLeft: buildDays, totalDays: buildDays, vehicleName, shape: buildShape };
+    const kind = buildShape === "tank" ? "the tank rocket" : "the hopper";
+    log(`Starfactory · building ${vehicleName}, ${kind} · −${r.steelCost} steel · ${dayCount(buildDays)}`, "good");
     renderChrome();
   }
 
   function stageToBay(vehicleId) {
     const bay = buildingOfType("mega_bay");
-    if (!bay) { log("Need Mega Bay", "bad"); return; }
+    if (!bay) { log("Need Mid Bay", "bad"); return; }
     const v = vehicleById(vehicleId || G.selectedVehicleId);
     if (!v || v.status !== "at_factory") { log("Select a finished vehicle at the factory", "warn"); return; }
     const cap = bayCapacity(bay);
@@ -2032,7 +2087,7 @@
       if (returnClaim(bay) > 0 && bayLoad(bay) < cap) {
         log("Leave a bay slot open. A rocket outside the bay still has to come home.", "bad");
       } else {
-        log(`Mega Bay is full. It holds ${cap}.`, "bad");
+        log(`Mid Bay is full. It holds ${cap}.`, "bad");
       }
       return;
     }
@@ -2040,12 +2095,12 @@
     if (!factory) { log("Need Starfactory", "bad"); return; }
     const slot = freeBaySlot(bay, v.id);
     if (slot < 0) {
-      log(`Mega Bay is full. It holds ${cap}.`, "bad");
+      log(`Mid Bay is full. It holds ${cap}.`, "bad");
       return;
     }
     const dur = beginRoad(v, factory, bay, "bay", "in_bay", TUNING.ROLLOUT_PX_PER_DAY, slot);
     G.selectedVehicleId = v.id;
-    log(`${v.name} rolls to Mega Bay · ${dayWord(dur)}`, "info");
+    log(`${v.name} rolls to Mid Bay · ${dayWord(dur)}`, "info");
     renderChrome();
   }
 
@@ -2147,10 +2202,10 @@
       log("Return to bay from pad after fire", "warn"); return;
     }
     if (bayLoad(bay) >= bayCapacity(bay) && v.buildingId !== bay.id) {
-      log("Mega Bay is full.", "bad"); return;
+      log("Mid Bay is full.", "bad"); return;
     }
     const slot = freeBaySlot(bay, v.id);
-    if (slot < 0) { log("Mega Bay is full.", "bad"); return; }
+    if (slot < 0) { log("Mid Bay is full.", "bad"); return; }
     v.baySlot = slot;
     // The pad keeps the rocket until the lower finishes, then the road clears the building.
     v.status = "rolling";
@@ -2184,7 +2239,7 @@
     const bay = buildingById(r.destId);
     if (!pad || !bay) { clearMotion(v.id); return; }
     const dur = beginRoad(v, pad, bay, "bay", r.destStatus, TUNING.RETURN_PX_PER_DAY, r.baySlot || 0);
-    log(`${v.name} returns to Mega Bay · ${dayWord(dur)}`, "info");
+    log(`${v.name} returns to Mid Bay · ${dayWord(dur)}`, "info");
     renderChrome();
   }
 
@@ -2222,7 +2277,7 @@
     if (v.status === "in_bay") {
       const bay = buildingById(r.destId);
       const cap = bayCapacity(bay);
-      log(`${v.name} is in Mega Bay, slot ${(r.baySlot || 0) + 1} of ${cap}.`, "good");
+      log(`${v.name} is in Mid Bay, slot ${(r.baySlot || 0) + 1} of ${cap}.`, "good");
     }
     clearMotion(v.id);
     updateObjectives();
@@ -2773,16 +2828,59 @@
       ch4: prop.ch4, lox: prop.lox, flightKg: prop.flightKg, floor: hopFloorKn(prop.flightKg),
     };
   }
+  function allowedHops(v) {
+    if (!v) return [];
+    if (shapeOf(v) === "tank") return [150];
+    if (!G.engineLanded) return [25];
+    return [25, 50, 150];
+  }
   function hopMetersOk(v, meters) {
-    const n = Number(meters);
-    if (n === 25 || n === 50 || n === 150) return true;
-    return n === 10000 && !!(v && isSnName(v.name));
+    return allowedHops(v).indexOf(Number(meters)) >= 0;
   }
   function storedHopMeters(name, meters) {
     const n = Number(meters);
     if (n === 25 || n === 50 || n === 150) return n;
-    if (n === 10000 && isSnName(name)) return 10000;
     return null;
+  }
+  function teachFactory(v, meters) {
+    const shape = shapeOf(v);
+    const spec = factorySpec(shape);
+    const n = Number(meters);
+    if (shape === "hopper" && n === 25) {
+      spec.thrustKn = closeHalf(spec.thrustKn, TUNING.HOP_THRUST_25);
+      G.engineLanded = true;
+      log(`The next hopper leaves at ${spec.thrustKn} kN.`, "good");
+    } else if (shape === "hopper" && n === 50) {
+      spec.linesS = closeHalf(spec.linesS, TUNING.HOP_LINES_50);
+      log(`The next hopper leaves with ${spec.linesS} seconds of fuel lines.`, "good");
+    } else if (n === 150) {
+      spec.thrustKn = closeHalf(spec.thrustKn, TUNING.ENGINE_THRUST_KN);
+      spec.linesS = closeHalf(spec.linesS, TUNING.FITTING_LIFE_S);
+      spec.structFloor = closeHalf(spec.structFloor, TUNING.HOP_FLOOR_150);
+      if (shape === "hopper") {
+        G.tankOpen = true;
+        log(`The next hopper leaves at ${spec.thrustKn} kN, ${spec.linesS} seconds, and a Structure floor of ${spec.structFloor}.`, "good");
+        log("The tank rocket is open.", "good");
+      } else {
+        log(`The next tank rocket leaves at ${spec.thrustKn} kN, ${spec.linesS} seconds, and a Structure floor of ${spec.structFloor}.`, "good");
+      }
+    }
+    syncHopperFloor();
+  }
+  function fundNamed(key, name) {
+    if (G.objectives[key]) return;
+    G.objectives[key] = true;
+    const pay = TUNING.GOAL_PAY[key];
+    G.money += pay;
+    log(`${name} pays ${pay}.`, "good");
+  }
+  function payHopGoals(v, meters) {
+    fundNamed("hop", "Land a hop");
+    const n = Number(meters);
+    if (shapeOf(v) === "tank") fundNamed("hop_tank", "Land a tank hop");
+    else if (n === 25) fundNamed("hop_25", "Land a 25 m hop");
+    else if (n === 50) fundNamed("hop_50", "Land a 50 m hop");
+    else if (n === 150) fundNamed("hop_150", "Land a 150 m hop");
   }
   function hopSelection(v) {
     if (!v || v.hopMeters == null) return null;
@@ -3079,7 +3177,7 @@
       litSpent: src.litSpent || 0,
     };
   }
-  // A lit piece spends the shorter of the clock, the engine life, and the fuel lines.
+  // A lit piece burns for the shorter of the clock, the engine life, and the fuel lines. The fuel lines stay.
   function spendHopLit(r) {
     const v = vehicleById(r.vehicleId);
     if (!v) return;
@@ -3087,7 +3185,6 @@
     const eng = Math.max(0, v.engineLifeS || 0);
     const spent = Math.min(r.duration, eng, lines);
     v.engineLifeS = eng - spent;
-    v.fittingLifeS = lines - spent;
     r.litSpent = (r.litSpent || 0) + spent;
   }
   function placeHighHop(v, r) {
@@ -3164,7 +3261,7 @@
       v.hopNote = "";
       G.testDays.push({ day: G.day, kind: "hop", result: "clean" });
       log(`${v.name} landed the 10 km hop. Structure is ${Math.round(v.stageLife)}.`, "good");
-      fundGoal("hop");
+      fundNamed("hop", "Land a hop");
       const mark = hopMark();
       v.wx = mark ? mark.x : r.toX;
       v.wy = mark ? mark.y : r.toY;
@@ -3185,7 +3282,7 @@
     parkVehicle(v, pad.id, 0);
     v.hopNote = (r.miss || []).join(" ");
     G.testDays.push({ day: G.day, kind: "hop", result: "miss" });
-    log(`${v.name} needs Mega Bay. Structure is ${Math.round(v.stageLife)}.`, "bad");
+    log(`${v.name} needs Mid Bay. Structure is ${Math.round(v.stageLife)}.`, "bad");
     renderChrome();
   }
   function hopMissLines(thrust, limitKn, load, preLines, preEngine) {
@@ -3225,7 +3322,6 @@
     G.ch4 = r.preCh4 - usedCh4;
     G.lox = r.preLox - usedLox;
     v.engineLifeS = Math.max(0, (v.engineLifeS || 0) - burned);
-    v.fittingLifeS = Math.max(0, (v.fittingLifeS || 0) - burned);
     const thrust = engineNowKn(v);
     const limitKn = padLimits(pad).thrust;
     const hard = thrust > limitKn || thrust + 1e-6 < load.floor || burned + 1e-6 < load.burn || burned < 2;
@@ -3237,7 +3333,8 @@
       v.hopNote = "";
       G.testDays.push({ day: G.day, kind: "hop", result: "clean" });
       log(`${v.name} landed the ${r.meters} m hop. Structure is ${Math.round(v.stageLife)}.`, "good");
-      fundGoal("hop");
+      teachFactory(v, r.meters);
+      payHopGoals(v, r.meters);
       const mark = hopMark();
       v.wx = mark ? mark.x : r.toX;
       v.wy = mark ? mark.y : r.toY;
@@ -3260,7 +3357,7 @@
     v.hopNote = msgs.join(" ");
     G.testDays.push({ day: G.day, kind: "hop", result: "miss" });
     msgs.forEach((line) => log(line, "bad"));
-    log(`${v.name} needs Mega Bay. Structure is ${Math.round(v.stageLife)}.`, "bad");
+    log(`${v.name} needs Mid Bay. Structure is ${Math.round(v.stageLife)}.`, "bad");
     renderChrome();
   }
 
@@ -3421,10 +3518,10 @@
     document.getElementById("event-outcome").textContent = next.scrap
       ? `${detail}. The first stage is scrap.`
       : success && next.status === "needs_return"
-        ? "Held. The engine is worn. Return to Mega Bay."
+        ? "Held. The engine is worn. Return to Mid Bay."
         : success
           ? "Held. Data review starts on the mount."
-          : `${detail}. Return to Mega Bay.`;
+          : `${detail}. Return to Mid Bay.`;
     openEvent(
       `Static fire · ${v.name}`,
       phases[0].label,
@@ -3485,7 +3582,7 @@
     } else if (ev.success && next.status === "inspect") {
       log(`${v.name} held. Data review starts on the mount. ${firedLine(v)}`, "good");
     } else if (ev.success) {
-      log(`${v.name} held. The engine is worn. Return it to Mega Bay. ${firedLine(v)}`, "good");
+      log(`${v.name} held. The engine is worn. Return it to Mid Bay. ${firedLine(v)}`, "good");
     } else {
       log(`${v.name} failed. ${why}. Structure is ${Math.round(v.stageLife)}. A lit miss takes up to ${TUNING.SF_MISS_CONDITION} off Structure and leaves it at ${TUNING.SCRAP_FLOOR} at worst.`, "bad");
     }
@@ -3907,7 +4004,7 @@
     if (G.steel < TUNING.BAY_SLOT_COST) { log(`Need ${TUNING.BAY_SLOT_COST} steel.`, "bad"); return; }
     G.steel -= TUNING.BAY_SLOT_COST;
     bay.level += 1;
-    log(`Mega Bay holds ${bay.level} vehicles.`, "good");
+    log(`Mid Bay holds ${bay.level} vehicles.`, "good");
     updateObjectives();
     renderChrome();
   }
@@ -4072,18 +4169,18 @@
       title: "How a test works",
       body: wikiParas([
         `You spend steel at ${wikiPlace("starfactory", "Starfactory")}. The factory builds an SN and holds one finished rocket. The next build can start once that rocket has left the hold.`,
-        `${wikiPlace("mega_bay", "Mega Bay")} houses the rocket. Roll to the ${wikiPlace("pad_orbital", "Orbital Pad")} moves it along the yard road and sets it on the mount.`,
+        `${wikiPlace("mega_bay", "Mid Bay")} houses the rocket. Roll to the ${wikiPlace("pad_orbital", "Orbital Pad")} moves it along the yard road and sets it on the mount.`,
         `The first test is a cryo proof. Liquid nitrogen is the cold liquid used for the proof. It does not burn. The test buys it. The game keeps no nitrogen tank.`,
         `The proof takes the tanks to ${TUNING.PROOF_BAR} bar. That figure is a label, not a check. The proof passes when Structure is ${TUNING.PROOF_STRUCT_MIN} or more. Structure is a fixed number you have to measure. The ${TUNING.PROOF_COST} money, the ${dayCount(TUNING.PROOF_DAYS)}, and the proof line of ${TUNING.PROOF_STRUCT_MIN} are game numbers.`,
         `A tanking run comes next. It loads ${TUNING.SF_CH4_KG} kg of methane and ${TUNING.SF_LOX_KG} kg of liquid oxygen. That is the static fire load. A short tank scrubs the run. Nothing loads, no day passes, and no fluid is spent.`,
         `The run takes ${dayCount(TUNING.TANKING_DAYS)}. ${TUNING.TANKING_CH4_LOSS_KG} kg of methane and ${TUNING.TANKING_LOX_LOSS_KG} kg of liquid oxygen boil off. The rest drains back to the pad tanks. The boil-off is a game number. The run passes when Fuel lines are ${TUNING.TANKING_LINES_MIN} seconds or more. A new article can leave with Fuel lines at ${TUNING.DEFECT_LINES_S} seconds. That short is a game number. A healthy article has ${TUNING.FITTING_LIFE_S}. That floor is a game number.`,
         `A static fire lights the engine on the pad. It holds when ${wikiGo("thrust", "thrust")}, the pad, ${wikiGo("propellant", "methane")}, ${wikiGo("propellant", "liquid oxygen")}, the wind, Structure, and the fuel lines are inside the limits. Each test is done or skipped before the fire.`,
         `After a clean fire the rocket stays on the mount for ${dayCount(TUNING.INSPECT_DAYS)} of data review. Then it is ready. A ready rocket can hop, or it can return to the bay. A passed cryo and a passed tanking run stay passed.`,
-        `A miss sends the rocket back to ${wikiPlace("mega_bay", "Mega Bay")}. The sheet names the short part. You start one refurb. The bay runs one part at a time. A failed proof or a failed tanking run also sends the rocket back. Those two tests damage nothing.`,
-        `Structure is a fixed number you have to measure. The factory rolls it when the job ends and stores it on the rocket. Check Structure in Mega Bay takes 1 day and no money. The first reading is about 30 wide. The second is about 10 wide. A third check does not start. Only the pad writes the exact number. The hull stays not tested until then.`,
-        `Each found and fixed Structure fault raises the Structure floor by ${TUNING.STRUCT_FLOOR_STEP}. It rises once for that article, and only when the number stored at build was under ${TUNING.PROOF_STRUCT_MIN}. The floor starts at ${TUNING.SCRAP_FLOOR}.`,
-        `Fuel lines can still leave at ${TUNING.DEFECT_LINES_S} seconds. Thrust can still leave at ${TUNING.DEFECT_THRUST_KN} kN. A refurb retires that short for later articles. Structure does not. A null seed keeps the old one short, and it keeps the old cliff.`,
-        `The cryo proof finds Structure. The tanking run finds the fuel lines. A fail on those tests names the part and damages nothing. The bay restores it in the days and the steel prices that already exist. You can skip a cryo proof or a tanking run. The part stays as it is. An untested part reads not tested.`,
+        `A miss sends the hopper back to ${wikiPlace("mega_bay", "Mid Bay")}. The sheet names the short part. You start one refurb. The bay runs one part at a time. A failed cryo on the hopper sends it back to Mid Bay. A failed tanking run does the same. Neither one damages the rocket. A failed cryo on the tank rocket scraps that rocket. Land a tank hop stays open.`,
+        `Structure is a fixed number you have to measure. The factory rolls it when the job ends and stores it on the rocket. Check Structure in Mid Bay takes 1 day and no money. The first reading is about 30 wide. The second is about 10 wide. A third check does not start. Only the pad writes the exact number. The hull stays not tested until then.`,
+        `A clean hop is the only thing that moves the next rocket. A 25 m landing moves thrust toward ${TUNING.HOP_THRUST_25} kN. A 50 m landing moves fuel lines toward ${TUNING.HOP_LINES_50} seconds. A 150 m landing moves thrust toward ${TUNING.ENGINE_THRUST_KN} kN, fuel lines toward ${TUNING.FITTING_LIFE_S} seconds, and the Structure floor toward ${TUNING.HOP_FLOOR_150}. The floor starts at ${TUNING.SCRAP_FLOOR}. The cryo proof still wants ${TUNING.PROOF_STRUCT_MIN}. A bay fix repairs that rocket only.`,
+        `The card shows thrust, fuel lines, and the Structure floor before you build. A new hopper starts at ${TUNING.DEFECT_THRUST_KN} kN and ${TUNING.DEFECT_LINES_S} seconds. The tank rocket starts there too, on its own card, after a hopper lands 150 m.`,
+        `The cryo proof finds Structure. The tanking run finds the fuel lines. A fail names the part. A failed cryo on the hopper sends it back to Mid Bay, and the bay can restore it. A failed cryo on the tank rocket scraps that rocket. A failed tanking run sends the rocket back and damages nothing. You can skip a cryo proof or a tanking run. The part stays as it is. An untested part reads not tested.`,
         `A fire that lights can miss on Structure or the fuel lines. A short pad or a short engine still lights, and that fire is a miss. A fail names the part. A closed range or a short tank does not light. A scrub damages nothing.`,
       ]) + wikiFacts([
         { value: `${rocket.steelCost} steel`, label: "Steel for an SN" },
@@ -4113,10 +4210,10 @@
       id: "flight",
       title: "Flight",
       body: wikiParas([
-        `A ready rocket hops 25 m, 50 m, or 150 m from the Orbital Pad. An SN also hops 10 km. The low burns are 8, 14, and 22 seconds. The 10 km hop is lit for 18 seconds.`,
+        `A ready hopper hops 25 m. After that landing, 50 m and 150 m open. The tank rocket hops 150 m only. The burns are 8, 14, and 22 seconds.`,
         `The day holds while the tanks load and during the hop. The countdown has no sound.`,
         `Dry mass is 102000 kg, and that includes the Raptor. The window shows the flight mass of the height you pick.`,
-        `A clean low hop cuts Structure by 4, 6, or 10. A soft 10 km landing cuts 0. A hard landing cuts 40 and leaves it at 20 at worst. The rocket then needs Mega Bay.`,
+        `A clean low hop cuts Structure by 4, 6, or 10 on the rocket that flew. That cut is not the factory card. The hop leaves the fuel lines on that rocket. A hard landing cuts 40 and leaves it at 20 at worst. The rocket then needs Mid Bay.`,
         `A short pad or a short engine still lights. A closed range or a short tank scrubs, and nothing is spent.`,
         `The landing mark sits about 100 m east of the mount, on land. The rocket rolls back, then waits 1 day for inspection.`,
       ]) + wikiFacts([
@@ -4126,14 +4223,11 @@
         { value: "1515 kN", label: "50 m landing floor" },
         { value: "1584 kg / 5702 kg", label: "150 m load, methane and oxygen" },
         { value: "1555 kN", label: "150 m landing floor" },
-        { value: "1279 kg / 4604 kg", label: "10 km load, methane and oxygen" },
-        { value: "1535 kN", label: "10 km landing floor" },
-        { value: "107883 kg", label: "Flight mass at 10 km" },
         { value: "102000 kg", label: "Dry mass, including the Raptor" },
         { value: `${RAPTOR_REFS.hopM.n} m`, label: "Hop height in 2019 and 2020" },
         { value: "1", label: "Raptors on those hops" },
       ]) + wikiReal([
-        `Starhopper hopped ${RAPTOR_REFS.hopM.n} m on 27 August 2019. SN5 hopped on 4 August 2020. SN6 hopped on 3 September 2020. Each flight used one Raptor. The ${wikiSource("vehicles")} is that list.`,
+        `Starhopper flew a short hop on 25 July 2019 and 150 m on 27 August 2019. SN5 flew the tank hop on 4 August 2020. SN6 flew it on 3 September 2020. Each flight used one Raptor. Your serial is the rocket you built. The ${wikiSource("vehicles")} is that list.`,
       ]),
     };
   }
@@ -4191,14 +4285,13 @@
       body: wikiParas([
         `The rocket equation ties the change in speed to the exhaust speed and to how much of the rocket is propellant.`,
         `Starhopper carries no payload. The hop is a short rise and a landing nearby, not a climb to orbit.`,
-        `Dry mass is 102000 kg. That figure includes the Raptor. A 25 m hop flies at 104535 kg. A 50 m hop flies at 106517 kg. A 150 m hop flies at 109286 kg. A 10 km hop flies at 107883 kg.`,
-        `The dry-mass cut stays off the sheet. The hop cuts Structure, not that mass. A soft 10 km landing cuts no Structure.`,
+        `Dry mass is 102000 kg. That figure includes the Raptor. A 25 m hop flies at 104535 kg. A 50 m hop flies at 106517 kg. A 150 m hop flies at 109286 kg.`,
+        `The dry-mass cut stays off the sheet. The hop cuts Structure, not that mass.`,
       ]) + wikiFacts([
         { value: "102000 kg", label: "Dry mass, including the Raptor" },
         { value: "104535 kg", label: "Flight mass at 25 m" },
         { value: "106517 kg", label: "Flight mass at 50 m" },
         { value: "109286 kg", label: "Flight mass at 150 m" },
-        { value: "107883 kg", label: "Flight mass at 10 km" },
         { value: "None", label: "Starhopper carries no payload." },
       ]) + wikiReal([
         `Starhopper, SN5, and SN6 were test vehicles. They hopped. They did not carry a payload to orbit. The ${wikiSource("vehicles")} lists those vehicles.`,
@@ -4246,9 +4339,9 @@
         `A tanking run takes ${dayCount(TUNING.TANKING_DAYS)}. It loses ${TUNING.TANKING_CH4_LOSS_KG} kg of methane and ${TUNING.TANKING_LOX_LOSS_KG} kg of liquid oxygen. It passes when Fuel lines are ${TUNING.TANKING_LINES_MIN} seconds or more. The day, the boil-off, and the floor are game numbers.`,
         `The methane tank starts at ${TUNING.CH4_CAP} kg and the buy raises it to ${TUNING.CH4_CAP_L2} kg. The oxygen tank starts at ${TUNING.LOX_CAP} kg and the buy raises it to ${TUNING.LOX_CAP_L2} kg. One press fills a tank for ${TUNING.FLUID_FILL_COST} money.`,
         `Pad level 1 holds ${TUNING.PAD_THRUST_L1} kN. Pad level 2 holds ${TUNING.PAD_THRUST_L2} kN. The engine floor is ${TUNING.SF_THRUST_BAR_KN} kN. Those three are game numbers.`,
-        `Structure is a fixed number you have to measure. The factory rolls it when the job ends. Check Structure takes 1 day and no money. The first reading is about 30 wide. The second is about 10 wide. Only the pad writes the exact number. Each found and fixed Structure fault raises the Structure floor by ${TUNING.STRUCT_FLOOR_STEP}. Fuel lines can still leave at ${TUNING.DEFECT_LINES_S} seconds. Thrust can still leave at ${TUNING.DEFECT_THRUST_KN} kN. The cryo proof finds Structure. The tanking run finds the fuel lines. The static fire also reads both. A fire that lights can miss on either part. A fail names the part. A scrub damages nothing. An untested part reads not tested.`,
+        `Structure is a fixed number you have to measure. The factory rolls it when the job ends, from the floor on the card. Check Structure takes 1 day and no money. The first reading is about 30 wide. The second is about 10 wide. Only the pad writes the exact number. A clean hop moves the next rocket. A bay fix does not. Fuel lines start at ${TUNING.DEFECT_LINES_S} seconds. Thrust starts at ${TUNING.DEFECT_THRUST_KN} kN. The cryo proof finds Structure. The tanking run finds the fuel lines. The static fire also reads both. A fire that lights can miss on either part. A fail names the part. A scrub damages nothing. An untested part reads not tested.`,
         `Burns is ${TUNING.ENGINE_RESTARTS}. Engine life starts at ${TUNING.ENGINE_FIRE_LIMIT_S} seconds. A lit static fire spends 5. Burns and the engine life are game numbers.`,
-        `A hop uses a dry mass of 102000 kg, including the Raptor. The 25 m flight mass is 104535 kg. The 50 m flight mass is 106517 kg. The 150 m flight mass is 109286 kg. The 10 km flight mass is 107883 kg. The rocket carries no payload.`,
+        `A hop uses a dry mass of 102000 kg, including the Raptor. The 25 m flight mass is 104535 kg. The 50 m flight mass is 106517 kg. The 150 m flight mass is 109286 kg. The rocket carries no payload.`,
       ]) + wikiFacts([
         { value: wikiNum(TUNING.LOX_PER_CH4, 1), label: "Liquid oxygen per kg of methane" },
         { value: `${TUNING.SF_CH4_KG} kg`, label: "Methane for a static fire" },
@@ -4272,7 +4365,7 @@
         { value: "1 day", label: "Check Structure, no money" },
         { value: "30 wide", label: "First Structure reading" },
         { value: "10 wide", label: "Second Structure reading" },
-        { value: String(TUNING.STRUCT_FLOOR_STEP), label: "Structure floor step" },
+        { value: String(TUNING.HOP_FLOOR_150), label: "Structure floor cap on a 150 m hop" },
         { value: `${TUNING.DEFECT_LINES_S} s`, label: "Short Fuel lines, a game number" },
         { value: `${TUNING.DEFECT_THRUST_KN} kN`, label: "Short thrust, a game number" },
       ]) + wikiReal([
@@ -4288,8 +4381,8 @@
       body: wikiParas([
         `A static fire is a burn on the pad. It reads ${wikiGo("thrust", "thrust")}, Structure, and the fuel lines. A fire that lights can miss on Structure or the fuel lines. A fail names the part. A scrub damages nothing.`,
         `The rocket window paints Structure, Fuel lines, and Engine (Raptor) on the rocket, top to bottom. An untested part reads not tested, with no figure. A bay check draws a band on the Structure row. The hull stays not tested until the pad writes the number. After that, the line shows the number the rocket has and the number the test needed. The top bar keeps the name and the place. It names Structure short only when the band is under ${TUNING.PROOF_STRUCT_MIN}, or the pad wrote a number under ${TUNING.PROOF_STRUCT_MIN}. The engine bar stays on the seconds still left, out of ${TUNING.ENGINE_FIRE_LIMIT_S}. After the engine is tested, the line shows the thrust the rocket has. A lit static fire spends 5 seconds. A short engine also sets the seconds to 0. A short pad spends the 5 second hold. Life stops at 0. The ${TUNING.ENGINE_FIRE_LIMIT_S} seconds are a game number.`,
-        `The fuel lines carry methane and liquid oxygen from the tanks to the engine. A new article can leave with ${TUNING.DEFECT_LINES_S} seconds. A healthy article has ${TUNING.FITTING_LIFE_S} seconds out of ${TUNING.FITTING_LIFE_S}. A static fire does not spend those seconds. The low hops spend 8, 14, and 22 seconds. The 10 km hop spends 18 seconds of engine life and fuel lines, and only while the flame is on. The belly and the flip spend none. A hop with 0 seconds of fuel lines still runs the whole watch, and the landing burn names Fuel lines. Inspect the fuel lines sets them to ${TUNING.FITTING_LIFE_S}. That job also retires the fuel-line short for later articles, even on a healthy article. The hidden launch still asks for ${TUNING.FITTING_BURN_S} seconds.`,
-        `Structure is a fixed number you have to measure. It is rolled when the factory job ends. A bay check reads a band and does not write that number. A lit miss takes up to ${TUNING.SF_MISS_CONDITION} off Structure and leaves it at ${TUNING.SCRAP_FLOOR} at worst. A fire cut does not raise the Structure floor. The floor rises by ${TUNING.STRUCT_FLOOR_STEP} only when a short stored at build was found and then fixed.`,
+        `The fuel lines carry methane and liquid oxygen from the tanks to the engine. A new article leaves with the seconds on the factory card. That number starts at ${TUNING.DEFECT_LINES_S}. A clean hop can raise it. A healthy article has ${TUNING.FITTING_LIFE_S} seconds out of ${TUNING.FITTING_LIFE_S}. A static fire does not spend those seconds. The hops spend 8, 14, and 22 seconds. A hop with 0 seconds of fuel lines still runs the whole watch, and the landing burn names Fuel lines. Inspect the fuel lines sets them to ${TUNING.FITTING_LIFE_S} on this rocket only. The hidden launch still asks for ${TUNING.FITTING_BURN_S} seconds.`,
+        `Structure is a fixed number you have to measure. It is rolled when the factory job ends, from that shape's floor. A bay check reads a band and does not write that number. A window that still reaches ${TUNING.PROOF_STRUCT_MIN} is not marked short. A lit miss takes up to ${TUNING.SF_MISS_CONDITION} off Structure and leaves it at ${TUNING.SCRAP_FLOOR} at worst. A bay fix does not move the factory floor.`,
         `Refurb the engine costs ${TUNING.ENGINE_REFURB_COST} steel and takes ${dayCount(TUNING.REFURB_OK_DAYS)}. Pad level 2 cuts one day from that job only. It restores a short thrust to the healthy thrust for that tier, and the seconds to ${TUNING.ENGINE_FIRE_LIMIT_S}. Refurb the structure takes ${daySpan(TUNING.REFURB_FAIL_MIN, TUNING.REFURB_FAIL_MAX)} and no steel.`,
         `The bay runs one part at a time. Raise Raptor thrust spends ${TUNING.ENGINE_UP_COST} steel. Raptor 1 at ${TUNING.ENGINE_THRUST_KN} kN becomes Raptor 2 at ${TUNING.ENGINE_2_KN} kN. Mass drops from ${TUNING.ENGINE_MASS_KG} kg to ${TUNING.ENGINE_2_MASS_KG} kg. It does not build a second engine.`,
         `Burns is ${TUNING.ENGINE_RESTARTS}. That count is a game number. The fire holds when thrust stays between ${TUNING.SF_THRUST_BAR_KN} kN and the pad's thrust limit. The floor and the pad limits are game numbers.`,
@@ -4326,7 +4419,7 @@
         `Raise Raptor thrust takes ${daySpan(TUNING.ENGINE_UP_DAYS_MIN, TUNING.ENGINE_UP_DAYS_MAX)}. The dry-mass cut waits until a flight uses dry mass. That button is off the sheet.`,
         `After a clean fire the rocket stays on the mount for ${dayCount(TUNING.INSPECT_DAYS)} of data review. Refurb the engine takes ${dayCount(TUNING.REFURB_OK_DAYS)}. Inspect the fuel lines takes ${dayCount(TUNING.INSPECT_DAYS)}. Refurb the structure takes ${daySpan(TUNING.REFURB_FAIL_MIN, TUNING.REFURB_FAIL_MAX)}.`,
         `The day holds while the tanks load, during a hop, and during a flight. Those keep their real seconds. The purse does not grow on the day. Investors pay when a goal is finished. Every 30 days the review pays 12 money for each clean test. Pause stops the day and the burn.`,
-        `The rollout along the yard road takes ${roadSpanText()} between ${wikiPlace("mega_bay", "Mega Bay")} and the ${wikiPlace("pad_orbital", "Orbital Pad")}. A raise or a lower on the mount takes half a day. The road length is a game number. A real rollout takes a few hours.`,
+        `The rollout along the yard road takes ${roadSpanText()} between ${wikiPlace("mega_bay", "Mid Bay")} and the ${wikiPlace("pad_orbital", "Orbital Pad")}. A raise or a lower on the mount takes half a day. The road length is a game number. A real rollout takes a few hours.`,
       ]) + wikiFacts([
         { value: dayLen, label: "One game day" },
         { value: daySpan(TUNING.BUILD_DAYS_MIN, TUNING.BUILD_DAYS_MAX), labelHtml: `Build at ${wikiPlace("starfactory", "Starfactory")}` },
@@ -4346,13 +4439,13 @@
       title: "Starfactory",
       body: wikiParas([
         `Starfactory builds an SN from steel. It holds one finished rocket. The next build can start once that rocket has left the hold.`,
-        `Build SN costs ${rocket.steelCost} steel and takes ${daySpan(TUNING.BUILD_DAYS_MIN, TUNING.BUILD_DAYS_MAX)}. Roll to ${wikiPlace("mega_bay", "Mega Bay")} spends no steel and no propellant. The road takes ${roadSpanText()}.`,
-        `Structure is a fixed number you have to measure. The card names the Structure floor and the step of ${TUNING.STRUCT_FLOOR_STEP}. Fuel lines can leave at ${TUNING.DEFECT_LINES_S} seconds. Thrust can leave at ${TUNING.DEFECT_THRUST_KN} kN. Those shorts are game numbers.`,
+        `Build hopper costs ${rocket.steelCost} steel and takes ${daySpan(TUNING.BUILD_DAYS_MIN, TUNING.BUILD_DAYS_MAX)}. Build tank rocket costs the same, after a hopper lands 150 m. Roll to ${wikiPlace("mega_bay", "Mid Bay")} spends no steel and no propellant. The road takes ${roadSpanText()}.`,
+        `The card shows thrust, fuel lines, and the Structure floor before the build. A hopper starts at ${TUNING.DEFECT_THRUST_KN} kN, ${TUNING.DEFECT_LINES_S} seconds, and a floor of ${TUNING.SCRAP_FLOOR}. The tank rocket starts at those same numbers on its own card. A clean hop moves the next rocket of that shape. A bay fix does not.`,
         `Raise Raptor thrust costs ${TUNING.ENGINE_UP_COST} steel and takes ${daySpan(TUNING.ENGINE_UP_DAYS_MIN, TUNING.ENGINE_UP_DAYS_MAX)}. The dry-mass cut waits until a flight uses dry mass. That button is off the sheet.`,
         `Bigger vehicles come later.`,
         `Raise Raptor thrust runs here. Open a rocket to start it.`,
         `Starfactory cannot be upgraded.`,
-        `The next building is ${wikiPlace("mega_bay", "Mega Bay")}. ${wikiPageLink("thrust", "Thrust")} and the stage change while this factory is busy.`,
+        `The next building is ${wikiPlace("mega_bay", "Mid Bay")}. ${wikiPageLink("thrust", "Thrust")} and the stage change while this factory is busy.`,
       ]) + wikiFacts([
         { value: `${rocket.steelCost} steel`, label: "Steel for an SN" },
         { value: daySpan(TUNING.BUILD_DAYS_MIN, TUNING.BUILD_DAYS_MAX), label: "Days to build" },
@@ -4369,12 +4462,12 @@
     return {
       id: "mega_bay",
       group: "Buildings",
-      title: "Mega Bay",
+      title: "Mid Bay",
       body: wikiParas([
-        `Mega Bay houses the rockets between ${wikiPlace("starfactory", "Starfactory")} and the ${wikiPlace("pad_orbital", "Orbital Pad")}. Open the rocket here to refurb one part.`,
+        `Mid Bay houses the rockets between ${wikiPlace("starfactory", "Starfactory")} and the ${wikiPlace("pad_orbital", "Orbital Pad")}. Open the rocket here to refurb one part.`,
         `Roll to the ${wikiPlace("pad_orbital", "Orbital Pad")} follows the yard road. The trip takes ${roll}. It spends no steel and no propellant.`,
         `Check Structure takes 1 day and no money. The first reading is about 30 wide. The second is about 10 wide. A third check does not start. The hull stays not tested until the pad writes the number.`,
-        `Refurb the engine costs ${TUNING.ENGINE_REFURB_COST} steel and takes ${dayCount(TUNING.REFURB_OK_DAYS)}. Inspect the fuel lines takes ${dayCount(TUNING.INSPECT_DAYS)} and no steel. Refurb the structure takes ${daySpan(TUNING.REFURB_FAIL_MIN, TUNING.REFURB_FAIL_MAX)} and no steel. The bay runs one job at a time. A found and fixed Structure fault raises the Structure floor by ${TUNING.STRUCT_FLOOR_STEP}, once for that article. Fuel lines and the engine still retire their shorts. Inspect the fuel lines does this even when the lines already read ${TUNING.FITTING_LIFE_S}.`,
+        `Refurb the engine costs ${TUNING.ENGINE_REFURB_COST} steel and takes ${dayCount(TUNING.REFURB_OK_DAYS)}. Inspect the fuel lines takes ${dayCount(TUNING.INSPECT_DAYS)} and no steel. Refurb the structure takes ${daySpan(TUNING.REFURB_FAIL_MIN, TUNING.REFURB_FAIL_MAX)} and no steel. The bay runs one job at a time. A bay fix repairs that rocket only. It does not move the factory card.`,
         `Another slot costs ${TUNING.BAY_SLOT_COST} steel and takes no days. It adds a place in the bay, up to ${TUNING.BAY_MAX === 1 ? "1 vehicle" : `${TUNING.BAY_MAX} vehicles`}.`,
         `The next step is a cryo proof, then a tanking run, then a static fire on the ${wikiPlace("pad_orbital", "Orbital Pad")}. That fire reads Structure and the fuel lines, plus ${wikiPageLink("thrust", "thrust")}, ${wikiPageLink("propellant", "propellant")}, and the wind.`,
         `A fire that lights can miss on Structure or the fuel lines. A fail names the part. A scrub damages nothing. The Structure fix can start after a bay check. Fuel lines and the engine stay off until the pad has checked that part.`,
@@ -4393,21 +4486,21 @@
     const clean = TUNING.REFURB_OK_DAYS;
     const shortens = Math.max(1, clean - 1) < clean;
     const shorten = shortens
-      ? ` A level 2 pad cuts one day from the engine refurb in ${wikiPlace("mega_bay", "Mega Bay")}.`
+      ? ` A level 2 pad cuts one day from the engine refurb in ${wikiPlace("mega_bay", "Mid Bay")}.`
       : "";
     return {
       id: "pad_orbital",
       group: "Buildings",
       title: "Orbital Pad",
       body: wikiParas([
-        `The Orbital Pad holds the rocket for a cryo proof, a tanking run, a static fire, and a hop. The rocket rolls here from ${wikiPlace("mega_bay", "Mega Bay")}.`,
+        `The Orbital Pad holds the rocket for a cryo proof, a tanking run, a static fire, and a hop. The rocket rolls here from ${wikiPlace("mega_bay", "Mid Bay")}.`,
         `The cryo proof comes first. It buys liquid nitrogen and takes the tanks to ${TUNING.PROOF_BAR} bar. That figure is a label. The proof costs ${TUNING.PROOF_COST} money and takes ${dayCount(TUNING.PROOF_DAYS)}. It passes when Structure is ${TUNING.PROOF_STRUCT_MIN} or more. It writes the exact Structure number. The cost, the day, and that line are game numbers.`,
         `The tanking run comes next. It needs ${TUNING.SF_CH4_KG} kg of methane and ${TUNING.SF_LOX_KG} kg of liquid oxygen. A short tank scrubs the run. Nothing loads and no day passes. The run takes ${dayCount(TUNING.TANKING_DAYS)}. ${TUNING.TANKING_CH4_LOSS_KG} kg of methane and ${TUNING.TANKING_LOX_LOSS_KG} kg of liquid oxygen boil off. The rest drains back. The run passes when Fuel lines are ${TUNING.TANKING_LINES_MIN} seconds or more. A new article can leave with ${TUNING.DEFECT_LINES_S} seconds. That short is a game number. The boil-off and that floor are game numbers.`,
         `The pad fills the methane tank or the liquid oxygen tank for ${TUNING.FLUID_FILL_COST} money. One press fills that tank.`,
         `Static fire loads ${TUNING.SF_CH4_KG} kg of methane and ${TUNING.SF_LOX_KG} kg of liquid oxygen. It waits until each test is done or skipped. A fire that lights can miss on Structure or the fuel lines. A short pad or a short engine still lights, and that fire is a miss. A fail names the part. A closed range or a short tank keeps Try static fire off. A scrub takes no fluid, changes no life, and damages nothing.`,
-        `After a clean fire the rocket stays on the mount for ${dayCount(TUNING.INSPECT_DAYS)} of data review. Then it is ready. A ready rocket hops 25 m, 50 m, or 150 m. It can also return to the bay. A passed cryo and a passed tanking run stay passed. A hard landing clears both tests.`,
+        `After a clean fire the rocket stays on the mount for ${dayCount(TUNING.INSPECT_DAYS)} of data review. Then it is ready. A hopper starts with Hop 25 m. After that landing it rolls back and waits ${dayCount(TUNING.INSPECT_DAYS)} before the next hop. Then 50 m and 150 m are open. The tank rocket offers Hop 150 m only. A passed cryo and a passed tanking run stay passed. A hard landing clears both tests.`,
         `The methane tank buy and the oxygen tank buy raise the caps to ${TUNING.CH4_CAP_L2} kg and ${TUNING.LOX_CAP_L2} kg.`,
-        `A miss still returns to ${wikiPlace("mega_bay", "Mega Bay")}. ${wikiPageLink("engines", "Engines and life")} names the Raptor seconds a lit fire takes off. A lit miss takes up to ${TUNING.SF_MISS_CONDITION} off Structure and leaves it at ${TUNING.SCRAP_FLOOR} at worst. A lit miss clears the cryo proof, the tanking run, and any skip. A clean fire keeps them.`,
+        `A miss still returns to ${wikiPlace("mega_bay", "Mid Bay")}. ${wikiPageLink("engines", "Engines and life")} names the Raptor seconds a lit fire takes off. A lit miss takes up to ${TUNING.SF_MISS_CONDITION} off Structure and leaves it at ${TUNING.SCRAP_FLOOR} at worst. A lit miss clears the cryo proof, the tanking run, and any skip. A clean fire keeps them.`,
         `Pad level 2 costs ${TUNING.PAD_L2_COST} steel and takes no days. The thrust limit rises from ${TUNING.PAD_THRUST_L1} kilonewtons (kN) to ${TUNING.PAD_THRUST_L2} kN. The wind limit rises from ${TUNING.WIND_LIMIT_L1} knots to ${TUNING.WIND_LIMIT_L2} knots. The thrust limits are game numbers.${shorten}`,
       ]) + wikiFacts([
         { value: `${TUNING.PROOF_COST} money`, label: "Cryo proof cost, a game number" },
@@ -4426,7 +4519,7 @@
       ]) + wikiReal([
         `SN4 passed a cryo proof at ${RAPTOR_REFS.proofBar.n} bar in late April 2020, then a second proof at ${RAPTOR_REFS.proofBar2.n} bar on 10 May 2020. The ${wikiSource("sn4")} and the ${wikiSource("sn4hw")} record those tests.`,
         `The SN7 test tank reached ${RAPTOR_REFS.sn7Bar.n} bar on liquid nitrogen, then sprang a leak. The second test came apart. The ${wikiSource("sn7")} is that account.`,
-        `SN5 passed its cryo proof, static-fired on 30 July 2020, and hopped on 4 August. The ${wikiSource("sn5")} and the ${wikiSource("vehicles")} cover that run. This pad stands at Starbase. A hop here is 25 m, 50 m, 150 m, or 10 km on an SN.`,
+        `SN5 passed its cryo proof, static-fired on 30 July 2020, and hopped on 4 August. The ${wikiSource("sn5")} and the ${wikiSource("vehicles")} cover that run. This pad stands at Starbase. A hopper here flies 25 m, then 50 m and 150 m. The tank rocket flies 150 m.`,
       ]),
     };
   }
@@ -4534,6 +4627,7 @@
     if (v.status === "refurb" && v.refurbPart === "check") return `Check Structure · ${dayCount(v.refurbLeft)} left`;
     if (v.status === "refurb") return `Refurb · ${partName(v.refurbPart)} · ${dayCount(v.refurbLeft)} left`;
     if (v.status === "rolling") return "On the road";
+    if (v.status === "destroyed") return "Scrap";
     return v.status;
   }
 
@@ -4545,7 +4639,7 @@
     if (m.kind === "lower") return `${name} is lowering onto the transporter · ${left} left`;
     if (m.kind === "fill") return `${name} is loading methane and liquid oxygen · ${left} left`;
     if (m.kind === "fly" || isHopKind(m.kind)) return `${name} is in flight`;
-    const dest = m.destKind === "pad" ? "the Orbital Pad" : "Mega Bay";
+    const dest = m.destKind === "pad" ? "the Orbital Pad" : "Mid Bay";
     return `${name} is rolling to ${dest} · ${left} left`;
   }
 
@@ -4612,7 +4706,7 @@
 
     const b = buildingById(G.selectedId);
     if (!b) {
-      finish(`<p class="note">Select Starfactory, Mega Bay, or the Orbital Pad on Land or on the map.</p>`);
+      finish(`<p class="note">Select Starfactory, Mid Bay, or the Orbital Pad on Land or on the map.</p>`);
       return;
     }
     const d = defOf(b.type);
@@ -4622,17 +4716,30 @@
 
     if (b.type === "starfactory") {
       const hold = factoryHold();
+      const hopperSpec = factorySpec("hopper");
+      const tankSpec = factorySpec("tank");
       html += `<div class="sh sub">Data</div>`;
       html += inspRow("Holding", `${hold ? 1 : 0} of 1`);
-      if (wholeSeed(G.seed)) {
-        html += inspRow("Structure floor", G.structFloor);
-        html += `<p class="wait">Each found and fixed Structure fault raises the floor by ${TUNING.STRUCT_FLOOR_STEP}.</p>`;
+      html += `<div class="sh sub">Next hopper</div>`;
+      html += inspRow("Thrust", `${hopperSpec.thrustKn} kN`);
+      html += inspRow("Fuel lines", `${hopperSpec.linesS} s`);
+      html += inspRow("Structure floor", hopperSpec.structFloor);
+      html += `<p class="wait">These numbers are the next hopper.</p>`;
+      if (G.tankOpen) {
+        html += `<div class="sh sub">Next tank rocket</div>`;
+        html += inspRow("Thrust", `${tankSpec.thrustKn} kN`);
+        html += inspRow("Fuel lines", `${tankSpec.linesS} s`);
+        html += inspRow("Structure floor", tankSpec.structFloor);
+        html += `<p class="wait">These numbers are the next tank rocket. 150 m is its only hop.</p>`;
+      } else {
+        html += `<p class="wait">The tank rocket stays off until a hopper lands 150 m.</p>`;
       }
       if (G.factoryJob) {
         const pct = 1 - G.factoryJob.daysLeft / G.factoryJob.totalDays;
         const job = G.factoryJob;
         if (job.kind === "rocket") {
-          html += inspRow("Now", esc(job.vehicleName || "SN"));
+          const kind = job.shape === "tank" ? "tank rocket" : "hopper";
+          html += inspRow("Now", `${esc(job.vehicleName || "SN")}, ${kind}`);
           html += inspRow("Days left", dayCount(job.daysLeft));
         } else {
           const label = job.kind === "engine" ? "Raptor thrust" : "Stage dry mass";
@@ -4642,17 +4749,22 @@
       } else {
         const r = rocketOf("article");
         const busy = !!(factoryHold() || G.event);
-        acts += actCard("build", "", ` data-rocket="article"${busy ? " disabled" : ""}`,
-          "Build SN", r.steelCost, "steel", `${daySpan(TUNING.BUILD_DAYS_MIN, TUNING.BUILD_DAYS_MAX)}. A static fire loads ${TUNING.SF_CH4_KG} kg of methane and ${TUNING.SF_LOX_KG} kg of LOX.`);
+        const span = daySpan(TUNING.BUILD_DAYS_MIN, TUNING.BUILD_DAYS_MAX);
+        acts += actCard("build", "", ` data-rocket="article" data-shape="hopper"${busy ? " disabled" : ""}`,
+          "Build hopper", r.steelCost, "steel", `${span}. One Raptor.`);
+        if (G.tankOpen) {
+          acts += actCard("build", "", ` data-rocket="article" data-shape="tank"${busy ? " disabled" : ""}`,
+            "Build tank rocket", r.steelCost, "steel", `${span}. Full tank. One Raptor.`);
+        }
       }
       if (hold) {
         html += slotRow(hold);
         const bay = buildingOfType("mega_bay");
         if (bay && !bayHasRoom(bay)) {
           const held = returnClaim(bay) > 0 && bayLoad(bay) < bayCapacity(bay);
-          html += `<p class="wait">${held ? "Leave a bay slot open. A rocket outside the bay still has to come home." : "Mega Bay is full."}</p>`;
+          html += `<p class="wait">${held ? "Leave a bay slot open. A rocket outside the bay still has to come home." : "Mid Bay is full."}</p>`;
         } else {
-          acts += actCard("roll", "btn-stage", ` title="The vehicle leaves the factory."`, "Roll to Mega Bay", null, "", "");
+          acts += actCard("roll", "btn-stage", ` title="The vehicle leaves the factory."`, "Roll to Mid Bay", null, "", "");
         }
         acts += openCard(hold);
       }
@@ -4780,16 +4892,23 @@
         const struct = Math.round(on.stageLife || 0);
         if (struct < TUNING.PROOF_STRUCT_MIN) html += `<p class="wait">Structure needs ${TUNING.PROOF_STRUCT_MIN} and has ${struct}.</p>`;
         if (on.needsDetank) html += `<p class="wait">Open the rocket and empty the tanks.</p>`;
+        const heights = allowedHops(on);
+        if (heights.length === 1) on.hopMeters = heights[0];
+        else if (heights.indexOf(Number(on.hopMeters)) < 0) on.hopMeters = null;
         const picked = hopSelection(on);
-        const heights = isSnName(on.name) ? [25, 50, 150, 10000] : [25, 50, 150];
-        const grid = heights.length === 4 ? "quad" : "trio";
-        acts += `<div class="${grid}">${heights.map((m) => actCard(on.hopMeters === m ? "quiet on" : "quiet", "", ` data-hop="${m}"`, m === 10000 ? "10 km" : `${m} m`, null, "", "")).join("")}</div>`;
+        if (shapeOf(on) === "hopper" && !G.engineLanded) {
+          html += `<p class="wait">50 m and 150 m stay off until a 25 m hop has landed.</p>`;
+        }
+        if (heights.length > 1) {
+          acts += `<div class="trio">${heights.map((m) => actCard(on.hopMeters === m ? "quiet on" : "quiet", "", ` data-hop="${m}"`, `${m} m`, null, "", "")).join("")}</div>`;
+        }
         if (picked) {
-          const height = picked.high ? "10 km" : `${picked.meters} m`;
-          const lit = picked.high ? `${picked.burn} seconds lit` : `${picked.burn} seconds`;
-          acts += `<p class="hop-fact">${height}. ${picked.ch4} kg of methane and ${picked.lox} kg of oxygen. ${lit}.</p>`;
+          const lit = `${picked.burn} seconds`;
           const blocked = struct < TUNING.PROOF_STRUCT_MIN;
-          acts += actCard(blocked ? "quiet" : "fire", "btn-hop", blocked ? " disabled" : "", "Hop", null, "", blocked ? `Structure needs ${TUNING.PROOF_STRUCT_MIN} and has ${struct}.` : `${lit}. No money.`);
+          const hopName = heights.length === 1 ? `Hop ${picked.meters} m` : "Hop";
+          const hopLine = `${picked.ch4} kg of methane and ${picked.lox} kg of oxygen. ${lit}. No money.`;
+          if (heights.length > 1) acts += `<p class="hop-fact">${picked.meters} m. ${picked.ch4} kg of methane and ${picked.lox} kg of oxygen. ${lit}.</p>`;
+          acts += actCard(blocked ? "quiet" : "fire", "btn-hop", blocked ? " disabled" : "", hopName, null, "", blocked ? `Structure needs ${TUNING.PROOF_STRUCT_MIN} and has ${struct}.` : hopLine);
         } else {
           acts += actCard("quiet", "btn-hop", " disabled", "Hop", null, "", "Pick a height.");
         }
@@ -4801,6 +4920,12 @@
         html += `<p class="wait">${esc(motionLine(inbound, vehicleById(inbound.vehicleId)))}</p>`;
       } else {
         html += `<p class="wait">The pad is empty. Roll a vehicle here from the bay.</p>`;
+        if (G.tankScrap && !G.objectives.hop_tank) {
+          const scrap = G.tankScrap;
+          const band = scrap.lo != null && scrap.hi != null ? ` The bay reading was ${scrap.lo} to ${scrap.hi}.` : "";
+          html += `<p class="wait">${esc(scrap.name)} is scrap. Structure needs ${TUNING.PROOF_STRUCT_MIN} and has ${scrap.have}.${band}</p>`;
+          html += `<p class="wait">Land a tank hop stays open. Build the next tank rocket.</p>`;
+        }
       }
       if (!hopClock) {
         const ch4Full = G.ch4 >= ch4Cap();
@@ -4810,7 +4935,7 @@
       }
       // Return and Open share a row on the pad. The mount row above already names the rocket.
       if (back && on) {
-        acts += `<div class="duo wide">${actCard("quiet roll", "btn-return", ` title="${back}"`, "Return to Mega Bay", null, "", "")}${actCard("open quiet", "btn-open", ` data-open="${on.id}" title="Open ${esc(on.name)}" aria-label="Open ${esc(on.name)}"`, "Open", null, "", "")}</div>`;
+        acts += `<div class="duo wide">${actCard("quiet roll", "btn-return", ` title="${back}"`, "Return to Mid Bay", null, "", "")}${actCard("open quiet", "btn-open", ` data-open="${on.id}" title="Open ${esc(on.name)}" aria-label="Open ${esc(on.name)}"`, "Open", null, "", "")}</div>`;
       } else if (on) {
         acts += openCard(on);
       }
@@ -4847,7 +4972,7 @@
       btn.onclick = () => { G.wikiPage = btn.getAttribute("data-wiki"); G.wikiSheet = true; renderWiki(); };
     });
     root.querySelectorAll("[data-rocket]").forEach((btn) => {
-      btn.onclick = () => startBuildRocket(btn.getAttribute("data-rocket"));
+      btn.onclick = () => startBuildRocket(btn.getAttribute("data-rocket"), btn.getAttribute("data-shape"));
     });
     const on = (id, fn) => { const n = root.querySelector(id); if (n) n.onclick = fn; };
     on("#btn-stage", () => stageToBay(factoryHold() && factoryHold().id));
@@ -4951,9 +5076,13 @@
     const items = [
       ["place_all", "Buy the three plots."],
       ["build_rocket", "Build a rocket at Starfactory"],
-      ["multi_bay", "House 2 vehicles in Mega Bay"],
+      ["multi_bay", "House 2 vehicles in Mid Bay"],
       ["static_fire", "Finish a static fire"],
       ["hop", "Land a hop."],
+      ["hop_25", "Land a 25 m hop."],
+      ["hop_50", "Land a 50 m hop."],
+      ["hop_150", "Land a 150 m hop."],
+      ["hop_tank", "Land a tank hop."],
       ["clean_fire", "Hold a clean static fire"],
       ["refurb", "Finish a refurb in the bay"],
       ["pad_l2", "Raise the pad to level 2"],
@@ -4971,7 +5100,8 @@
       return `<div class="goal-row ${cls}"><div class="idx">${String(i + 1).padStart(2, "0")}</div><div><div class="name">${esc(label)}</div><div class="line">${mark}</div></div></div>`;
     }).join("");
     panel.innerHTML = `<div class="top"><div class="left">${open}<span>${open ? "still open" : "all done"}</span></div>
-      <button type="button" id="goal-close">Close</button></div>${rows}`;
+      <button type="button" id="goal-close">Close</button></div>${rows}
+      <div class="goal-real"><b>In real life</b>Starhopper flew a short hop on 25 July 2019 and 150 m on 27 August 2019. SN5 flew the tank hop on 4 August 2020. SN6 flew it on 3 September 2020. Your serial is the rocket you built.</div>`;
     sheet.classList.toggle("open", G.goalSheet);
     sheet.setAttribute("aria-hidden", G.goalSheet ? "false" : "true");
     const close = panel.querySelector("#goal-close");
@@ -5017,7 +5147,7 @@
       if (v.refurbPart === "check" && v.refurbLeft > 0) {
         lines.push(`${v.name} · Check Structure · ${days(v.refurbLeft)}`);
       } else if (v.refurbPart && v.refurbLeft > 0) {
-        lines.push(`${v.name} · ${partName(v.refurbPart)} · refurb in Mega Bay · ${days(v.refurbLeft)}`);
+        lines.push(`${v.name} · ${partName(v.refurbPart)} · refurb in Mid Bay · ${days(v.refurbLeft)}`);
       }
     }
     note.innerHTML = lines.map((line) => `<span>${esc(line)}</span>`).join("");
@@ -5105,7 +5235,7 @@
     const v = vehicleById(vehicleId);
     if (!v) return;
     if (v.refurbPart || bayPartBusy(v.id)) { log("The bay is already on one part.", "warn"); return; }
-    if (v.status !== "in_bay") { log("Refurb a part in Mega Bay.", "warn"); return; }
+    if (v.status !== "in_bay") { log("Refurb a part in Mid Bay.", "warn"); return; }
     if (part !== "engine" && part !== "fitting" && part !== "stage") return;
     // Fuel lines and the engine still wait for the pad. Structure can also start after a bay check.
     if (!partFixAllowed(v, part)) return;
@@ -5224,10 +5354,32 @@
       const p = at && at.tag ? at.tag : { x, y, anchor: "middle" };
       return `<text class="tag" text-anchor="${p.anchor}" x="${p.x}" y="${p.y}" style="fill:${ink}">${lifePct(v, key)}%</text>`;
     };
-    const hull = "80,14 104,92 104,262 56,262 56,92";
-    const thrust = "56,262 104,262 100,316 60,316";
-    const bell = "70,316 90,316 116,408 44,408";
-    return `<svg class="ship" viewBox="0 0 160 420" role="img" aria-label="${esc(v.name)}">
+    const tank = shapeOf(v) === "tank";
+    const hull = tank ? "38,48 122,48 122,250 38,250" : "80,14 104,92 104,262 56,262 56,92";
+    const thrust = tank ? "48,250 112,250 108,300 52,300" : "56,262 104,262 100,316 60,316";
+    const bell = tank ? "62,300 98,300 112,392 48,392" : "70,316 90,316 116,408 44,408";
+    const hat = tank ? `<polygon points="28,22 132,22 122,48 38,48" fill="#2a2a2a" stroke="${stroke("stage")}" stroke-width="1.4"/>` : "";
+    const legs = tank ? "" : `<polygon points="56,200 24,276 56,262" fill="url(#hull-shade)" stroke="#0a0a0a" stroke-width="1"/>
+      <polygon points="104,200 136,276 104,262" fill="url(#hull-shade)" stroke="#0a0a0a" stroke-width="1"/>`;
+    const stageLife = tank
+      ? lifeRect("clip-stage", 38, 84, 48, 250, "stage", "0.55")
+      : lifeRect("clip-stage", 56, 48, 14, 262, "stage", "0.55");
+    const fitLife = tank
+      ? lifeRect("clip-fitting", 48, 64, 250, 300, "fitting", "0.35")
+      : lifeRect("clip-fitting", 56, 48, 262, 316, "fitting", "0.35");
+    const engLife = tank
+      ? lifeRect("clip-engine", 48, 64, 300, 392, "engine", null)
+      : lifeRect("clip-engine", 44, 72, 316, 408, "engine", null);
+    const lox = tank
+      ? `<rect x="52" y="78" width="56" height="70" rx="8" fill="none" stroke="#f2f2f2" stroke-opacity="0.55"/>
+      <text class="tag sm" text-anchor="middle" x="80" y="118" fill="#f2f2f2" fill-opacity="0.7">LOX</text>
+      <rect x="52" y="158" width="56" height="70" rx="8" fill="none" stroke="#f2f2f2" stroke-opacity="0.55"/>
+      <text class="tag sm" text-anchor="middle" x="80" y="176" fill="#f2f2f2" fill-opacity="0.7">CH4</text>`
+      : `<rect x="61" y="100" width="38" height="66" rx="9" fill="none" stroke="#f2f2f2" stroke-opacity="0.55"/>
+      <text class="tag sm" text-anchor="middle" x="80" y="137" fill="#f2f2f2" fill-opacity="0.7">LOX</text>
+      <rect x="61" y="176" width="38" height="72" rx="9" fill="none" stroke="#f2f2f2" stroke-opacity="0.55"/>
+      <text class="tag sm" text-anchor="middle" x="80" y="192" fill="#f2f2f2" fill-opacity="0.7">CH4</text>`;
+    return `<svg class="ship" viewBox="0 0 160 420" role="img" aria-label="${esc(tank ? `${v.name}, a tank with a hat` : v.name)}">
       <defs>
         <linearGradient id="hull-shade" x1="0" y1="0" x2="1" y2="0">
           <stop offset="0" stop-color="#8a8a8a"/><stop offset="0.38" stop-color="#f7f7f7"/>
@@ -5237,27 +5389,28 @@
         <clipPath id="clip-fitting"><polygon points="${thrust}"/></clipPath>
         <clipPath id="clip-engine"><polygon points="${bell}"/></clipPath>
       </defs>
+      ${hat}
       <polygon points="${hull}" fill="#141414"/>
       <polygon points="${thrust}" fill="#0c0c0c"/>
       <polygon points="${bell}" fill="#120e0c"/>
-      ${lifeRect("clip-stage", 56, 48, 14, 262, "stage", "0.55")}
-      ${lifeRect("clip-fitting", 56, 48, 262, 316, "fitting", "0.35")}
-      ${lifeRect("clip-engine", 44, 72, 316, 408, "engine", null)}
-      <polygon points="56,200 24,276 56,262" fill="url(#hull-shade)" stroke="#0a0a0a" stroke-width="1"/>
-      <polygon points="104,200 136,276 104,262" fill="url(#hull-shade)" stroke="#0a0a0a" stroke-width="1"/>
-      <rect x="61" y="100" width="38" height="66" rx="9" fill="none" stroke="#f2f2f2" stroke-opacity="0.55"/>
-      <text class="tag sm" text-anchor="middle" x="80" y="137" fill="#f2f2f2" fill-opacity="0.7">LOX</text>
-      <rect x="61" y="176" width="38" height="72" rx="9" fill="none" stroke="#f2f2f2" stroke-opacity="0.55"/>
-      <text class="tag sm" text-anchor="middle" x="80" y="192" fill="#f2f2f2" fill-opacity="0.7">CH4</text>
+      ${stageLife}
+      ${fitLife}
+      ${engLife}
+      ${legs}
+      ${lox}
       <polygon points="${hull}" fill="none" stroke="${stroke("stage")}" stroke-width="1.6"/>
-      <path d="M74 30 L66 88" fill="none" stroke="#ffffff" stroke-opacity="0.4"/>
+      ${tank
+        ? `<path d="M80 64 V250" fill="none" stroke="#e10600" stroke-width="2.4" stroke-linecap="round"/>
+      <circle cx="80" cy="268" r="7" fill="#0a0a0a" stroke="${stroke("fitting")}" stroke-width="1.4"/>
+      <path d="M80 275 V300" stroke="#e10600" stroke-width="2.4"/>`
+        : `<path d="M74 30 L66 88" fill="none" stroke="#ffffff" stroke-opacity="0.4"/>
       <path d="M68 166 C66 220 64 250 72 286 M80 248 V286" fill="none" stroke="#e10600" stroke-width="2.4" stroke-linecap="round"/>
       <circle cx="76" cy="292" r="7" fill="#0a0a0a" stroke="${stroke("fitting")}" stroke-width="1.4"/>
-      <path d="M76 299 V316" stroke="#e10600" stroke-width="2.4"/>
+      <path d="M76 299 V316" stroke="#e10600" stroke-width="2.4"/>`}
       <polygon points="${thrust}" fill="none" stroke="${stroke("fitting")}" stroke-width="1.6"/>
       <polygon points="${bell}" fill="none" stroke="${stroke("engine")}" stroke-width="1.6"/>
       <path d="M60 352 H100 M54 382 H106" fill="none" stroke="#f2f2f2" stroke-opacity="0.22"/>
-      ${cutTag("stage", 80, 228, "#f2f2f2")}
+      ${cutTag("stage", 80, tank ? 210 : 228, "#f2f2f2")}
       ${cutTag("fitting", 94, 296, "#f2f2f2", { tag: { x: 87, y: 305, anchor: "start" }, unt: { x: 80, y: 318 } })}
       ${cutTag("engine", 80, 372, partTested(v, "engine") ? inkOn(lifePct(v, "engine"), 368, 316, 408) : "#f2f2f2")}
       <rect class="hit" data-part="stage" x="20" y="12" width="120" height="250" fill="transparent"/>
@@ -5357,15 +5510,18 @@
       G.rocketSheet = null;
       return;
     }
-    const engineJob = G.factoryJob && G.factoryJob.kind === "engine" && G.factoryJob.vehicleId === v.id ? G.factoryJob : null;
-    const structureJob = G.factoryJob && G.factoryJob.kind === "structure" && G.factoryJob.vehicleId === v.id ? G.factoryJob : null;
+    const scrapped = v.status === "destroyed";
+    const engineJob = !scrapped && G.factoryJob && G.factoryJob.kind === "engine" && G.factoryJob.vehicleId === v.id ? G.factoryJob : null;
+    const structureJob = !scrapped && G.factoryJob && G.factoryJob.kind === "structure" && G.factoryJob.vehicleId === v.id ? G.factoryJob : null;
     const dryHop = hopSelection(v);
     // Empty the tanks blocks every pad test, so it sits above the table.
-    const empty = v.needsDetank
+    const empty = !scrapped && v.needsDetank
       ? `<div class="empty-row"><span>Empty the tanks<b>${Math.floor(G.ch4)}</b><small>kg CH4</small><b>${Math.floor(G.lox)}</b><small>kg LOX</small></span><button type="button" class="sbtn" id="btn-empty" title="Empty the tanks. The scrubbed load leaves the tanks." aria-label="Empty the tanks">Empty</button></div>`
       : "";
     let under = "";
-    if (engineJob) under += `<p class="wait">Raptor thrust · ${dayCount(engineJob.daysLeft)} left</p>`;
+    if (scrapped) {
+      under += `<p class="wait">${esc(v.name)} is scrap. Land a tank hop stays open. Build the next tank rocket.</p>`;
+    } else if (engineJob) under += `<p class="wait">Raptor thrust · ${dayCount(engineJob.daysLeft)} left</p>`;
     else if ((v.engineTier || 1) < 2) {
       const pad = buildingOfType("pad_orbital");
       const lim = padLimits(pad);
@@ -5474,7 +5630,7 @@
     starfactory: { name: "Starfactory", cost: 40, line: "One hall on its own plot.",
       gx: 0, gy: 2, pw: 10, ph: 12,
       buildings: [{ type: "starfactory", gx: 2, gy: 6 }] },
-    mega_bay: { name: "Mega Bay", cost: 50, line: "One hall on its own plot.",
+    mega_bay: { name: "Mid Bay", cost: 50, line: "One hall on its own plot.",
       gx: 12, gy: 2, pw: 10, ph: 12,
       buildings: [{ type: "mega_bay", gx: 15, gy: 6 }] },
     pad_orbital: { name: "Orbital Pad", cost: 40, line: "One pad on its own plot.",
@@ -6277,7 +6433,7 @@
       if (job && job.kind === "rocket") {
         const pct = clamp(1 - job.daysLeft / Math.max(1, job.totalDays), 0.12, 1);
         const rk = rocketOf(job.rocketId);
-        drawRocketBody(x + w / 2, y + h * 0.42, rk.color || "#c8d0d8", rk.engines || 1, rk.mapScale || 1, 0, pct);
+        drawRocketBody(x + w / 2, y + h * 0.42, rk.color || "#c8d0d8", rk.engines || 1, rk.mapScale || 1, 0, pct, job.shape);
       } else if (job) {
         ctx.fillStyle = "#d4a84b";
         ctx.fillRect(x + 8, y + 8, w - 16, 5);
@@ -6355,26 +6511,51 @@
     return 0;
   }
 
-  function drawRocketBody(x, y, color, engines, scale, angle, lengthScale) {
+  function drawRocketBody(x, y, color, engines, scale, angle, lengthScale, shape) {
+    const tank = shape === "tank";
     const s = scale || 1;
     const grow = lengthScale == null ? 1 : lengthScale;
-    const len = 32 * s * grow;
-    const thick = (engines === 9 ? 11 : 8) * s;
+    const len = (tank ? 40 : 28) * s * grow;
+    const thick = (engines === 9 ? 11 : tank ? 16 : 7) * s;
     ctx.save();
     ctx.translate(x, y);
     ctx.rotate(angle);
     ctx.fillStyle = color;
     ctx.fillRect(0, -thick / 2, Math.max(4, len), thick);
-    if (grow > 0.35) {
+    if (tank && grow > 0.35) {
+      ctx.beginPath();
+      ctx.moveTo(len - 6 * s, -thick * 0.78);
+      ctx.lineTo(len + 8 * s, -thick * 0.62);
+      ctx.lineTo(len + 8 * s, thick * 0.62);
+      ctx.lineTo(len - 6 * s, thick * 0.78);
+      ctx.closePath();
+      ctx.fill();
+    } else if (grow > 0.35) {
       ctx.beginPath();
       ctx.moveTo(len, -thick / 2);
-      ctx.lineTo(len + 8 * s, 0);
+      ctx.lineTo(len + 6 * s, 0);
       ctx.lineTo(len, thick / 2);
       ctx.closePath();
       ctx.fill();
     }
-    ctx.fillStyle = "#3a4048";
-    ctx.fillRect(-3 * s, -thick * 0.28, 3 * s, thick * 0.56);
+    ctx.fillStyle = "#2a2a30";
+    ctx.beginPath();
+    ctx.moveTo(0, -thick * 0.22);
+    ctx.lineTo(-7 * s, -thick * 0.5);
+    ctx.lineTo(-7 * s, thick * 0.5);
+    ctx.lineTo(0, thick * 0.22);
+    ctx.closePath();
+    ctx.fill();
+    if (!tank) {
+      ctx.strokeStyle = "#1a140e";
+      ctx.lineWidth = Math.max(1, 1.4 * s);
+      ctx.beginPath();
+      ctx.moveTo(5 * s, -thick / 2);
+      ctx.lineTo(-4 * s, -thick * 1.35);
+      ctx.moveTo(5 * s, thick / 2);
+      ctx.lineTo(-4 * s, thick * 1.35);
+      ctx.stroke();
+    }
     ctx.restore();
   }
 
@@ -6404,10 +6585,11 @@
     const alt = high ? (read / 10000) * 220 : read;
     const mPerY = (GEO_N - GEO_S) * mPerDegLat() / (MAP_H * CELL);
     const mPerX = (GEO_E - GEO_W) * mPerDegLon() / (MAP_W * CELL);
+    const tank = shapeOf(v) === "tank";
     const x = v.wx;
     const y = v.wy - alt / mPerY;
-    const w = 9 / mPerX;
-    const h = 14 / mPerX;
+    const w = (tank ? 18 : 8) / mPerX;
+    const h = (tank ? 16 : 14) / mPerX;
     const pose = hopperPose(m);
     ctx.save();
     ctx.translate(x, y);
@@ -6415,13 +6597,24 @@
     ctx.fillStyle = "#d9d3c7";
     ctx.strokeStyle = "#1a140e";
     ctx.lineWidth = 1 / Math.max(0.2, G.cam.zoom);
+    if (tank) {
+      ctx.beginPath();
+      ctx.moveTo(-w * 0.72, -h - h * 0.16);
+      ctx.lineTo(w * 0.72, -h - h * 0.16);
+      ctx.lineTo(w * 0.58, -h);
+      ctx.lineTo(-w * 0.58, -h);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    }
     ctx.fillRect(-w / 2, -h, w, h);
     ctx.strokeRect(-w / 2, -h, w, h);
+    const leg = tank ? h * 0.18 : h * 0.5;
     ctx.beginPath();
     ctx.moveTo(-w / 2, 0);
-    ctx.lineTo(-w, h * 0.45);
+    ctx.lineTo(-w * (tank ? 0.62 : 1), leg);
     ctx.moveTo(w / 2, 0);
-    ctx.lineTo(w, h * 0.45);
+    ctx.lineTo(w * (tank ? 0.62 : 1), leg);
     ctx.stroke();
     ctx.fillStyle = "#2a2a30";
     ctx.beginPath();
@@ -6473,7 +6666,7 @@
       ctx.strokeRect(-5, -thick / 2 - 4, len + 16, thick + 8);
     }
     ctx.restore();
-    drawRocketBody(x, y, r.color, r.engines, s, ang, 1);
+    drawRocketBody(x, y, r.color, r.engines, s, ang, 1, shapeOf(v));
     ctx.font = "bold 9px system-ui";
     ctx.fillStyle = "rgba(255,248,220,0.92)";
     ctx.fillText(v.name, x - 10, y - (16 + pose * (len - 6)));
@@ -6728,6 +6921,7 @@
       id: v.id,
       name: v.name,
       rocketId: v.rocketId,
+      shape: shapeOf(v),
       buildingId: v.buildingId == null ? null : v.buildingId,
       status: v.status,
       engineTier: v.engineTier || 1,
@@ -6794,6 +6988,7 @@
     if (job.rocketId) out.rocketId = job.rocketId;
     if (job.vehicleId != null) out.vehicleId = job.vehicleId;
     if (job.vehicleName) out.vehicleName = String(job.vehicleName);
+    if (job.shape === "tank" || job.shape === "hopper") out.shape = job.shape;
     return out;
   }
   function savePayload() {
@@ -6819,7 +7014,27 @@
       version: 1,
       label: VERSION,
       seed: wholeSeed(G.seed) ? G.seed : null,
-      structFloor: clampStructFloor(G.structFloor),
+      structFloor: clampStructFloor(factorySpec("hopper").structFloor),
+      factory: {
+        hopper: {
+          thrustKn: factorySpec("hopper").thrustKn,
+          linesS: factorySpec("hopper").linesS,
+          structFloor: factorySpec("hopper").structFloor,
+        },
+        tank: {
+          thrustKn: factorySpec("tank").thrustKn,
+          linesS: factorySpec("tank").linesS,
+          structFloor: factorySpec("tank").structFloor,
+        },
+      },
+      engineLanded: !!G.engineLanded,
+      tankOpen: !!G.tankOpen,
+      tankScrap: G.tankScrap ? {
+        name: String(G.tankScrap.name || ""),
+        have: Math.round(Number(G.tankScrap.have) || 0),
+        lo: G.tankScrap.lo == null ? null : G.tankScrap.lo,
+        hi: G.tankScrap.hi == null ? null : G.tankScrap.hi,
+      } : null,
       speed: legalSpeed(G.speed),
       day: G.day,
       dayAcc: G.dayAcc,
@@ -6892,6 +7107,7 @@
         id: finite(v.id, 0),
         name: v.name ? starhopperName(String(v.name)) : "Starhopper",
         rocketId: v.rocketId || "article",
+        shape: v.shape === "tank" ? "tank" : "hopper",
         buildingId: v.buildingId == null ? null : finite(v.buildingId, null),
         status: v.status || "in_bay",
         engineTier: finite(v.engineTier, 1),
@@ -7008,6 +7224,39 @@
     };
     const goals = data.objectives || {};
     for (const key of Object.keys(G.objectives)) G.objectives[key] = !!goals[key];
+    const shapes = data.factory && typeof data.factory === "object" ? data.factory : {};
+    const readShape = (raw, floor) => {
+      const base = freshShape();
+      if (!raw || typeof raw !== "object") {
+        base.structFloor = clampStructFloor(floor);
+        return base;
+      }
+      base.thrustKn = Math.round(finite(raw.thrustKn, base.thrustKn));
+      base.linesS = Math.max(0, Math.round(finite(raw.linesS, base.linesS)));
+      base.structFloor = clampStructFloor(finite(raw.structFloor, floor));
+      return base;
+    };
+    G.factory = {
+      hopper: readShape(shapes.hopper, G.structFloor),
+      tank: readShape(shapes.tank, TUNING.SCRAP_FLOOR),
+    };
+    if (!shapes.hopper) {
+      G.factory.hopper.thrustKn = TUNING.DEFECT_THRUST_KN;
+      G.factory.hopper.linesS = TUNING.DEFECT_LINES_S;
+      G.factory.hopper.structFloor = G.structFloor;
+    }
+    syncHopperFloor();
+    G.engineLanded = data.engineLanded == null ? !!goals.hop : !!data.engineLanded;
+    G.tankOpen = !!data.tankOpen;
+    const scrap = data.tankScrap;
+    G.tankScrap = scrap && typeof scrap === "object"
+      ? {
+        name: scrap.name ? String(scrap.name) : "SN",
+        have: Math.round(finite(scrap.have, 0)),
+        lo: optNum(scrap.lo),
+        hi: optNum(scrap.hi),
+      }
+      : null;
     G.buildings = buildings;
     G.fleet = fleet;
     G.factoryJob = job;
@@ -7175,7 +7424,7 @@
         G.selectedId = b.id;
         renderChrome();
       },
-      startBuild() { startBuildRocket("article"); },
+      startBuild(shape) { startBuildRocket("article", shape || "hopper"); },
       startRoll(name, dest) {
         const v = G.fleet.find((item) => item.name === name);
         if (!v) return;
@@ -7214,6 +7463,13 @@
         const v = G.fleet.find((item) => item.name === name);
         if (!v) return false;
         v.fittingLifeS = Number(seconds);
+        renderChrome();
+        return true;
+      },
+      setStructure(name, n) {
+        const v = G.fleet.find((item) => item.name === name);
+        if (!v) return false;
+        v.stageLife = Number(n);
         renderChrome();
         return true;
       },
@@ -7288,6 +7544,12 @@
           steel: G.steel,
           builtArticles: G.builtArticles,
           structFloor: G.structFloor,
+          engineLanded: !!G.engineLanded,
+          tankOpen: !!G.tankOpen,
+          factory: {
+            hopper: Object.assign({}, factorySpec("hopper")),
+            tank: Object.assign({}, factorySpec("tank")),
+          },
           defectRestored: {
             stage: !!G.defectRestored.stage,
             fitting: !!G.defectRestored.fitting,
@@ -7313,7 +7575,7 @@
             maxQTime: r.maxQTime || 0,
           })),
           fleet: G.fleet.map((v) => ({
-            id: v.id, name: v.name, status: v.status,
+            id: v.id, name: v.name, status: v.status, shape: shapeOf(v),
             engineLifeS: v.engineLifeS, fittingLifeS: v.fittingLifeS, stageLife: v.stageLife,
             thrustKn: v.thrustKn != null ? v.thrustKn : null,
             proofDone: !!v.proofDone, tankingDone: !!v.tankingDone, testLeft: v.testLeft || 0,
