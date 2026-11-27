@@ -522,7 +522,7 @@ r.t += (dt * 1000) / dayMs();</code></pre>
     <h2 id="hold">The day holds</h2>
     <p>Today the day keeps moving during a fill, a fire, and a flight. 0.14.2-seed kept that rule. This row replaces it. The day holds while a fill, a fire, or a flight runs.</p>
     <p>You see the day number stop. The map job note reads "The day holds while the tanks fill", "The day holds while the engine burns", or "The day holds during the flight". When the motion ends, the note goes and the day moves again from the same point. The top bar does not change.</p>
-    <p>Holding stops everything that runs on the day clock, on purpose. The share of the current day, <code>G.dayAcc</code>, stays where it is. The factory build and the bay job countdowns stop. A road or a lift elsewhere in the yard stops too, because it now runs on days. The fill, the fire, and the flight themselves keep their real seconds. When <code>0.18.1-pipeline</code> lets the factory build during a test, that build pauses during a fire too.</p>
+    <p>Holding stops everything that runs on the day clock, on purpose. The share of the current day, <code>G.dayAcc</code>, stays where it is. The factory build and the bay job countdowns stop. A road or a lift elsewhere in the yard stops too, because it now runs on days. The fill, the fire, and the flight themselves keep their real seconds. When <code>0.19.0-high-hop</code> lets the factory build during a test, that build pauses during a fire too.</p>
     <pre><code>// frame(): the day clock holds while a fill, a fire, or a flight runs.
 const hold = motionKind("fill") || motionKind("fire") || motionKind("fly");
 if (!G.paused &amp;&amp; !hold) {

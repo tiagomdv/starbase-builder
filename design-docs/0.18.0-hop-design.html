@@ -504,7 +504,7 @@ function hopFloorKn(flightKg) {
     <p>The window is the clean rows whose day is after <code>lastReviewDay</code> and on or before the review day. A clean test is a cryo proof that held, a tanking run that held, a static fire that held, or a hop that landed soft. A skip, a scrub, a miss, and a hard landing pay nothing. The log says how much the review added. A quiet window says that no clean test is in it.</p>
     <p>The goals sheet in <code>index.html</code> is a fixed list of seven. Those seven pays sum to 360. The sheet gains a row, "Land a hop.", for 60. That 60 sits level with the static fire goal. The pay never shows on the sheet unless that row is added. The first soft landing pays it once. A hard landing does not pay it. The seven goals stay. <code>6.1.0-rounds</code> rebalances the review later.</p>
     <p>A proof, a tanking run, a static fire, or a hop writes <code>result</code> <code>clean</code> or <code>miss</code> when it ends. A static fire today is stored in <code>fireDays</code>, not in <code>testDays</code>. It also writes a <code>testDays</code> row with that result, so the review can see it. <code>fireDays</code> stays for the cadence count. A failed proof today writes <code>kind: "proof"</code> with no pass flag. This row adds the result. A skip stays unpaid. A scrub writes no clean row. A row with no <code>result</code> pays nothing, including every row already in an old save.</p>
-    <p>The pad record can add a hop count for the last 30 days. The header cadence number still waits for <code>0.18.1-pipeline</code>.</p>
+    <p>The pad record can add a hop count for the last 30 days. The header fire count moved into <code>0.19.0-high-hop</code> on 2026-11-27.</p>
 
     <h2 id="stays">What stays</h2>
     <ul>
@@ -560,7 +560,7 @@ function hopFloorKn(flightKg) {
 
     <h2 id="out">Out of scope</h2>
     <ul>
-      <li>The build-during-test pipeline and the header cadence count. Those are <code>0.18.1-pipeline</code>.</li>
+      <li>The build-during-test note and the header fire count. Those moved into <code>0.19.0-high-hop</code> on 2026-11-27.</li>
       <li>The flip and the high landing. Those are <code>0.19.0-high-hop</code>. SN serials start there.</li>
       <li>The CSS split, sound, and the tower. SH stays free for Super Heavy at <code>0.20.0-stack</code>.</li>
       <li>The road in game days, the day hold, the 1x and 3x speeds, the Starhopper name, and the parts table. Those are <code>0.17.0-tidy</code>. This row waits for that row. It does not write a name.</li>
@@ -597,7 +597,7 @@ function hopFloorKn(flightKg) {
     <p>These updates happen in the ship pass, after the browser checks. This design session does not do them. Tiago commits. This session does not open a pull request.</p>
     <ul>
       <li><code>VERSION</code> becomes <code>0.18.0-hop</code>. The header version follows it.</li>
-      <li>README live-release line. This row is live. The next row is <code>0.18.1-pipeline</code>.</li>
+      <li>README live-release line. This row is live. The next row was <code>0.18.1-pipeline</code>. On 2026-11-27 that row merged into <code>0.19.0-high-hop</code>.</li>
       <li>One new section in <code>IMPLEMENTATION_LOG.md</code>.</li>
       <li>The wiki flight page describes the hop, the three heights, and the landing floor.</li>
       <li>The wiki lines that still say the hop comes later are updated. The line that still quotes 169 seconds is updated. The strip no longer says 1080 kg or 27572 kg.</li>
